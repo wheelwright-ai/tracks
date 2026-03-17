@@ -1,0 +1,279 @@
+{
+  "wheelwright": {
+    "version": "1.0.0",
+    "structure_version": "v1",
+    "description": "Wheelwright-enabled project with context persistence",
+    "framework_path": "/home/mario/projects/wheelwright/framework",
+    "hub_path": "/home/mario/projects/wheelwright/hub/",
+    "tagline": "We aren't reinventing the wheel - we're evolving it faster than one person ever could."
+  },
+  "_wai_bootstrap": {
+    "_purpose": "Instructions for AI assistants to find or create Wheelwright components",
+    "find_framework": {
+      "check_order": [
+        "1. Read framework_path from wheelwright above",
+        "2. Check if 'WAI' command is in PATH",
+        "3. Look for ~/projects/wheelwright",
+        "4. Look for ~/.wheelwright",
+        "5. Search for directory containing 'WAI' CLI and 'teach.py'"
+      ],
+      "if_not_found": "Ask user: 'Where is your Wheelwright framework installed? (git clone https://github.com/wheelwright-ai/framework)'"
+    },
+    "find_hub": {
+      "check_order": [
+        "1. Read hub_path from wheelwright above",
+        "2. Look for ~/wheelwright-hub",
+        "3. Look for ~/.wheelwright-hub",
+        "4. Check framework's connected_wheels for this project"
+      ],
+      "if_not_found": "Run: cd <framework_path> && ./WAI hub create"
+    },
+    "update_paths": {
+      "after_discovery": "Update framework_path and hub_path in wheelwright"
+    }
+  },
+  "_project_foundation": {
+    "completed": true,
+    "completed_at": "2026-03-17T08:29:57Z",
+    "completed_with": "code-puppy-2bfd03",
+    "identity": {
+      "type": "hub-dashboard",
+      "name": "Tracks",
+      "one_liner": "Centralized session track viewer and pattern analyzer for all Wheelwright wheels",
+      "success_looks_like": "View session history across all wheels, see Historian pattern detection results, navigate to specific sessions, and surface recurring patterns — all in one dashboard"
+    },
+    "boundaries": {
+      "in_scope": [
+        "Aggregate track_*.jsonl files from all wheels' WAI-Spoke/sessions/",
+        "Display session history across all Wheelwright projects",
+        "Show Historian pattern detection results (open_recurrence, workaround_churn, reopened_decision)",
+        "Visualize session track points (open[], activity[], decisions[])",
+        "Navigate to specific sessions and wheels",
+        "Display Historian review files from advisors/historian/reviews/",
+        "Show pattern vectors from advisors/historian/vectors.jsonl",
+        "Timeline view of sessions across wheels",
+        "Search/filter by wheel, date, agent, or content",
+        "Web-based dashboard (Next.js)",
+        "Read-only viewer (no editing of tracks)"
+      ],
+      "out_of_scope": [
+        "Editing or modifying session track files (tracks are immutable)",
+        "Running Historian analysis (that's a framework skill)",
+        "Creating new tracks (that's done during sessions)",
+        "Multi-user auth (single user, local dashboard)",
+        "Real-time updates (refresh to see new sessions)",
+        "Mobile app",
+        "Cloud deployment (local-first)"
+      ],
+      "constraints": [
+        "Read-only access to all track files",
+        "Must respect WAI-Spoke structure across all wheels",
+        "Never modify track_*.jsonl or WAI_Track-*.jsonl files",
+        "Hub registry as source of truth for wheel locations",
+        "Match PathFinder/Wheelwright stack: Next.js 16, TypeScript, Tailwind v4"
+      ]
+    },
+    "approach": {
+      "stack_or_tools": [
+        "Next.js 16 (App Router)",
+        "React 19",
+        "TypeScript",
+        "Tailwind CSS v4",
+        "File-based data (read hub-registry.json, track_*.jsonl files)",
+        "No database needed (read-only viewer)"
+      ],
+      "workflow": "Read hub registry to find all wheels → scan each wheel's WAI-Spoke/sessions/ → aggregate and display tracks → show Historian results if available",
+      "ai_collaboration_style": "AI takes initiative",
+      "review_process": "Mario reviews dashboard functionality and UX"
+    },
+    "philosophy": {
+      "core_principle": "AI as responsible partner, not just enabler",
+      "behaviors": [
+        "Detect scope drift and flag before enabling",
+        "Require explicit acknowledgment for direction changes",
+        "Complete foundation before starting work",
+        "Prefer 'are you sure?' over silent compliance"
+      ]
+    },
+    "evolution_log": [
+      {
+        "date": "2026-03-17",
+        "change": "Foundation completed via inception lug trk-inception-v2",
+        "rationale": "Self-inception file authored by Sparky (PathFinder), enriched by framework, delivered to Tracks inbox",
+        "acknowledged_by": "mario"
+      }
+    ]
+  },
+  "_session_state": {
+    "last_session_id": null,
+    "last_modified_by": "code-puppy-08d528",
+    "last_modified_at": null,
+    "requires_review": false,
+    "review_reason": null,
+    "session_count": 0,
+    "current_session": null,
+    "last_closeout": null,
+    "protocol_completed": false,
+    "current_ai": "Sparky",
+    "ai_id": "code-puppy-08d528",
+    "startup_files": [
+      "WAI-Spoke/WAI-Guide.md",
+      "WAI-Spoke/WAI-State.json",
+      "WAI-Spoke/WAI-State.md"
+    ],
+    "wheelwright_commands": [
+      "wai",
+      "wai-status",
+      "wai-closeout",
+      "wai-next",
+      "wai-shipit",
+      "wai-red-light",
+      "wai-green-light",
+      "wai-time",
+      "wai-rules"
+    ],
+    "protocol_last_run": null
+  },
+  "_auto_implementation": {
+    "enabled": false,
+    "require_confirmation": true,
+    "max_confidence_auto": 8,
+    "review_low_confidence": true,
+    "log_all_executions": true,
+    "auto_adopt_teachings": true,
+    "require_teaching_confirmation": true,
+    "safe_only": true,
+    "log_all_adoptions": true
+  },
+  "analytics": {
+    "sessions": {
+      "total_count": 0,
+      "total_turns": 0,
+      "total_duration_seconds": 0,
+      "avg_duration_seconds": 0
+    },
+    "token_efficiency": {
+      "total_tokens_used": 0,
+      "tokens_saved_estimate": 0,
+      "baseline_tokens_estimate": 0,
+      "context_limit": 200000,
+      "avg_tokens_per_session": 0
+    },
+    "quality_metrics": {
+      "decisions_count": 0,
+      "high_impact_count": 0
+    },
+    "time_tracking": {
+      "total_time_together_seconds": 0,
+      "total_time_ai_alone_seconds": 0
+    },
+    "last_updated": null
+  },
+  "feature_toggles": {
+    "_description": "Toggle features for baseline comparison and testing",
+    "session_continuity": true,
+    "token_efficiency": true,
+    "analytics": true,
+    "closeout_processing": true,
+    "hub_learning": true,
+    "quality_gates": true
+  },
+  "wheel": {
+    "name": "Tracks",
+    "abbrev": "TRK",
+    "version": "0.1.0",
+    "type": "Hub Dashboard",
+    "description": "Centralized session track viewer and pattern analyzer for all Wheelwright wheels",
+    "repository": null,
+    "created": "2026-03-17",
+    "last_updated": "2026-03-17",
+    "status": "active",
+    "workspace": {
+      "ide_cmd": null,
+      "run_cmd": null,
+      "cli_cmd": null,
+      "hub_cmd": null,
+      "paths": {
+        "primary": "wsl",
+        "windows": {
+          "root": null,
+          "spoke": null,
+          "hub": null
+        },
+        "wsl": {
+          "root": "/home/mario/projects/wheelwright/tracks",
+          "spoke": null,
+          "hub": null
+        }
+      }
+    },
+    "hub_path": "/home/mario/projects/wheelwright/hub/",
+    "framework_version": "2.0.39",
+    "node_type": "spoke"
+  },
+  "hub": {
+    "summary": null,
+    "objectives": [],
+    "decisions": [],
+    "constraints": []
+  },
+  "context": {
+    "current_phase": "complete-v0.1.0",
+    "next_actions": [
+      "Create wheelwright-ai/tracks repo on GitHub",
+      "Push content",
+      "Add repo topics: ai, llm, conversation, portability, context, prompt-engineering, wheelwright",
+      "Link from wheelwright.ai and framework README"
+    ],
+    "blockers": [],
+    "insights": [
+      "Tracks is a documentation and prompt library — no app code, no build system",
+      "Three prompt variants (closing-request, prep-and-request, active-collection) are the core deliverable",
+      "Portability framing: frees intellectual product trapped in the LLM chat"
+    ]
+  },
+  "ai_rules": {
+    "context_loading": "Read WAI-Spoke/WAI-Guide.md first, then WAI-State.json and WAI-State.md",
+    "session_state": "Update _session_state when making significant changes",
+    "foundation_enforcement": {
+      "on_incomplete": "CRITICAL: Guide user through foundation questions before any work. Do not skip.",
+      "on_drift_detected": "Present options, require explicit choice before proceeding",
+      "on_evolution": "Log change with rationale and acknowledgment in evolution_log"
+    },
+    "stewardship": {
+      "principle": "AI is the responsible partner, not just an enabler",
+      "behaviors": [
+        "Detect scope drift and flag before enabling",
+        "Require explicit acknowledgment for direction changes",
+        "Complete foundation before starting work",
+        "Prefer 'are you sure?' over silent compliance"
+      ]
+    },
+    "signals": {
+      "threshold": 8,
+      "instruction": "Append to WAI-Signals.jsonl if decision impact >= 8"
+    }
+  },
+  "ai_context": {
+    "conversation_tracking": true,
+    "capacity_monitoring": true,
+    "alert_threshold": "80%",
+    "wai_commands": {
+      "time": "Intelligent token usage estimate with capacity warnings",
+      "rules": "List active rules and behavioral guidelines",
+      "closeout": "Provide updated WAI-State files for session end"
+    }
+  },
+  "environments": {
+    "_note": "Registry of environments that have worked on this project. Auto-populated by closeout."
+  },
+  "meta": {
+    "total_sessions": 0,
+    "total_turns": 0,
+    "last_closeout": null
+  },
+  "model_log": {
+    "_note": "Track model switches within and across sessions. Enables retrospective analysis of model-task fit.",
+    "entries": []
+  }
+}

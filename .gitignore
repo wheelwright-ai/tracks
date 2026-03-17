@@ -1,0 +1,12 @@
+# Next.js build artifacts (from previous iteration — repo is now documentation-only)
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea

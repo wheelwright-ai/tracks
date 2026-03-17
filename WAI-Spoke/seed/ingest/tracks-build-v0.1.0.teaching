@@ -1,0 +1,378 @@
+---
+_teaching:
+  type: "spoke-build-epic"
+  version: "2.0.0"
+  from: "wheelwright-framework"
+  to: "tracks-spoke-agent"
+  safe_to_auto_adopt: false
+  requires_green_light: true
+  created: "2026-03-17T04:44:00Z"
+  authored_by: "claude-sonnet-4-6 (session-20260317-0444) + mario"
+  summary: "Decantation orders for Tracks v0.1.0 — position, repo scaffold, README, base + best variants, dogfood"
+---
+
+# Teaching: Build Tracks Spoke v0.1.0 — Decantation Orders
+
+## Mailroom Protocol
+
+You are receiving build orders. Before acting:
+
+1. Read this entire document
+2. Present to the user: "I understand I am being asked to [summary]. Here is my interpretation and action plan."
+3. Wait for explicit Green Light
+4. Execute in phases — do not skip Phase 1 (Foundation)
+
+---
+
+## Origin Story
+
+Tracks is the **second offering from the Wheelwright project** — a framework for AI session continuity built by mario (mariov96@gmail.com).
+
+**Wheelwright's first offering is PathFinder** (`/home/mario/projects/pathfinder`, v0.4.0, 18 sessions). PathFinder is a production Next.js application: AI-powered career placement strategist and autonomous asset generator. It has a working stack (Next.js 14, TypeScript, Tailwind, JSON file storage, vitest), a real data layer in `data/`, and established patterns to reference.
+
+**How Tracks was born:** An AI agent named "Sparky" (code-puppy-08d528, claude-sonnet-4-6) was working inside the PathFinder project on 2026-03-16. Sparky took the initiative to design the Tracks spoke — writing a full specification, README, dogfood guide, and two bootstrap scripts — all from within PathFinder's repo. Sparky then:
+1. Created the Tracks WAI-Spoke shell at `/home/mario/projects/wheelwright/tracks/`
+2. Sent the spec to the hub as a lug: `hub/WAI-Spoke/lugs/inbox/lug_tracks_spoke_bootstrap_2026_03_16.md`
+3. Sent a signal to the framework asking for enrichment: `framework/teachings/signal-20260317T0430-from-wheelwright-tracks-lug-review.md.teaching`
+
+The framework reviewed Sparky's work and issued these decantation orders, converting Sparky's vision into a proper executable build epic.
+
+**Sparky's artifacts live in PathFinder** (they were authored there):
+- `/home/mario/projects/pathfinder/TRACKS_README.md` — user-facing README Sparky wrote
+- `/home/mario/projects/pathfinder/TRACKS_DOGFOOD_GUIDE.md` — dogfood methodology
+- `/home/mario/projects/pathfinder/TRACKS_SPOKE_COMPLETE.md` — complete package overview
+- `/home/mario/projects/pathfinder/TRACKS_QUICK_REFERENCE.md` — quick reference
+- `/home/mario/projects/pathfinder/BOOTSTRAP_TRACKS_BASE.sh` — base variant bootstrap script
+- `/home/mario/projects/pathfinder/BOOTSTRAP_TRACKS_BEST.sh` — best variant bootstrap script
+
+**Your first job:** Read those files. They are the foundation of what you will build. You are not starting from zero — you are executing and homing Sparky's work.
+
+---
+
+## Wheelwright Ecosystem Position
+
+```
+Wheelwright Framework (framework spoke — protocol authority)
+├── PathFinder (Spoke 1)   → AI-powered career placement + job search
+├── Tracks    (Spoke 2)    → Progress tracking for any goal   ← THIS REPO
+└── Minder    (Spoke 3)    → Task management (future)
+```
+
+Tracks complements PathFinder:
+- PathFinder tracks the **job search** (what you applied to, interview status, STAR stories)
+- Tracks tracks the **journey** (learning paths, skills to develop, career milestones)
+
+A user running both can track "learn React" in Tracks and "apply to frontend roles" in PathFinder simultaneously.
+
+---
+
+## Foundation Specification
+
+Apply these values to `WAI-Spoke/WAI-State.json` in Phase 1:
+
+```json
+{
+  "_project_foundation": {
+    "completed": true,
+    "completed_at": "<ISO-8601 now>",
+    "completed_with": "claude-sonnet-4-6",
+    "identity": {
+      "type": "application",
+      "name": "Tracks",
+      "one_liner": "Flexible progress tracking for any goal — learning paths, project milestones, career arcs, habits",
+      "success_looks_like": "A user can define a track, add ordered items with dependencies, mark progress, and see completion percentage and velocity — working in under 2 minutes from first npm run dev"
+    },
+    "boundaries": {
+      "in_scope": [
+        "Track definition (name, description, tags, category)",
+        "Track items: title, description, status, ordering, dependencies",
+        "Progress tracking: completion %, items done/total, velocity",
+        "Time estimates per item (optional field)",
+        "JSON file storage — no database dependency in v0.1.0",
+        "Single-user, no authentication in v0.1.0",
+        "WAI-Spoke integration (this repo uses Wheelwright for AI continuity)",
+        "README and user-facing documentation",
+        "Both base and best bootstrap variants documented and scripted"
+      ],
+      "out_of_scope": [
+        "Authentication and multi-user (v0.2.0+)",
+        "PostgreSQL or any external database (v0.2.0+)",
+        "Real-time collaboration (v0.3.0+)",
+        "PathFinder or Minder live integration (post-v0.1.0 — document the interface only)",
+        "AI-powered recommendations",
+        "Mobile app",
+        "NPM package @wheelwright/create-tracks (document the pattern, do not publish)"
+      ],
+      "constraints": [
+        "Node.js + TypeScript — match PathFinder's stack",
+        "Next.js 14 — same as PathFinder",
+        "File-based storage: data/tracks.json",
+        "WAI-Spoke/ structure must be preserved unchanged (except WAI-State.json and WAI-Lugs.jsonl updates)",
+        "README must live at repo root as README.md",
+        "Embedded in Wheelwright framework — mention this in README"
+      ]
+    },
+    "approach": {
+      "stack_or_tools": ["Next.js 14", "TypeScript", "Tailwind CSS", "JSON file storage", "vitest"],
+      "workflow": "WAI session-driven: plan in lugs, execute, verify, closeout",
+      "ai_collaboration_style": "AI takes initiative within Green Light bounds",
+      "review_process": "All epics require dogfood + user Green Light before execution"
+    }
+  },
+  "wheel": {
+    "version": "0.1.0",
+    "framework_version": "2.0.39",
+    "node_type": "spoke",
+    "name": "Tracks",
+    "abbrev": "TRK",
+    "description": "Flexible progress tracking — Wheelwright Spoke 2",
+    "status": "active"
+  },
+  "context": {
+    "current_phase": "initial-build",
+    "next_actions": [
+      "Execute tracks-build-v0.1.0.teaching (this file)",
+      "Phase 1: Complete foundation (WAI-State.json)",
+      "Phase 2: Scaffold Next.js app",
+      "Phase 3: Build base variant",
+      "Phase 4: Write README.md",
+      "Phase 5: Dogfood"
+    ]
+  }
+}
+```
+
+---
+
+## Build Specification
+
+### Reference Implementation: PathFinder
+
+Before writing any code, read PathFinder's structure:
+
+```
+/home/mario/projects/pathfinder/
+├── app/              ← Next.js app directory
+├── components/       ← React components
+├── lib/              ← Utilities
+├── data/             ← JSON file storage (real data lives here)
+├── package.json      ← Node.js config to reference for versions
+├── tsconfig.json     ← TypeScript config to copy
+└── WAI-Spoke/        ← Wheelwright context (v1 format)
+```
+
+Use PathFinder's `package.json` for package versions. Use PathFinder's `tsconfig.json` as the base.
+
+### Data Model
+
+```typescript
+// src/types/index.ts
+
+export interface Track {
+  id: string           // nanoid or uuid
+  name: string
+  description: string
+  category: string     // e.g. "Learning", "Career", "Project", "Habit"
+  tags: string[]
+  created_at: string   // ISO-8601
+  updated_at: string
+  items: TrackItem[]
+}
+
+export interface TrackItem {
+  id: string
+  track_id: string
+  title: string
+  description: string
+  status: "not_started" | "in_progress" | "complete"
+  order: number
+  blocked_by: string[]    // array of TrackItem ids — dependency graph
+  time_estimate?: number  // minutes, optional
+  time_spent?: number     // minutes, optional
+  notes?: string
+  completed_at?: string   // ISO-8601
+}
+
+export interface Progress {
+  total: number
+  complete: number
+  in_progress: number
+  not_started: number
+  blocked: number         // items whose blocked_by has incomplete items
+  pct: number             // 0-100, rounded
+  velocity?: number       // items completed per day over last 7 days
+}
+```
+
+### Base Variant (Build This First)
+
+**What it is:** Next.js 14 + TypeScript + Tailwind + JSON file storage. Single user, no auth, no database. Get it working fast.
+
+**Application structure:**
+```
+tracks/
+├── WAI-Spoke/                      # DO NOT MODIFY (except WAI-State.json, WAI-Lugs.jsonl)
+├── data/
+│   └── tracks.json                 # created on first write, initialized as []
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx              # root layout, Tailwind base, nav bar
+│   │   ├── page.tsx                # dashboard — all tracks with progress bars
+│   │   ├── globals.css             # Tailwind directives
+│   │   ├── tracks/
+│   │   │   ├── new/
+│   │   │   │   └── page.tsx        # create track form
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx        # track detail: items + progress + add item
+│   │   │       └── items/
+│   │   │           └── [itemId]/
+│   │   │               └── page.tsx  # edit item (status, notes, time)
+│   │   └── api/
+│   │       └── tracks/
+│   │           ├── route.ts        # GET /api/tracks, POST /api/tracks
+│   │           └── [id]/
+│   │               ├── route.ts    # GET, PATCH, DELETE /api/tracks/[id]
+│   │               └── items/
+│   │                   ├── route.ts          # POST /api/tracks/[id]/items
+│   │                   └── [itemId]/
+│   │                       └── route.ts      # PATCH, DELETE /api/tracks/[id]/items/[itemId]
+│   ├── lib/
+│   │   ├── storage.ts              # readTracks(), writeTracks(), computeProgress()
+│   │   └── utils.ts                # nanoid wrapper, date helpers
+│   └── types/
+│       └── index.ts                # Track, TrackItem, Progress interfaces
+├── README.md                       # SEE README SPECIFICATION BELOW — write this file
+├── package.json
+├── tsconfig.json
+├── next.config.js
+├── tailwind.config.ts
+└── postcss.config.js
+```
+
+**Storage layer (`src/lib/storage.ts`):**
+```typescript
+// Read data/tracks.json — return Track[] or [] if file missing
+export function readTracks(): Track[]
+
+// Write Track[] to data/tracks.json (create data/ if missing)
+export function writeTracks(tracks: Track[]): void
+
+// Compute Progress from TrackItem[] — pure function, no I/O
+export function computeProgress(items: TrackItem[]): Progress
+```
+
+**Key UI behaviors:**
+- Dashboard: grid of track cards — name, category, tag chips, progress bar (% + N/M label)
+- Track detail: items in order, status badges clickable (cycles not_started → in_progress → complete), blocked items shown with lock icon and "blocked by [title]" label
+- Add item form inline on track detail page (no separate route needed)
+- Empty state on dashboard: "No tracks yet — create your first one"
+- All mutations via API routes (no server actions for v0.1.0)
+
+**Package versions** — check PathFinder's package.json for actuals, but use at minimum:
+- `next`: 14.x
+- `react` + `react-dom`: 18.x
+- `typescript`: 5.x
+- `tailwindcss`: 3.x
+- `vitest`: latest
+
+### Best Variant (Document, Don't Build Yet)
+
+The best variant is v0.2.0+ scope. Document it in README.md so users understand the roadmap. Do NOT implement it now.
+
+**Best variant adds:**
+- PostgreSQL + Prisma ORM (replace JSON storage)
+- NextAuth.js (GitHub + Google OAuth)
+- tRPC for type-safe API
+- Multi-user: shared tracks, comments, team progress
+- Playwright E2E tests + GitHub Actions CI/CD
+- Full analytics: velocity charts, streak tracking, comparative analytics
+- PathFinder integration: sync job applications as track items
+- Minder integration: sync tasks as track items
+
+**Best variant stack:**
+```
+Frontend: Next.js 14 + React 18 + TypeScript + Tailwind CSS
+Backend:  Next.js API Routes + tRPC
+Database: PostgreSQL + Prisma ORM
+Auth:     NextAuth.js (GitHub, Google)
+Testing:  Vitest + Playwright
+CI/CD:    GitHub Actions
+Deploy:   Vercel (recommended)
+```
+
+---
+
+## README Specification
+
+Write `README.md` at the repo root. Base it on Sparky's `TRACKS_README.md` at `/home/mario/projects/pathfinder/TRACKS_README.md` — read it and adapt it. The README must:
+
+1. **Open with a clear one-liner** — what Tracks is
+2. **Show Wheelwright ecosystem position** — PathFinder / Tracks / Minder diagram
+3. **Quick start section** — base variant only for now, `npm run dev` in < 5 minutes
+4. **Feature comparison table** — base vs best (best marked as "coming in v0.2.0")
+5. **Core concepts section** — explain Tracks, TrackItems, dependencies, Progress
+6. **Usage examples** — 2-3 TypeScript examples showing the data model in action
+7. **Architecture section** — base variant structure, brief best variant overview
+8. **Embedded in Wheelwright** — one paragraph explaining this is a Wheelwright spoke, what that means for AI session continuity, link concept to framework
+
+Include this exact paragraph under "Embedded in Wheelwright":
+```
+Tracks is a **Wheelwright spoke** — it uses the Wheelwright Framework for AI session
+continuity. Every AI assistant that works on Tracks picks up exactly where the last
+session left off: active tasks, decisions made, and project state are all preserved
+in WAI-Spoke/. You can work with Claude, Gemini, or any supported AI — they'll all
+have the same context. This is what "the village builds the wheel" means in practice.
+```
+
+9. **Bootstrap scripts section** — reference the scripts Sparky wrote. Copy them from PathFinder:
+   - `BOOTSTRAP_TRACKS_BASE.sh` → copy to Tracks repo root
+   - `BOOTSTRAP_TRACKS_BEST.sh` → copy to Tracks repo root (documents the future path)
+10. **Contributing** and **License** sections
+
+---
+
+## Dogfood Requirement
+
+Once `npm run dev` runs, create this track in the running app before closing the session:
+
+**Track: "Build Tracks v0.1.0"** (category: Project)
+
+Items in order:
+1. Read Sparky's TRACKS_README.md and bootstrap scripts in PathFinder
+2. Complete WAI foundation in WAI-State.json
+3. Scaffold Next.js app (package.json, tsconfig, config files)
+4. Implement storage layer (src/lib/storage.ts)
+5. Build API routes (CRUD for tracks + items)
+6. Build dashboard page
+7. Build track detail page
+8. Write README.md
+9. Copy bootstrap scripts from PathFinder
+10. Create this dogfood track (blocked_by: 7)
+11. WAI closeout — session summary, git commit
+
+Items 10 is blocked_by 7 (can't create it until the page works). This proves the dependency system works.
+
+---
+
+## Embedded Lug
+
+```jsonl
+{"i":"48b232f1ed19","ty":"epic","t":"Build Tracks spoke v0.1.0 — foundation, scaffold, README, dogfood","s":"o","ca":"2026-03-17T04:44:00Z","gb":"claude-sonnet-4-6 (session-20260317-0444)","impact":9,"description":"Stand up the Tracks spoke as a working Next.js app. The WAI-Spoke shell exists at /home/mario/projects/wheelwright/tracks/ with no app code and an incomplete foundation. Sparky authored complete artifacts in PathFinder — read and home them here. Result: running app, README at repo root, both bootstrap scripts present, dogfood track created in the app.","origin":"Tracks conceived as second Wheelwright spoke. Stubbed by Sparky (code-puppy-08d528) in PathFinder repo on 2026-03-16. Artifacts authored in PathFinder: TRACKS_README.md, TRACKS_DOGFOOD_GUIDE.md, BOOTSTRAP_TRACKS_BASE.sh, BOOTSTRAP_TRACKS_BEST.sh. Framework issued decantation orders 2026-03-17.","perceive":"1. THIS TEACHING FILE — read in full before doing anything else. 2. Sparky's artifacts in PathFinder at /home/mario/projects/pathfinder/: TRACKS_README.md, TRACKS_DOGFOOD_GUIDE.md, BOOTSTRAP_TRACKS_BASE.sh, BOOTSTRAP_TRACKS_BEST.sh, TRACKS_SPOKE_COMPLETE.md. 3. PathFinder's package.json and tsconfig.json — use as version reference. 4. PathFinder's app/ and lib/ structure — use as structural reference (same stack). 5. /home/mario/projects/wheelwright/tracks/WAI-Spoke/WAI-State.json — foundation.completed=false, no app code exists. 6. /home/mario/projects/wheelwright/tracks/WAI-Spoke/WAI-Lugs.jsonl — one task: trk-001 (complete foundation). 7. Confirm no src/ or package.json at project root.","execute":"PHASE 1 — FOUNDATION: Update WAI-Spoke/WAI-State.json per the Foundation Specification in this teaching. Set _project_foundation.completed=true. Update wheel.framework_version=2.0.39. Close trk-001 in WAI-Lugs.jsonl (s:c). Append 3-4 new task lugs for build phases with gb=your-model-id. | PHASE 2 — READ SPARKY'S WORK: Read all TRACKS_* files in /home/mario/projects/pathfinder/. Read PathFinder's package.json for version numbers. Read PathFinder's app/ structure for patterns. | PHASE 3 — SCAFFOLD: Create package.json (Next.js 14, TypeScript, Tailwind, vitest — use PathFinder versions as baseline). Create tsconfig.json (copy from PathFinder and adapt). Create next.config.js, tailwind.config.ts, postcss.config.js. Create src/types/index.ts with Track, TrackItem, Progress interfaces from spec. Run npm install. | PHASE 4 — STORAGE: Create src/lib/storage.ts: readTracks() reads data/tracks.json (returns [] if missing), writeTracks(tracks) writes atomically (create data/ if missing), computeProgress(items) is pure — computes Progress from TrackItem[]. | PHASE 5 — API ROUTES: Build routes per the structure in this teaching. All routes use readTracks/writeTracks from storage. IDs generated with nanoid or crypto.randomUUID(). | PHASE 6 — PAGES: Build layout.tsx (nav: Tracks title, New Track link, back to dashboard). Build page.tsx (dashboard: track cards with progress bars, empty state). Build tracks/new/page.tsx (form). Build tracks/[id]/page.tsx (detail: ordered items, status badges, add item form inline). | PHASE 7 — README: Write README.md per the README Specification in this teaching. Base it on Sparky's TRACKS_README.md but adapt for accuracy (base variant only working now, best variant is v0.2.0+). | PHASE 8 — BOOTSTRAP SCRIPTS: Copy BOOTSTRAP_TRACKS_BASE.sh and BOOTSTRAP_TRACKS_BEST.sh from /home/mario/projects/pathfinder/ to the Tracks repo root. Make executable (chmod +x). | PHASE 9 — DOGFOOD: Run npm run dev. Create the dogfood track listed in this teaching. Verify all items can be created. Verify item 10 shows as blocked by item 7. Mark items 1-9 complete. | PHASE 10 — WAI CLOSEOUT: Update WAI-State.json (_session_state: session count, last closeout, next_actions). Append session-summary lug to WAI-Lugs.jsonl. Run npm run typecheck — zero errors. Git commit.","verify":"1. npm run dev starts on localhost:3000 without errors. 2. Dashboard shows empty state with 'Create your first track' prompt. 3. Create a track — appears on dashboard with 0% progress bar. 4. Add 5 items. Set item 5 blocked_by item 4. 5. Mark items 1-3 complete — progress shows 60%. 6. Item 5 shows as blocked (item 4 not complete). 7. Mark item 4 complete — item 5 is now unblocked. 8. npm run typecheck exits 0. 9. README.md exists at repo root and includes Wheelwright embed paragraph. 10. BOOTSTRAP_TRACKS_BASE.sh and BOOTSTRAP_TRACKS_BEST.sh exist at repo root and are executable. 11. Dogfood track 'Build Tracks v0.1.0' exists in the app with 11 items. 12. WAI-State.json shows _project_foundation.completed=true.","tasks":["Phase 1: Complete WAI foundation","Phase 2: Read Sparky's PathFinder artifacts","Phase 3: Scaffold Next.js project","Phase 4: Implement storage layer","Phase 5: Build API routes","Phase 6: Build pages (dashboard, new, detail)","Phase 7: Write README.md","Phase 8: Copy bootstrap scripts from PathFinder","Phase 9: Dogfood — create Build Tracks track in running app","Phase 10: WAI closeout + git commit"],"wakeup_visibility":true,"_behavior_directive":{"what_this_is":"A build epic. Execute phases in order. Foundation first. Read Sparky's PathFinder artifacts before writing any code — they are the specification made real. Present understanding and wait for Green Light before executing.","what_this_is_NOT":"An instruction to build the best variant (PostgreSQL, auth, multi-user). Not a request to publish npm packages or set up CI/CD. Not a greenfield design — Sparky's work is the foundation, your job is to home and execute it."}}
+```
+
+---
+
+## Delivery Note
+
+**This teaching authored by:** `claude-sonnet-4-6 (session-20260317-0444)` + mario
+
+**Sources used:**
+- Sparky's vision: `hub/WAI-Spoke/lugs/inbox/lug_tracks_spoke_bootstrap_2026_03_16.md`
+- Sparky's signal: `framework/teachings/signal-20260317T0430-from-wheelwright-tracks-lug-review.md.teaching`
+- Sparky's artifacts: `pathfinder/TRACKS_README.md`, `pathfinder/BOOTSTRAP_TRACKS_*.sh` et al
+- PathFinder state: `/home/mario/projects/pathfinder/WAI-Spoke/WAI-State.json` (v0.4.0, 18 sessions)
+- Tracks spoke shell: `/home/mario/projects/wheelwright/tracks/WAI-Spoke/WAI-State.json`
+- Framework session history: 35 sessions of WAI protocol development
+- Hub fleet map: 15 spokes in hub-registry.json, 14 with WAI-Spoke structures
+
+Sparky sent the village's vision. The framework sent back the blueprint. Now someone builds the wheel.

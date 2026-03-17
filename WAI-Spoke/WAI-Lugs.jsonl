@@ -1,0 +1,3 @@
+{"id": "trk-001", "type": "task", "title": "Complete project foundation", "status": "published", "description": "Run /wai-foundation to define project identity, boundaries, approach, and philosophy before starting any work.", "impact": 8, "created_by": "code-puppy-08d528", "node": "foundation", "created_at": null, "priority": "high", "tags": ["foundation", "setup"], "blocks": [], "blocked_by": []}
+{"id":"trk-001","status":"c","closed_at":"2026-03-17T00:00:00Z"}
+{"id":"trk-impl-v1","type":"work-order","title":"Tracks repo full implementation — documentation and prompt library","status":"c","closed_at":"2026-03-17T00:00:00Z","tags":["implementation","documentation","prompts","samples"]}
