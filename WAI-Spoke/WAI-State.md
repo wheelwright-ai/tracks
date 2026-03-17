@@ -15,55 +15,38 @@
 ## Project Foundation
 
 ### Identity
-- **Type:** Hub Dashboard
+- **Type:** Documentation and prompt library
 - **Name:** Tracks
-- **One-liner:** Centralized session track viewer and pattern analyzer for all Wheelwright wheels
-- **Success looks like:** View session history across all wheels, see Historian pattern detection results, navigate to specific sessions, and surface recurring patterns — all in one dashboard
+- **One-liner:** Portable conversation records for any AI session. Take your context anywhere.
+- **Success looks like:** Anyone can generate a WAI Track file from any AI conversation using the prompts in this repo. Samples are realistic enough to demonstrate portability. Wheelwright is the clear next step.
 
-✅ **Foundation Complete** — Defined on 2026-03-17 by code-puppy-2bfd03 (Sparky)
+✅ **Foundation Complete** — Defined on 2026-03-17 by claude-sonnet-4-6
 
 ### Boundaries
 
 **In Scope:**
-- Aggregate track_*.jsonl files from all wheels' WAI-Spoke/sessions/
-- Display session history across all Wheelwright projects
-- Show Historian pattern detection results (open_recurrence, workaround_churn, reopened_decision)
-- Visualize session track points (open[], activity[], decisions[])
-- Navigate to specific sessions and wheels
-- Display Historian review files from advisors/historian/reviews/
-- Show pattern vectors from advisors/historian/vectors.jsonl
-- Timeline view of sessions across wheels
-- Search/filter by wheel, date, agent, or content
-- Web-based dashboard (Next.js)
-- Read-only viewer (no editing of tracks)
+- Track format specification (spec/track-format.md)
+- Three prompt variants: closing-request, prep-and-request, active-collection
+- Three realistic sample Track files demonstrating portability
+- README as the manifesto: portability framing, use cases, Wheelwright funnel
+- MIT license matching framework
 
 **Out of Scope:**
-- Editing or modifying session track files (tracks are immutable)
-- Running Historian analysis (that's a framework skill)
-- Creating new tracks (that's done during sessions)
-- Multi-user auth (single user, local dashboard)
-- Real-time updates (refresh to see new sessions)
-- Mobile app
-- Cloud deployment (local-first)
+- Application code, web interface, build system
+- Track file viewer or editor (that may be a future spoke)
+- Authentication, database, any runtime dependencies
 
 **Constraints:**
-- Read-only access to all track files
-- Must respect WAI-Spoke structure across all wheels
-- Never modify track_*.jsonl or WAI_Track-*.jsonl files
-- Hub registry as source of truth for wheel locations
-- Match PathFinder/Wheelwright stack: Next.js 16, TypeScript, Tailwind v4
+- Pure documentation — no package.json, no node_modules, no build step
+- All wheelwright.ai and framework repo links must be present
+- Prompts must be self-contained (raw URL usable as LLM instruction)
+- Samples must be realistic enough to demonstrate portability
 
 ### Approach
-- **Stack/Tools:**
-  - Next.js 16 (App Router)
-  - React 19
-  - TypeScript
-  - Tailwind CSS v4
-  - File-based data (read hub-registry.json, track_*.jsonl files)
-  - No database needed (read-only viewer)
-- **Workflow:** Read hub registry to find all wheels → scan each wheel's WAI-Spoke/sessions/ → aggregate and display tracks → show Historian results if available
+- **Stack/Tools:** Markdown, JSONL — nothing else
+- **Workflow:** GitHub repo, public, discoverable via topics
 - **AI Collaboration:** AI takes initiative
-- **Review Process:** Mario reviews dashboard functionality and UX
+- **Review Process:** Mario reviews content quality and messaging
 
 ---
 
@@ -99,15 +82,16 @@ Tracks works hand-in-hand with the Historian advisor skill:
 
 | Date | Change | Rationale | Acknowledged By |
 |------|--------|-----------|--------------------|
-| 2026-03-17 | Foundation defined | Corrected mission from generic progress tracker to Wheelwright session track viewer | code-puppy-2bfd03 (Sparky) |
+| 2026-03-17 | Foundation set to documentation/prompt library | Corrected from Next.js app scaffold — Tracks is a concept explainer and prompt repo, no web app needed | mario |
+| 2026-03-17 | Portability framing finalized | "Frees your intellectual product trapped in the LLM chat and gives it back to you" — stronger than generic re-warming framing | mario |
 
 ---
 
 ## Session Log
 
 | Session | Date | Focus | Key Outcomes |
-|---------|------|-------|--------------||
-| _None yet_ | | | |
+|---------|------|-------|--------------|
+| 1 | 2026-03-17 | Inception → full build → push to GitHub | Received inception lug, built entire repo (spec, 3 prompts, 3 samples, README, LICENSE), pushed to wheelwright-ai/tracks |
 
 ---
 
