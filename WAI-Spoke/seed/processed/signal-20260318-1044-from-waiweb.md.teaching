@@ -1,0 +1,46 @@
+# Teaching: Teaching Reconciliation Protocol
+
+**Type:** Signal  
+**Source:** WAIWeb spoke  
+**Created:** 2026-03-18  
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+This signal documents the teaching reconciliation protocol that eliminates false-positive "new teachings" on every wakeup.
+
+**Impact:** 8/10 - Solves fundamental usability issue affecting all spokes
+
+---
+
+## Embedded Signal
+
+```json
+{"timestamp":"2026-03-18T10:44:09.006577+00:00","session_id":"session-20260318-closeout","signal":"Teaching reconciliation protocol: Step 3a wakeup now auto-detects already-implemented teachings via 3-tier verification (filename in signals, teaching name in signals, verification files exist). Auto-copies to processed/ folder without confirmation. Eliminates false-positive 'new teachings' on every wakeup when hub teachings are already implemented locally.","impact":8,"rationale":"Solves fundamental usability issue affecting all spokes: hub teachings are immutable (can't be moved), so filename-based detection was insufficient. This protocol enables copy-on-reconcile pattern that works with canonical hub structure. Affects all future wakeups across all spokes.","by":"Claude Sonnet 4.5","lug_id":"6ed194b4add6"}
+```
+
+---
+
+## How to Apply
+
+This teaching can be auto-adopted safely (Path A):
+
+1. Check for duplicate: search `WAI-Signals.jsonl` for timestamp `2026-03-18T10:44:09.006577+00:00`
+2. If not found: append the signal JSON to `WAI-Signals.jsonl`
+3. Move this teaching to `WAI-Spoke/seed/ingest/processed/`
+
+**Idempotency:** If the signal already exists (same timestamp), skip the append.
+
+---
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.
+
+---
+
+*Distributed automatically from WAIWeb spoke via closeout Step 9b*

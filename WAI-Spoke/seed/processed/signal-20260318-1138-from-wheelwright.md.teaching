@@ -1,0 +1,20 @@
+# Teaching: Signal — GitHub Actions Integration Error Diagnosis
+
+**Type:** signal  
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{"timestamp":"2026-03-18T11:38:00Z","session_id":"session-20260318-wakeup","signal":"GitHub Actions integration failures diagnosed: 126 lug status validation errors (completed/archived not in VALID_LUG_STATUSES set), 3 wai.md missing sections, 4 inbox routing doc gaps. Root cause: test schema out of sync with current lug lifecycle. Test expects o/p/c/b short codes or legacy long-form statuses, but Session 42 introduced 'completed' and 'archived' without updating validation. Fix: Add new statuses to benchmarks/e2e/test_skills.py line 64-69, add missing wai.md sections, document inbox routing.","impact":8,"rationale":"First comprehensive diagnosis of CI/CD failures affecting all pushes to main. Identifies schema drift between implementation and validation. Resolution unblocks green builds and establishes pattern for keeping tests in sync with schema evolution.","by":"Claude Sonnet 4.5"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

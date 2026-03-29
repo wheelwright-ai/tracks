@@ -1,0 +1,15 @@
+{
+  "id": "signal-migrated-9313cdf6",
+  "type": "signal",
+  "title": "Documentation sprawl cleanup pattern: Root docs/ directory contained 16 outdated",
+  "status": "delivered",
+  "created_at": "2026-03-18T11:52:00Z",
+  "created_by": "Claude Sonnet 4.5",
+  "impact": 9,
+  "rationale": "Prevents documentation rot and confusion. Establishes clear pattern for maintaining single source of truth while preserving useful reference material. Applicable to any project with sprawling documentation.",
+  "routed_to": "SIGNAL",
+  "_behavior_directive": {
+    "action": "track_only"
+  },
+  "migrated_from": "WAI-Signals.jsonl"
+}

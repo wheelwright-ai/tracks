@@ -1,0 +1,60 @@
+# Teaching: Minder Wakeup — Teaching Discovery + Session Track Writing
+
+**Type:** Protocol Update
+**Version:** 1.0.0
+**Created:** 2026-03-25
+**Safe to Auto-Adopt:** true
+**Affects:** wai.md — Teaching Discovery Step 3a, Session Track Writing section
+**Supersedes:** nothing — new sections added
+
+---
+
+## Prerequisites
+
+None.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** skill-hub-teachings-repo-migration-v1 (H-01) — teachings_repo/ must exist on hub
+**Required before:** none
+**Parallel safe:** yes
+
+---
+
+## What This Teaching Does
+
+Adds two new sections to `wai.md`:
+
+### 1. Teaching Discovery (Step 3a)
+
+At wakeup, check for new teachings from:
+1. Primary: `{hub_path}/teachings_repo/framework/current/*.teaching`
+2. Fallback: `{hub_path}/framework/*.teaching` (legacy symlink)
+3. Local ingest: `WAI-Spoke/seed/ingest/*.teaching`
+
+Deduplicate against `WAI-Spoke/seed/processed/` by filename. Surface new teachings but do NOT auto-adopt — require Teaching Verification summary + user confirmation.
+
+### 2. Session Track Writing (TR1 — always-on)
+
+Per-turn behavioral contract:
+- Write track point to `WAI-Spoke/sessions/track_YYYYMMDD-HHMM.jsonl` before ending each response
+- Fast-path format under context pressure (>80%)
+- Never skip two consecutive turns
+- Track write failures are non-blocking
+
+---
+
+## Migration Instructions
+
+For spokes with custom wai.md: manually insert both sections into the Context portion of wai.md. See minder's `WAI-Spoke/seed/ingest/commands/wai.md` for reference.
+
+---
+
+## Verification
+
+```bash
+grep -q "teachings_repo/framework/current" WAI-Spoke/seed/ingest/commands/wai.md && echo "PASS — discovery step present" || echo "FAIL"
+grep -q "Session Track Writing" WAI-Spoke/seed/ingest/commands/wai.md && echo "PASS — track section present" || echo "FAIL"
+```

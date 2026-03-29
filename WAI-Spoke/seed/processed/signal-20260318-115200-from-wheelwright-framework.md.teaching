@@ -1,0 +1,20 @@
+# Teaching: Signal — Documentation Sprawl Cleanup Pattern
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{"timestamp": "2026-03-18T11:52:00Z", "session_id": "session-44-wakeup", "signal": "Documentation sprawl cleanup pattern: Root docs/ directory contained 16 outdated files (188K) mixing legacy guides with phase learnings. Solution: Move reference-worthy files to WAI-Spoke/reference/, delete historical files (git preserves them), maintain single canonical docs location (framework/docs/). Renamed llms-full.txt to .md for proper rendering.", "impact": 9, "rationale": "Prevents documentation rot and confusion. Establishes clear pattern for maintaining single source of truth while preserving useful reference material. Applicable to any project with sprawling documentation.", "by": "Claude Sonnet 4.5"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

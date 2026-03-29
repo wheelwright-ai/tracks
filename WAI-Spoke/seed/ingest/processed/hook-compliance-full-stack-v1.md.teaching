@@ -1,0 +1,218 @@
+# Teaching: Full Hook Stack Compliance v1
+
+**Type:** Migration Signal
+**Version:** 1.0.0
+**Created:** 2026-03-28
+**Impact:** 9
+**safe_to_auto_adopt:** true
+**Affects:** .claude/settings.json, .claude/hooks/, WAI-Spoke/_hooks/
+**Supersedes:** nothing
+
+---
+
+## Prerequisites
+
+| Requirement | Verify with | Blocks |
+|---|---|---|
+| WAI spoke exists | `test -d WAI-Spoke && echo PASS \|\| echo FAIL` | Not a WAI project |
+| jq available | `command -v jq && echo PASS \|\| echo FAIL` | Hook scripts need jq |
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Brings spokes up to the full 5-hook Claude Code standard: SessionStart, UserPromptSubmit, PreToolUse, Stop, PreCompact. Also adds deny rules for destructive operations. Idempotent — skips hooks that already exist.
+
+---
+
+## Why This Matters
+
+Spokes with incomplete hook setups silently fail to run wakeup protocols, have no destructive command guards, and lose state on context compaction. This was discovered on the Minder spoke which only had UserPromptSubmit — missing SessionStart, PreToolUse, and deny rules. Likely affects most spokes initialized before Session 92.
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Create missing hook scripts
+
+For each script below, create the file ONLY if it doesn't already exist.
+
+**`.claude/hooks/pre-tool-guard.sh`** (if missing):
+```bash
+#!/bin/bash
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null)
+if echo "$COMMAND" | grep -qE '^\s*rm\s+-rf\s+/\s*$'; then
+  echo "BLOCKED: rm -rf / is never allowed"; exit 2
+fi
+if echo "$COMMAND" | grep -qE 'git\s+push\s+--force|git\s+push\s+-f'; then
+  echo "BLOCKED: git push --force is not allowed."; exit 2
+fi
+exit 0
+```
+
+**`.claude/hooks/stop-test-runner.sh`** (if missing):
+```bash
+#!/bin/bash
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+CHANGED=$(git -C "$PROJECT_DIR" diff --name-only HEAD 2>/dev/null)
+STAGED=$(git -C "$PROJECT_DIR" diff --cached --name-only 2>/dev/null)
+ALL_CHANGED="$CHANGED$STAGED"
+[[ -z "$ALL_CHANGED" ]] && exit 0
+if [[ -f "$PROJECT_DIR/package.json" ]] && echo "$ALL_CHANGED" | grep -qE '\.(js|ts|jsx|tsx)$'; then
+  cd "$PROJECT_DIR"
+  if command -v bun &>/dev/null && [[ -f "bun.lock" ]]; then
+    RESULT=$(bun test 2>&1)
+  elif command -v npm &>/dev/null; then
+    RESULT=$(npm test 2>&1)
+  else
+    exit 0
+  fi
+elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
+  cd "$PROJECT_DIR"
+  [[ -d "tests" ]] && RESULT=$(python3 -m pytest tests/ -x -q --tb=short 2>&1) || exit 0
+else
+  exit 0
+fi
+EXIT_CODE=$?
+if [[ $EXIT_CODE -ne 0 ]]; then
+  echo "<test-failure>"; echo "Tests failed. Fix before continuing."; echo "$RESULT" | tail -20; echo "</test-failure>"; exit 1
+fi
+exit 0
+```
+
+**`.claude/hooks/pre-compact.sh`** (if missing):
+```bash
+#!/bin/bash
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+STATE_FILE="$PROJECT_DIR/WAI-Spoke/WAI-State.json"
+[[ ! -f "$STATE_FILE" ]] && exit 0
+TRACK_PATH=$(jq -r '._session_state.track_path // ""' "$STATE_FILE" 2>/dev/null)
+TRACK_TURNS=0
+[[ -n "$TRACK_PATH" && -f "$PROJECT_DIR/$TRACK_PATH" ]] && TRACK_TURNS=$(wc -l < "$PROJECT_DIR/$TRACK_PATH" 2>/dev/null || echo 0)
+ACTIVE_LUGS=$(ls "$PROJECT_DIR"/WAI-Spoke/lugs/bytype/*/open/*.json "$PROJECT_DIR"/WAI-Spoke/lugs/bytype/*/in_progress/*.json 2>/dev/null | wc -l)
+cat << COMPACT
+<wai-pre-compact>
+Context compaction. State preserved:
+- Track: $TRACK_PATH ($TRACK_TURNS turns)
+- Active lugs: $ACTIVE_LUGS
+- State: WAI-Spoke/WAI-State.json
+After compaction: Re-read WAI-State.json and recent track entries.
+</wai-pre-compact>
+COMPACT
+exit 0
+```
+
+Make all scripts executable:
+```bash
+chmod +x .claude/hooks/pre-tool-guard.sh .claude/hooks/stop-test-runner.sh .claude/hooks/pre-compact.sh
+```
+
+### Step 2 — Update .claude/settings.json
+
+Read the current `.claude/settings.json`. For each hook below, add it ONLY if not already present in the `hooks` object. Merge into existing config — do not replace the file.
+
+**Add if missing — SessionStart:**
+```json
+"SessionStart": [{"matcher": "startup", "hooks": [{"type": "command", "command": "$CLAUDE_PROJECT_DIR/WAI-Spoke/_hooks/session-start.sh"}]}]
+```
+
+**Add if missing — PreToolUse:**
+```json
+"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-guard.sh"}]}]
+```
+
+**Add if missing — Stop:**
+```json
+"Stop": [{"matcher": ".*", "hooks": [{"type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-test-runner.sh"}]}]
+```
+
+**Add if missing — PreCompact:**
+```json
+"PreCompact": [{"matcher": ".*", "hooks": [{"type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.sh"}]}]
+```
+
+**Add if missing — deny rules:**
+```json
+"permissions": {"deny": ["Bash(rm -rf /)", "Bash(git push --force*)", "Bash(git push -f*)"]}
+```
+
+If `permissions.deny` already exists, merge (don't replace) — add any missing entries.
+
+### Step 3 — Create WAI-Spoke/_hooks/ directory if missing
+
+If `WAI-Spoke/_hooks/` does not exist, create it. If `WAI-Spoke/_hooks/session-start.sh` does not exist, note this in the health report — the SessionStart hook will fail until a session-start script is provided. The wakeup protocol still runs via UserPromptSubmit as fallback.
+
+### Step 4 — Verify
+
+```bash
+python3 -c "
+import json, sys
+s = json.load(open('.claude/settings.json'))
+h = s.get('hooks', {})
+checks = ['SessionStart', 'UserPromptSubmit', 'PreToolUse', 'Stop', 'PreCompact']
+for c in checks:
+    status = 'PASS' if c in h and h[c] else 'FAIL'
+    print(f'{status}: {c}')
+deny = s.get('permissions', {}).get('deny', [])
+print(f\"{'PASS' if deny else 'FAIL'}: deny rules ({len(deny)} entries)\")
+"
+```
+
+### Step 5 — Move teaching to processed
+
+```bash
+mkdir -p WAI-Spoke/seed/ingest/processed/
+mv WAI-Spoke/seed/ingest/hook-compliance-full-stack-v1.md.teaching WAI-Spoke/seed/ingest/processed/
+```
+
+---
+
+## Behavioral Implications
+
+After adoption:
+- SessionStart hook fires on every new session, triggering wakeup protocol
+- PreToolUse guard blocks `rm -rf /` and `git push --force`
+- Stop hook runs tests when source files change
+- PreCompact hook preserves WAI state summary before context compaction
+- Deny rules provide a second layer of protection for destructive commands
+
+---
+
+## Verification
+
+```bash
+# All 5 hooks configured
+test -f .claude/settings.json && python3 -c "import json; h=json.load(open('.claude/settings.json')).get('hooks',{}); assert all(k in h for k in ['SessionStart','UserPromptSubmit','PreToolUse','Stop','PreCompact'])" && echo "PASS — all hooks configured" || echo "FAIL — missing hooks"
+
+# Hook scripts exist
+for f in .claude/hooks/user-prompt-submit.sh .claude/hooks/pre-tool-guard.sh .claude/hooks/stop-test-runner.sh .claude/hooks/pre-compact.sh; do
+  test -f "$f" && echo "PASS — $f" || echo "FAIL — $f missing"
+done
+
+# Deny rules present
+python3 -c "import json; d=json.load(open('.claude/settings.json')).get('permissions',{}).get('deny',[]); assert len(d)>0" && echo "PASS — deny rules" || echo "FAIL — no deny rules"
+```
+
+---
+
+## Backward Compatibility
+
+- All additions are additive — no existing hooks or permissions are removed
+- Spokes that already have all hooks will see no changes
+- UserPromptSubmit remains the primary wakeup trigger (SessionStart is supplementary)
+
+---
+
+**Teaching Package:** hook-compliance-full-stack-v1
+**safe_to_auto_adopt:** true
+**Impact:** All spokes — ensures protocol execution and destructive command safety

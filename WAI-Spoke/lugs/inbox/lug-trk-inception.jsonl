@@ -1,0 +1,1 @@
+{"id": "trk-inception-v2", "created_at": "2026-03-22T00:00:00Z", "source_wheel_id": "hub", "destination_wheel_id": "tracks", "category": "task", "priority": 5, "content": {"title": "Tracks Spoke — Self-Inception File", "blueprint_ref": "lug_tracks_spoke_bootstrap_2026_03_16.md"}, "status": "pending", "metadata": {"type": "spoke-inception"}}

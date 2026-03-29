@@ -1,0 +1,51 @@
+{
+  "i": "epic-station-master-lines-v1",
+  "t": "Epic \u2014 Station Master + Lines: Track Assembly & Continuity Layer",
+  "ty": "epic",
+  "s": "o",
+  "ca": "2026-03-25T09:31:01Z",
+  "gb": "claude-sonnet-4-6",
+  "priority": "session_focus",
+  "impact": 8,
+  "tags": [
+    "station",
+    "lines",
+    "tracks",
+    "architecture"
+  ],
+  "content": {
+    "what": "Build the Station Master handler and Lines data model. The Station Master is a headless logic layer (lib/station/) that sits between /api/tracks and the DB. It normalizes incoming WAI Track payloads (v0.18 HSP and WAI Claude formats), detects fork divergence, assigns sessions to Lines, and manages the merge ledger. Lines are topical continuity rails \u2014 a Line is a DB row that groups many Tracks. Wheel \u2192 Line \u2192 Track = Library \u2192 Book \u2192 Chapter.",
+    "why": "Direct DB writes have no retry, no assembly, no topology awareness. The Station Master addresses all three and makes the Vault a proper persistent project memory, not just a flat artifact store.",
+    "design": {
+      "station_home": "lib/station/ \u2014 pure logic, no Next.js imports, extractable to Go/Rust later",
+      "payload_formats": [
+        "v0.18 HSP (session_header, exchange, state_snapshot, artifact_manifest)",
+        "WAI Claude (turn/ts/focus/action/thinking/phase)"
+      ],
+      "ingest_sources": [
+        "live_session",
+        "pasted_track",
+        "uploaded_file"
+      ],
+      "fork_trigger": "session_codename collision where Turn 1 user.raw diverges from stored Turn 1",
+      "merge_trigger": "state_snapshot from fork promoted to main Line \u2014 deliberate action",
+      "line_self_assignment": "Agents embed line_id in session_header; Station respects it or auto-assigns"
+    },
+    "child_tasks": [
+      "lug-station-schema-v1",
+      "lug-station-normalize-v1",
+      "lug-station-fork-detector-v1",
+      "lug-station-line-manager-v1",
+      "lug-station-merge-handler-v1",
+      "lug-station-orchestrator-v1",
+      "lug-station-api-tracks-v1",
+      "lug-station-api-lines-v1"
+    ]
+  },
+  "_behavior_directive": {
+    "what_this_is": "An epic tracking the Station Master and Lines implementation \u2014 8 child tasks, schema-first. TRACK this in the task graph.",
+    "what_this_is_NOT": "An instruction to execute immediately or automatically. Do not start building without explicit session focus. Work child tasks in seq order.",
+    "processing_agent": "wakeup briefing surfaces this as active epic; user selects child task to begin",
+    "expected_outcome": "Station Master live in lib/station/, /api/tracks delegates to it, Lines CRUD available at /api/lines"
+  }
+}

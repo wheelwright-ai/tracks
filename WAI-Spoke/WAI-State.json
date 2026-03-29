@@ -37,54 +37,40 @@
     "completed_at": "2026-03-17T08:29:57Z",
     "completed_with": "code-puppy-2bfd03",
     "identity": {
-      "type": "hub-dashboard",
+      "type": "documentation and prompt library",
       "name": "Tracks",
-      "one_liner": "Centralized session track viewer and pattern analyzer for all Wheelwright wheels",
-      "success_looks_like": "View session history across all wheels, see Historian pattern detection results, navigate to specific sessions, and surface recurring patterns — all in one dashboard"
+      "one_liner": "Portable conversation records for any AI session. Take your context anywhere.",
+      "success_looks_like": "Anyone can generate a WAI Track file from any AI conversation using the prompts in this repo. Samples are realistic enough to demonstrate portability. Wheelwright is the clear next step."
     },
     "boundaries": {
       "in_scope": [
-        "Aggregate track_*.jsonl files from all wheels' WAI-Spoke/sessions/",
-        "Display session history across all Wheelwright projects",
-        "Show Historian pattern detection results (open_recurrence, workaround_churn, reopened_decision)",
-        "Visualize session track points (open[], activity[], decisions[])",
-        "Navigate to specific sessions and wheels",
-        "Display Historian review files from advisors/historian/reviews/",
-        "Show pattern vectors from advisors/historian/vectors.jsonl",
-        "Timeline view of sessions across wheels",
-        "Search/filter by wheel, date, agent, or content",
-        "Web-based dashboard (Next.js)",
-        "Read-only viewer (no editing of tracks)"
+        "Track format specification (spec/track-format.md)",
+        "Three prompt variants: closing-request, prep-and-request, active-collection",
+        "Three realistic sample Track files demonstrating portability",
+        "README as the manifesto: portability framing, use cases, Wheelwright funnel",
+        "MIT license matching framework"
       ],
       "out_of_scope": [
-        "Editing or modifying session track files (tracks are immutable)",
-        "Running Historian analysis (that's a framework skill)",
-        "Creating new tracks (that's done during sessions)",
-        "Multi-user auth (single user, local dashboard)",
-        "Real-time updates (refresh to see new sessions)",
-        "Mobile app",
-        "Cloud deployment (local-first)"
+        "Application code, web interface, build system",
+        "Track file viewer or editor (that may be a future spoke)",
+        "Authentication, database, any runtime dependencies"
       ],
       "constraints": [
-        "Read-only access to all track files",
-        "Must respect WAI-Spoke structure across all wheels",
-        "Never modify track_*.jsonl or WAI_Track-*.jsonl files",
-        "Hub registry as source of truth for wheel locations",
-        "Match PathFinder/Wheelwright stack: Next.js 16, TypeScript, Tailwind v4"
+        "Pure documentation \u2014 no package.json, no node_modules, no build step",
+        "All wheelwright.ai and framework repo links must be present",
+        "Prompts must be self-contained (raw URL usable as LLM instruction)",
+        "Samples must be realistic enough to demonstrate portability"
       ]
     },
     "approach": {
       "stack_or_tools": [
-        "Next.js 16 (App Router)",
-        "React 19",
-        "TypeScript",
-        "Tailwind CSS v4",
-        "File-based data (read hub-registry.json, track_*.jsonl files)",
-        "No database needed (read-only viewer)"
+        "Markdown",
+        "JSONL",
+        "GitHub"
       ],
-      "workflow": "Read hub registry to find all wheels → scan each wheel's WAI-Spoke/sessions/ → aggregate and display tracks → show Historian results if available",
+      "workflow": "Public GitHub repo with a spec, prompts, and samples that prove portable track generation while pointing users toward Wheelwright for native automation",
       "ai_collaboration_style": "AI takes initiative",
-      "review_process": "Mario reviews dashboard functionality and UX"
+      "review_process": "Mario reviews content quality and messaging"
     },
     "philosophy": {
       "core_principle": "AI as responsible partner, not just enabler",
@@ -101,21 +87,64 @@
         "change": "Foundation completed via inception lug trk-inception-v2",
         "rationale": "Self-inception file authored by Sparky (PathFinder), enriched by framework, delivered to Tracks inbox",
         "acknowledged_by": "mario"
+      },
+      {
+        "date": "2026-03-18",
+        "change": "Reconciled stale dashboard/app metadata back to the shipped documentation-and-prompts repo",
+        "rationale": "README, spec, prompts, and samples are the source of truth; legacy build-teaching residue had drifted state and protocol files away from what this repository actually is",
+        "acknowledged_by": "mario"
+      },
+      {
+        "date": "2026-03-19",
+        "change": "Started folder-based Skills migration with wakeup as the first authoritative skill",
+        "rationale": "Commands should live inside discoverable skill folders with explicit exposure, routing, and inheritance instead of accumulating in a flat command directory",
+        "acknowledged_by": "mario"
+      },
+      {
+        "date": "2026-03-19",
+        "change": "Completed the spoke-level Skills cutover and demoted legacy command docs to compatibility surfaces",
+        "rationale": "`Skills/` is now the intended authoring and routing architecture for wakeup, core utilities, and advisors; remaining work is reconciliation, policy, and cleanup around transitional mirrors",
+        "acknowledged_by": "mario"
+      },
+      {
+        "date": "2026-03-19",
+        "change": "Settled the long-term Skills authority policy",
+        "rationale": "The repo now has a concrete ownership model: `Skills/index.jsonl` is the routing authority, skill folders own behavior, `WAI-Spoke/WAI-Skills.jsonl` is mirror-only, and legacy `wai-*` files are compatibility aliases during the transition",
+        "acknowledged_by": "mario"
+      },
+      {
+        "date": "2026-03-19",
+        "change": "Re-ranked the remaining hub teaching queue for the Skills architecture",
+        "rationale": "Post-cutover work now has an explicit order: reliability and teaching-ingestion changes come first, `skill-system-v1` must translate into the settled folder-based model, and malformed or conflicting closeout metadata stays blocked until adjudicated",
+        "acknowledged_by": "mario"
       }
     ]
   },
   "_session_state": {
     "last_session_id": "trk-session-20260317",
-    "last_modified_by": "claude-sonnet-4-6",
-    "last_modified_at": "2026-03-17T00:00:00Z",
+    "last_modified_by": "openai/gpt-5.4",
+    "last_modified_at": "2026-03-19T10:05:00Z",
     "requires_review": false,
     "review_reason": null,
     "session_count": 1,
-    "current_session": null,
+    "current_session": {
+      "id": "trk-session-20260319-0731",
+      "started_at": "2026-03-19T07:31:07Z",
+      "protocol_completed_at": "2026-03-19T07:31:07Z",
+      "conversation_log_path": "WAI-Spoke/WAI-Session-Log.jsonl",
+      "track_path": "WAI-Spoke/sessions/track_session-20260319-0731.jsonl",
+      "portable_export_path": "WAI_Track-20260319-0731-OpenAI-gpt-5.4.jsonl",
+      "predecessor_context": {
+        "source_file": "WAI-Spoke/sessions/WAI_Track-20260317-0000-Claude-claude-sonnet-4-6.jsonl",
+        "session_id": "tracks-inception-build-20260317",
+        "last_turn": 12,
+        "last_timestamp": "2026-03-17T01:40:00Z"
+      }
+    },
     "last_closeout": "2026-03-17T00:00:00Z",
     "protocol_completed": true,
-    "current_ai": "claude-sonnet-4-6",
-    "ai_id": "claude-sonnet-4-6",
+    "current_ai": "gpt-5.4",
+    "ai_id": "openai/gpt-5.4",
     "startup_files": [
       "WAI-Spoke/WAI-Guide.md",
       "WAI-Spoke/WAI-State.json",
@@ -132,7 +161,7 @@
       "wai-time",
       "wai-rules"
     ],
-    "protocol_last_run": null
+    "protocol_last_run": "2026-03-19T07:31:07Z"
   },
   "_auto_implementation": {
     "enabled": false,
@@ -182,11 +211,11 @@
     "name": "Tracks",
     "abbrev": "TRK",
     "version": "0.1.0",
-    "type": "Hub Dashboard",
-    "description": "Centralized session track viewer and pattern analyzer for all Wheelwright wheels",
-    "repository": null,
+    "type": "Documentation and Prompt Library",
+    "description": "Portable conversation records and prompt library for WAI Track generation",
+    "repository": "https://github.com/wheelwright-ai/tracks",
     "created": "2026-03-17",
-    "last_updated": "2026-03-17",
+    "last_updated": "2026-03-19",
     "status": "active",
     "workspace": {
       "ide_cmd": null,
@@ -207,7 +236,7 @@
         }
       }
     },
-    "hub_path": "/home/mario/projects/wheelwright/hub/",
+    "hub_path": "/home/mario/projects/wheelwright/hub",
     "framework_version": "2.0.39",
     "node_type": "spoke"
   },
@@ -218,19 +247,42 @@
     "constraints": []
   },
   "context": {
-    "current_phase": "complete-v0.1.0",
+    "current_phase": "skills-cutover-stabilization",
     "next_actions": [
-      "Create wheelwright-ai/tracks repo on GitHub",
-      "Push content",
-      "Add repo topics: ai, llm, conversation, portability, context, prompt-engineering, wheelwright",
-      "Link from wheelwright.ai and framework README"
+      "Keep guide, README, and state language aligned to the settled authority model while cleanup stays conservative",
+      "Resolve metadata-missing teachings so each remaining hub teaching has enough target and ownership data to map cleanly into Skills/ or another clearly non-authoritative surface",
+      "Resolve the wai-closeout-step9b-sender-v1 conflict against Skills/closeout before any closeout-specific teaching adoption",
+      "Review track-reliability-v1 first, then wai-step3a-path-split-v1 and track-chain-protocol-v1, as the highest-priority post-cutover teaching sequence",
+      "Translate skill-system-v1 into the settled folder-based Skills model without reopening the authority policy or restoring flat-command ownership",
+      "Triage test-pipeline-verify-v1, shipit-makefile-quality-gate-v1, and wai-shipit-release-tag-v1 against the repo's docs-only constraints before adopting any delivery or release automation",
+      "Implement generated or mechanically synchronized upkeep for WAI-Spoke/WAI-Skills.jsonl without changing its mirror-only role",
+      "Run final verification on guide, state, router, mirror, and compatibility alias coherence",
+      "Add GitHub repo topics for discoverability",
+      "Link Tracks from wheelwright.ai and the framework README"
     ],
-    "blockers": [],
+    "blockers": [
+      "WAI-Spoke/WAI-Skills.jsonl remains a transitional mirror until generated or mechanically synchronized maintenance is implemented",
+      "Legacy wai command alias lifetime and retirement criteria still need an explicit cleanup plan",
+      "Advisor inheritance depth and whether skills may expose more than one entry document remain open design questions",
+      "Final verification has not yet confirmed whether any active caller still depends on specific legacy wai compatibility aliases",
+      "Metadata-missing and malformed hub teachings still need normalization before they can be mapped safely to Skills/ paths or compatibility surfaces",
+      "wai-closeout-step9b-sender-v1 remains an unresolved conflict against the current Skills/closeout sender and sequencing model",
+      "wai-step3a-path-split-v1 overlaps the existing Step 3a reconciliation signal and must be adjudicated to avoid duplicate teaching-ingestion behavior",
+      "Shipit and release-oriented teachings assume delivery surfaces this documentation-and-prompts repo does not currently own"
+    ],
     "insights": [
-      "Tracks is a documentation and prompt library — no app code, no build system",
+      "Tracks is a documentation and prompt library \u2014 no app code, no build system",
       "Three prompt variants (closing-request, prep-and-request, active-collection) are the core deliverable",
-      "Portability framing: frees intellectual product trapped in the LLM chat"
-    ]
+      "Portability framing: frees intellectual product trapped in the LLM chat",
+      "WAI-Spoke state should defer to README/spec/prompts/samples when hub teachings or session metadata drift",
+      "Rich v2 prompt variants materially improve continuity by capturing user voice, pivotal statements, reconciled artifacts, and explicit next-agent handoff notes",
+      "The settled authority model is: `Skills/index.jsonl` owns routing, skill folders own behavior, `WAI-Spoke/WAI-Skills.jsonl` is mirror-only, and legacy command files are compatibility aliases",
+      "Guide, README, and state docs now describe the same settled authority model and keep cleanup conservative by leaving compatibility aliases in place",
+      "As long as WAI-Spoke/WAI-Skills.jsonl remains a mirrored artifact, it is a drift risk unless generation or mechanical synchronization replaces manual upkeep",
+      "Advisor behavior is now defined by a shared parent plus child overrides, so policy clarity matters more than adding more transitional prose in legacy command files",
+      "The remaining hub teaching queue is no longer a flat backlog: reliability and teaching-ingestion changes rank ahead of skill-system refinements, while malformed closeout or metadata teachings stay blocked until clarified"
+    ],
+    "hub_path_corrected_at": "2026-03-25T13:05:00Z"
   },
   "ai_rules": {
     "context_loading": "Read WAI-Spoke/WAI-Guide.md first, then WAI-State.json and WAI-State.md",
