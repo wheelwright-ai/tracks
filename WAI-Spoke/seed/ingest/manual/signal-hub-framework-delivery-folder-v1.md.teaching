@@ -1,0 +1,31 @@
+# Teaching: Signal — Hub framework delivery folder: upward teaching path
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** hub-wakeup-corrections
+**Apply order:** 3 of 3
+**Depends on:** signal-hub-teaching-path-disambiguation-v1
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** signal-hub-teaching-path-disambiguation-v1 → signal-hub-canonical-advisors-blueprint-v1 → signal-hub-framework-delivery-folder-v1
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Lugs.jsonl` on this spoke, documenting the upward teaching delivery path: spokes drop teachings for the framework into `{hub_root}/framework/teachings/`.
+
+## Embedded Signal
+
+```json
+{"id": "signal-hub-framework-delivery-folder-20260326", "type": "signal", "title": "Hub framework delivery folder: spokes deliver teachings via framework/teachings/", "description": "Spokes can drop teachings for the framework into framework/teachings/ at the hub root. Hub wakeup should scan this folder and route findings: (1) surface new .teaching files in briefing as 'Framework-bound teachings from spokes', (2) move to teachings_repo/framework/current/ for inclusion in next framework distribution cycle, (3) update teachings_repo/framework/index.json with from_spoke + routed_at metadata, (4) archive original to framework/teachings/processed/. First instance: Basher spoke delivered BASHER_PLAIN TTY detection teaching via this path. This completes the upward teaching path: spoke → hub → framework (vs downward path: framework → hub → spokes).", "impact": 8, "created_by": "claude-sonnet-4-6", "created_at": "2026-03-27T19:26:00Z", "session_id": "session-20260326-1926", "rationale": "The hub sits between spokes and the framework. Spokes should be able to contribute learnings upward to the framework. Without canonical handling, these files accumulate untracked and never reach the framework.", "delivery_path": "framework/teachings/*.teaching", "destination": "teachings_repo/framework/current/", "index_to_update": "teachings_repo/framework/index.json", "archive_path": "framework/teachings/processed/"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

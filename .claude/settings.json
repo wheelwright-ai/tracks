@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/WAI-Spoke/_hooks/session-start.sh"
+            "command": "/home/mario/projects/wheelwright/tracks/WAI-Spoke/_hooks/session-start.sh"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/user-prompt-submit.sh"
+            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/user-prompt-submit.sh"
           }
         ]
       }
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-guard.sh"
+            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/pre-tool-guard.sh"
           }
         ]
       }
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-test-runner.sh"
+            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/stop-test-runner.sh"
           }
         ]
       }
@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.sh"
+            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/pre-compact.sh"
           }
         ]
       }

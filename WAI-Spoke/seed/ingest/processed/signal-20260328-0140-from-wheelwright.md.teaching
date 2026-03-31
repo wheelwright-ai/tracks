@@ -1,0 +1,27 @@
+# Teaching: Signal — CC config gap detection via SessionStart hook
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{
+  "timestamp": "2026-03-28T01:40:00Z",
+  "session_id": "session-20260328-0052",
+  "signal": "Claude Code config gaps are invisible without automated detection. Created wai-claude-maximizer as guard/advisory skill with SessionStart hook health check — 4 conditions evaluated on every session start, gaps surfaced in briefing. Pattern: hook-based detection (guaranteed execution) > protocol-step detection (best-effort).",
+  "impact": 9,
+  "rationale": "Establishes the pattern for proactive CC optimization across all WAI spokes. Hook-based detection is a reusable architectural approach for any guard skill.",
+  "by": "claude-opus-4-6"
+}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

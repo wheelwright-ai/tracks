@@ -1,0 +1,107 @@
+# Teaching: Teaching Repo Restructure — spoke/ and hub-only/ split
+
+**Type:** Migration Signal
+**Version:** 1.0.0
+**Created:** 2026-03-28
+**Impact:** 9
+**safe_to_auto_adopt:** true
+**Affects:** WAI-Spoke/commands/wai.md, WAI-Spoke/commands/wai-closeout.md, WAI-Spoke/skills/wai/wai.md, .claude/hooks/session-start.sh (if present)
+**Supersedes:** nothing
+
+---
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** teaching-repo-restructure-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** all future teachings (this fixes the scan path)
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Updates the teaching discovery path from `teachings_repo/framework/current/` to `teachings_repo/spoke/current/`. The hub now splits teachings into `spoke/` (for spoke consumption) and `hub-only/` (for hub-internal use). Spokes no longer waste tokens evaluating hub-only teachings. Also removes the `cross_spoke/current/` scan — all spoke teachings now live in one place.
+
+---
+
+## Why This Matters
+
+Previously, spokes scanned `teachings_repo/framework/current/` which contained both spoke-relevant and hub-internal teachings. Spokes wasted context tokens evaluating teachings that weren't for them. The `cross_spoke/` folder was confusing and redundant.
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Update wai.md (wakeup skill)
+
+In your spoke's WAI wakeup skill file (typically `WAI-Spoke/commands/wai.md` or `WAI-Spoke/skills/wai/wai.md`):
+
+**Find and replace:**
+- `teachings_repo/framework/current` → `teachings_repo/spoke/current`
+
+**Also remove** any line that scans `cross_spoke/current/` — it's retired.
+
+### Step 2 — Update wai-closeout.md
+
+In your spoke's closeout skill (typically `WAI-Spoke/commands/wai-closeout.md`):
+
+**Find and replace:**
+- `teachings_repo/framework/current` → `teachings_repo/spoke/current`
+
+### Step 3 — Update session-start.sh hook (if present)
+
+If your spoke has `WAI-Spoke/_hooks/session-start.sh`, update the teaching scan path:
+
+**Find and replace:**
+- `teachings_repo/framework/current` → `teachings_repo/spoke/current`
+
+### Step 4 — Verify
+
+```bash
+grep -r "teachings_repo/framework/current" WAI-Spoke/commands/ WAI-Spoke/skills/ .claude/hooks/ WAI-Spoke/_hooks/ 2>/dev/null
+# Should return no results
+
+grep -r "teachings_repo/spoke/current" WAI-Spoke/commands/ WAI-Spoke/skills/ .claude/hooks/ WAI-Spoke/_hooks/ 2>/dev/null | head -3
+# Should show the updated paths
+```
+
+### Step 5 — Move teaching to processed
+
+```bash
+mkdir -p WAI-Spoke/seed/ingest/processed/
+mv WAI-Spoke/seed/ingest/teaching-repo-restructure-spoke-hub-split-v1.md.teaching WAI-Spoke/seed/ingest/processed/
+```
+
+---
+
+## Verification
+
+```bash
+# No old path references remain
+COUNT=$(grep -rl "teachings_repo/framework/current" WAI-Spoke/commands/ WAI-Spoke/skills/ .claude/hooks/ WAI-Spoke/_hooks/ 2>/dev/null | wc -l)
+[[ "$COUNT" -eq 0 ]] && echo "PASS — no old path references" || echo "FAIL — $COUNT files still reference old path"
+
+# New path is referenced
+grep -rl "teachings_repo/spoke/current" WAI-Spoke/ .claude/ 2>/dev/null | head -1 | xargs -I{} echo "PASS — new path found in {}"
+```
+
+---
+
+## Backward Compatibility
+
+- The old `teachings_repo/framework/current/` directory still exists on the hub (not deleted)
+- Spokes that haven't adopted this teaching will continue scanning the old path until they do
+- New teachings will be placed in `spoke/current/` only — old spokes will stop seeing new teachings until they adopt this migration
+
+---
+
+**Teaching Package:** teaching-repo-restructure-spoke-hub-split-v1
+**safe_to_auto_adopt:** true
+**Impact:** All spokes — fixes teaching discovery path, eliminates wasted token evaluation

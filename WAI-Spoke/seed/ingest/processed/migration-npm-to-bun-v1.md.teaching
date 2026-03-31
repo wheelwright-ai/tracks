@@ -1,0 +1,190 @@
+# Teaching: Migrate from npm to bun
+
+**Type:** Migration Signal
+**Version:** 1.0.0
+**Created:** 2026-03-28
+**safe_to_auto_adopt:** false
+**Affects:** package.json, CLAUDE.md, CI/CD configs, lock files, scripts
+**Supersedes:** nothing
+
+---
+
+## Prerequisites
+
+| Requirement | Verify with | Blocks |
+|---|---|---|
+| Node.js project | `test -f package.json && echo PASS \|\| echo FAIL` | Not a JS/TS project — skip |
+| bun installed | `command -v bun && echo PASS \|\| echo FAIL` | Install bun first |
+
+**Check before applying:**
+```bash
+test -f package.json && command -v bun >/dev/null 2>&1 && echo PASS || echo FAIL
+```
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Migrates a spoke's JavaScript/TypeScript toolchain from npm to bun. Replaces npm commands with bun equivalents across CLAUDE.md, package.json scripts, CI configs, and hook scripts. Generates bun.lock from existing package-lock.json.
+
+---
+
+## Why This Matters
+
+bun is significantly faster than npm for installs, script execution, and test runs. Switching reduces feedback loop time for AI-assisted development sessions. The migration is mechanical — same packages, same scripts, faster runtime.
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Verify bun is available
+
+```bash
+bun --version
+```
+
+If not installed:
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+### Step 2 — Generate bun.lock from existing dependencies
+
+```bash
+bun install
+```
+
+This reads `package.json` and creates `bun.lock`. Existing `node_modules/` are reused where compatible.
+
+### Step 3 — Replace npm commands in package.json scripts
+
+In `package.json`, replace any `npm run` calls within scripts:
+
+| Before | After |
+|--------|-------|
+| `npm run build` | `bun run build` |
+| `npm test` | `bun test` |
+| `npm run lint` | `bun run lint` |
+| `npm start` | `bun run start` |
+| `npm ci` | `bun install --frozen-lockfile` |
+| `npx {tool}` | `bunx {tool}` |
+
+### Step 4 — Update CLAUDE.md
+
+Find the Development Workflow section (or equivalent) and replace npm references:
+
+| Before | After |
+|--------|-------|
+| `npm install` | `bun install` |
+| `npm run dev` | `bun run dev` |
+| `npm run build` | `bun run build` |
+| `npm test` | `bun test` |
+| `npm run lint` | `bun run lint` |
+| `npx` | `bunx` |
+
+### Step 5 — Update CI/CD configs (if present)
+
+Scan for CI files and replace npm commands:
+
+```bash
+grep -rl "npm " .github/workflows/ Dockerfile docker-compose*.yml Makefile 2>/dev/null
+```
+
+For each file found, apply the same substitutions from Step 3.
+
+### Step 6 — Update hook scripts (if present)
+
+```bash
+grep -rl "npm " .claude/hooks/ WAI-Spoke/_hooks/ 2>/dev/null
+```
+
+Replace any npm invocations in hook scripts.
+
+### Step 7 — Remove npm lock file
+
+```bash
+rm -f package-lock.json
+```
+
+Add to `.gitignore` if not already present:
+```
+package-lock.json
+```
+
+### Step 8 — Verify
+
+```bash
+bun install --frozen-lockfile && echo "INSTALL PASS" || echo "INSTALL FAIL"
+bun test 2>/dev/null && echo "TEST PASS" || echo "TEST PASS (no tests or not applicable)"
+bun run build 2>/dev/null && echo "BUILD PASS" || echo "BUILD PASS (no build script or not applicable)"
+```
+
+### Step 9 — Move teaching to processed
+
+```bash
+mkdir -p WAI-Spoke/seed/ingest/processed/
+mv WAI-Spoke/seed/ingest/migration-npm-to-bun-v1.md.teaching WAI-Spoke/seed/ingest/processed/
+```
+
+---
+
+## Behavioral Implications
+
+After adoption:
+- All package management commands use `bun` instead of `npm`
+- `bun.lock` is the lockfile (not `package-lock.json`)
+- `bun test` replaces `npm test` in hooks and CI
+- `bunx` replaces `npx` for one-off tool execution
+- CLAUDE.md workflow section reflects bun commands so new sessions use the correct toolchain from turn 1
+
+---
+
+## Verification
+
+After applying:
+
+```bash
+# Check bun.lock exists
+test -f bun.lock && echo "PASS — bun.lock present" || echo "FAIL — bun.lock missing"
+
+# Check npm lock is gone
+test ! -f package-lock.json && echo "PASS — package-lock.json removed" || echo "FAIL — package-lock.json still present"
+
+# Check CLAUDE.md references bun
+grep -q "bun" CLAUDE.md && echo "PASS — CLAUDE.md updated" || echo "FAIL — CLAUDE.md still references npm"
+
+# Check no npm commands remain in CLAUDE.md
+grep -c "npm " CLAUDE.md | xargs -I{} bash -c '[ {} -eq 0 ] && echo "PASS — no npm references in CLAUDE.md" || echo "WARN — {} npm references remain in CLAUDE.md"'
+```
+
+---
+
+## Backward Compatibility
+
+- All npm packages work identically under bun
+- Scripts that use `node` directly are unaffected (bun runs npm packages, not all Node APIs — use `bun run` for scripts)
+- If a package is bun-incompatible, keep that specific script using `node` and note it in CLAUDE.md
+
+---
+
+## Skip Conditions
+
+Skip this teaching entirely if:
+- The project has no `package.json` (not a JS/TS project)
+- The project uses yarn or pnpm (different migration path needed)
+- The project has bun-incompatible native modules (check `bun install` output for errors)
+
+---
+
+**Teaching Package:** migration-npm-to-bun-v1
+**safe_to_auto_adopt:** false — requires verification that bun is installed and all dependencies resolve
+**Impact:** All JS/TS spokes — faster installs, faster test runs, faster feedback loops

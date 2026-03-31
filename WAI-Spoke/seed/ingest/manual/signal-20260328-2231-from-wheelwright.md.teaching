@@ -1,0 +1,30 @@
+# Teaching: Signal — Teaching repo restructured: spoke/current/ for spoke-targete
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to the spoke's signal store.
+
+## Embedded Signal
+
+```json
+{
+  "id": "signal-teaching-repo-spoke-hub-split-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "timestamp": "2026-03-28T22:30:00Z",
+  "source_session": "session-20260328-2128",
+  "signal": "Teaching repo restructured: spoke/current/ for spoke-targeted teachings, hub-only/current/ for hub-internal. Eliminates wasted tokens from spokes evaluating irrelevant hub teachings. cross_spoke/ retired — all spoke teachings in one folder.",
+  "impact": 9,
+  "rationale": "Spokes were wasting context budget scanning 40+ teachings to find the 2-3 relevant ones. Clean separation reduces wakeup token cost and prevents confusion.",
+  "by": "claude-opus-4-6"
+}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

@@ -1,0 +1,20 @@
+# Teaching: Signal — BASHER_PLAIN suppression via TTY detection for AI-invoked bash
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{"timestamp":"2026-03-26T09:50:00Z","session_id":"session-20260326-0936","signal":"BASHER_PLAIN suppression via [[ ! -t 1 ]]: when Claude Code runs bash, stdout is a pipe (not a TTY). Adding this condition to the BASHER_PLAIN detection block reliably suppresses all visual/styled prompt elements (agent.sh, colorscript, neofetch) for AI-invoked bash sessions without affecting human terminal sessions.","impact":8,"rationale":"Any bash config that uses BASHER_PLAIN-style gating for visual elements should use TTY detection as the primary signal for non-human contexts. IDE checks (TERM_PROGRAM=vscode) miss AI tools; TTY check catches all non-interactive consumers.","by":"claude-sonnet-4-6","hub_candidate":true}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.
