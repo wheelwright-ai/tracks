@@ -1,0 +1,20 @@
+# Teaching: Signal — Octo v2 Hub Chief of Staff operational
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{"timestamp":"2026-03-31T22:00:00Z","session_id":"session-20260331-1524","signal":"Octo v2 operational: hub work queue (hub_work_queue.json) + council dispatch (council_directives.json) + escalation routing in strategic brief. run_nightly.py now reads Octo's priority order first. Formula: urgency*health_penalty + signal_pressure. Octo = hub Chief of Staff, not just briefing aggregator.","impact":9,"rationale":"Completes the hub advisory council operational layer. Gardener now has explicit priority order from Octo instead of Spinner-only. Council members have actionable directive lists each nightly run.","by":"claude-sonnet-4-6","target":"hub"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

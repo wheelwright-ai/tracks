@@ -1,0 +1,15 @@
+{
+  "id": "signal-wai-skill-sync-gap-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "WAI skill sync gap — templates/commands/ not auto-synced to .claude/commands/ between shipits",
+  "impact": 8,
+  "signal": "templates/commands/wai.md had a full pre-check section (trust hook output, skip redundant file reads) but .claude/commands/wai.md was 370 lines behind — the installed version had never been synced. Every session wasted ~15-18k message tokens on redundant WAI-State.json reads, lug scans, and teaching scans that the session-start hook already computed. The sync gap went undetected for multiple sessions because the behavior difference (extra tool calls) isn't visible as an error.",
+  "rationale": "Shipit syncs .claude/commands/ from templates/commands/ — but this spoke hadn't run shipit in a while. The gap caused measurable token waste every session. Any spoke that hasn't run shipit recently has this problem. Recommendation: session-start hook should detect out-of-sync .claude/commands/ files and surface a warning.",
+  "routed_to": "SIGNAL",
+  "scope": "all_spokes",
+  "created_at": "2026-03-30T20:35:00Z",
+  "session_id": "session-20260330-2016",
+  "generated_by": "claude-sonnet-4-6",
+  "fw_ver": "3.0.0"
+}

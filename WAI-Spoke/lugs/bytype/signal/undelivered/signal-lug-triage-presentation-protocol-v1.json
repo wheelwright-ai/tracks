@@ -1,0 +1,16 @@
+{
+  "id": "signal-lug-triage-presentation-protocol-v1",
+  "ty": "signal",
+  "s": "o",
+  "title": "Lug Triage Presentation Protocol: group, enumerate, 4-column format, SEV gate",
+  "signal": "When presenting open lugs for review, agents must: (1) GROUP related lugs into named clusters before listing; (2) ENUMERATE the full list (1, 2, 3...) so the user can reference by number; (3) FORMAT each lug as: Type | Synopsis | Desired Action | My Verdict — where Type = problem/idea/improvement/integration/meta/out-of-scope, Synopsis = plain English of what it actually is (not the raw title), Desired Action = what the lug wants done, Verdict = implement/scope+implement/merge→[id]/defer/close/needs-discussion/ideabank; (4) AUTO-INFER a clean human-readable title and ID from content — never present raw system IDs like lug-bulk-6 or UUID strings; (5) SEV GATE: before assigning any verdict other than 'needs-discussion', agent must be able to answer: (a) What is this? and (b) How do you test or verify it is done? If either is unclear, verdict = needs-discussion, not defer/close/implement.",
+  "impact": 9,
+  "rationale": "Raw lug IDs and titles add no recall value. Users need to see what something IS, what it WANTS, and whether the agent can actually execute and verify it. The SEV gate prevents premature closes and silent scope gaps from entering the backlog as 'ready'.",
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-03-28T00:30:00Z",
+  "session_id": "claude-sonnet-4-6-2026-03-28-s51",
+  "_behavior_directive": {
+    "what_this_is": "Signal: lug triage presentation and SEV verification protocol for all spokes",
+    "what_this_is_NOT": "A feature task for any specific spoke"
+  }
+}

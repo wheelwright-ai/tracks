@@ -327,5 +327,46 @@
   "model_log": {
     "_note": "Track model switches within and across sessions. Enables retrospective analysis of model-task fit.",
     "entries": []
+  },
+  "_work_queue": {
+    "enabled": true,
+    "items": [
+      {
+        "id": "lug-station-orchestrator-v1",
+        "roi": 6.0,
+        "type": "task",
+        "status": "gated",
+        "readiness": "blocked",
+        "title": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "lug-station-schema-v1",
+        "roi": 6.0,
+        "type": "task",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Station Schema \u2014 lines, lineEvents, extend sessions + trackArtifacts",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "epic-station-master-lines-v1",
+        "roi": 3.0,
+        "type": "epic",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Epic \u2014 Station Master + Lines: Track Assembly & Continuity Layer",
+        "phase": null,
+        "tagged_next": false
+      }
+    ],
+    "queue_state": {
+      "ready_count": 0,
+      "needs_refinement_count": 2,
+      "blocked_count": 1
+    },
+    "last_scored_at": "2026-04-03T10:13:06.242923+00:00"
   }
 }

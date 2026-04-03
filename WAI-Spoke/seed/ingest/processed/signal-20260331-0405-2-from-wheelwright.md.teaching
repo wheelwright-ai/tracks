@@ -1,0 +1,34 @@
+# Teaching: Signal — MEMORY.md silent truncation (76 lines of critical rules invisible)
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Spoke/lugs/bytype/signal/undelivered/` on this spoke.
+
+## Embedded Signal
+
+```json
+{
+  "id": "signal-memory-truncation-silent-loss-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "MEMORY.md silent truncation — Claude Code loads max 200 lines, critical rules were invisible",
+  "impact": 9,
+  "signal": "MEMORY.md was 276 lines. Claude Code silently truncates at 200 lines. The last 76 lines contained critical rules from sessions 62-88 (Lug PEV Gate, Verify-to-Falsify, Teaching Dogfood Gate, Context Measurement, Ozi Routing, Detect-Signal-Route, Wakeup Prompts fix, Closeout Banner fix). These rules were invisible at every session start — models were operating without them and there was no indication of the truncation. Fixed by lossless compression: prose sections moved to topic files, MEMORY.md is now 47 lines (pure dense index), all content accessible via pointers.",
+  "rationale": "MEMORY.md is loaded into every session. Truncation is silent — no warning, no error. The 76 truncated lines were recent hard rules (sessions 62-88), meaning the most recent behavioral corrections were the ones being lost. Any MEMORY.md > 200 lines has this problem. Pattern: keep MEMORY.md as pure index (pointers + 1-line descriptions), prose in topic files loaded on-demand.",
+  "routed_to": "SIGNAL",
+  "scope": "all_spokes",
+  "created_at": "2026-03-30T20:35:00Z",
+  "session_id": "session-20260330-2016",
+  "generated_by": "claude-sonnet-4-6",
+  "fw_ver": "3.0.0"
+}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

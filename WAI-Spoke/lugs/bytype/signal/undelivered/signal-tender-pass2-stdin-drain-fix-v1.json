@@ -1,0 +1,9 @@
+{
+  "id": "signal-tender-pass2-stdin-drain-fix-v1",
+  "type": "signal",
+  "title": "wheel-tender.sh Pass 2 stdin-drain bug: claude CLI in while loop drains here-string, only 1 spoke tended per nightly run",
+  "signal": "Pass 2 of wheel-tender.sh uses 'while IFS= read -r SPOKE_PATH; do ... done <<< \"$SPOKE_PATHS\"'. The claude CLI invocation inside the loop had no stdin redirect, so it inherited the loop's here-string stdin and consumed remaining spoke paths on first iteration. Fix: add '< /dev/null' to the claude invocation. Bug caused only 1 spoke (framework, highest urgency) to receive teachings and work execution per nightly run. All other spokes were silently skipped.",
+  "impact": 9,
+  "rationale": "This bug has been silently limiting the entire fleet tender to 1 spoke per night. With 17 spokes, 16 were never receiving teaching distribution or work execution from the Gardener. Fix is one line.",
+  "routed_to": "FRAMEWORK"
+}

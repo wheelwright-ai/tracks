@@ -1,0 +1,36 @@
+# Teaching: wai.md Skill Thrift — Primary 605→233L (-62%), wai-reference.md created
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+- Spoke uses WAI wakeup protocol (wai.md)
+
+## What This Teaching Does
+
+Appends a high-impact signal informing the spoke that wai.md was significantly thrifted and a wai-reference.md companion file now exists.
+
+## Embedded Signal
+
+```json
+{
+  "id": "signal-wai-primary-skill-thrift-pattern-v1",
+  "type": "signal",
+  "title": "wai.md thrift: primary skill 605→233L (-62%) — wai-reference.md companion created",
+  "signal": "Applied skill thrift to wai.md: 605→233L (-62%) by moving all bash scripts, JSON templates, folder diagrams, and detail tables to wai-reference.md. wai-lug-schema.md also trimmed 525→471L. Pattern: primary = behavioral instructions only; reference = scripts/schemas/examples.",
+  "impact": 8,
+  "rationale": "Wakeup was consuming ~22k tokens loading skill; now ~8k. All sync targets updated (.claude/commands/, templates/spoke/skills/). Source: framework Session 116.",
+  "routed_to": "FRAMEWORK"
+}
+```
+
+## Batch Sequence
+
+1. Adopt this signal
+
+## Behavioral Implication
+
+Spokes pulling wai.md from framework now get the lean 233L version. wai-reference.md available on-demand.

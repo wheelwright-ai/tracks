@@ -1,0 +1,219 @@
+# Teaching: Teaching Fingerprint + Weighted Series Versioning for Spoke Context Docs
+
+**Type:** Protocol Enhancement
+**Version:** 1.0.0
+**Created:** 2026-04-02
+**safe_to_auto_adopt:** true
+**Affects:** teaching-template.md.teaching, wai.md (Step 5), wai-lug-schema.md, WAI-Spoke/wai-context.md
+**Supersedes:** nothing
+**weight:** 10
+**fingerprint:** 07d
+
+---
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+**Check before applying:**
+```bash
+test -f WAI-Spoke/wai-context.md && echo "PASS — wai-context.md exists" || echo "FAIL — create WAI-Spoke/wai-context.md first"
+```
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Adds a **fingerprint + weighted series versioning** system to the WAI teaching pipeline. Each teaching now carries a 3-char fingerprint and a complexity weight. Spokes accumulate fingerprints in a human-readable version string in `wai-context.md`. Series closes at 100 accumulated points, enabling reliable cross-spoke comparison via a deterministic `fw_ver` derivation.
+
+Also adds a **Context Doc Patch** mechanism: teachings can carry structured patches to `wai-context.md`, applied automatically on adoption. This replaces ad-hoc manual context doc updates.
+
+---
+
+## Why This Matters
+
+Without fingerprint tracking, two spokes that absorbed the same 15 teachings in different orders had no way to compare their state. The series versioning system makes spoke state auditable: the `fw_ver` (MD5 of sorted fingerprints) is identical for any two spokes that adopted the same teachings, regardless of order.
+
+The Context Doc Patch mechanism closes the gap where framework changes happen but context docs drift. Teaching-triggered patches keep `wai-context.md` in sync with the actual framework state.
+
+---
+
+## What Changed
+
+### 1. Teaching template — new header fields
+
+Every new teaching must include `weight` and `fingerprint` after `Supersedes`:
+
+```
+**weight:** {1 | 5 | 10 | 25}
+**fingerprint:** {3-char alphanumeric}
+```
+
+Weight scale:
+- `1` — Patch / minor fix / wording update
+- `5` — Behaviour update / protocol tweak
+- `10` — Schema or protocol change
+- `25` — Architectural addition or new advisor
+
+Fingerprint derivation: `first 3 chars of MD5("{teaching-id}:{weight}")`
+
+Existing teachings that predate this teaching (before v3.1) may omit these fields. The adoption step skips fingerprint tracking for those.
+
+### 2. Teaching template — new Context Doc Patch section
+
+Add `## Context Doc Patch` section to any teaching that modifies framework concepts, schema, or protocols:
+
+```json
+[
+  {
+    "section": "Section heading in wai-context.md",
+    "action": "add | replace | remove",
+    "content": "Prose to insert or replace"
+  }
+]
+```
+
+Omit the section entirely for patch/fix teachings (weight=1) with no conceptual change.
+
+### 3. Wakeup Step 5 — fingerprint tracking on adoption
+
+After each teaching is adopted, perform:
+1. Extract `weight` and `fingerprint` from teaching header (skip if absent — pre-v3.1 teaching)
+2. Append fingerprint to `wai-context.md` header version string (idempotent — skip if already present)
+3. Accumulate weight in `series_weight` counter in `wai-context.md` header
+4. If `series_weight >= 100`: bump `series_version` integer, clear fingerprint list, reset `series_weight` to 0
+5. Apply any `## Context Doc Patch` sections (in listed order)
+
+### 4. wai-context.md header format
+
+The first line of `WAI-Spoke/wai-context.md` must carry this comment:
+
+```
+<!-- Generated artifact. Updated at teaching adoption via Context Doc Patch. Build: {hub} / {fw} / Sessions: {n} | series_version: {series}.{YYYYMMDD} | series_weight: {accumulated} -->
+```
+
+Full version string (when fingerprints accumulated):
+```
+series_version: {series}.{YYYYMMDD}-{fp1}.{fp2}.{fp3}
+```
+
+### 5. fw_ver derivation (for lug use)
+
+```
+fw_ver = MD5("{series}.{alpha-sorted fingerprints}")
+```
+
+Example: series=3, fingerprints adopted in order a7f, 3bc, k9m → alpha-sorted: 3bc.a7f.k9m → MD5("3.3bc.a7f.k9m") → fw_ver
+
+Two spokes with identical absorbed teachings (any order) produce identical fw_ver.
+
+### 6. Series boundary rules
+
+- **Automatic close:** `series_weight` reaches 100
+- **Early close:** hub emits a teaching with `type: series-close` — spoke bumps series on absorption
+- **On close:** series integer increments, fingerprint list clears, `series_weight` resets to 0
+- **Fingerprint count at close** reflects series character: few fingerprints = architectural cycle, many = stabilization period
+
+---
+
+## Context Doc Patch
+
+```json
+[
+  {
+    "section": "Core Object: Teaching",
+    "action": "replace",
+    "content": "Teachings are packaged framework updates distributed from hub to all wheels. Format: `.md.teaching` files.\n\nEvery teaching has a `safe_to_auto_adopt` flag:\n- `true` → AI presents a summary, adopts after user sees it\n- `false` → requires explicit user approval\n\nEvery teaching also carries:\n- `weight` — complexity score (1/5/10/25). Contributes to series closure at 100 accumulated points.\n- `fingerprint` — 3-char alphanumeric, derived from `MD5(teaching-id:weight)[:3]`. Appended to spoke version string on adoption.\n\nOn adoption, the spoke updates `wai-context.md` header: appends fingerprint, accumulates weight, applies any Context Doc Patch sections.\n\nTeaching lifecycle:\n```\nPattern discovered in wheel\n  → captured as signal lug\n  → delivered to hub\n  → hub packages as .teaching file (with weight + fingerprint + optional Context Doc Patch)\n  → Gardener distributes to all wheels\n  → wheels adopt at next wakeup → wai-context.md updated\n```"
+  }
+]
+```
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Update the framework teaching template
+
+Edit `{framework_path}/templates/teaching-template.md.teaching`:
+
+Add after `**Supersedes:** ...` line:
+```
+**weight:** {1 | 5 | 10 | 25}  ← 1=patch/fix/wording, 5=behaviour update, 10=schema or protocol change, 25=architectural addition or new advisor
+**fingerprint:** {3-char alphanumeric}  ← derive: first 3 chars of MD5(teaching-id + ":" + weight). Changing weight invalidates fingerprint (integrity property).
+```
+
+Add `## Context Doc Patch` section (see full text in "What Changed" above) between the "What Changed" section and "Resolving {framework_path}".
+
+### Step 2 — Update wai.md Step 5
+
+Edit `{framework_path}/templates/commands/wai.md`, Step 5 (Discover Teachings):
+
+After the Path A/Path B adoption bullet points, add the "After each teaching is adopted" adoption procedure (see "What Changed § 3" above).
+
+### Step 3 — Update wai-lug-schema.md
+
+Edit `{framework_path}/templates/commands/wai-lug-schema.md`:
+
+After the Key Mapping table, add a `## Series Versioning (Teaching-Derived fw_ver)` section documenting the format, fw_ver derivation, series boundary rules, weight scale, and fingerprint generation (see "What Changed §§ 5–6" above).
+
+### Step 4 — Initialize wai-context.md header
+
+If `WAI-Spoke/wai-context.md` exists and lacks `series_version` in the header:
+
+Edit the first line to match:
+```
+<!-- Generated artifact. Updated at teaching adoption via Context Doc Patch. Build: {hub} / {fw} / Sessions: {n} | series_version: 3.{YYYYMMDD} | series_weight: 0 -->
+```
+
+Use the current series (default 3 for existing hubs on v3.x) and today's date.
+
+### Step 5 — Move teaching to processed
+
+```bash
+mkdir -p WAI-Spoke/seed/ingest/processed/
+mv WAI-Spoke/seed/ingest/teaching-fingerprint-series-versioning-v1.md.teaching WAI-Spoke/seed/ingest/processed/
+```
+
+---
+
+## Behavioral Implications
+
+After this teaching is applied:
+- Every new teaching authored by this spoke will include `weight` and `fingerprint` fields
+- Every teaching adopted at wakeup will trigger fingerprint accumulation in `wai-context.md`
+- Context doc patches in adopted teachings are applied automatically
+- `fw_ver` on new lugs is derivable from the spoke's current series version string
+- When accumulated teaching weight reaches 100, the series closes automatically
+
+---
+
+## Verification
+
+```bash
+grep -q "series_version" WAI-Spoke/wai-context.md && echo "PASS — wai-context.md has series_version header" || echo "FAIL — header missing"
+grep -q "weight:" WAI-Spoke/seed/ingest/processed/teaching-fingerprint-series-versioning-v1.md.teaching 2>/dev/null && echo "PASS — teaching processed" || echo "FAIL — teaching not yet in processed"
+```
+
+---
+
+## Backward Compatibility
+
+- Teachings that predate this spec (no `weight` or `fingerprint` fields) are silently skipped during fingerprint accumulation — adoption still proceeds normally
+- `fw_ver` values on existing lugs remain valid — they continue to point to the semver string used at creation time
+- `wai-context.md` without the new header fields works normally — the header is additive
+- `series_weight` counter can be initialized to 0 at any point without data loss
+
+---
+
+**Teaching Package:** teaching-fingerprint-series-versioning-v1
+**safe_to_auto_adopt:** true
+**Impact:** All future teaching authoring and adoption; wai-context.md format; fw_ver derivation for lug currency tracking

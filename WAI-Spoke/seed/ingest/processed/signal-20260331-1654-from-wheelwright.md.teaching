@@ -1,0 +1,20 @@
+# Teaching: Signal — Silent hook failure across fleet ($CLAUDE_PROJECT_DIR)
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal about the fleet-wide silent hook failure discovery and fix.
+
+## Embedded Signal
+
+```json
+{"timestamp":"2026-03-31T17:40:00Z","session_id":"session-20260331-0911","signal":"16/18 spokes had silently broken hooks ($CLAUDE_PROJECT_DIR never resolved by CC). Health check passed falsely. Fixed: env-var detection + Tender auto-heal. Fleet remediated in 5 seconds.","impact":9,"rationale":"Silent failures across entire fleet. Health check was lying. Assertion-based verification pattern established.","by":"claude-opus-4-6","target":"all-spokes"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

@@ -1,0 +1,37 @@
+# Teaching: Scripted Closeout — tools/closeout.sh reduces AI tool calls ~15→5
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+- `WAI-Spoke/WAI-State.json` exists (spoke initialized)
+- `tools/` directory exists
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Spoke/lugs/bytype/signal/undelivered/` informing the spoke that a scripted closeout script pattern is available.
+
+## Embedded Signal
+
+```json
+{
+  "id": "signal-closeout-script-reduces-tool-calls-v1",
+  "type": "signal",
+  "title": "tools/closeout.sh: mechanical closeout scripted out, AI tool calls ~15→5",
+  "signal": "Implemented tools/closeout.sh covering all mechanical closeout steps: version bump, session_count++, timestamps, lug archival, WAI-LugIndex.jsonl regen, score_backlog.py --update-state. Script is idempotent, has --dry-run flag, prints human-readable summary. wai-closeout.md Steps 4+5 now call the script. Reduces AI closeout tool calls ~15→5.",
+  "impact": 8,
+  "rationale": "Every spoke performs closeout. Scripting mechanical steps saves ~10 AI tool calls per session. Source: framework spoke tools/closeout.sh (Session 116).",
+  "routed_to": "FRAMEWORK"
+}
+```
+
+## Batch Sequence
+
+1. Adopt this signal (adds awareness lug)
+
+## Behavioral Implication
+
+Spokes should adopt tools/closeout.sh from the framework spoke for mechanical closeout automation.

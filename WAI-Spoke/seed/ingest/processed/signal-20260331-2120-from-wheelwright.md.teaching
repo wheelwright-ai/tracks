@@ -1,0 +1,20 @@
+# Teaching: Signal — Wheel Council v1 operational
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{"timestamp": "2026-03-31T21:20:00Z", "session_id": "session-20260331-1403", "signal": "Wheel Council fully operational: 5 hub advisors built (Gardener/Spinner/Cartologist/Quartermaster/Octo) with nightly post-tend pipeline. Lathe→Spinner and Compass→Cartologist renames complete (zero live refs). Cartologist Flask web interface live on port 8080.", "impact": 9, "rationale": "Hub advisory layer is now a first-class operational system. Closes the longest-running hub evolution epic milestone.", "by": "claude-sonnet-4-6", "target": "framework"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

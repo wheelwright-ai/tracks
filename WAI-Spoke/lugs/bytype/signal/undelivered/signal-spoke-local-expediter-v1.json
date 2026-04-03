@@ -1,0 +1,15 @@
+{
+  "id": "signal-spoke-local-expediter-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Spoke-Local Expediter — lug quality scoring + signal triage as framework-distributed advisor",
+  "impact": 9,
+  "signal": "The hub Expediter's lug quality scoring (0-10 PEV rubric) and signal triage are universally valuable, not hub-specific. First spoke-local run revealed avg 4.4/10 quality across active lugs and 4 of 6 signals as teaching candidates. Gardener Tender now runs the scorer pre-Pass-2 on every active spoke, gating execution on quality. This transforms the tender from 'execute anything marked ready' to 'execute only what's actually ready.'",
+  "rationale": "Every spoke has lugs the Gardener Tender tries to execute. Without quality scoring, the tender wastes tokens on vague lugs that fail. The Expediter catches this before dispatch — 3 lugs at 0/10 would have been attempted and failed without it. Signal triage identifies teaching candidates that would otherwise stay as raw observations indefinitely.",
+  "routed_to": "SIGNAL",
+  "scope": "all_spokes",
+  "created_at": "2026-03-31T03:12:00Z",
+  "session_id": "session-20260330-1744",
+  "generated_by": "claude-opus-4-6",
+  "fw_ver": "3.0.0"
+}

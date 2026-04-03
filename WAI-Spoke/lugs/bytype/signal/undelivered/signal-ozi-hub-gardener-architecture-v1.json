@@ -1,0 +1,11 @@
+{
+  "id": "signal-ozi-hub-gardener-architecture-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "timestamp": "2026-03-28T22:30:00Z",
+  "source_session": "session-20260328-2128",
+  "signal": "Ozi fleet orchestration runs from the hub, not individual spokes or framework. Hub reads spoke registry, health-scans fleet, dispatches spoke-level worker subagents. Workers dispatch implementation subagents in worktree isolation. Local cron (not RemoteTrigger) because the gardener needs filesystem access to all spoke paths.",
+  "impact": 9,
+  "rationale": "Establishes the canonical Ozi architecture: hub=orchestrator, spokes=workers, framework=protocol authority. Separation of concerns prevents framework from becoming an executor.",
+  "by": "claude-opus-4-6"
+}

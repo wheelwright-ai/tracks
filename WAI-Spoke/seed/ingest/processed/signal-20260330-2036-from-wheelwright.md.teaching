@@ -1,0 +1,27 @@
+# Teaching: Signal — False blocker pattern in impl lugs
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{
+  "timestamp": "2026-03-30T20:36:00Z",
+  "session_id": "session-20260330-1255",
+  "signal": "False blocker pattern: impl lugs listed impl-lathe-spoke-scoring-v1 as blocked_by, but Lathe was already built (lathe_score.py existed, spoke_lathe.json populated). Blocked_by references are not verified at lug creation. Before treating a blocker as a gate, verify the blocking lug actually exists and is unresolved.",
+  "impact": 8,
+  "rationale": "Would have blocked Phase 2 compass/gardener work indefinitely if not caught during wakeup analysis.",
+  "by": "claude-sonnet-4-6"
+}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

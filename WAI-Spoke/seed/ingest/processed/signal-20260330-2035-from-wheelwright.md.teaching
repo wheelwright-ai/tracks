@@ -1,0 +1,27 @@
+# Teaching: Signal — wheel-tender.sh --dry-run runs Pass 1 Claude session
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{
+  "timestamp": "2026-03-30T20:35:00Z",
+  "session_id": "session-20260330-1255",
+  "signal": "wheel-tender.sh --dry-run still runs Pass 1 (Haiku fleet Claude session, ~2 min, ~$0.50). Dry-run only skips Pass 2 and Pass 3. To check filter result without cost, read the gardener log after a real run or parse filter logic directly. Avoid --dry-run when filter visibility is the goal.",
+  "impact": 8,
+  "rationale": "Wasted $0.52 on a verification pass that gave no new information — the filter result was already visible in the log from the previous run.",
+  "by": "claude-sonnet-4-6"
+}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

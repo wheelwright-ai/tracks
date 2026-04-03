@@ -1,0 +1,20 @@
+# Teaching: Signal — Sub-agent parallelism pattern validated
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{"timestamp": "2026-03-31T21:22:00Z", "session_id": "session-20260331-1403", "signal": "Sub-agent parallelism pattern validated for hub advisor builds: Spinner (sequential, file deps), then Cartologist+Quartermaster+Octo in parallel. Each agent marks its own lug completed and appends to track. 5 agents total consumed ~280k tokens vs estimated 600k+ in single context. Context savings ~55%.", "impact": 8, "rationale": "Establishes the agent dispatch pattern for multi-advisor builds. Reusable for spoke advisor stubs (Archie/Will/Jordy/Mark/Clara) and any future parallel implementation work.", "by": "claude-sonnet-4-6", "target": "framework"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

@@ -1,0 +1,11 @@
+{
+  "id": "signal-advisor-self-contained-state-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "timestamp": "2026-03-29T05:15:00Z",
+  "source_session": "session-20260328-2219",
+  "signal": "Hub advisors must own their local state in WAI-Hub/advisors/{name}/ following the historian pattern (scan_state.json, passes.jsonl, vectors.jsonl, reports/). Advisors lean on shared infrastructure (hub-registry.json, WAI-State.json) for awareness but never write advisor-specific fields to shared files. This keeps the registry clean and makes each advisor self-contained and discoverable. Pattern established with gardener advisor, applies to librarian and future advisors.",
+  "impact": 9,
+  "rationale": "Without this principle, each new advisor adds fields to hub-registry.json, creating coupling and clutter. The historian pattern (spoke-level) already proved this works. Extending it to hub-level advisors creates a consistent, scalable architecture.",
+  "by": "claude-opus-4-6"
+}

@@ -1,0 +1,35 @@
+# Teaching: Signal — .claude/ gitignore correct pattern
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+**Updated:** 2026-04-01
+
+---
+
+## What This Teaching Does
+
+Appends a signal informing the spoke of the correct `.gitignore` pattern for `.claude/`. Triggers Tender edge-case detection for spokes with blanket `.claude/` ignores.
+
+## Embedded Signal
+
+```json
+{
+  "id": "signal-claude-gitignore-fleet-antipattern-s121",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Fleet anti-pattern: blanket .claude/ gitignore causes silent command drift",
+  "signal": "Correct pattern: only ignore .claude/.provider (CC runtime state) and .claude/settings.local.json (local overrides). Track everything else: commands/, agents/, hooks/, settings.json. Blanket .claude/ gitignore causes wai.md and hook configs to silently diverge or vanish on clone/reset. Found in Minder (blanket ignore) and Basher (settings.json ignored with wrong comment 'contains API keys'). Spoke template .gitignore corrected in framework S121.",
+  "impact": 8,
+  "rationale": "Silent command drift. Shipit syncs commands but git clone restores nothing. Hook config unversioned means new machine breaks silently.",
+  "routed_to": "SIGNAL",
+  "scope": "all_spokes",
+  "created_at": "2026-04-01T00:00:00Z",
+  "session_id": "session-20260401-0613",
+  "generated_by": "claude-sonnet-4-6",
+  "fw_ver": "2.0.143"
+}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

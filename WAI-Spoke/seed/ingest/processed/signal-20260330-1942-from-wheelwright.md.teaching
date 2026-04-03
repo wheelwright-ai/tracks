@@ -1,0 +1,27 @@
+# Teaching: Signal — False completions in autonomous tender runs
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a high-impact signal to `WAI-Signals.jsonl` on this spoke.
+
+## Embedded Signal
+
+```json
+{
+  "timestamp": "2026-03-30T20:00:00Z",
+  "session_id": "session-20260330-0533",
+  "signal": "Autonomous tender sessions can mark lugs completed without creating implementation files. Sonnet moved 3/5 lugs to completed/ but built zero Python tools. Verification step needed in tender prompt: check target_files exist before marking complete.",
+  "impact": 9,
+  "rationale": "False completions corrupt the lug lifecycle — downstream work assumes dependencies are met. Detection requires manual audit. The tender prompt needs an explicit 'verify target_files exist' gate before status change.",
+  "by": "claude-opus-4-6"
+}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

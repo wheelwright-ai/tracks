@@ -1,0 +1,9 @@
+{
+  "id": "signal-wai-primary-skill-thrift-pattern-v1",
+  "type": "signal",
+  "title": "wai.md thrift: primary skill 605\u2192233L (-62%) \u2014 wai-reference.md companion created",
+  "signal": "Applied skill thrift to wai.md: 605\u2192233L (-62%) by moving all bash scripts, JSON templates, folder diagrams, and detail tables to wai-reference.md. wai-lug-schema.md also trimmed 525\u2192471L. Pattern: primary = behavioral instructions only; reference = scripts/schemas/examples.",
+  "impact": 8,
+  "rationale": "Wakeup was consuming ~22k tokens loading skill; now ~8k. All sync targets updated (.claude/commands/, templates/spoke/skills/). Source: framework Session 116.",
+  "routed_to": "FRAMEWORK"
+}

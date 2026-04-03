@@ -1,0 +1,20 @@
+# Teaching: Signal — Advisor architecture v2 (14 advisors)
+
+**Type:** signal
+**safe_to_auto_adopt:** true
+
+---
+
+## What This Teaching Does
+
+Appends a signal about the complete advisor architecture redesign: 9 spoke + 5 hub advisors.
+
+## Embedded Signal
+
+```json
+{"timestamp":"2026-03-31T17:40:00Z","session_id":"session-20260331-0911","signal":"Advisor architecture v2: 9 spoke (Ozi, Marge, Archie, Flo, Will, Jordy, Thad, Mark, Clara) + 5 hub (Octo, Gardener, Spinner, Cartologist, Quartermaster). Hierarchy, lug-message communication, UX four-panel.","impact":10,"rationale":"Fundamental architecture for the advisory system.","by":"claude-opus-4-6","target":"framework"}
+```
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

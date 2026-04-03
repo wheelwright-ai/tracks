@@ -1,0 +1,9 @@
+{
+  "id": "signal-closeout-script-reduces-tool-calls-v1",
+  "type": "signal",
+  "title": "tools/closeout.sh: mechanical closeout scripted out, AI tool calls ~15\u21925",
+  "signal": "Implemented tools/closeout.sh covering all mechanical closeout steps: version bump, session_count++, timestamps, lug archival, WAI-LugIndex.jsonl regen, score_backlog.py --update-state. Script is idempotent, has --dry-run flag, prints human-readable summary. wai-closeout.md Steps 4+5 now call the script. Reduces AI closeout tool calls ~15\u21925.",
+  "impact": 8,
+  "rationale": "Every spoke performs closeout. Scripting mechanical steps saves ~10 AI tool calls per session. Source: framework spoke tools/closeout.sh (Session 116).",
+  "routed_to": "FRAMEWORK"
+}
