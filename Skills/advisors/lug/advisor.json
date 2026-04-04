@@ -1,0 +1,21 @@
+{
+  "inherits": true,
+  "overrides": {
+    "exposure": ["agent", "subagent"],
+    "watchers": [
+      "wrong.*lug",
+      "routing.*issue",
+      "missing.*lug",
+      "lifecycle.*stuck",
+      "queue.*mismatch"
+    ],
+    "safety_level": 8,
+    "modes": {
+      "execution": "passive",
+      "interactive": "active",
+      "planning": "active",
+      "review": "active",
+      "deploy": "active"
+    }
+  }
+}

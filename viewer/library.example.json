@@ -1,0 +1,34 @@
+[
+  {
+    "id": "sample-coding",
+    "title": "Sample: Coding Session",
+    "path": "../samples/coding-session.jsonl",
+    "summary": "Auth refactor example with orientation, execution, review, and crystallization.",
+    "provider": "Claude",
+    "model": "claude-opus-4-6"
+  },
+  {
+    "id": "sample-strategy",
+    "title": "Sample: Strategy Session",
+    "path": "../samples/strategy-session.jsonl",
+    "summary": "Positioning session showing fossils, convergence, and final artifacts.",
+    "provider": "Claude",
+    "model": "claude-opus-4-6"
+  },
+  {
+    "id": "sample-learning",
+    "title": "Sample: Learning Session",
+    "path": "../samples/learning-session.jsonl",
+    "summary": "Learning-oriented Track with durable insights and continuity anchors.",
+    "provider": "Claude",
+    "model": "claude-opus-4-6"
+  },
+  {
+    "id": "local-session-20260317",
+    "title": "Local Session: Tracks Inception Build",
+    "path": "../WAI-Spoke/sessions/WAI_Track-20260317-0000-Claude-claude-sonnet-4-6.jsonl",
+    "summary": "A local wheel session showing the repo identity pivot from app to Track library.",
+    "provider": "Claude",
+    "model": "claude-sonnet-4-6"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "inherits": true,
+  "overrides": {
+    "exposure": ["agent", "subagent"],
+    "watchers": [
+      "decision.*made",
+      "learned.*that",
+      "repeat.*pattern",
+      "should.*remember",
+      "durable.*signal"
+    ],
+    "safety_level": 6,
+    "modes": {
+      "execution": "passive",
+      "interactive": "active",
+      "planning": "active",
+      "review": "active",
+      "deploy": "passive"
+    }
+  }
+}

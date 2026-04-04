@@ -1,0 +1,21 @@
+{
+  "inherits": true,
+  "overrides": {
+    "exposure": ["agent", "subagent"],
+    "watchers": [
+      "context.*overflow",
+      "lost.*context",
+      "resume.*risk",
+      "handoff.*weak",
+      "checkpoint.*missing"
+    ],
+    "safety_level": 9,
+    "modes": {
+      "execution": "passive",
+      "interactive": "active",
+      "planning": "active",
+      "review": "active",
+      "deploy": "passive"
+    }
+  }
+}

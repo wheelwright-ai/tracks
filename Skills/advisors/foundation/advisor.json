@@ -1,0 +1,21 @@
+{
+  "inherits": true,
+  "overrides": {
+    "exposure": ["agent", "subagent"],
+    "watchers": [
+      "foundation.*change",
+      "core.*constraint",
+      "operating.*model",
+      "architectur.*shift",
+      "assumption.*change"
+    ],
+    "safety_level": 10,
+    "modes": {
+      "execution": "passive",
+      "interactive": "active",
+      "planning": "active",
+      "review": "active",
+      "deploy": "active"
+    }
+  }
+}

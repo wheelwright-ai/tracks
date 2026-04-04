@@ -111,6 +111,45 @@ demonstrate portability.
 
 ---
 
+## Track Viewer
+
+A zero-build web viewer now lives in **[viewer/](viewer/)**.
+
+It supports:
+- local Track file upload
+- direct loading by relative path or URL
+- turn-by-turn timeline navigation
+- search and phase filtering
+- optional library mode via a JSON or JSONL registry that points at Track files
+- optional hub mode that can ingest `hub-registry.json` or `wheel-projects.json`
+  and resolve Track files from `WAI-Spoke/sessions/` when your server exposes
+  those wheel paths
+
+Quick start:
+
+```bash
+cd /home/mario/projects/wheelwright/tracks
+python3 -m http.server 8000
+```
+
+Then open:
+- `http://localhost:8000/viewer/`
+- `http://localhost:8000/viewer/?track=../samples/coding-session.jsonl`
+- `http://localhost:8000/viewer/?registry=./library.example.json`
+
+For hub registry mode:
+
+- serve a parent directory that includes both `tracks/` and `hub/`
+- or serve `/home/mario/projects` and set:
+  - server root filesystem path: `/home/mario/projects`
+  - server root URL prefix: `/`
+
+Then the viewer can map absolute wheel paths from `hub-registry.json` or
+`wheel-projects.json` back into browser-fetchable URLs and auto-discover Track
+files under each wheel's `WAI-Spoke/sessions/` directory.
+
+---
+
 ## Improve This
 
 These prompts are a starting point. Adapt them to your domain — adjust the schema,

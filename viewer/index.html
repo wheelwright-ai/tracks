@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tracks Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Wheelwright Tracks</p>
+          <h1>Track Viewer and Navigator</h1>
+          <p class="hero-text">
+            Inspect one Track file, compare multiple sessions, or load a library
+            registry that points at sample files, local sessions, or a served
+            hub registry.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="load-hub-library" class="ghost-button" type="button">
+            Load Hub Registry
+          </button>
+          <button id="load-example-library" class="ghost-button" type="button">
+            Load Example Library
+          </button>
+          <button id="load-sample-track" class="ghost-button" type="button">
+            Load Sample Track
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="sidebar">
+          <section class="panel controls-panel">
+            <div class="section-heading">
+              <h2>Load Tracks</h2>
+              <span class="mode-tag" id="mode-tag">Local mode</span>
+            </div>
+
+            <label class="control-group file-picker">
+              <span>Open local Track file</span>
+              <input id="track-file-input" type="file" accept=".jsonl,.json" />
+            </label>
+
+            <div class="control-group">
+              <label for="track-url-input">Load Track from URL or path</label>
+              <div class="inline-controls">
+                <input
+                  id="track-url-input"
+                  type="text"
+                  placeholder="../samples/coding-session.jsonl"
+                />
+                <button id="load-track-url" type="button">Load</button>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label for="registry-url-input">Library registry URL or path</label>
+              <div class="inline-controls">
+                <input
+                  id="registry-url-input"
+                  type="text"
+                  placeholder="./library.example.json"
+                />
+                <button id="load-registry-url" type="button">Open</button>
+              </div>
+              <p class="control-help">
+                Registry files may be JSON or JSONL. Each entry should expose a
+                path or URL to a Track file.
+              </p>
+            </div>
+
+            <div class="control-row">
+              <div class="control-group">
+                <label for="server-root-path">Server root filesystem path</label>
+                <input
+                  id="server-root-path"
+                  type="text"
+                  placeholder="/home/mario/projects"
+                />
+              </div>
+              <div class="control-group">
+                <label for="server-root-url">Server root URL prefix</label>
+                <input id="server-root-url" type="text" placeholder="/" />
+              </div>
+            </div>
+            <p class="control-help">
+              Needed only when a hub registry contains absolute filesystem
+              paths. Example: if your web server root is
+              `/home/mario/projects`, use that filesystem path and `/` as the
+              URL prefix.
+            </p>
+
+            <div class="control-group">
+              <label for="search-input">Search points</label>
+              <input
+                id="search-input"
+                type="search"
+                placeholder="focus, action, thinking, decisions..."
+              />
+            </div>
+
+            <div class="control-row">
+              <div class="control-group">
+                <label for="phase-filter">Phase</label>
+                <select id="phase-filter">
+                  <option value="">All phases</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label for="sort-order">Order</label>
+                <select id="sort-order">
+                  <option value="asc">Turn ascending</option>
+                  <option value="desc">Turn descending</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="status-stack">
+              <p id="status-message" class="status-message">
+                No Track loaded yet.
+              </p>
+              <p id="source-message" class="source-message">
+                Use file upload, a path, or a library registry to begin.
+              </p>
+            </div>
+          </section>
+
+          <section class="panel library-panel">
+            <div class="section-heading">
+              <h2>Library</h2>
+              <span id="library-count" class="count-pill">0 entries</span>
+            </div>
+            <div id="library-empty" class="empty-state">
+              No registry loaded. Example library points at `samples/` and
+              `WAI-Spoke/sessions/`.
+            </div>
+            <ul id="library-list" class="library-list"></ul>
+          </section>
+
+          <section class="panel timeline-panel">
+            <div class="section-heading">
+              <h2>Timeline</h2>
+              <span id="timeline-count" class="count-pill">0 points</span>
+            </div>
+            <div id="timeline-empty" class="empty-state">
+              Load a Track to see its turn-by-turn structure.
+            </div>
+            <ul id="timeline-list" class="timeline-list"></ul>
+          </section>
+        </aside>
+
+        <section class="content">
+          <section class="summary-grid" id="summary-grid">
+            <article class="summary-card">
+              <h3>Session</h3>
+              <p id="summary-session">No Track loaded</p>
+            </article>
+            <article class="summary-card">
+              <h3>Turns</h3>
+              <p id="summary-turns">0</p>
+            </article>
+            <article class="summary-card">
+              <h3>Phases</h3>
+              <p id="summary-phases">0</p>
+            </article>
+            <article class="summary-card">
+              <h3>Open items</h3>
+              <p id="summary-open">0</p>
+            </article>
+          </section>
+
+          <section class="panel track-meta-panel">
+            <div class="section-heading">
+              <h2>Track Overview</h2>
+              <div class="navigator-controls">
+                <button id="prev-point" type="button">Previous</button>
+                <button id="next-point" type="button">Next</button>
+              </div>
+            </div>
+            <div id="track-meta" class="track-meta">
+              <div class="empty-state">Track metadata appears here.</div>
+            </div>
+          </section>
+
+          <section class="panel detail-panel">
+            <div class="section-heading">
+              <h2>Turn Detail</h2>
+              <span id="detail-tag" class="count-pill">No selection</span>
+            </div>
+            <div id="detail-view" class="detail-view">
+              <div class="empty-state">
+                Select a point from the timeline or load a sample Track.
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

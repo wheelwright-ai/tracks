@@ -1,0 +1,20 @@
+{
+  "inherits": true,
+  "overrides": {
+    "exposure": ["agent", "subagent"],
+    "watchers": [
+      "scope.*drift",
+      "boundary.*violation",
+      "foundation.*change",
+      "identity.*change"
+    ],
+    "safety_level": 10,
+    "modes": {
+      "execution": "passive",
+      "interactive": "active",
+      "planning": "active",
+      "review": "active",
+      "deploy": "active"
+    }
+  }
+}
