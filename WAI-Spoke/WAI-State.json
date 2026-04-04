@@ -352,6 +352,16 @@
         "tagged_next": false
       },
       {
+        "id": "signal-tender-pass2-stdin-drain-fix-v1",
+        "roi": 4.5,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "wheel-tender.sh Pass 2 stdin-drain bug: claude CLI in while loop drains here-str",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
         "id": "epic-station-master-lines-v1",
         "roi": 3.0,
         "type": "epic",
@@ -364,9 +374,9 @@
     ],
     "queue_state": {
       "ready_count": 0,
-      "needs_refinement_count": 2,
+      "needs_refinement_count": 3,
       "blocked_count": 1
     },
-    "last_scored_at": "2026-04-03T10:13:06.242923+00:00"
+    "last_scored_at": "2026-04-04T10:02:37.937801+00:00"
   }
 }

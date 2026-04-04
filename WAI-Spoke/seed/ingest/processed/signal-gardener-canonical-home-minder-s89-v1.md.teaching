@@ -1,0 +1,58 @@
+---
+id: signal-gardener-canonical-home-minder-s89-v1
+type: signal
+family: signal-gardener-canonical-home-minder
+version: 1
+title: "Gardener canonical home is Minder — hub scripts are interim"
+created_at: 2026-04-04T03:46:10Z
+created_by: session-20260403-1949
+fingerprint: gardener-minder-home-s89-v1-20260404
+safe_to_auto_adopt: true
+target: hub
+---
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+## What Changed
+
+The triumvirate relocation decision (option B) was made in Session 89: **Gardener's canonical home is Minder**, not a hub-resident advisor or the superseded wheel-power standalone spoke.
+
+- Hub scripts `verify_health.py` and `scan_characteristics.py` remain operational as **interim** implementations only
+- Two Minder lugs created to track the Minder-native rebuild: `task-minder-gardener-health-verification-v1` and `task-minder-gardener-characteristics-scan-v1`
+- Hub KB epic (`epic-hub-kb-system-expediter-gardener-v1`) Expediter/Librarian phases remain hub-owned and unaffected
+
+## Why It Matters
+
+Any hub session planning to implement or extend Gardener advisor logic should treat hub-resident Gardener scripts as temporary. Building Gardener features in the hub would create migration debt. The canonical build target is Minder Phase 2+.
+
+## Migration Instructions
+
+1. Do not add new features to `WAI-Hub/advisors/gardener/verify_health.py` or `scan_characteristics.py`
+2. When Minder Gardener equivalents go live, retire hub scripts
+3. Hub KB epic Expediter/Librarian phases can proceed independently — they have no Gardener dependency
+
+## Signal Lug
+
+```json
+{
+  "id": "signal-gardener-canonical-home-minder-s89",
+  "type": "signal",
+  "title": "Gardener canonical home is Minder — hub scripts are interim",
+  "impact": 9,
+  "target": "hub",
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-04-04T03:46:10Z",
+  "session_id": "session-20260403-1949"
+}
+```

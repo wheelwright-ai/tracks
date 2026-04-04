@@ -1,0 +1,11 @@
+{
+  "id": "fix-closeout-banner-stall-v1",
+  "ty": "signal",
+  "s": "o",
+  "title": "Closeout Step 10: invert confirmation logic \u2014 proceed unless explicit cancel",
+  "signal": "Step 10 banner previously required explicit affirmative. Any side comment, question, or non-yes response caused indefinite stall. Fix: proceed by default. Only stop on explicit 'no', 'cancel', 'stop', 'abort', or 'wait'. Questions answered then commit continues without re-presenting banner. Banner text: 'Proceeding in 10s \u2014 reply cancel to stop.'",
+  "impact": 9,
+  "created_at": "2026-03-28T01:00:00Z",
+  "created_by": "claude-sonnet-4-6",
+  "status": "delivered"
+}

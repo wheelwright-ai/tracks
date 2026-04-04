@@ -1,0 +1,17 @@
+{
+  "id": "signal-hub-teaching-path-disambiguation-20260326",
+  "type": "signal",
+  "title": "Hub teaching discovery: path disambiguation + index-driven approach",
+  "description": "Two corrections to hub wakeup teaching discovery. (1) PATH: The teachings repo is at {hub_path}/teachings_repo/framework/current/ \u2014 do NOT add a WAI-Hub/ prefix. When the hub node IS the hub_path, the repo lives at the hub root, not under WAI-Hub/. AI agents consistently make this mistake by prepending WAI-Hub/ when constructing the path. (2) DISCOVERY: Use teachings_repo/framework/index.json as the authoritative list of what teachings exist, then diff against WAI-Spoke/seed/ingest/processed/ to find new ones. Do NOT glob for .teaching files and count \u2014 counting before diffing against processed is fragile and causes false positives.",
+  "impact": 9,
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-03-27T19:26:00Z",
+  "session_id": "session-20260326-1926",
+  "rationale": "Every new hub setup will hit both of these bugs. The path confusion happens because AI agents expand ${HUB_PATH}/teachings_repo/... incorrectly by adding WAI-Hub/ as if the repo were an internal hub subfolder. The file-count approach causes chronic wakeup confusion about how many teachings are actually pending.",
+  "fix": {
+    "path_correct": "${HUB_PATH}/teachings_repo/framework/current/",
+    "path_wrong": "${HUB_PATH}/WAI-Hub/teachings_repo/framework/current/",
+    "discovery_approach": "Read teachings_repo/framework/index.json for the canonical list. Check each id against WAI-Spoke/seed/ingest/processed/ filenames. Only surface ones not yet processed."
+  },
+  "status": "delivered"
+}
