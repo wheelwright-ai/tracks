@@ -1,0 +1,80 @@
+---
+id: hub-inbox-subfolder-routing-v1
+title: Hub signals inbox subfolder routing — hub/ vs framework/ separation
+version: 1.0
+created_at: 2026-04-01T17:57:19.985191+00:00
+created_by: claude-sonnet-4-6 (session-124)
+fw_version: 2.0.146
+safe_to_auto_adopt: true
+breaking_change: false
+target: hub_projects
+---
+
+## Summary
+
+Hub `WAI-Hub/signals/incoming/` should use subfolder routing to separate hub-only signals from framework/spoke signals. Without this, framework spoke sessions count hub-internal signals (crash investigations, hub advisor architecture) as pending work items — inflating the inbox count and creating false signal pressure.
+
+## Prerequisites
+
+- Hub project with `WAI-Hub/signals/incoming/` directory
+- `session-start.sh` hook that counts hub signals
+
+## What to do
+
+### 1. Create subfolders
+
+```bash
+mkdir -p WAI-Hub/signals/incoming/hub
+mkdir -p WAI-Hub/signals/incoming/framework
+mkdir -p WAI-Hub/signals/incoming/spokes
+```
+
+### 2. Update session-start.sh signal count
+
+Replace flat `incoming/*.json` glob with subfolder-targeted count:
+
+```bash
+# Count only framework-targeted signals
+HUB_SIGNALS=0
+HUB_SIGNALS_HUB=0
+if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming" ]]; then
+  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/framework" ]]; then
+    HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/framework/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  else
+    # fallback: flat incoming/ (pre-subfolder layout)
+    HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  fi
+  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/hub" ]]; then
+    HUB_SIGNALS_HUB=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/hub/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  fi
+fi
+```
+
+### 3. Update output line
+
+```bash
+HUB SIGNALS INBOX: ${HUB_SIGNALS} framework items$(if [[ $HUB_SIGNALS_HUB -gt 0 ]]; then printf " | %s hub-only (hub session scope)" "$HUB_SIGNALS_HUB"; fi)
+```
+
+### 4. Route existing signals
+
+Review existing flat `incoming/*.json` files — assign each to hub/, framework/, or spokes/ based on their `target` field:
+- `target: hub` → `incoming/hub/`
+- `target: framework` or no target → `incoming/framework/`
+- `target: spokes/*` → `incoming/spokes/`
+
+## Batch Sequence
+
+| Step | Action | Automated |
+|------|--------|-----------|
+| 1 | Create subfolders | Yes |
+| 2 | Update session-start.sh | Yes |
+| 3 | Route existing signals | Manual review required |
+
+## Verification
+
+After adoption: `HUB SIGNALS INBOX: 0 framework items` (if no framework signals pending). Hub-only signals show as informational only.
+
+## Rationale
+
+Found in S124: 25-item inbox had 2 hub-only signals. These inflated the framework spoke's perceived pending signal count across sessions. Clean separation ensures spoke sessions see only work relevant to their scope.

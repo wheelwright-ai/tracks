@@ -1,0 +1,49 @@
+---
+title: "Closeout Step 11: proceed-by-default banner + inline-question guidance"
+version: 1.0.0
+safe_to_auto_adopt: true
+target: spoke
+session: session-20260401-1127
+framework_version: "2.0.147"
+---
+
+## Summary
+
+The closeout Step 11 banner previously said `Committing in 10s… type cancel/stop/abort to abort`. Updated to cleaner text. Also added explicit guidance: if user asks a question during the 10s window, answer inline and continue — do not re-present the banner.
+
+## Prerequisites
+
+- `templates/commands/wai-closeout.md` must have a Step 11 section with a banner code block
+
+## Change
+
+In `templates/commands/wai-closeout.md` Step 11, replace:
+
+**Before:**
+```
+-- Committing in 10s… type cancel/stop/abort to abort.
+```
+followed by:
+```
+Wait 10s. If user types `cancel`, `stop`, `abort`, `no`, or `wait` (case-insensitive): abort. On timeout or any other input: proceed.
+```
+
+**After:**
+```
+-- Proceeding in 10s — reply cancel to stop.
+```
+followed by:
+```
+Wait 10s. If user types `cancel`, `stop`, `abort`, `no`, or `wait` (case-insensitive): abort. On timeout or any other input (including questions): proceed. If user asks a question: answer it inline, then continue — do **not** re-present the banner.
+```
+
+Then sync: `\cp templates/commands/wai-closeout.md .claude/commands/wai-closeout.md`
+
+## Batch Sequence
+
+No dependencies. Apply independently.
+
+## Verification
+
+`grep "Proceeding in 10s" templates/commands/wai-closeout.md` — should match.
+`grep "answer it inline" templates/commands/wai-closeout.md` — should match.

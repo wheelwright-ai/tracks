@@ -1,0 +1,48 @@
+---
+title: "Skill Sync: session-start.sh upgraded to md5sum comparison"
+version: 1.0.0
+safe_to_auto_adopt: true
+target: spoke
+session: session-20260401-1127
+framework_version: "2.0.147"
+---
+
+## Summary
+
+The skill sync check in `session-start.sh` previously used timestamp comparison (`-nt`) to detect divergence between `templates/commands/` and `.claude/commands/`. This produced false positives after `git checkout` or `cp` operations that updated mtimes without changing content.
+
+Upgraded to `md5sum` content comparison — only warns when files actually differ.
+
+## Prerequisites
+
+- `.claude/hooks/session-start.sh` must contain the `## Step 8b. Skill sync check` section
+
+## Change
+
+In `.claude/hooks/session-start.sh`, replace the sync check loop body:
+
+**Before:**
+```bash
+if [[ ! -f "$dst" ]] || [[ "$src" -nt "$dst" ]]; then
+  SYNC_OUT_OF_SYNC="$SYNC_OUT_OF_SYNC $fname"
+fi
+```
+
+**After:**
+```bash
+if [[ ! -f "$dst" ]]; then
+  SYNC_OUT_OF_SYNC="$SYNC_OUT_OF_SYNC $fname"
+else
+  src_md5=$(md5sum "$src" | cut -d' ' -f1)
+  dst_md5=$(md5sum "$dst" | cut -d' ' -f1)
+  [[ "$src_md5" != "$dst_md5" ]] && SYNC_OUT_OF_SYNC="$SYNC_OUT_OF_SYNC $fname"
+fi
+```
+
+## Batch Sequence
+
+No dependencies. Apply independently.
+
+## Verification
+
+Run: `bash -n .claude/hooks/session-start.sh` — should produce no errors.

@@ -1,0 +1,62 @@
+---
+id: skill-wai-hub-signal-redirect-v1
+type: skill
+family: skill-wai-hub-signal-redirect
+version: 1
+title: "Hub wakeup: two-phase signal bulletin (incorporate hub-own, forward non-hub)"
+created_at: 2026-04-03T18:00:00Z
+created_by: session-20260403-1758
+fingerprint: hub-signal-redirect-v1-20260403
+safe_to_auto_adopt: true
+---
+
+## What Changed
+
+The **Hub Signal Bulletin** section in `WAI-Hub/skills/wai/wai.md` (the hub wakeup skill) was restructured from a single "incorporate all signals" step into two explicit phases:
+
+- **Phase A** — Hub reads `by-target/hub/` and incorporates signals as local lugs (unchanged behavior)
+- **Phase B** — Hub reads `by-target/framework/` and `by-target/spokes/` and **forwards** them to the destination spoke's `lugs/incoming/` — it does NOT incorporate them as hub lugs
+
+## Why It Matters
+
+Without this fix, signals routed to `"framework"` or `"spokes"` would be surfaced to the hub user as items to "incorporate" — creating incorrect hub lugs for work that belongs to the framework spoke or individual spokes. The hub is the **router**, not the **consumer**, of non-hub signals.
+
+## Migration Instructions
+
+Update the **Hub Signal Bulletin** section in your hub wakeup skill to match this two-phase structure:
+
+**Phase A — Hub reads its own signals (`by-target/hub/`):**
+1. Check if known, surface new ones, create local lug, move to `processed/`
+
+**Phase B — Hub forwards non-hub signals:**
+
+For `by-target/framework/`:
+1. Look up framework spoke path from `hub-registry.json` (`wheel_id: "wheelwright-framework"`)
+2. Write each signal to `{framework_path}/WAI-Spoke/lugs/incoming/{id}.json`
+3. Move from `by-target/framework/` to `processed/`
+4. Guard: skip if destination inbox missing (log warning); skip if already present (move to processed silently)
+
+For `by-target/spokes/` (broadcast):
+1. Iterate all `wheels` in `hub-registry.json` where `status: "active"`
+2. Write to each `{spoke_path}/WAI-Spoke/lugs/incoming/{id}.json`
+3. Move to `processed/`
+
+For `by-target/spokes/{spoke_id}/` (targeted):
+1. Match spoke in registry, forward to its inbox, move to `processed/`
+
+Briefing output: `Forwarded: N framework signal(s) → {path}` — never "incorporate" for non-hub signals.
+
+## Prerequisites
+
+```bash
+# Verify hub-registry.json has wheelwright-framework entry
+jq '.wheels[] | select(.wheel_id == "wheelwright-framework") | .path' hub-registry.json
+# Must return a valid path
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Required before:** None
+- **Parallel safe:** Yes
