@@ -121,12 +121,12 @@
     ]
   },
   "_session_state": {
-    "last_session_id": "trk-session-20260317",
-    "last_modified_by": "openai/gpt-5.4",
-    "last_modified_at": "2026-03-19T10:05:00Z",
+    "last_session_id": "session-20260406-1206",
+    "last_modified_by": "claude-sonnet-4-6",
+    "last_modified_at": "2026-04-06T12:20:00Z",
     "requires_review": false,
     "review_reason": null,
-    "session_count": 1,
+    "session_count": 2,
     "current_session": {
       "id": "trk-session-20260319-0731",
       "started_at": "2026-03-19T07:31:07Z",
@@ -141,8 +141,8 @@
         "last_timestamp": "2026-03-17T01:40:00Z"
       }
     },
-    "last_closeout": "2026-03-17T00:00:00Z",
-    "protocol_completed": true,
+    "last_closeout": "2026-04-06T12:20:00Z",
+    "protocol_completed": false,
     "current_ai": "gpt-5.4",
     "ai_id": "openai/gpt-5.4",
     "startup_files": [
@@ -161,7 +161,9 @@
       "wai-time",
       "wai-rules"
     ],
-    "protocol_last_run": "2026-03-19T07:31:07Z"
+    "protocol_last_run": "2026-03-19T07:31:07Z",
+    "track_path": "WAI-Spoke/sessions/session-20260406-1206/track.jsonl",
+    "next_session_recommendation": "Run improvement pass on prompt variants when real agent failure modes are available. 3 signals pending hub delivery."
   },
   "_auto_implementation": {
     "enabled": false,
@@ -210,12 +212,12 @@
   "wheel": {
     "name": "Tracks",
     "abbrev": "TRK",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "type": "Documentation and Prompt Library",
     "description": "Portable conversation records and prompt library for WAI Track generation",
     "repository": "https://github.com/wheelwright-ai/tracks",
     "created": "2026-03-17",
-    "last_updated": "2026-03-19",
+    "last_updated": "2026-04-06",
     "status": "active",
     "workspace": {
       "ide_cmd": null,

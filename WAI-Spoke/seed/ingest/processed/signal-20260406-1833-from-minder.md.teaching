@@ -1,0 +1,96 @@
+# Teaching: signal-20260406-1833-from-minder
+**Source spoke:** minder
+**Session:** 72
+**Created:** 2026-04-06T18:33:11Z
+**Impact:** 8
+
+## What changed and why it matters
+
+Two high-impact UX/architecture patterns were established in Session 72:
+
+### Pattern 1: Tender run order — framework first → recent spokes → hub last
+`sort_wheels()` in `scripts/tender.py` pins `wheelwright-framework` at position 1, `wheelwright-hub` at last position, all other active spokes sorted by `last_updated` descending. Without this order, hub may process sessions before framework teachings are generated, causing stale teaching sets to propagate.
+
+### Pattern 2: Spoke selector UX — toggle chips grouped by Evaluated / Available
+Replace `<select multiple>` spoke selectors with toggle chip buttons. Group by evaluation status: Evaluated (fleet entry has `.latest` data) shown first, Available (never scanned) second. Pre-select active spoke. All chips click-to-toggle and removable. This pattern applies anywhere a multi-spoke selector is needed across the fleet UI.
+
+## Migration instructions
+
+### Tender run order
+In any spoke's `tender.py` or equivalent orchestration script:
+```python
+def sort_wheels(wheels: list[dict]) -> list[dict]:
+    framework = [w for w in wheels if w.get("wheel_id") == "wheelwright-framework"]
+    hub       = [w for w in wheels if w.get("wheel_id") == "wheelwright-hub"]
+    rest      = [w for w in wheels if w.get("wheel_id") not in ("wheelwright-framework", "wheelwright-hub")]
+    def _last_updated(w):
+        for field in ("last_updated", "last_sync", "taught_at"):
+            v = w.get(field)
+            if v: return str(v)
+        return ""
+    rest.sort(key=_last_updated, reverse=True)
+    return framework + rest + hub
+```
+Call `sort_wheels(wheels)` before iterating spokes in any run/plan function.
+
+### Toggle chips
+Functions: `renderSpokeToggles(fleet, preselect)` and `getSelectedSpokes()`. Group fleet entries by whether `.latest` data exists (Evaluated) or not (Available). Each chip: `data-spoke="{wheel_id}"`, class `.spoke-chip`, click toggles `.active`. Pre-select by adding `.active` to the matching chip on load.
+
+## Prerequisites
+
+```bash
+# Verify tender.py has sort_wheels
+grep -n "sort_wheels" scripts/tender.py || echo "NOT FOUND"
+# Verify hub registry is accessible
+ls /home/mario/projects/wheelwright/hub/hub-registry.json
+```
+
+## Batch Sequence
+
+- **Apply order:** Independent — apply in any order
+- **Depends-on:** None
+- **Required-before:** None
+- **Parallel-safe:** yes
+
+## safe_to_auto_adopt: false
+
+Both patterns require reading target file before applying — context-specific implementation needed.
+
+---
+
+## Embedded Signal Lugs
+
+### Signal 1
+```json
+{
+  "id": "signal-tender-run-order-framework-first-v1",
+  "type": "signal",
+  "title": "Tender run order: framework first → recent spokes → hub last",
+  "summary": "sort_wheels() in tender.py pins wheelwright-framework at position 1, wheelwright-hub at last, all other active spokes sorted by last_updated descending. This ensures teachings propagate from framework outward before hub aggregates them.",
+  "impact": 8,
+  "status": "undelivered",
+  "created_at": "2026-04-06T18:33:11Z",
+  "created_by": "session-72",
+  "source_spoke": "minder",
+  "why_it_matters": "Without this order, hub may process sessions before framework teachings are generated, causing spokes to receive stale or incomplete teaching sets. Framework-first is the canonical fleet hygiene rule.",
+  "pattern": "sort_wheels(wheels) = framework + sorted(rest, key=last_updated, reverse=True) + hub",
+  "files": ["scripts/tender.py"]
+}
+```
+
+### Signal 2
+```json
+{
+  "id": "signal-spoke-toggle-chips-ux-pattern-v1",
+  "type": "signal",
+  "title": "Spoke selector pattern: toggle chips grouped by Evaluated / Available, not <select multiple>",
+  "summary": "Replace multi-select with toggle chip buttons. Group by evaluation status: Evaluated (fleet entry has .latest data) shown first, Available (never scanned) second. Pre-select active spoke. All chips click-to-toggle (removable). renderSpokeToggles(fleet, preselect) + getSelectedSpokes() are the canonical functions.",
+  "impact": 8,
+  "status": "undelivered",
+  "created_at": "2026-04-06T18:33:11Z",
+  "created_by": "session-72",
+  "source_spoke": "minder",
+  "why_it_matters": "Users expect to select from known spokes, not type IDs. Evaluated/Available grouping surfaces the most actionable spokes first. Toggle chips make add and remove symmetrical — no hidden locked state. This pattern applies anywhere a multi-spoke selector is needed.",
+  "files": ["web/templates/realizer.html"]
+}
+```

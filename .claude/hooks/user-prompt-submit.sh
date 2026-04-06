@@ -16,6 +16,13 @@ RUNTIME_DIR="$PROJECT_DIR/WAI-Spoke/runtime"
 GUARD_FILE="$RUNTIME_DIR/session-guard.json"
 mkdir -p "$RUNTIME_DIR"
 
+# Post-compaction closeout hardening: one-shot injection if compacted flag set
+if [[ -f "$GUARD_FILE" ]] && jq -e '.compacted == true' "$GUARD_FILE" > /dev/null 2>&1; then
+  TMP=$(mktemp)
+  jq 'del(.compacted)' "$GUARD_FILE" > "$TMP" && mv "$TMP" "$GUARD_FILE"
+  echo '<wai-post-compact>Context was compacted. Read templates/commands/wai-closeout.md before proceeding with closeout.</wai-post-compact>'
+fi
+
 # Read guard state (if exists)
 GUARD_SESSION_ID=""
 GUARD_COMPLETED="false"

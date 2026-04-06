@@ -31,4 +31,12 @@ Rules still active: P1-Persist, P2-Verify, P3-Steward, P10-Autonomy, P11-Lug-Fir
 </wai-pre-compact>
 COMPACT
 
+# Post-compaction closeout hardening: write compacted flag to session guard
+RUNTIME_DIR="$PROJECT_DIR/WAI-Spoke/runtime"
+GUARD_FILE="$RUNTIME_DIR/session-guard.json"
+if [[ -f "$GUARD_FILE" ]]; then
+  TMP=$(mktemp)
+  jq '.compacted = true' "$GUARD_FILE" > "$TMP" && mv "$TMP" "$GUARD_FILE"
+fi
+
 exit 0

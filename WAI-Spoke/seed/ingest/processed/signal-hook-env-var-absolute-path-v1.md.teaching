@@ -1,0 +1,61 @@
+---
+id: signal-hook-env-var-absolute-path-v1
+type: teaching
+family: signal-hook-env-var-absolute-path
+version: 1
+title: "Fleet anti-pattern: env vars in settings.json hook commands silently break hooks"
+created_at: 2026-04-05T19:46:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: hook-env-var-absolute-path-v1-20260405
+safe_to_auto_adopt: false
+target: spoke
+weight: 9
+impact: 9
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+16/18 fleet spokes had silently broken hooks because `$CLAUDE_PROJECT_DIR` (and similar env vars) are never resolved by Claude Code when executing hook commands in `settings.json`. The hooks appeared configured but never fired. Health checks passed falsely because the hook script path itself was invalid.
+
+**Fix:** All hook commands in `settings.json` must use absolute paths. Never use `$VAR` or `${VAR}` syntax.
+
+```json
+// WRONG — silently broken
+"command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
+
+// RIGHT
+"command": "/home/mario/projects/myspoke/.claude/hooks/session-start.sh"
+```
+
+**Audit command:**
+```bash
+grep -n '\$[A-Z_]' .claude/settings.json
+```
+If any matches: replace with absolute paths.
+
+## Why It Matters
+
+Hooks are the backbone of WAI session management (wakeup, guards, track, compaction). A broken hook fails silently — no error, no warning. The spoke appears healthy but runs completely unguarded. Discovery requires active inspection, not passive monitoring.
+
+## Prerequisites
+
+```bash
+grep -n '\$[A-Z_]' .claude/settings.json | head -10
+```
+If output is empty: already clean, skip. If any matches: apply fix.
+
+## CLAUDE.md Anti-Pattern to Add
+
+```
+**Hook path variables:** Never use `$CLAUDE_PROJECT_DIR` or other assumed env vars in
+settings.json hook commands. Always use absolute `/home/<user>/` paths. Unresolved vars
+silently break every tool call in the session.
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

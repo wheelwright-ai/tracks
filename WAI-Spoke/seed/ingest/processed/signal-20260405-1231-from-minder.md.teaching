@@ -1,0 +1,47 @@
+---
+id: signal-realizer-auto-dispatch-v1
+type: teaching
+family: signal-realizer-auto-dispatch
+version: 1
+title: "Realizer fix-tasks should auto-dispatch on interrogation — remove manual Send step"
+created_at: 2026-04-05T12:31:00Z
+created_by: session-20260405-1202
+source_spoke: minder
+fingerprint: realizer-auto-dispatch-v1-20260405
+safe_to_auto_adopt: false
+target: spoke
+weight: 6
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Original Realizer design wrote fix-task lugs to `pending_dispatch/` and required the user to click "Send" per lug. This was a v1 conservative hold. S66 removed the manual approval step.
+
+**New flow:** `interrogate()` calls `dispatch_lug_direct(lug, hub_path)` which:
+1. Writes lug to the spoke's `WAI-Spoke/seed/ingest/incoming/` inbox directly
+2. Records a copy in `pending_dispatch/dispatched/` for history
+3. Falls back to `write_pending_dispatch()` if spoke path is unreachable
+
+UI shows "Fix Tasks" panel with dispatched+unresolved status. Human-gap items (missing_foundation etc.) show "needs human" badge. "Pending Dispatch" panel and Send/reject buttons removed.
+
+## Why It Matters
+
+The manual Send step added friction without safety — the lug still lands in an inbox requiring human action. Auto-dispatch is appropriate when the receiving agent must decide what to do with the lug anyway.
+
+## Pattern
+
+Auto-dispatch is right when: (a) the lug is a task/fix that needs human/agent action in the target spoke regardless, and (b) the approval step doesn't provide meaningful safety (you're not approving content, just routing).
+
+## Prerequisites
+
+```bash
+grep -n "dispatch_lug_direct\|write_pending_dispatch" web/realizer_dispatch.py | head -5
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

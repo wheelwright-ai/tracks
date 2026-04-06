@@ -1,107 +1,271 @@
 # WAI Track Generator — Closing Request
+v0.24
 
 > Part of Wheelwright AI Tracks
-> Generate a portable, replayable, and continuable record of any AI conversation.
+> Generate a portable, replayable, and continuable record of any AI conversation — retroactively.
 
 ## What is this?
 
-A **WAI Track** is now a rich, multi-dimensional JSONL file that does three things at once:
+A **WAI Track** is a rich JSONL ledger that:
 
-1. Lets any future agent **continue the conversation exactly** where it left off.
-2. Gives a complete intellectual history — including verbatim user voice, trade-offs, rejected paths, fossils with provenance, and half-considered ideas.
-3. Preserves **only the final landing artifacts** (never intermediate drafts).
+1. Lets any future agent continue the conversation exactly where it left off.
+2. Gives a complete intellectual history — verbatim voice, decisions, fossils, artifacts.
+3. Carries turn-level meta: todos, open loops, candidate ideas, awareness.
+
+Paste this prompt into any existing conversation. The agent reviews the full history and produces the export package immediately.
 
 ## How to use
 
-1. Copy everything below the line into your conversation.
-2. The agent will analyze the full history.
-3. It will generate the enriched `.jsonl` Track file.
+1. Copy everything below the line into your existing conversation.
+2. The agent analyzes the full history and produces the track package.
+3. Download and save the `.jsonl` file.
+
+For priming at session start, see `prep-and-request.md`.
+For real-time per-turn capture, see `active-collection.md`.
 
 ---
 
-You are generating a **WAI Track file** — a rich, continuable record of this conversation.
+WAI Track v0.24 — closing-request mode
 
-## Your Task
+You are generating a WAI Track file — a rich, continuable, retroactive record of this conversation.
+Review the entire conversation history and produce the export package immediately.
+All records are reconstructed from transcript. Mark capture_mode="reconstructed" on every exchange record.
 
-Review the entire conversation history and produce a JSONL file where **each line is exactly one turn**.
 
-The track must feel like a living workshop log: a future coding agent should be able to open it and immediately know what to build next, what the user's exact intent was, which ideas were fossils, and where the final reconciled specification lives.
+GOAL
 
-## Output Format
+Capture the full conversation into a deterministic JSONL ledger.
+Preserve continuity, provenance, artifact lifecycle, decisions, awareness, unresolved opportunities, and file references for high-fidelity handoffs.
+Produce the track file and all session artifacts as a single downloadable package.
+No gold left behind.
 
-**Filename**: `WAI_Track-{YYYYMMDD}-{HHMM}-{Provider}-{Model}.jsonl`
 
-### First Line — Session Start
-```json
-{"event":"session_start","ts":"...","session_id":"descriptive-slug-YYYYMMDD","provider":"...","model":"...","mode":"closing-request"}
-```
+LEDGER RECORD TYPES
 
-### One Line Per Turn (required fields + new rich fields)
+session_header — mandatory first record
+Fields:
+- type="session_header"
+- version
+- session_codename
+- started
+- project
+- goal
+- prompt_version
+- persistence_mode
+- ledger_filename
+- ledger_created
+- ledger_verified
+- append_supported
+- mode="closing-request"
+- confidence (low if memory-only)
 
-**Always required**
-- `turn`: integer
-- `ts`: ISO-8601 UTC (estimate if needed)
-- `phase`: orientation | exploration | planning | crystallization | convergence | execution | review
-- `focus`: short descriptive title of the thread
-- `action`: what was produced, decided, or changed this turn
-- `thinking`: **5–10 sentences** structured as:
-  - Why this path was chosen
-  - Alternatives considered and rejected
-  - Trade-offs weighed
-  - Confidence (high/medium/low) in the direction
-  - Any considerations that were only half-explored
+Optional:
+- line_id
+- station_id
+- governance_mode
+- topic_label
+- communication_preferences
 
-**New required-for-richness fields**
-- `user_intent`: 1-sentence summary in the **user's own voice/tone** (what the user was actually driving at)
-- `pivotal_statements`: array of 1–3 short verbatim quotes (user or assistant) that were true turning points
+state_snapshot — emit at export (and optionally every 10 turns if the session was long)
+Fields:
+- type="state_snapshot"
+- active_goals
+- current_phase
+- locked_decisions
+- blocked_tasks
+- open_loops
+- dominant_themes
+- next_focus
 
-**Include when applicable (strongly encouraged)**
-- `evolution`: "previous-phase → current-phase: one-sentence reason"
-- `decisions`: array of `{"choice":"...","rationale":"why this exact choice (1–2 sentences)"}`
-- `insights`: array of new understandings
-- `fossils`: array of `{"concept":"...","replaced_by":"...","reason":"...","from_turn":N}`
-- `open`: array of `{"item":"...","status":"unknown|deferred|intentional|blocked","next_action_suggested":"..."}`
-- `files_in`: array of `{"name":"...","type":"...","purpose":"..."}`
-- `files_out`: **ONLY the final landing version** of any generated artifact. Format:
-  ```json
-  {"name":"canonical-wheelwright-spec.md",
-   "type":"specification",
-   "summary":"First 400 characters of the final reconciled spec + ...",
-   "canonical_version":true,
-   "excerpt":"[paste first 400 chars here]",
-   "note":"This is the only version recorded — all prior drafts were superseded"}
-  ```
-  Never record intermediate drafts.
+exchange — one per turn
+Fields:
+- type="exchange"
+- id={codename}-t{N}
+- user.raw
+- assistant.raw
+- events[]
+- focus
+- status
+- artifacts_referenced[]
+- continuity_sources[]
+- capture_mode="reconstructed"
 
-### Last Line — Session End
-```json
-{
-  "event":"session_end",
-  "ts":"...",
-  "total_turns":N,
-  "summary":"One-sentence session summary.",
-  "key_contributions": ["list of 4–8 most important outputs or agreements"],
-  "final_artifacts": ["list of all canonical files_out names with short descriptions"],
-  "continuity_note":"What the next coding agent should pick up first (exact next step)",
-  "unresolved_count":N,
-  "major_phase_transitions":"orientation → exploration → ... → convergence"
-}
-```
+Per-turn meta capture fields on exchange:
+- awareness_items[]
+- identified_todos[]
+- candidate_ideas[]
+- open_loops[]
+- recommendations_made[]
+- recommendation_status
+- theme_tags[]
+- importance
+- confidence
 
-## Rules (strict)
+If the turn produced artifacts, include artifacts_produced[] on assistant with filename and description.
 
-- Exactly one JSONL line per turn. No exceptions.
-- **Artifacts rule**: Record **only the final reconciled version** of any spec, schema, folder layout, or charter. Include a short excerpt so the track itself carries value.
-- Thinking field must be genuine intellectual history — not a summary.
-- Preserve user voice in `user_intent` and `pivotal_statements`.
-- After generating the file contents, output a brief human-readable summary:
-  - Point count
-  - Major phase transitions
-  - Fossils recorded
-  - Open items count
-  - Continuity note for the next agent
+artifact_manifest — included in every export
+Lists all files produced this session.
 
-After the JSONL contents, always add this exact human-friendly wrapper (do not modify it):
+Each entry:
+- id
+- filename
+- size_bytes
+- lifecycle
+- status
+- description
+
+provenance_manifest — included in every export
+Sources consulted:
+- memory
+- web_search
+- tool_call
+- uploaded_file
+- pasted_track
+- live_session
+- reconstructed_transcript
+
+Optional:
+- notes
+
+line_manifest / station_manifest — include if applicable
+
+
+TURN-LEVEL META CAPTURE RULES
+
+Reconstruct these fields retrospectively for each turn from conversation history.
+
+awareness_items[]:
+Notable observations, risks, tensions, drift signals, hidden assumptions, opportunities, or strategic awareness that emerged during the turn.
+
+identified_todos[]:
+Actionable follow-up work revealed during the turn, even if not formally approved.
+
+candidate_ideas[]:
+Ideas, concepts, proposals, or directions surfaced that may have value later, including ideas not incorporated into the final design.
+
+open_loops[]:
+Unresolved questions, tensions, dependencies, or missing information that still matter.
+
+recommendations_made[]:
+Explicit assistant recommendations offered in the turn.
+
+recommendation_status:
+Use one of:
+- accepted_by_default
+- challenged
+- deferred
+- rejected
+- mixed
+
+theme_tags[]:
+Lightweight theme tags for later clustering and Historian analysis.
+
+importance:
+Use one of: low | medium | high
+
+confidence:
+Use one of: low | medium | high
+
+Priority rule:
+- raw turn capture is mandatory for any recorded turn
+- awareness/meta fields are secondary and may be partial if necessary
+- never omit raw_capture in favor of richer interpretation
+
+
+ARTIFACT FIELDS
+
+Status:
+- materialized
+- uploaded
+- referenced
+- described_only
+
+Lifecycle:
+- proposed
+- approved
+- blocked
+- deprecated
+- superseded
+- active
+
+Record only the final landing version of any generated artifact.
+Never record intermediate drafts.
+Include excerpt (first ~400 chars) and canonical_version=true on files_out entries.
+
+Epic:
+When the session locked a concept for later work, emit an epic event and register it in the artifact_manifest with lifecycle=proposed.
+
+
+TRACK-AWARENESS RULE
+
+Capture not only the explicit question, but also:
+- refined framing
+- clarified goal
+- key constraints
+- accepted recommendations
+- challenged recommendations
+- important pivots
+- latent ideas not incorporated
+- recurring themes
+
+These are valuable but secondary to raw turn fidelity.
+Raw turn fidelity always wins if there is a tradeoff.
+
+
+EXPORT CONTRACT
+
+Execute immediately. No trigger needed — pasting this prompt IS the trigger.
+
+Codename:
+Generate a session codename: {dayOfYear}-{dayWord}-{themeWord}
+Infer the session goal from conversation history.
+
+Pre-export reconciliation:
+1. count turns from conversation history
+2. write one exchange record per turn, capture_mode="reconstructed"
+3. if any turn data is uncertain, omit fields rather than invent them
+4. write latest state_snapshot
+5. finalize artifact_manifest
+6. finalize provenance_manifest
+7. include line_manifest / station_manifest if applicable
+
+Full session export:
+
+Filename:
+  WAI_Track-{YYYYMMDD}-{HHMM}-{Provider}-{Model}_{codename}_full.jsonl
+
+Record order in file:
+1. session_header
+2. artifact_manifest
+3. provenance_manifest
+4. line_manifest / station_manifest if applicable
+5. latest state_snapshot
+6. exchange records in turn order
+
+The JSONL itself is listed last in artifact_manifest with lifecycle=active.
+
+Include an export note in the session_header stating:
+- capture_mode=reconstructed for all exchange records
+- source=conversation_transcript
+
+Present:
+- track JSONL first
+- then active artifacts
+- then superseded artifacts
+
+Summary:
+Print this block only, no other text before the save instructions:
+
+  Session package — {codename}
+  ---
+  {filename:<45}  {size_bytes:>8} bytes  [{lifecycle}]
+  ... one line per file
+  ---
+  TOTAL  {n} files  {total_bytes} bytes
+
+Do not claim complete export unless reconstruction is labeled.
+
+After the package summary, always add this exact save instructions block (do not modify it):
 
 ---
 
@@ -109,10 +273,10 @@ After the JSONL contents, always add this exact human-friendly wrapper (do not m
 
 Conversation successfully exported as a portable WAI Track file.
 
-**Suggested filename:** `WAI_Track-{YYYYMMDD}-{HHMM}-{Provider}-{Model}.jsonl`
+**Suggested filename:** `WAI_Track-{YYYYMMDD}-{HHMM}-{Provider}-{Model}_{codename}_full.jsonl`
 
 **How to save it (takes 10 seconds):**
-1. Click anywhere inside the gray code block below
+1. Click anywhere inside the gray code block above
 2. Press Ctrl+A (Windows) or Cmd+A (Mac) to select everything
 3. Press Ctrl+C / Cmd+C to copy
 4. Open a text editor (Notepad, VS Code, TextEdit, etc.)
@@ -124,3 +288,118 @@ You can now:
 - Use it later to rebuild context without re-reading the whole chat
 
 Happy building!
+
+
+FALLBACK — NO FILESYSTEM AVAILABLE
+
+Embed file contents directly in the artifact_manifest records.
+
+Text files (.md .txt .json .ts .py .sql):
+- content_text field
+- UTF-8
+- never truncate
+
+Binary/HTML files (.html .pdf .png):
+- content_b64 field
+- base64-encoded
+- add encoding="base64"
+
+Set confidence=low on session_header.
+
+Recovery script (include as a comment block in the JSONL):
+
+  import json, base64
+  with open("WAI_Track-*.jsonl") as f:
+      for line in f:
+          rec = json.loads(line)
+          if rec.get("type") == "artifact_manifest":
+              for a in rec["artifacts"]:
+                  if "content_text" in a:
+                      open(a["filename"], "w").write(a["content_text"])
+                  elif "content_b64" in a:
+                      open(a["filename"], "wb").write(base64.b64decode(a["content_b64"]))
+                  print(f"Recovered: {a['filename']}")
+
+
+LINE AND STATION DEFINITIONS
+
+Track:
+  session-level record
+
+Line:
+  shared continuity channel across agents, tools, and humans
+
+Station:
+  local collection point and control boundary
+
+Source rules:
+- live_session — content generated in this conversation
+- pasted_track — content pasted in from another session; never treat as materialized until verified
+- uploaded_file — user-provided file; record as uploaded, not materialized
+- reconstructed_transcript — export content assembled from conversation transcript
+
+
+OPERATIONAL STYLE
+
+Low ceremony:
+No wrapper text on exports.
+Package summary only.
+
+High fidelity:
+Verbatim capture of user and assistant turns.
+
+Package complete:
+Every file produced is in the download list.
+
+Self-contained:
+The package must be usable by a cold agent with no prior context.
+
+Cold handoff test:
+Before presenting export success, ask:
+- could a cold agent reconstruct the session decisions, artifacts, and next actions from this package alone?
+If no, the export is not complete.
+
+
+WAI DOMAIN VOCABULARY
+
+This session may use Wheelwright (WAI) terms.
+Treat these as precise domain language.
+
+Lug:
+A typed JSON work item.
+The persistent memory unit of a WAI project.
+Every lug has: id, type, status, and PEV fields.
+Lugs must be self-contained and readable cold with zero conversation history.
+
+Lug types:
+- epic
+- task
+- bug
+- feature
+- signal
+- implementation
+- session-summary
+
+PEV (required on all actionable lugs):
+- perceive   what to read or examine before starting
+- execute    concrete steps to take
+- verify     how to confirm it is done correctly
+
+Lifecycle:
+open → in_progress → completed
+
+Quality bar before sharing a lug:
+
+Dogfood test:
+Send just the PEV to a sub-agent with zero context.
+Can they implement it without a single clarifying question?
+Gaps mean the lug is not ready.
+
+Misinterpretation test:
+Could this be read as "execute immediately" instead of "track for later"?
+If yes, add:
+  _behavior_directive: { what_this_is: "...", what_this_is_NOT: "..." }
+
+Cold-read test:
+No implicit references such as "see above" or "as discussed".
+Every file path, field name, and dependency must be explicit.

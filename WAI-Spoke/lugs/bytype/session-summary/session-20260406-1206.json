@@ -1,0 +1,46 @@
+{
+  "id": "session-20260406-1206",
+  "type": "session-summary",
+  "title": "Session 2 — Teaching adoption + prompt variants v0.24",
+  "status": "completed",
+  "created_at": "2026-04-06T12:15:00Z",
+  "created_by": "claude-sonnet-4-6",
+  "session_number": 2,
+  "accomplished": [
+    "Applied 4 hub teachings: hook-env-var (clean), post-compaction-hardening (wired), 2 Minder signals (routed)",
+    "Wired compacted flag into pre-compact.sh for post-compaction closeout hardening",
+    "Wired one-shot <wai-post-compact> injection into user-prompt-submit.sh",
+    "Routed 3 signal lugs to lugs/bytype/signal/undelivered/",
+    "Closed realizer remediation task; updated wheel.last_updated to 2026-04-06",
+    "Updated all three prompt variants (active-collection, prep-and-request, closing-request) to WAI Track v0.24",
+    "Confirmed prompts contain no personal identifiers"
+  ],
+  "files_touched": [
+    ".claude/hooks/pre-compact.sh",
+    ".claude/hooks/user-prompt-submit.sh",
+    "WAI-Spoke/WAI-State.json",
+    "prompts/active-collection.md",
+    "prompts/closing-request.md",
+    "prompts/prep-and-request.md",
+    "WAI-Spoke/lugs/bytype/signal/undelivered/signal-realizer-auto-dispatch-v1.json",
+    "WAI-Spoke/lugs/bytype/signal/undelivered/signal-tender-run-order-framework-first-v1.json",
+    "WAI-Spoke/lugs/bytype/signal/undelivered/signal-spoke-toggle-chips-ux-pattern-v1.json",
+    "WAI-Spoke/lugs/bytype/task/closed/task-tracks-realizer-remediate-stale_activity-v1.json",
+    "WAI-Spoke/seed/ingest/processed/ (4 teachings moved)"
+  ],
+  "decisions": [
+    "post-compaction hardening: apply to this spoke (hooks exist, pattern directly applicable)",
+    "hook env var teaching: no action needed (spoke already uses absolute paths)",
+    "Minder signals (tender run order, toggle chips, realizer dispatch): route as informational signals — no Tracks surface to apply",
+    "prompt variants: mechanical adaptation only from v0.24 bigdog (acknowledged as improvement opportunity for next session)"
+  ],
+  "incomplete_work": {
+    "tasks": [],
+    "blockers": [],
+    "next_steps": [
+      "Run a real improvement pass on prompt variants when failure modes from practice are known",
+      "Deliver 3 pending signals to hub (step 9c)"
+    ]
+  },
+  "autosaves_reconciled": []
+}
