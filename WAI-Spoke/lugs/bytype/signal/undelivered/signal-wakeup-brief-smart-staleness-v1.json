@@ -1,0 +1,10 @@
+{
+  "id": "signal-wakeup-brief-smart-staleness-v1",
+  "type": "signal",
+  "title": "Wakeup brief smart staleness: STALE only if relevant files changed, not any commit",
+  "impact": 8,
+  "source_spoke": "wheelwright-framework",
+  "signal": "Replace SHA equality check with git diff --name-only filtered to relevant files (WAI-State.json, lugs/bytype/, seed/ingest/processed/, templates/commands/wai). Gardener chore commits no longer stale the brief.",
+  "status": "undelivered",
+  "created_at": "2026-04-06T00:00:00Z"
+}

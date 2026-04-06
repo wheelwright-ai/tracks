@@ -1,0 +1,47 @@
+---
+id: signal-snapshot-hypothesis-context-extension-s71
+type: teaching
+family: signal-snapshot-hypothesis-context-extension
+version: 1
+title: "Pattern: extend dataclass snapshots with optional hypothesis_context via field(default=None)"
+created_at: 2026-04-06T00:00:00Z
+created_by: session-20260405-2337
+source_spoke: minder
+fingerprint: snapshot-hypothesis-context-extension-20260406
+safe_to_auto_adopt: true
+target: spoke
+weight: 8
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+`ReadinessSnapshot` extended with `hypothesis_context: dict | None = field(default=None)` and `interrogate_spoke()` extended with `hypothesis: dict | None = None` optional parameter. Legacy callers unchanged — no migration needed.
+
+When `hypothesis` is provided, two additional checks run after the standard 7:
+- **H1_hypothesis_relevance**: word-set overlap between hypothesis title+value_path and spoke goals+description. `pass` if score≥3, `partial` if 1-2, `unknown` if 0.
+- **H2_active_conflict**: scan spoke `bytype/*/in_progress/` lug titles for keyword overlap with hypothesis title. `pass` (no overlap), `warn` (≥1 overlapping title), `unknown` (unreadable).
+
+`hypothesis_context` is set on the snapshot: `{hypothesis_id, h1_score, h1_result, h2_result, conflict_lug_ids}`.
+
+## Why It Matters
+
+This pattern allows any interrogation function to accept optional context without breaking backward compatibility. The `field(default=None)` idiom works with `asdict()` serialization and `ReadinessSnapshot(**data)` deserialization for both old and new snapshots.
+
+## Migration Instructions
+
+No migration needed. Old snapshots without `hypothesis_context` key load cleanly because the field has `default=None`.
+
+## Prerequisites
+
+```bash
+python3 -c "from web.realizer import ReadinessSnapshot; s = ReadinessSnapshot.__dataclass_fields__; print('hypothesis_context' in s)"
+# Expected: True
+```
+
+## Batch Sequence
+
+- depends-on: none
+- parallel-safe: true
+- required-before: signal-realizer-v2-chain-complete-s71

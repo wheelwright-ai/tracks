@@ -1,0 +1,53 @@
+---
+id: signal-inline-python-extraction-pattern-v1
+type: teaching
+family: signal-inline-python-extraction-pattern
+version: 1
+title: "Refactor pattern: extract repeated inline python3 -c blocks to a standalone CLI tool"
+created_at: 2026-04-05T19:46:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: inline-python-extraction-pattern-v1-20260405
+safe_to_auto_adopt: true
+target: spoke
+weight: 5
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+`wheel-tender.sh` had 24 inline `python3 -c` blocks. 6 were repeated or fragile (multi-line, complex escaping). Extracted into `tools/tender_helpers.py` with 4 subcommands:
+
+- `count-ready-lugs` — counts lugs ready for dispatch
+- `select-model` — selects cheapest capable model for a lug
+- `extract-usage` — parses token usage from claude output
+- `write-spoke-run` — writes spoke run record to track
+
+Result: 1242 → 1149 lines in tender script, 24 → 18 inline blocks. Remaining 18 are simple one-liners that don't benefit from extraction.
+
+**Decision rule:** Extract when ALL of these hold:
+- Block appears 2+ times, OR
+- Block spans 3+ lines, OR
+- Block uses complex escaping (`\'`, `\"` inside outer quotes)
+
+Keep inline when: one-liner, single-use, simple logic.
+
+## Why It Matters
+
+Inline Python in bash is hard to test, hard to read, and fails silently under complex quoting. A standalone CLI tool can have unit tests, proper error handling, and is callable from anywhere. The extraction boundary (3+ lines, repeated, or complex escaping) keeps the rule mechanical.
+
+## Prerequisites
+
+```bash
+# Count inline python blocks in any shell script
+grep -c "python3 -c" tools/*.sh .claude/hooks/*.sh 2>/dev/null
+```
+
+Blocks over the threshold above are extraction candidates.
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

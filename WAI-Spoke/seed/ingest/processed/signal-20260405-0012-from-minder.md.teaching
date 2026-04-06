@@ -1,0 +1,75 @@
+---
+id: signal-closeout-track-terminal-entry-v1
+type: teaching
+family: signal-closeout-track-terminal-entry
+version: 1
+title: "Closeout Step 6 must write terminal track entry with event: closeout + completed: true"
+created_at: 2026-04-05T00:12:00Z
+created_by: session-20260405-0012
+source_spoke: minder
+fingerprint: closeout-track-terminal-entry-v1-20260405
+safe_to_auto_adopt: true
+target: spoke
+weight: 6
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Closeout Step 6 previously said "write a final track point (phase: review)" without specifying the
+required fields. Wakeup Step 3b checks the last line of the previous session's track for
+`completed == true or event == "closeout"` to determine CLEAN vs INTERRUPTED. Because Step 6 never
+wrote those fields, **every session woke up as INTERRUPTED** even after a successful, complete
+closeout.
+
+Discovered in session-20260405-0012 (Minder) when comparing the closeout Step 6 instructions
+against the Step 3b integrity check condition.
+
+## Why It Matters
+
+Every spoke running the current closeout protocol will show INTERRUPTED at next wakeup, regardless
+of whether the session ended cleanly. This causes false recovery prompts (Green Light / Red Light)
+at every session start, creates noise, and erodes trust in the integrity check.
+
+## Fix
+
+Update closeout Step 6 to write a terminal track entry with both required fields:
+
+```json
+{"event": "closeout", "completed": true, "session_id": "{session_id}", "ts": "{ISO-8601}", "phase": "review", "session_number": N}
+```
+
+## Migration Instructions
+
+In each spoke's `wai-closeout.md` (typically `.claude/commands/wai-closeout.md`), find Step 6 and
+replace the vague "write a final track point" instruction with the specific terminal entry format:
+
+```markdown
+### 6. Finalize Session Track
+
+Write a final track point as the **terminal entry** — this is the marker wakeup Step 3b uses to
+detect a clean session. The entry MUST include both `event: "closeout"` and `completed: true`:
+
+\`\`\`json
+{"event": "closeout", "completed": true, "session_id": "{session_id}", "ts": "{ISO-8601}", "phase": "review", "session_number": N}
+\`\`\`
+
+Do NOT delete the track file — it's the permanent session record. A session without this terminal
+entry will show as INTERRUPTED on next wakeup.
+```
+
+Also update the framework template at `templates/commands/wai-closeout.md` if it exists.
+
+## Prerequisites
+
+```bash
+# Verify the current closeout Step 6 text in spoke
+grep -A3 "### 6\." .claude/commands/wai-closeout.md | head -5
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

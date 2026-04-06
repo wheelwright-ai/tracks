@@ -1,0 +1,86 @@
+---
+id: spoke-session-placement-guard-v1
+type: teaching
+family: spoke-session-placement-guard
+version: 1
+title: "Wakeup Step 3b: detect and auto-fix misplaced session-* dirs in WAI-Spoke/"
+created_at: 2026-04-04T00:00:00Z
+created_by: session-20260404-1306
+fingerprint: session-placement-guard-v1-20260404
+safe_to_auto_adopt: true
+target: spoke
+weight: 4
+impact: 7
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Spokes initialized before the `WAI-Spoke/sessions/` subdirectory was added to the canonical
+structure may have `session-{YYYYMMDD-HHMM}/` directories sitting directly inside `WAI-Spoke/`
+instead of under `WAI-Spoke/sessions/`. This was confirmed across 5 spokes in a fleet audit
+(considerthis, ezorg-email-website, basher ×14, wheelwright-ai-website, framework/test-bench).
+
+Wakeup Step 3b now includes a misplaced-session check and auto-fix before the track integrity
+check runs — ensuring the previous session path lookup always finds the correct location.
+
+## Why It Matters
+
+If `session-*` dirs are directly in `WAI-Spoke/`, the wakeup `ls -1t WAI-Spoke/sessions/` command
+returns a subset of actual sessions, and `PREV_SESSION` lookups silently miss history. The historian
+and surveyor also miss these sessions during their scans.
+
+## Canonical Path
+
+```
+WAI-Spoke/
+  sessions/              ← parent dir, always required
+    session-20260404-1306/
+      track.jsonl
+    session-20260403-2318/
+      track.jsonl
+```
+
+Never: `WAI-Spoke/session-20260404-1306/track.jsonl`
+
+## Migration Instructions
+
+Add the following **misplaced-session check** to `templates/commands/wai.md` (or the spoke's
+local copy) at the START of **Step 3b**, before the track integrity bash commands:
+
+```markdown
+### 3b-pre: Misplaced Session Check
+
+Before checking track integrity, verify no `session-*` dirs exist directly in `WAI-Spoke/`:
+
+```bash
+MISPLACED=$(ls -d WAI-Spoke/session-*/ 2>/dev/null)
+if [ -n "$MISPLACED" ]; then
+  mkdir -p WAI-Spoke/sessions
+  for d in WAI-Spoke/session-*/; do
+    name=$(basename "$d")
+    if [ ! -d "WAI-Spoke/sessions/$name" ]; then
+      mv "$d" "WAI-Spoke/sessions/$name"
+      echo "Fixed: moved $name → WAI-Spoke/sessions/"
+    else
+      echo "Dup: $name already in sessions/, skipping"
+    fi
+  done
+fi
+```
+
+Surface in briefing if any were moved: `"Session placement fixed: {N} dirs moved to WAI-Spoke/sessions/"`
+```
+
+## Prerequisites
+
+```bash
+# Verify sessions parent dir exists in spoke template
+ls templates/spoke/WAI-Spoke/sessions/ 2>/dev/null || echo "sessions/ missing from template"
+# Should return empty dir (gitkeep or empty)
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None

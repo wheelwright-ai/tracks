@@ -1,0 +1,57 @@
+---
+id: signal-tender-rehome-minder-hands-v1
+type: teaching
+family: signal-tender-rehome-minder-hands
+version: 1
+title: "Minder = hands pattern: execution tools live in spoke, hub = brain (read-only)"
+created_at: 2026-04-06T00:00:00Z
+created_by: session-20260406-s67
+source_spoke: minder
+fingerprint: tender-rehome-minder-hands-v1-20260406
+safe_to_auto_adopt: true
+target: spoke
+weight: 9
+impact: 9
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+S67 established the architectural pattern: execution tooling lives in the spoke that runs it, hub is read-only source of truth. Specifically:
+- `scripts/tender.py` lives in minder, not hub
+- Tender reports write to `WAI-Spoke/gardener/reports/` not hub
+- Hub registry + teachings are read-only inputs to minder
+- z.ai correct endpoint: `https://api.z.ai/api/coding/paas/v4/chat/completions`
+
+## Why It Matters
+
+Any spoke that orchestrates work across other spokes should own its execution tooling locally. Hub serves data (registry, teachings, signals) — it does not run code.
+
+## Migration Instructions
+
+No migration needed. Pattern to apply when building new cross-spoke tools: put the executor in the spoke, read config from hub.
+
+## Prerequisites
+
+None.
+
+## Batch Sequence
+
+- depends-on: none
+- required-before: none
+- parallel-safe: true
+
+```json
+{
+  "id": "signal-tender-rehome-minder-hands-v1",
+  "type": "signal",
+  "title": "Minder = hands: execution tools live here, hub = brain (read-only source)",
+  "impact": 9,
+  "signals": [
+    "tender.py lives in minder/scripts/, not hub",
+    "Reports write to minder WAI-Spoke/gardener/reports/",
+    "z.ai endpoint: https://api.z.ai/api/coding/paas/v4/chat/completions",
+    "Model routing: glm-4.5-air (teachings only) vs glm-4.5 (lug execution)"
+  ]
+}
+```

@@ -1,0 +1,50 @@
+---
+id: signal-orko-spoke-routing-lugs-jsonl-gate-v1
+type: teaching
+family: signal-orko-spoke-routing
+version: 1
+title: "load_spokes() WAI-Lugs.jsonl existence gate silently excludes spokes from Orko routing"
+created_at: 2026-04-05T12:30:00Z
+created_by: session-20260405-1202
+source_spoke: minder
+fingerprint: orko-spoke-routing-lugs-jsonl-gate-v1-20260405
+safe_to_auto_adopt: true
+target: spoke
+weight: 7
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+`spoke_utils.py load_spokes()` required `WAI-Lugs.jsonl` to exist before including a spoke in the routing list passed to Orko's system prompt. `WAI-Lugs.jsonl` is a legacy file most spokes never created — only 3/18 registered spokes had it, so 15 were silently invisible to Orko.
+
+**Fix:** Remove the `lugs_path.exists()` check. A spoke is included if `WAI-Spoke/` exists. The `WAI-Lugs.jsonl` path is still used as a synthetic anchor for inbox derivation — `get_spoke_inbox_path()` creates the directory on demand regardless.
+
+```python
+# Before
+if spoke_path.exists():
+    lugs_path = spoke_path / "WAI-Lugs.jsonl"
+    if lugs_path.exists():
+        spokes[wheel_id] = str(lugs_path)
+
+# After
+if spoke_path.exists():
+    spokes[wheel_id] = str(spoke_path / "WAI-Lugs.jsonl")
+```
+
+## Why It Matters
+
+Any spoke with a WAI-Spoke directory should be routable. The legacy file requirement was never intentional — it was an artifact of early Minder design when WAI-Lugs.jsonl was the only lug store.
+
+## Prerequisites
+
+```bash
+grep -n "lugs_path.exists" web/spoke_utils.py
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

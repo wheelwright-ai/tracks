@@ -1,0 +1,74 @@
+---
+id: signal-advisor-architecture-v2-reference-v1
+type: teaching
+family: signal-advisor-architecture-v2-reference
+version: 1
+title: "Reference: Advisor system v2 — 9 spoke advisors + 5 hub advisors, hierarchy and UX"
+created_at: 2026-04-05T19:46:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: advisor-architecture-v2-reference-v1-20260405
+safe_to_auto_adopt: true
+target: spoke
+weight: 8
+impact: 10
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Advisor system v2 architecture is finalized. Two tiers:
+
+### Spoke Advisors (9)
+
+| Advisor | Role |
+|---------|------|
+| **Ozi** | Backlog scorer + work queue orchestrator |
+| **Marge** | Lug quality reviewer (PEV validator) |
+| **Archie** | Architecture and pattern advisor |
+| **Flo** | Flow advisor — session pacing, context budget |
+| **Will** | Will advisor — scope and stewardship guard |
+| **Jordy** | Journey advisor — progress tracking, momentum |
+| **Thad** | Teaching advisor — adoption and propagation |
+| **Mark** | Mark advisor — metrics and scoring |
+| **Clara** | Clara advisor — context health and compaction |
+
+### Hub Advisors (5)
+
+| Advisor | Role |
+|---------|------|
+| **Octo** | Hub orchestrator — leads the Wheel Council |
+| **Gardener** | Lifecycle and cadence — nightly runs, pruning |
+| **Spinner** | Hands — implementation executor |
+| **Cartologist** | Director — maps territory, sets direction |
+| **Quartermaster** | Intel — tracks resources, dependencies |
+
+### Communication Model
+
+- Advisors communicate via lug-messages (structured lugs, not freeform text)
+- Spoke advisors run on-demand (triggered by session events or user invocation)
+- Hub advisors run on schedule (nightly + event-triggered)
+- Hub→Spoke delivery: teachings_repo + signals inbox
+- Spoke→Hub delivery: signal lugs → hub incoming/framework/
+
+### UX: Four-Panel Layout
+
+Advisor output surfaces in 4 panels:
+1. **Queue** — ready items ranked by ROI
+2. **Needs You** — items requiring human input
+3. **Advisors** — advisor status and pending fire
+4. **Health** — context budget, integrity, parity
+
+## Why It Matters
+
+Spokes need to know the advisor architecture to correctly route advisor outputs, understand which hub advisors to expect signals from, and build compatible local advisor implementations. This is the canonical v2 reference.
+
+## Prerequisites
+
+None — reference teaching.
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

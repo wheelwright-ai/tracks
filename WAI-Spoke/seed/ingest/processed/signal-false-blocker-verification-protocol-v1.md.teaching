@@ -1,0 +1,58 @@
+---
+id: signal-false-blocker-verification-protocol-v1
+type: teaching
+family: signal-false-blocker-verification-protocol
+version: 1
+title: "Anti-pattern: blocked_by refs not verified — check dependency exists before treating as gate"
+created_at: 2026-04-05T19:46:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: false-blocker-verification-protocol-v1-20260405
+safe_to_auto_adopt: true
+target: spoke
+weight: 6
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Implementation lugs listed `blocked_by: [impl-lathe-spoke-scoring-v1]` but the blocking lug was already built (`lathe_score.py` existed, `spoke_lathe.json` populated). The blocked_by reference was never verified, causing a false blocker that hid ready work.
+
+**Pattern:** Before treating a `blocked_by` reference as a gate, verify:
+1. The blocking lug file exists in `lugs/bytype/*/`
+2. Its status is actually `open` or `in_progress` (not `completed` or `done`)
+3. The artifact it produces actually doesn't exist yet
+
+```bash
+# Quick verification script
+BLOCKER_ID="impl-lathe-spoke-scoring-v1"
+STATUS=$(find WAI-Spoke/lugs/bytype/ -name "${BLOCKER_ID}.json" -exec python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d.get('s','?'))" {} \; 2>/dev/null)
+echo "Blocker status: ${STATUS:-NOT FOUND}"
+```
+
+If `NOT FOUND` or `completed`: the blocker is phantom — remove it from `blocked_by`.
+
+## Why It Matters
+
+False blockers silently suppress high-ROI work. Ozi and the work queue respect `blocked_by` without questioning validity. A stale reference from a previous session can keep a ready lug permanently gated. Regular blocker hygiene prevents queue rot.
+
+## CLAUDE.md Anti-Pattern to Add
+
+```
+**Placeholder blockers:** Never add a blocked_by reference without verifying the blocking lug
+exists and is genuinely incomplete. Stale blocked_by refs suppress ready work silently.
+```
+
+## Prerequisites
+
+```bash
+# Find lugs with blocked_by fields
+grep -rl "blocked_by" WAI-Spoke/lugs/bytype/*/open/ 2>/dev/null | head -5
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

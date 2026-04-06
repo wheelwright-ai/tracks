@@ -1,0 +1,63 @@
+---
+id: signal-post-compaction-closeout-hardening-v1
+type: teaching
+family: signal-post-compaction-closeout-hardening
+version: 1
+title: "Post-compaction closeout hardening: pre-compact guard + one-shot skill injection"
+created_at: 2026-04-05T19:46:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: post-compaction-closeout-hardening-v1-20260405
+safe_to_auto_adopt: false
+target: spoke
+weight: 9
+impact: 9
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+After context compaction, the model loses its skill context and may reconstruct `/wai-closeout` incorrectly from memory, silently omitting steps. Pattern to prevent this:
+
+1. **pre-compact.sh** writes `compacted: true` to the session guard file before compaction
+2. **user-prompt-submit.sh** detects the flag on the next user prompt and injects a one-shot `<wai-post-compact>` block directing the model to read the closeout skill file before acting
+3. Flag is cleared after injection (one-shot — fires exactly once per compaction event)
+
+```bash
+# pre-compact.sh addition
+GUARD="WAI-Spoke/runtime/session-guard.json"
+python3 -c "
+import json, os
+g = json.load(open('$GUARD')) if os.path.exists('$GUARD') else {}
+g['compacted'] = True
+json.dump(g, open('$GUARD', 'w'))
+"
+
+# user-prompt-submit.sh addition (check at start of script)
+if python3 -c "import json,os,sys; g=json.load(open('WAI-Spoke/runtime/session-guard.json')) if os.path.exists('WAI-Spoke/runtime/session-guard.json') else {}; sys.exit(0 if g.get('compacted') else 1)" 2>/dev/null; then
+  python3 -c "
+import json, os
+g = json.load(open('WAI-Spoke/runtime/session-guard.json'))
+g.pop('compacted', None)
+json.dump(g, open('WAI-Spoke/runtime/session-guard.json', 'w'))
+"
+  echo '<wai-post-compact>Context was compacted. Read templates/commands/wai-closeout.md before proceeding with closeout.</wai-post-compact>'
+fi
+```
+
+## Why It Matters
+
+Context compaction is invisible to the user. Without this guard, the model silently operates in a degraded state post-compaction — it believes it knows the closeout protocol but may skip critical steps (signal delivery, track finalization, git commit). The one-shot injection costs nothing if closeout is not needed and costs one skill-read if it is.
+
+## Prerequisites
+
+```bash
+grep -n "compacted" WAI-Spoke/runtime/session-guard.json 2>/dev/null || echo "guard file not yet using compacted flag"
+grep -n "wai-post-compact\|compacted" .claude/hooks/user-prompt-submit.sh | head -5
+```
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** pre-compact.sh and user-prompt-submit.sh hooks must exist
+- **Parallel-safe:** No (modifies same hook scripts)

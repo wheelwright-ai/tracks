@@ -1,0 +1,54 @@
+---
+id: signal-track-integrity-closeout-event-check-v1
+type: teaching
+family: signal-track-integrity-closeout-event-check
+version: 1
+title: "Track integrity false-positive: wakeup check must accept event=closeout OR completed=true"
+created_at: 2026-04-05T19:46:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: track-integrity-closeout-event-check-v1-20260405
+safe_to_auto_adopt: true
+target: spoke
+weight: 7
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Wakeup Step 3b track integrity check tested only `d.get('completed') == true` on the terminal entry. Closeout-event entries use the schema `{event: "closeout", summary: "..."}` — no `completed` field. This caused every valid closeout session to be flagged as INTERRUPTED, triggering unnecessary recovery prompts.
+
+**Fix:** Check `event == "closeout" OR completed == true`:
+
+```bash
+# Before (false positive)
+echo "$LAST_LINE" | jq -e '.completed == true' >/dev/null 2>&1 && echo "CLEAN" || echo "INTERRUPTED"
+
+# After (correct)
+echo "$LAST_LINE" | jq -e '.completed == true or .event == "closeout"' >/dev/null 2>&1 && echo "CLEAN" || echo "INTERRUPTED"
+```
+
+This pairs with `signal-closeout-track-terminal-entry-v1` (adopted S134) which ensures new closeout sessions write `completed: true`. Together they handle both new sessions (completed field) and legacy sessions (event field only).
+
+## Why It Matters
+
+False INTERRUPTED prompts at every wakeup erode trust in the integrity check. Users learn to ignore the warning, which means real interruptions go undetected. The check must be accurate to be useful.
+
+## Prerequisites
+
+```bash
+grep -n "completed == true" templates/commands/wai.md | head -3
+grep -n "event.*closeout\|closeout.*event" templates/commands/wai.md | head -3
+```
+If second grep is empty: apply fix.
+
+## Context Doc Patch
+
+Update wakeup protocol track check (Step 3b) to use the corrected jq expression above.
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

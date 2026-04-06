@@ -1,0 +1,53 @@
+---
+id: signal-subagent-parallelism-advisor-pattern-v1
+type: teaching
+family: signal-subagent-parallelism-advisor-pattern
+version: 1
+title: "Validated: parallel subagent dispatch saves ~55% tokens vs single context for multi-advisor builds"
+created_at: 2026-04-05T19:46:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: subagent-parallelism-advisor-pattern-v1-20260405
+safe_to_auto_adopt: true
+target: spoke
+weight: 6
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Hub advisor build (Spinner + Cartologist + Quartermaster + Octo, 5 agents total) used sequential-then-parallel dispatch:
+
+1. **Spinner** runs first (sequential — creates files that others depend on)
+2. **Cartologist + Quartermaster + Octo** run in parallel (independent — no shared file deps)
+
+Result: ~280k tokens consumed vs estimated 600k+ in a single context. ~55% token savings.
+
+**Pattern rules:**
+- Sequential first for agents with file-creation dependencies
+- Parallel for agents whose inputs are read-only (same source files, no cross-writes)
+- Each agent marks its own lug `completed` and appends to track independently
+- No shared mutable state between parallel agents
+
+## Why It Matters
+
+Multi-advisor builds are the primary driver of high token spend. Parallelism is only safe when agents don't write to shared files. The sequential-then-parallel split respects dependencies while maximizing concurrency.
+
+## Application
+
+When planning a multi-agent build:
+1. Draw dependency graph: which agents write files others read?
+2. Sequential tier: agents whose outputs are inputs to others
+3. Parallel tier: everything else
+4. Validate: no two parallel agents write the same file
+
+## Prerequisites
+
+None — informational pattern teaching.
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

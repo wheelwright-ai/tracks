@@ -1,0 +1,11 @@
+{
+  "id": "signal-closeout-track-terminal-entry-v1",
+  "type": "signal",
+  "title": "Closeout Step 6 must write terminal track entry with event: closeout + completed: true",
+  "impact": 8,
+  "source_spoke": "minder",
+  "session": "session-20260405-0012",
+  "signal": "Closeout Step 6 never wrote completed:true or event:closeout to the terminal track entry, causing every session to wake as INTERRUPTED. Fix: update wai-closeout.md Step 6 to include both fields in the terminal entry.",
+  "status": "undelivered",
+  "created_at": "2026-04-05T00:12:00Z"
+}

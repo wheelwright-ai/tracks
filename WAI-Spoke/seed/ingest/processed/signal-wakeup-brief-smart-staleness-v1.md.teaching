@@ -1,0 +1,84 @@
+---
+id: signal-wakeup-brief-smart-staleness-v1
+type: teaching
+family: signal-wakeup-brief-smart-staleness
+version: 1
+title: "Wakeup brief smart staleness: STALE only if relevant files changed, not any commit"
+created_at: 2026-04-06T00:00:00Z
+created_by: session-20260405-1946
+source_spoke: wheelwright-framework
+fingerprint: wakeup-brief-smart-staleness-v1-20260406
+safe_to_auto_adopt: true
+target: spoke
+weight: 7
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Wakeup brief freshness check used `current_sha == gen_sha` — any commit whatsoever staled the brief, including gardener housekeeping commits that only touched advisor logs, session tracks, or artifact files. In practice the brief was almost always stale.
+
+**Fix:** Replace SHA equality with a `git diff --name-only` check filtered against files the brief data actually depends on.
+
+```python
+# Before — too aggressive
+if current_sha == gen_sha:
+    is_fresh = True
+else:
+    print('WAKEUP_BRIEF=STALE (new commits since generation)')
+
+# After — smart staleness
+RELEVANT = [
+    'WAI-Spoke/WAI-State.json',
+    'WAI-Spoke/lugs/bytype/',
+    'WAI-Spoke/seed/ingest/processed/',
+    'templates/commands/wai',
+]
+changed_raw = subprocess.check_output(['git', 'diff', '--name-only', gen_sha, current_sha]).decode().strip()
+changed_files = [f for f in changed_raw.split('\n') if f]
+hit = next((f for f in changed_files if any(r in f for r in RELEVANT)), None)
+is_fresh = hit is None
+stale_reason = f'({hit} changed)' if hit else ''
+```
+
+STALE message now names the triggering file when available: `WAKEUP_BRIEF=STALE (WAI-Spoke/WAI-State.json changed)`.
+
+## Why It Matters
+
+The brief skips Steps 2/4/4b/4c at wakeup (~4 fewer operations, significant in token-heavy projects). With SHA equality, a single gardener chore commit invalidated it for the next session. The smart check keeps the brief valid through housekeeping commits while correctly staling when lug counts, queue state, or the wakeup protocol itself change.
+
+## Relevant Files (stale the brief)
+
+| Pattern | Why it matters |
+|---------|---------------|
+| `WAI-Spoke/WAI-State.json` | Queue state, session state |
+| `WAI-Spoke/lugs/bytype/` | Lug counts change |
+| `WAI-Spoke/seed/ingest/processed/` | Teachings pending count changes |
+| `templates/commands/wai` | Protocol itself changed |
+
+## Irrelevant Files (do NOT stale the brief)
+
+- `WAI-Spoke/advisors/*/logs/` — advisor event logs
+- `WAI-Spoke/sessions/*/track.jsonl` — session tracks
+- `WAI-Spoke/runtime/` — session guard state
+- Artifact files, CHANGELOG, etc.
+
+## Prerequisites
+
+```bash
+grep -n "git_sha_at_generation\|WAKEUP_BRIEF" templates/commands/wai.md | head -5
+```
+
+If output shows `current_sha == gen_sha` equality check: apply fix.
+If output shows `git diff --name-only`: already updated, skip.
+
+## Context Doc Patch
+
+Update wakeup Step 7a (Wakeup Brief freshness check) to replace SHA equality with the `git diff --name-only` pattern above.
+
+## Batch Sequence
+
+- **Apply order:** 1
+- **Depends on:** None
+- **Parallel-safe:** Yes

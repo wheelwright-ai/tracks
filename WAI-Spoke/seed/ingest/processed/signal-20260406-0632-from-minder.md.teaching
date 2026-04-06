@@ -1,0 +1,81 @@
+---
+id: signal-realizer-v2-architecture-locked-s70
+type: teaching
+family: signal-realizer-v2-architecture
+version: 1
+title: "Realizer v2 architecture locked: hypothesis-first ideation + spoke work dispatch"
+created_at: 2026-04-06T06:32:00Z
+created_by: session-20260405-2304
+source_spoke: minder
+fingerprint: realizer-v2-architecture-locked-20260406
+safe_to_auto_adopt: true
+target: spoke
+weight: 9
+impact: 9
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Realizer v1 proved readiness auditing and remediation dispatch. Realizer v2 extends this with hypothesis-first ideation and direct spoke work dispatch — the missing "idea → implementation" loop.
+
+## Architecture
+
+**Flow:** Hypothesis record created in Minder → grounded against spoke readiness → Gemini-assisted phased plan → user approves phase → PEV-complete task lug written to spoke's `WAI-Spoke/seed/ingest/incoming/`
+
+**Hypothesis record** (Realizer-owned object, no forced integration):
+- Fields: id, title, value_path, intended_behavior_change, candidate_spokes[], urgency, opportunity_type, current_confidence, status, grounding_snapshot_id, plan_id
+- Status flow: `draft → grounded → planned → ready_for_execution → dispatched`
+- Store: `WAI-Spoke/realizer/hypotheses/`
+
+**3 decision classes** (dispatch gating):
+- `remediation`: auto-confirm (reversible, already implicitly authorized)
+- `feature`: user-reviews
+- `destructive`: always user
+
+**Dispatch**: `POST /api/realizer/hypothesis/<id>/dispatch/<phase_num>` → writes task lug to `{spoke_path}/WAI-Spoke/seed/ingest/incoming/` (creates dir if needed)
+
+## Build Waves
+
+| Wave | Tasks | Parallel | Unblocked by |
+|------|-------|----------|--------------|
+| A | task-minder-realizer-inline-foundation-repair-v1 | — | ready now |
+| B | hypothesis-schema, hypothesis-ui, spoke-mapping | yes | Wave A |
+| C | hypothesis-grounding, draft-plan-gen | yes | Wave B |
+| D | decision-classes, hypothesis-dispatch | sequential | Wave C |
+
+## Deferred (check-later cautions)
+
+- Measurement profiles — explicitly deferred until hypothesis loop proves value
+- Gardener/Tender/Expediter reconciliation — cleaner separation now
+- Adoption/value-review lug types (Phase 4)
+- Cross-spoke awareness (Phase 5)
+- Approval learning (Phase 6)
+
+## Prerequisites
+
+```bash
+ls /home/mario/projects/minder/WAI-Spoke/lugs/bytype/task/open/task-realizer-v2-*.json
+# Should list 7 files (wave B-D lugs)
+ls /home/mario/projects/minder/WAI-Spoke/lugs/bytype/epic/open/epic-minder-realizer-v1-website-pilot-v1.json
+# Should exist and contain v2_build_plan field
+```
+
+## Batch Sequence
+
+- depends-on: signal-realizer-healthy-spoke-drive-forward-pattern-s69
+- required-before: none
+- parallel-safe: true
+
+## Lug
+
+```json
+{
+  "id": "signal-realizer-v2-architecture-locked-s70",
+  "type": "signal",
+  "title": "Realizer v2 architecture locked: hypothesis-first ideation + spoke work dispatch",
+  "impact": 9,
+  "source_spoke": "minder",
+  "session": "session-20260405-2304"
+}
+```

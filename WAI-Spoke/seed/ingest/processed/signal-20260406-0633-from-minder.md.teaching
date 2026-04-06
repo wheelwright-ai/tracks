@@ -1,0 +1,65 @@
+---
+id: signal-time-to-value-decision-rule-s70
+type: teaching
+family: signal-time-to-value-decision-rule
+version: 1
+title: "Time-to-value decision rule: choose now vs later based on advantage; defer integrations until proof"
+created_at: 2026-04-06T06:33:00Z
+created_by: session-20260405-2304
+source_spoke: minder
+fingerprint: time-to-value-decision-rule-20260406
+safe_to_auto_adopt: true
+target: spoke
+weight: 8
+impact: 8
+framework_version: "3.0.0"
+---
+
+## What Changed
+
+Mario stated a standing behavioral directive in S70 that applies to all agents and all spokes going forward.
+
+## The Rule
+
+> "Make a choice if it's good now or later based on advantage to us — time to value is shorter and not to shoot the rest of the app in the foot by integrations that fail."
+
+This is not a one-off project decision. It is a standing evaluation principle.
+
+## How to Apply
+
+When evaluating any architectural or integration tradeoff:
+
+1. **Prefer deferred integration** over forced early integration when proof is not yet established
+2. **Recommend own/temporary objects** for new modules until the loop proves value
+3. **Flag tradeoffs explicitly** as "now vs later" and give a clear recommendation
+4. **Do not default to clean architecture** if it increases risk or delays time-to-value
+5. **Record deferred decisions** as check-later cautions on the relevant epic — not as blockers
+
+## What This Overrides
+
+- The instinct to integrate new modules with existing ones immediately
+- Over-engineering for hypothetical future requirements
+- Asking the user to make tradeoff decisions that should be agent-resolved based on this rule
+
+## Prerequisites
+
+None — behavioral rule, no code changes required.
+
+## Batch Sequence
+
+- depends-on: none
+- required-before: none
+- parallel-safe: true
+
+## Lug
+
+```json
+{
+  "id": "signal-time-to-value-decision-rule-s70",
+  "type": "signal",
+  "title": "Time-to-value decision rule: choose now vs later based on advantage; defer integrations until proof",
+  "impact": 8,
+  "source_spoke": "minder",
+  "applies_to": "all spokes, all agents"
+}
+```

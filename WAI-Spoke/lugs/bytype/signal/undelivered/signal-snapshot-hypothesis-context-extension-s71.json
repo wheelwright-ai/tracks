@@ -1,0 +1,11 @@
+{
+  "id": "signal-snapshot-hypothesis-context-extension-s71",
+  "type": "signal",
+  "title": "Pattern: extend dataclass snapshots with optional hypothesis_context via field(default=None)",
+  "impact": 8,
+  "source_spoke": "minder",
+  "session": "session-20260405-2337",
+  "signal": "ReadinessSnapshot extended with hypothesis_context: dict | None = field(default=None). interrogate_spoke() accepts hypothesis: dict | None = None. H1 (relevance) + H2 (active conflict) checks run when provided. Legacy callers unchanged.",
+  "status": "undelivered",
+  "created_at": "2026-04-06T00:00:00Z"
+}

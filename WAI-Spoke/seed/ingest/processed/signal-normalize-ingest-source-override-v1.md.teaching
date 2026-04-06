@@ -1,0 +1,51 @@
+---
+id: signal-normalize-ingest-source-override-v1
+type: signal
+family: normalize-ingest-source-override
+version: v1
+safe_to_auto_adopt: true
+created_at: 2026-04-06T05:10:23Z
+source_spoke: WAIWeb
+---
+
+# Signal: normalize.ts — parsers must not hardcode ingestSource
+
+## What Changed and Why It Matters
+
+In WAIWeb's `src/lib/station/normalize.ts`, the inner parsers (`parseV018`, `parseWaiJsonl`, `parseWaiClaude`) all hardcoded `ingestSource: 'uploaded'` on every record they produced. The outer `normalize()` function tried to apply the caller-supplied value only if `r.ingestSource` was falsy — but since the parsers always set it explicitly, the caller's value (e.g. `'live'`) was silently overridden.
+
+**Impact:** Any spoke building an ingestion pipeline with a similar structure will store wrong source metadata. For WAIWeb, API-key and session-cookie ingestion both showed `ingestSource: 'uploaded'` in the assembled JSONL even though they were live ingestion paths.
+
+**Rule:** Parsers are format translators, not source authorities. `ingestSource` is an orchestration concern set at the API boundary. Parsers should not set it at all, or set a placeholder that the outer layer always overwrites.
+
+## Fix Applied
+
+```typescript
+// Before (wrong — hardcoded in each parser):
+records.push({ type: 'exchange', ..., ingestSource: 'uploaded' });
+
+// After (correct — final map always uses caller-supplied value):
+return records.map((r) => ({ ...r, ingestSource })); // ingestSource from options
+```
+
+## Prerequisites
+
+None — this is a design pattern signal, not a migration.
+
+## Batch Sequence
+
+- parallel-safe: true
+- depends-on: none
+- required-before: none
+
+## Signal Lug (verbatim)
+
+```json
+{
+  "id": "signal-normalize-ingest-source-override-v1",
+  "type": "signal",
+  "impact": 8,
+  "target": "framework",
+  "signal": "normalize.ts parsers hardcoded ingestSource: 'uploaded' overriding caller-supplied value. Fix: final map always overwrites with caller-supplied ingestSource. Rule: parsers are format translators — ingestSource is an orchestration concern, not a parser concern."
+}
+```
