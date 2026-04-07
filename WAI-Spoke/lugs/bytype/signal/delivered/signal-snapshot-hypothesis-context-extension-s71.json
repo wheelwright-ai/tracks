@@ -6,6 +6,6 @@
   "source_spoke": "minder",
   "session": "session-20260405-2337",
   "signal": "ReadinessSnapshot extended with hypothesis_context: dict | None = field(default=None). interrogate_spoke() accepts hypothesis: dict | None = None. H1 (relevance) + H2 (active conflict) checks run when provided. Legacy callers unchanged.",
-  "status": "undelivered",
+  "status": "delivered",
   "created_at": "2026-04-06T00:00:00Z"
 }

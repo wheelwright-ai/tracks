@@ -1,0 +1,9 @@
+{
+  "id": "signal-normalize-ingest-source-override-v1",
+  "type": "signal",
+  "impact": 8,
+  "target": "framework",
+  "signal": "normalize.ts parsers hardcoded ingestSource: 'uploaded' overriding caller-supplied value. Fix: final map always overwrites with caller-supplied ingestSource. Rule: parsers are format translators \u2014 ingestSource is an orchestration concern, not a parser concern.",
+  "status": "delivered",
+  "created_at": "2026-04-06T05:10:23Z"
+}

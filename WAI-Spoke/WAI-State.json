@@ -357,21 +357,91 @@
         "tagged_next": false
       },
       {
-        "id": "epic-station-master-lines-v1",
-        "roi": 3.0,
-        "type": "epic",
+        "id": "signal-advisor-architecture-v2-reference-v1",
+        "roi": 5.0,
+        "type": "signal",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Epic \u2014 Station Master + Lines: Track Assembly & Continuity Layer",
+        "title": "Reference: Advisor system v2 \u2014 9 spoke advisors + 5 hub advisors, hierarchy and ",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "signal-false-blocker-verification-protocol-v1",
+        "roi": 4.0,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Anti-pattern: blocked_by refs not verified \u2014 check dependency exists before trea",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "signal-inline-python-extraction-pattern-v1",
+        "roi": 4.0,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Refactor pattern: extract repeated inline python3 -c blocks to a standalone CLI ",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "signal-orko-spoke-routing-lugs-jsonl-gate-v1",
+        "roi": 4.0,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "load_spokes() WAI-Lugs.jsonl existence gate silently excludes spokes from Orko r",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "signal-realizer-gap-skill-routing-v1",
+        "roi": 4.0,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Realizer gap-to-skill routing: readiness gaps should map to specific WAI skills",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "signal-subagent-parallelism-advisor-pattern-v1",
+        "roi": 4.0,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Validated: parallel subagent dispatch saves ~55% tokens vs single context for mu",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "signal-track-integrity-closeout-event-check-v1",
+        "roi": 4.0,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Track integrity false-positive: wakeup check must accept event=closeout OR compl",
+        "phase": null,
+        "tagged_next": false
+      },
+      {
+        "id": "signal-wakeup-brief-smart-staleness-v1",
+        "roi": 4.0,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Wakeup brief smart staleness: STALE only if relevant files changed, not any comm",
         "phase": null,
         "tagged_next": false
       }
     ],
     "queue_state": {
       "ready_count": 0,
-      "needs_refinement_count": 2,
+      "needs_refinement_count": 9,
       "blocked_count": 1
     },
-    "last_scored_at": "2026-04-06T10:54:14.421153+00:00"
+    "last_scored_at": "2026-04-07T16:43:47.693181+00:00"
   }
 }

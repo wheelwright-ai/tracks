@@ -1,0 +1,121 @@
+# Teaching: signal-20260407-0505-from-minder
+**Source spoke:** minder
+**Session:** 74
+**Created:** 2026-04-07T05:05:00Z
+**Impact:** 9
+
+## What changed and why it matters
+
+Three high-impact patterns established in Session 74:
+
+### Pattern 1: Tender is the seek-zero-open-work mechanism
+Tender's architectural role is fully defined: framework first → all spokes in sort_wheels() order → hub last. A lug is not done until the spoke moves it to `completed/`. Tender routes incoming lugs from `seed/ingest/incoming/` (Realizer-dispatched) AND `lugs/incoming/` (legacy) — both inboxes.
+
+### Pattern 2: Realizer→Tender completion loop
+Full hypothesis execution without manual gates: Realizer dispatches phase lug → `seed/ingest/incoming/` → Tender routes to `open/` → executes → moves to `completed/` → `sync_completions` auto-detects → `completed_phases` advances → next phase unlocks. "Run Tender" button in Realizer UI triggers + auto-syncs on exit.
+
+### Pattern 3: dispatched_phases vs completed_phases
+Two separate lists needed on hypothesis records: `dispatched_phases` (sent for execution) vs `completed_phases` (confirmed done). Phase dependency gating MUST use `completed_phases` — cannot dispatch phase N until all dependencies are in `completed_phases`.
+
+## Migration instructions
+
+### Tender — dual inbox routing
+In `scripts/tender.py` `discover_spoke_work()`:
+```python
+incoming = 0
+for inc_dir in [
+    p / "WAI-Spoke" / "seed" / "ingest" / "incoming",
+    p / "WAI-Spoke" / "lugs" / "incoming",
+]:
+    if inc_dir.exists():
+        incoming += len([f for f in inc_dir.glob("*.json") if f.parent.name != "processed"])
+```
+
+In Step 2 of the pass2 prompt, add both inbox paths:
+```
+A) {spoke_path}/WAI-Spoke/seed/ingest/incoming/   ← Realizer-dispatched lugs
+B) {spoke_path}/WAI-Spoke/lugs/incoming/          ← legacy inbox
+```
+
+### Hypothesis schema additions
+Add to hypothesis JSON at creation:
+```json
+"dispatched_phases": [],
+"completed_phases": []
+```
+
+### sync_completions — lug-id fallback
+When checking completed/ for hypothesis_id match, fall back to extracting phase_num from lug_id pattern:
+```python
+m = re.search(r"-phase(\d+)-", lug_file.stem)
+if m: phase_num = int(m.group(1))
+```
+
+## Prerequisites
+
+```bash
+# Verify tender.py has dual inbox
+grep -n "seed/ingest/incoming" scripts/tender.py || echo "NOT FOUND"
+# Verify sync_completions route exists
+grep -n "sync_completions" web/routes_realizer.py || echo "NOT FOUND"
+```
+
+## Batch Sequence
+
+- **Apply order:** Tender fix first (inbox routing), then hypothesis schema, then sync_completions
+- **Depends-on:** None
+- **Required-before:** None
+- **Parallel-safe:** yes (independent patterns)
+
+## safe_to_auto_adopt: false
+
+Requires reading target files before applying — context-specific paths.
+
+---
+
+## Embedded Signal Lugs
+
+### Signal 1
+```json
+{
+  "id": "signal-tender-seek-zero-open-work-v1",
+  "type": "signal",
+  "title": "Tender is the seek-zero-open-work mechanism: framework → spokes → hub",
+  "impact": 9,
+  "status": "undelivered",
+  "source_spoke": "minder",
+  "session": "session-74",
+  "body": "Tender architectural role: run framework first, then all spokes in sort_wheels() order (route incoming from both inboxes, execute open work), end with hub for fresh fleet view. A lug is not done until the spoke moves it to completed/.",
+  "pattern": "sort_wheels(): framework → recent_spokes_desc → hub. Each spoke: adopt teachings → route incoming (seed/ingest/incoming/ + lugs/incoming/) → execute open lugs → session record → git commit"
+}
+```
+
+### Signal 2
+```json
+{
+  "id": "signal-realizer-tender-completion-loop-v1",
+  "type": "signal",
+  "title": "Realizer→Tender loop: dispatch lug → Tender executes → sync_completions auto-detects done",
+  "impact": 8,
+  "status": "undelivered",
+  "source_spoke": "minder",
+  "session": "session-74",
+  "body": "Full hypothesis execution loop: Realizer dispatches phase lug to seed/ingest/incoming/ → Tender routes to open/ → executes → moves to completed/ → sync_completions auto-advances completed_phases → next phase unlocks. Run Tender button in Realizer UI streams tender output and auto-syncs on clean exit.",
+  "pattern": "POST /api/tender/run/spoke → stream → exit 0 → POST /api/realizer/hypothesis/<id>/sync_completions → loadHypotheses()"
+}
+```
+
+### Signal 3
+```json
+{
+  "id": "signal-hypothesis-dispatch-vs-completed-phases-v1",
+  "type": "signal",
+  "title": "Hypothesis execution needs two phase lists: dispatched_phases (sent) vs completed_phases (done)",
+  "impact": 8,
+  "status": "undelivered",
+  "source_spoke": "minder",
+  "session": "session-74",
+  "body": "dispatched_phases = sent for execution. completed_phases = confirmed done (Tender moved lug OR user clicked Mark Complete). Phase dependency gating MUST use completed_phases. Cannot dispatch phase N until all dependencies in completed_phases.",
+  "pattern": "dispatched_phases = sent. completed_phases = done. dep gate = deps ⊆ completed_phases"
+}
+```

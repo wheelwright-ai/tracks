@@ -1,13 +1,15 @@
 {
   "id": "signal-tender-run-order-framework-first-v1",
   "type": "signal",
-  "title": "Tender run order: framework first → recent spokes → hub last",
+  "title": "Tender run order: framework first \u2192 recent spokes \u2192 hub last",
   "summary": "sort_wheels() pins wheelwright-framework at position 1, wheelwright-hub at last, all other active spokes sorted by last_updated descending. Ensures teachings propagate from framework outward before hub aggregates.",
   "impact": 8,
-  "status": "undelivered",
+  "status": "delivered",
   "created_at": "2026-04-06T18:33:11Z",
   "source_spoke": "minder",
   "why_it_matters": "Without this order, hub may process sessions before framework teachings are generated, causing spokes to receive stale or incomplete teaching sets.",
   "pattern": "sort_wheels(wheels) = framework + sorted(rest, key=last_updated, reverse=True) + hub",
-  "files": ["scripts/tender.py"]
+  "files": [
+    "scripts/tender.py"
+  ]
 }

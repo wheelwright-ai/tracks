@@ -1,0 +1,106 @@
+# Teaching: signal-20260406-2340-from-minder
+**Source spoke:** minder
+**Session:** 73
+**Created:** 2026-04-06T23:40:02Z
+**Impact:** 8
+
+## What changed and why it matters
+
+Long-running subprocess endpoints in Flask web UIs must stream output — synchronous `subprocess.run` with a timeout blocks the HTTP response and fails on fleet-scale runs.
+
+Discovered when a 16-spoke tender run timed out at 300s. The fix: `Popen` with `stdout=PIPE, stderr=STDOUT` streamed via Flask's `stream_with_context`. A sentinel line `__TENDER_EXIT__{code}__` carries the exit code after the stream ends. The frontend reads via `response.body.getReader()` and appends log lines as they arrive.
+
+Additionally: `duration_seconds` is now recorded per-spoke in tender reports (via `time.monotonic()` around the `tender_spoke()` call), enabling real duration bars in the results UI. Fake estimated times were removed entirely.
+
+## Migration instructions
+
+### Backend (any Flask route running a long subprocess)
+```python
+from flask import Response, stream_with_context
+import subprocess
+
+def run_long_process():
+    body = request.get_json(silent=True) or {}
+    cmd = build_cmd(body)
+
+    def generate():
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        for line in proc.stdout:
+            yield line
+        proc.wait()
+        yield f"\n__EXIT__{proc.returncode}__\n"
+
+    return Response(stream_with_context(generate()), mimetype="text/plain")
+```
+
+Make the route `def` (not `async def`) — `stream_with_context` with a generator works cleanly in sync context.
+
+### Frontend (fetch + ReadableStream)
+```js
+const resp = await fetch('/api/run', { method: 'POST', ... });
+const reader = resp.body.getReader();
+const decoder = new TextDecoder();
+let buf = '', exitCode = 0;
+while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+        const m = line.match(/^__EXIT__(\d+)__/);
+        if (m) { exitCode = parseInt(m[1]); continue; }
+        if (line.trim()) appendLog(line);
+    }
+}
+```
+
+### Duration tracking in tender.py
+```python
+import time
+t0 = time.monotonic()
+audit = tender_spoke(spoke_path, spoke_name, work, client, date)
+audit["duration_seconds"] = round(time.monotonic() - t0)
+```
+
+## Prerequisites
+
+```bash
+# Verify stream_with_context is importable
+python3 -c "from flask import stream_with_context; print('OK')"
+# Verify routes_tender.py has streaming (minder-specific)
+grep -n "stream_with_context\|Popen" web/routes_tender.py
+```
+
+## Batch Sequence
+
+- **Apply order:** Backend first, then frontend
+- **Depends-on:** None
+- **Required-before:** None
+- **Parallel-safe:** no (frontend assumes streaming backend)
+
+## safe_to_auto_adopt: false
+
+Requires reading target route file before applying — context-specific cmd construction needed.
+
+---
+
+## Embedded Signal Lugs
+
+### Signal 1
+```json
+{
+  "id": "signal-tender-streaming-subprocess-pattern-v1",
+  "type": "signal",
+  "title": "Long-running subprocess endpoints must stream — synchronous run blocks and times out",
+  "summary": "Flask endpoints running long subprocesses must use Popen + stream_with_context. subprocess.run with timeout=300 blocks and times out on fleet runs. Sentinel line carries exit code. Frontend reads via ReadableStream reader.",
+  "impact": 8,
+  "status": "undelivered",
+  "created_at": "2026-04-06T23:40:02Z",
+  "created_by": "session-73",
+  "source_spoke": "minder",
+  "why_it_matters": "Any spoke with a web UI triggering long AI runs will hit this timeout. Streaming fixes both the timeout and gives live feedback.",
+  "pattern": "Popen(cmd, stdout=PIPE, stderr=STDOUT) → stream_with_context(generate()) → Response(mimetype='text/plain') + frontend ReadableStream",
+  "files": ["web/routes_tender.py", "web/templates/tender.html"]
+}
+```

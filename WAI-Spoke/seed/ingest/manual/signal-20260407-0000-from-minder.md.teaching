@@ -1,0 +1,99 @@
+# Teaching: signal-20260407-0000-from-minder
+**Source spoke:** minder
+**Session:** 76
+**Created:** 2026-04-07T00:00:00Z
+**Impact:** 8
+
+## What changed and why it matters
+
+Fleet dashboard ownership was moved from `hub/tools/` to the Minder spoke. The Surveyor (fleet health, signal decision queue, sparklines, sidebar, approve/defer/reject) now lives in:
+
+- `tools/surveyor_report.py` — data computation + HTML generation (code copy of hub's script, `HUB_DIR` hardcoded to hub path)
+- `web/routes_surveyor.py` — Flask blueprint: `GET /surveyor` serves live dashboard, `POST /api/decide` handles signal decisions
+- `web/templates/surveyor.html` — extends the spoke's layout.html, applies spoke theme over generated style/body
+
+The hub remains the data source (registry, signals, spinner, gardener). The spoke owns the serving layer.
+
+**Why this matters:** The hub should be a brain (data, registry, teachings, signals), not a hands (web UI, decision actions). Fleet-wide visibility tools belong where the operator works. The pattern also means the dashboard runs on the same web server the operator already uses — no separate port, no separate service.
+
+## Migration instructions
+
+### For any spoke that wants to own a hub-sourced dashboard
+
+1. Copy the generator script to `tools/{tool}_report.py`
+2. Replace the path constant: `HUB_DIR = Path(__file__).parent.parent` → `HUB_DIR = Path("/absolute/path/to/hub")`
+3. Create `web/routes_{tool}.py` as a Flask blueprint:
+   ```python
+   import sys, re
+   from pathlib import Path
+   from flask import Blueprint, render_template
+   sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
+   from {tool}_report import generate_html, load_json, count_signals, calculate_signal_velocity
+
+   routes = Blueprint("{tool}", __name__)
+
+   @routes.route("/{tool}")
+   def page():
+       # load data from hub paths
+       html = generate_html(...)
+       style_match = re.search(r"<style>(.*?)</style>", html, re.DOTALL)
+       body_match = re.search(r"<body>(.*)</body>", html, re.DOTALL)
+       return render_template("{tool}.html", page="{tool}",
+           style=style_match.group(1), body=body_match.group(1))
+   ```
+4. Create `web/templates/{tool}.html` extending `layout.html`:
+   ```html
+   {% extends "layout.html" %}
+   {% block content %}
+   <style>{{ style | safe }}
+   /* Theme override: redefine :root vars to match spoke theme */
+   :root { --bg-dark: #180e2e; --bg-card: #251842; ... }
+   .wrap { height: calc(100vh - 46px); overflow-y: auto; }
+   </style>
+   <div class="wrap">{{ body | safe }}</div>
+   {% endblock %}
+   ```
+5. Register blueprint in `app.py`, add nav link to `_nav.html`
+
+## Prerequisites
+
+```bash
+# Verify spoke has tools/ directory
+ls tools/
+# Verify Flask app has blueprint registration
+grep "register_blueprint" web/app.py
+# Verify hub data is accessible
+ls /path/to/hub/hub-registry.json
+```
+
+## Batch Sequence
+
+- **Apply order:** tools/ script first → routes → template → app.py → nav
+- **Depends-on:** Flask web server running in spoke
+- **Required-before:** Nothing
+- **Parallel-safe:** yes
+
+## safe_to_auto_adopt: false
+
+Requires reading target spoke's layout pattern before applying — theme vars and nav structure are spoke-specific.
+
+---
+
+## Embedded Signal Lugs
+
+### Signal 1
+```json
+{
+  "id": "signal-surveyor-ownership-to-minder-v1",
+  "type": "signal",
+  "title": "Fleet dashboard ownership belongs in the hands spoke, not the hub",
+  "summary": "Surveyor moved from hub/tools/ to Minder. Web serving layer (routes, template, decide API) lives in execution spoke. Hub remains read-only data source. Pattern: fleet-wide visibility tools live where the operator works.",
+  "impact": 8,
+  "status": "undelivered",
+  "created_at": "2026-04-07T00:00:00Z",
+  "created_by": "session-76",
+  "source_spoke": "minder",
+  "why_it_matters": "Hub = brain (data, registry, signals, teachings). Hands spoke = UI, web server, decision actions. Surveyor dashboard runs on same web server operator already uses — no separate port or service.",
+  "pattern": "tools/{tool}_report.py (code, HUB_DIR hardcoded) + web/routes_{tool}.py (blueprint) + web/templates/{tool}.html (extends layout, theme override via :root vars after generated style)"
+}
+```
