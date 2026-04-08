@@ -1,0 +1,67 @@
+# Teaching: signal-20260407-1904-from-minder
+**Source spoke:** minder
+**Session:** 77
+**Created:** 2026-04-07T19:04:33Z
+**Impact:** 8
+
+## What changed and why it matters
+
+After sessions S72–S76, Minder produced 4 hub signals for patterns that were entirely local to Minder (Tender run order, toggle chip UX, Surveyor ownership, Realizer→Tender loop). No other spoke benefitted. These were cleaned up manually in S77.
+
+**The rule:** A spoke must only emit a hub signal for patterns that generalise to ≥1 other spoke. Spoke-local architecture, UX, or workflow decisions stay local (memory, lug, doc — not a signal).
+
+**Test before emitting a signal:**
+> "Does this learning apply to at least one other spoke in the fleet?"
+> No → local record only.
+> Yes → emit signal.
+
+**Exception:** If a shared framework tool needs a fix (e.g. Flask streaming for any spoke with a web UI), emit a hub **task lug** (`routed_to: FRAMEWORK` or targeting the hub), not a signal.
+
+## Migration instructions
+
+No code change required. This is a behavioral rule for AI agents operating in spokes.
+
+Add the following check to your signal-creation decision process:
+
+```
+Before writing to lugs/bytype/signal/undelivered/:
+  1. Ask: "Does this pattern apply to >=1 other spoke?"
+  2. If NO → write to local memory/doc/lug only. Do NOT emit signal.
+  3. If YES → emit signal as normal.
+  4. If it's a shared tool bug/fix → emit hub task lug instead.
+```
+
+## Prerequisites
+
+None — behavioral rule, no files to verify.
+
+## Batch Sequence
+
+- **Apply order:** Independent
+- **Depends-on:** None
+- **Required-before:** None
+- **Parallel-safe:** yes
+
+## safe_to_auto_adopt: true
+
+Pure behavioral rule — no code change, no file modification. Safe to adopt at every spoke.
+
+---
+
+## Embedded Signal Lug
+
+```json
+{
+  "id": "signal-spoke-signal-scope-rule-v1",
+  "type": "signal",
+  "title": "Spokes must only emit hub signals for cross-spoke-generalizable patterns",
+  "summary": "Signals are for cross-spoke learning. A spoke must not emit a hub signal for patterns that only affect that spoke. Test: does this learning apply to >=1 other spoke? If no, keep it local. If yes, emit signal. Exception: shared framework tool fixes should be hub task lugs, not signals.",
+  "impact": 8,
+  "status": "undelivered",
+  "created_at": "2026-04-07T19:04:33Z",
+  "created_by": "session-77",
+  "source_spoke": "minder",
+  "rule": "Signal = cross-spoke generalization. Local pattern = local record only.",
+  "why_it_matters": "Spoke-local signals pollute the hub signal queue and waste reviewer time. 4 such signals were cleaned up in S77 after being mis-emitted across S72-S76."
+}
+```

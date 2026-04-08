@@ -1,0 +1,98 @@
+# Teaching: signal-hub-signal-boomerang-suppression-v1
+**Source spoke:** Wheelwright (framework)
+**Session:** 137
+**Created:** 2026-04-08T09:27:00Z
+**Impact:** 8
+**weight:** 12
+**fingerprint:** boomerang-s137
+
+## What changed and why it matters
+
+Hub signals were boomeranging — a spoke creates a signal, delivers it to the hub inbox, and at the next wakeup Step 5 re-incorporates it as a duplicate local lug. With a fleet of N spokes running regularly this compounds silently.
+
+The fix adds two suppression checks in wakeup Step 5 Hub Signal Bulletin before incorporating any signal:
+
+1. **ID dedup (primary):** If the signal ID already exists anywhere under `WAI-Spoke/lugs/bytype/signal/`, move to processed and skip. Catches signals the spoke generated itself AND previously incorporated cross-spoke signals.
+2. **Boomerang (secondary):** If `source_spoke` (lowercased) contains `wheel.name` (lowercased, from WAI-State), move to processed and skip. Belt-and-suspenders for cases where the signal was purged locally but still in the spoke's history.
+
+Additionally, `source_spoke` is now a required field on all signal lugs so the boomerang check has reliable data.
+
+## Migration instructions
+
+### Step 5 — Hub Signal Bulletin (wai.md)
+
+Replace any single-line Hub Signal Bulletin rule with:
+
+```
+**Hub Signal Bulletin:** Read `{hub_path}/WAI-Hub/signals/incoming/framework/` (framework spoke). For each signal file, apply two suppression checks before incorporating:
+
+1. **Dedup check (primary):** If the signal ID already exists anywhere under `WAI-Spoke/lugs/bytype/signal/` (any subfolder) — move to `{hub_path}/WAI-Hub/signals/processed/`, do NOT create a local lug.
+2. **Boomerang check (secondary):** If `source_spoke` (lowercased) contains `wheel.name` (lowercased, from WAI-State) — move to processed, do NOT create a local lug. Self-originated signals are already recorded locally.
+3. **Otherwise:** Create a new signal lug in `WAI-Spoke/lugs/bytype/signal/undelivered/`, then move to processed.
+
+Surface: `Hub signals: {N} incorporated, {M} suppressed (dedup/boomerang)`. Omit suppressed count if zero.
+```
+
+### Signal lug schema (wai-lug-schema.md)
+
+Add a `Signal Required Fields` section after `## Signal vs Task vs Phone-Home`:
+
+```markdown
+### Signal Required Fields
+
+When creating a `signal` lug, include:
+
+| Field | Required | Value |
+|-------|----------|-------|
+| `source_spoke` | **Yes** | `wheel.name` from this spoke's WAI-State.json |
+
+`source_spoke` enables boomerang suppression: when the hub routes a signal back to its originator, wakeup Step 5 checks this field (case-insensitive contains) against `wheel.name` and discards the duplicate instead of creating a redundant local lug.
+```
+
+### New signal lugs — always set source_spoke
+
+```json
+{
+  "id": "signal-example-v1",
+  "type": "signal",
+  "source_spoke": "YourSpokeName",
+  ...
+}
+```
+
+## Prerequisites
+
+```bash
+# Verify wai.md has the boomerang suppression block
+grep -n "Dedup check\|Boomerang check" templates/commands/wai.md || echo "NOT FOUND — apply migration"
+# Verify lug schema has Signal Required Fields
+grep -n "Signal Required Fields\|source_spoke" templates/commands/wai-lug-schema.md || echo "NOT FOUND"
+```
+
+## Batch Sequence
+
+- **Apply order:** wai.md first, then wai-lug-schema.md
+- **Depends-on:** None
+- **Required-before:** None
+- **Parallel-safe:** yes
+
+## safe_to_auto_adopt: true
+
+Both changes are additive. No existing behavior removed — only suppression logic added. Signal lugs without `source_spoke` still work (ID dedup catches them).
+
+---
+
+## Embedded Signal Lugs
+
+### Signal 1
+```json
+{
+  "id": "signal-hub-signal-boomerang-suppression-v1",
+  "type": "signal",
+  "title": "Hub signal boomerang suppression: dedup + source_spoke check at wakeup Step 5",
+  "summary": "Signals returning to their originator via hub inbox were being re-incorporated as duplicate local lugs. Fix: two-layer suppression in wakeup Step 5 Hub Signal Bulletin — ID dedup + source_spoke boomerang check. source_spoke now required on signal lugs.",
+  "impact": 8,
+  "source_spoke": "Wheelwright",
+  "pattern": "Step 5: for each hub inbox signal — check ID in local bytype/signal/ → skip if found; check source_spoke contains wheel.name → skip if match; else incorporate."
+}
+```

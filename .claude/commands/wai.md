@@ -127,7 +127,13 @@ Scan `{hub_path}/teachings_repo/spoke/current/*.teaching`. For each: check if al
 - **false (Path B):** list + summary table — wait for explicit approval. Copy to `seed/ingest/manual/`.
 - **flag absent:** treat as false — manual review required.
 
-Hub Signal Bulletin: read `{hub_path}/WAI-Hub/signals/by-target/framework/` (framework spoke). Incorporate new signals as local lugs, then move to `processed/`.
+**Hub Signal Bulletin:** Read `{hub_path}/WAI-Hub/signals/incoming/framework/` (framework spoke). For each signal file, apply two suppression checks before incorporating:
+
+1. **Dedup check (primary):** If the signal ID already exists anywhere under `WAI-Spoke/lugs/bytype/signal/` (any subfolder) — move to `{hub_path}/WAI-Hub/signals/processed/`, do NOT create a local lug.
+2. **Boomerang check (secondary):** If `source_spoke` (lowercased) contains `wheel.name` (lowercased, from WAI-State) — move to processed, do NOT create a local lug. Self-originated signals are already recorded locally.
+3. **Otherwise:** Create a new signal lug in `WAI-Spoke/lugs/bytype/signal/undelivered/`, then move to processed.
+
+Surface: `Hub signals: {N} incorporated, {M} suppressed (dedup/boomerang)`. Omit suppressed count if zero.
 
 See `wai-reference.md` for teaching scan scripts and Path A/B adoption detail.
 

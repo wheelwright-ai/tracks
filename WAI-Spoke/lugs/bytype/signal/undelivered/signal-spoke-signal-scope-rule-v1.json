@@ -1,0 +1,13 @@
+{
+  "id": "signal-spoke-signal-scope-rule-v1",
+  "type": "signal",
+  "title": "Spokes must only emit hub signals for cross-spoke-generalizable patterns",
+  "summary": "Signals are for cross-spoke learning. A spoke must not emit a hub signal for patterns that only affect that spoke. Test: does this learning apply to >=1 other spoke? If no, keep it local. If yes, emit signal. Exception: shared framework tool fixes should be hub task lugs, not signals.",
+  "impact": 8,
+  "status": "undelivered",
+  "created_at": "2026-04-07T19:04:33Z",
+  "created_by": "session-77",
+  "source_spoke": "minder",
+  "rule": "Signal = cross-spoke generalization. Local pattern = local record only.",
+  "why_it_matters": "Spoke-local signals pollute the hub signal queue and waste reviewer time. 4 such signals were cleaned up in S77 after being mis-emitted across S72-S76."
+}

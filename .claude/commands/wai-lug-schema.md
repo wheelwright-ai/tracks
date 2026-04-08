@@ -432,6 +432,18 @@ Before creating any lug:
 
 ---
 
+## Signal Required Fields
+
+When creating a `signal` lug, include:
+
+| Field | Required | Value |
+|-------|----------|-------|
+| `source_spoke` | **Yes** | `wheel.name` from this spoke's WAI-State.json |
+
+`source_spoke` enables boomerang suppression: when the hub routes a signal back to its originator, wakeup Step 5 checks this field (case-insensitive contains) against `wheel.name` and discards the duplicate instead of creating a redundant local lug.
+
+---
+
 ## Signal vs Task vs Phone-Home
 
 | Type | Purpose | AI Execution? |

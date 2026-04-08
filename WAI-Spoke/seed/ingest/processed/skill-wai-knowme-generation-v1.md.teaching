@@ -1,0 +1,70 @@
+# Teaching: KnowMe.md — Periodic Spoke Self-Portrait
+
+**Family:** skill-wai-knowme-generation
+**Version:** v1
+**safe_to_auto_adopt:** true
+**Impact:** 8
+**Source spoke:** ezorg-email-website
+**Session:** 43 (2026-04-07)
+
+## What changed and why it matters
+
+A new spoke-level artifact has been validated: `WAI-Spoke/KnowMe.md`. It is a
+cold-LLM-ready self-portrait of a spoke written for a collaborating agent that has no
+repo access and no session history. Generating it on a regular cadence (each Gardener
+pass, or at closeout) gives any fleet agent a synthesized narrative of the spoke's
+identity, current stage, architecture, constraints, and context health in a single
+~400-line file.
+
+**Observed benefit:** A fresh agent session can be bootstrapped from KnowMe.md alone
+— no WAI-State.json traversal, no lug scanning, no session track replay required. The
+generation act also functions as a health signal: if KnowMe.md cannot be written
+cleanly, the spoke has state drift that needs resolution.
+
+## Prerequisites
+
+None. All data comes from WAI-State.json, lugs/bytype/, and sessions/.
+
+```bash
+# Verify spoke has required structure:
+test -f WAI-Spoke/WAI-State.json && echo OK
+test -d WAI-Spoke/lugs/bytype && echo OK
+test -d WAI-Spoke/sessions && echo OK
+```
+
+## Migration instructions
+
+1. Add KnowMe.md generation as a step in the Gardener lifecycle pass (after teachings
+   processing, before closeout commit).
+2. Expose it as a named skill: `/wai-knowme` or `wai-knowme-generate`.
+3. The skill prompt instructs the agent to examine: WAI-State.json, all open/in_progress
+   lugs, 3 most recent session summaries, and context health state.
+4. Output: `WAI-Spoke/KnowMe.md` (overwrite previous version).
+5. Log generation as a track event: `{"event":"knowme_generated", ...}`.
+
+## Required sections (in order)
+
+1. **Who I am** — mission, node type, hub relationship, problem solved
+2. **Current stage** — one sentence lifecycle position + single most important truth
+3. **Priorities** — top 3 active, derived from work queue and open epics
+4. **Architecture** — stack, key files, folder conventions, non-obvious facts
+5. **Brand and voice** — Ozi posture, autonomy scope, decision-making style
+6. **Open epics and lugs** — table: ID · Type · Title · Status · Priority
+7. **Current constraints** — off-limits items, frozen work, approval gates
+8. **Implementation style** — lug-first vs reactive, tools, testing, commit discipline
+9. **Known risks** — active risks from signals and recent sessions
+10. **Context health** — last session, historian threshold, pending teachings, signals
+
+## Batch Sequence
+
+- **Apply order:** Standalone (no dependencies)
+- **Depends-on:** None
+- **Required-before:** None
+- **Parallel-safe:** Yes
+
+## What NOT to do
+
+- Do not include ephemeral session details that will be stale by the next wakeup.
+- Do not speculate — every claim must be derivable from actual lug or state data.
+- Do not omit sections that have nothing to report — write "Nothing active."
+- Keep total length under 600 lines.

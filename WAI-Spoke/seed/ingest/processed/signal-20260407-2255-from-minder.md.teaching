@@ -1,0 +1,86 @@
+# Teaching: signal-20260407-2255-from-minder
+**Source spoke:** minder
+**Session:** 79
+**Created:** 2026-04-08T06:06:44Z
+**Impact:** 8
+
+## What changed and why it matters
+
+PreToolUse hook scripts that output `{"decision":"allow"}` to stdout on every allowed command cause Claude Code to show `PreToolUse:[Tool] hook error` for every tool invocation. Discovered in Minder S79 — the `pre-tool-guard.sh` hook was emitting this JSON on every non-blocked Bash call, producing a continuous stream of "hook error" messages in the UI.
+
+**The correct PreToolUse contract:**
+- **Allow:** `exit 0` — no stdout, no JSON
+- **Block:** `exit 2` + reason written to `stderr`
+
+Claude Code does not parse stdout from PreToolUse hooks as a control response. Stdout is treated as context injection (text to show Claude). Any JSON on stdout will cause Claude Code to attempt to parse it as a hook decision and fail — surfacing as a hook error.
+
+**Second issue:** `jq` calls in hook scripts without `2>/dev/null` will leak parse errors to stderr when the hook receives non-standard input, also appearing as hook errors.
+
+## Migration instructions
+
+For any spoke with a PreToolUse hook script:
+
+1. Find all `echo '{"decision":"allow"}'` or `echo '{"decision": "allow"}'` lines
+2. Remove them — the exit 0 below is sufficient
+3. Add `2>/dev/null` to all `jq` calls in the hook
+
+**Before:**
+```bash
+# Allow everything else
+echo '{"decision":"allow"}'
+exit 0
+```
+
+**After:**
+```bash
+# Allow everything else
+exit 0
+```
+
+**jq calls — before:**
+```bash
+tool=$(echo "$input" | jq -r '.tool_name // ""')
+```
+
+**After:**
+```bash
+tool=$(echo "$input" | jq -r '.tool_name // ""' 2>/dev/null)
+```
+
+## Prerequisites
+
+```bash
+# Verify hook exists
+ls .claude/hooks/pre-tool-guard.sh
+# Check for the pattern
+grep -n 'decision.*allow' .claude/hooks/pre-tool-guard.sh
+```
+
+## Batch Sequence
+
+- **Apply order:** Independent
+- **Depends-on:** None
+- **Required-before:** None
+- **Parallel-safe:** yes
+
+## safe_to_auto_adopt: true
+
+Pure text removal and flag addition in shell scripts. No logic change — behaviour is identical (allow still allows, block still blocks). Zero risk of regression.
+
+---
+
+## Embedded Signal Lug
+
+```json
+{
+  "id": "signal-pretooluse-hook-allow-stdout-error-v1",
+  "type": "signal",
+  "title": "PreToolUse hooks must not output JSON to stdout on allow — causes hook error messages",
+  "summary": "A PreToolUse hook that outputs {\"decision\":\"allow\"} to stdout on every allowed command causes Claude Code to show 'PreToolUse:[Tool] hook error' for every invocation. Correct contract: exit 0 silently to allow, exit 2 + stderr to block. Also add 2>/dev/null to jq calls to prevent parse error leakage.",
+  "impact": 8,
+  "status": "undelivered",
+  "source_spoke": "minder",
+  "rule": "PreToolUse allow = exit 0, no stdout. Block = exit 2 + stderr only.",
+  "applies_to": "All spokes with PreToolUse hook scripts"
+}
+```

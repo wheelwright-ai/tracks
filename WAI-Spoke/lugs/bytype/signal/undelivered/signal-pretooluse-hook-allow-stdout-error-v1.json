@@ -1,0 +1,11 @@
+{
+  "id": "signal-pretooluse-hook-allow-stdout-error-v1",
+  "type": "signal",
+  "title": "PreToolUse hooks must not output JSON to stdout on allow — causes hook error messages",
+  "summary": "A PreToolUse hook that outputs {\"decision\":\"allow\"} to stdout on every allowed command causes Claude Code to show 'PreToolUse:[Tool] hook error' for every invocation. Correct contract: exit 0 silently to allow, exit 2 + stderr to block. Also add 2>/dev/null to jq calls to prevent parse error leakage.",
+  "impact": 8,
+  "status": "undelivered",
+  "source_spoke": "minder",
+  "rule": "PreToolUse allow = exit 0, no stdout. Block = exit 2 + stderr only.",
+  "applies_to": "All spokes with PreToolUse hook scripts"
+}

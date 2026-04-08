@@ -1,0 +1,10 @@
+{
+  "id": "signal-hub-signal-boomerang-suppression-v1",
+  "type": "signal",
+  "title": "Hub signal boomerang suppression: dedup + source_spoke check at wakeup Step 5",
+  "summary": "Signals returning to their originator via hub inbox were being re-incorporated as duplicate local lugs. Fix: two-layer suppression in wakeup Step 5 Hub Signal Bulletin — ID dedup + source_spoke boomerang check. source_spoke now required on signal lugs.",
+  "impact": 8,
+  "source_spoke": "Wheelwright",
+  "pattern": "Step 5: for each hub inbox signal — check ID in local bytype/signal/ → skip if found; check source_spoke contains wheel.name → skip if match; else incorporate.",
+  "status": "undelivered"
+}

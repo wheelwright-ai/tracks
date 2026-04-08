@@ -6,12 +6,12 @@
 #
 
 input=$(cat)
-tool=$(echo "$input" | jq -r '.tool_name // ""')
+tool=$(echo "$input" | jq -r '.tool_name // ""' 2>/dev/null)
 
 # Only guard Bash commands
-[[ "$tool" != "Bash" ]] && echo '{"decision":"allow"}' && exit 0
+[[ "$tool" != "Bash" ]] && exit 0
 
-cmd=$(echo "$input" | jq -r '.tool_input.command // ""')
+cmd=$(echo "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)
 
 # Extract only executable lines (strip heredoc bodies and quoted strings)
 # Take the first line and any lines not inside a heredoc
@@ -67,5 +67,4 @@ if echo "$first_line" | grep -qE '^\s*\\?rm\s'; then
 fi
 
 # Allow everything else
-echo '{"decision":"allow"}'
 exit 0

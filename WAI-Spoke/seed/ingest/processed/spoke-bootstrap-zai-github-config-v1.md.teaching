@@ -1,0 +1,97 @@
+# Teaching: spoke-bootstrap-zai-github-config-v1
+**Source:** hub
+**Session:** gardener-2026-04-07
+**Created:** 2026-04-07T00:00:00Z
+**Impact:** 7
+
+## What changed and why it matters
+
+When a new spoke is created it needs two pieces of config to operate autonomously:
+
+1. **z.ai API** — the low-cost model endpoint used for teaching adoption (Pass 1) and lug execution (Pass 2). Without this, spokes fall back to Claude or fail silently.
+2. **GitHub SSH identity** — all spokes use SSH remotes (`git@github.com:mariov96/{repo}.git`). Without correct git config, commits fail.
+
+Previously, each new spoke had to be told this manually. This teaching documents the canonical config so the gardener can distribute it automatically.
+
+## Migration instructions
+
+### 1. z.ai API config
+
+Create or update `.env.dev` in the spoke root:
+
+```bash
+# .env.dev
+ZAI_API_KEY=<your-key-here>   # per-user, never committed
+```
+
+The z.ai endpoint and models are fixed — no per-spoke config needed:
+
+| Purpose | Model |
+|---------|-------|
+| Teaching adoption (Pass 1, Haiku-tier) | `glm-4.5-air` |
+| Lug execution (Pass 2, full-tier) | `glm-4.5` |
+| Endpoint | `https://api.z.ai/api/coding/paas/v4/chat/completions` |
+
+> **Discovery note:** The correct path is `/api/coding/paas/v4` — NOT `/api/paas/v4` (returns 404).
+
+Add to `WAI-State.json` under `context.integrations`:
+
+```json
+"zai": {
+  "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
+  "model_teaching_adoption": "glm-4.5-air",
+  "model_lug_execution": "glm-4.5",
+  "auth": "Bearer $ZAI_API_KEY (from .env.dev — never committed)"
+}
+```
+
+### 2. GitHub SSH config
+
+Verify local git config is set:
+
+```bash
+git config user.name   # should be: mariov96
+git config user.email  # should be: mariov96@gmail.com
+```
+
+If missing, set project-level config:
+
+```bash
+git config user.name "mariov96"
+git config user.email "mariov96@gmail.com"
+```
+
+SSH key is at `~/.ssh` (host-configured — no per-spoke action needed).
+
+All spoke repos use SSH remotes:
+
+```bash
+git remote -v
+# origin  git@github.com:mariov96/{spoke-repo}.git (fetch)
+# origin  git@github.com:mariov96/{spoke-repo}.git (push)
+```
+
+If the remote is HTTPS, convert to SSH:
+
+```bash
+git remote set-url origin git@github.com:mariov96/{spoke-repo}.git
+```
+
+## Prerequisites
+
+```bash
+# Verify SSH key is available
+ls ~/.ssh/id_* 2>/dev/null && echo "SSH key present" || echo "MISSING: configure SSH key"
+# Verify ZAI_API_KEY env var is set or in .env.dev
+[ -f .env.dev ] && grep -q ZAI_API_KEY .env.dev && echo "zai configured" || echo "MISSING: add ZAI_API_KEY to .env.dev"
+```
+
+## Batch Sequence
+
+- **Apply order:** 1 (bootstrap — apply before any lug execution)
+- **Depends on:** None
+- **Parallel-safe:** yes
+
+## safe_to_auto_adopt: true
+
+Config values are non-destructive and additive. Gardener can distribute to all spokes.

@@ -56,7 +56,7 @@
         "Authentication, database, any runtime dependencies"
       ],
       "constraints": [
-        "Pure documentation \u2014 no package.json, no node_modules, no build step",
+        "Pure documentation — no package.json, no node_modules, no build step",
         "All wheelwright.ai and framework repo links must be present",
         "Prompts must be self-contained (raw URL usable as LLM instruction)",
         "Samples must be realistic enough to demonstrate portability"
@@ -273,7 +273,7 @@
       "Shipit and release-oriented teachings assume delivery surfaces this documentation-and-prompts repo does not currently own"
     ],
     "insights": [
-      "Tracks is a documentation and prompt library \u2014 no app code, no build system",
+      "Tracks is a documentation and prompt library — no app code, no build system",
       "Three prompt variants (closing-request, prep-and-request, active-collection) are the core deliverable",
       "Portability framing: frees intellectual product trapped in the LLM chat",
       "WAI-Spoke state should defer to README/spec/prompts/samples when hub teachings or session metadata drift",
@@ -284,7 +284,15 @@
       "Advisor behavior is now defined by a shared parent plus child overrides, so policy clarity matters more than adding more transitional prose in legacy command files",
       "The remaining hub teaching queue is no longer a flat backlog: reliability and teaching-ingestion changes rank ahead of skill-system refinements, while malformed closeout or metadata teachings stay blocked until clarified"
     ],
-    "hub_path_corrected_at": "2026-03-25T13:05:00Z"
+    "hub_path_corrected_at": "2026-03-25T13:05:00Z",
+    "integrations": {
+      "zai": {
+        "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
+        "model_teaching_adoption": "glm-4.5-air",
+        "model_lug_execution": "glm-4.5",
+        "auth": "Bearer $ZAI_API_KEY (from .env.dev — never committed)"
+      }
+    }
   },
   "ai_rules": {
     "context_loading": "Read WAI-Spoke/WAI-Guide.md first, then WAI-State.json and WAI-State.md",
@@ -342,7 +350,7 @@
         "type": "task",
         "status": "gated",
         "readiness": "blocked",
-        "title": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
+        "title": "Station Master Orchestrator — ingest() entry point wiring all station modules",
         "phase": null,
         "tagged_next": false
       },
@@ -352,7 +360,7 @@
         "type": "task",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Station Schema \u2014 lines, lineEvents, extend sessions + trackArtifacts",
+        "title": "Station Schema — lines, lineEvents, extend sessions + trackArtifacts",
         "phase": null,
         "tagged_next": false
       },
@@ -362,7 +370,7 @@
         "type": "signal",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Reference: Advisor system v2 \u2014 9 spoke advisors + 5 hub advisors, hierarchy and ",
+        "title": "Reference: Advisor system v2 — 9 spoke advisors + 5 hub advisors, hierarchy and ",
         "phase": null,
         "tagged_next": false
       },
@@ -372,7 +380,7 @@
         "type": "signal",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Anti-pattern: blocked_by refs not verified \u2014 check dependency exists before trea",
+        "title": "Anti-pattern: blocked_by refs not verified — check dependency exists before trea",
         "phase": null,
         "tagged_next": false
       },
@@ -383,16 +391,6 @@
         "status": "ready",
         "readiness": "needs_refinement",
         "title": "Refactor pattern: extract repeated inline python3 -c blocks to a standalone CLI ",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-orko-spoke-routing-lugs-jsonl-gate-v1",
-        "roi": 4.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "load_spokes() WAI-Lugs.jsonl existence gate silently excludes spokes from Orko r",
         "phase": null,
         "tagged_next": false
       },
@@ -435,6 +433,16 @@
         "title": "Wakeup brief smart staleness: STALE only if relevant files changed, not any comm",
         "phase": null,
         "tagged_next": false
+      },
+      {
+        "id": "spoke-session-placement-guard-v1",
+        "roi": 3.5,
+        "type": "signal",
+        "status": "ready",
+        "readiness": "needs_refinement",
+        "title": "Wakeup Step 3b: detect and auto-fix misplaced session-* dirs in WAI-Spoke/",
+        "phase": null,
+        "tagged_next": false
       }
     ],
     "queue_state": {
@@ -442,6 +450,6 @@
       "needs_refinement_count": 9,
       "blocked_count": 1
     },
-    "last_scored_at": "2026-04-07T16:43:47.693181+00:00"
+    "last_scored_at": "2026-04-08T10:46:17.722714+00:00"
   }
 }
