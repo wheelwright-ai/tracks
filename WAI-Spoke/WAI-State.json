@@ -56,7 +56,7 @@
         "Authentication, database, any runtime dependencies"
       ],
       "constraints": [
-        "Pure documentation — no package.json, no node_modules, no build step",
+        "Pure documentation \u2014 no package.json, no node_modules, no build step",
         "All wheelwright.ai and framework repo links must be present",
         "Prompts must be self-contained (raw URL usable as LLM instruction)",
         "Samples must be realistic enough to demonstrate portability"
@@ -249,7 +249,7 @@
     "constraints": []
   },
   "context": {
-    "current_phase": "skills-cutover-stabilization",
+    "current_phase": "maintain",
     "next_actions": [
       "Keep guide, README, and state language aligned to the settled authority model while cleanup stays conservative",
       "Resolve metadata-missing teachings so each remaining hub teaching has enough target and ownership data to map cleanly into Skills/ or another clearly non-authoritative surface",
@@ -273,7 +273,7 @@
       "Shipit and release-oriented teachings assume delivery surfaces this documentation-and-prompts repo does not currently own"
     ],
     "insights": [
-      "Tracks is a documentation and prompt library — no app code, no build system",
+      "Tracks is a documentation and prompt library \u2014 no app code, no build system",
       "Three prompt variants (closing-request, prep-and-request, active-collection) are the core deliverable",
       "Portability framing: frees intellectual product trapped in the LLM chat",
       "WAI-Spoke state should defer to README/spec/prompts/samples when hub teachings or session metadata drift",
@@ -290,7 +290,7 @@
         "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
         "model_teaching_adoption": "glm-4.5-air",
         "model_lug_execution": "glm-4.5",
-        "auth": "Bearer $ZAI_API_KEY (from .env.dev — never committed)"
+        "auth": "Bearer $ZAI_API_KEY (from .env.dev \u2014 never committed)"
       }
     }
   },
@@ -350,7 +350,7 @@
         "type": "task",
         "status": "gated",
         "readiness": "blocked",
-        "title": "Station Master Orchestrator — ingest() entry point wiring all station modules",
+        "title": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
         "phase": null,
         "tagged_next": false
       },
@@ -360,7 +360,7 @@
         "type": "task",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Station Schema — lines, lineEvents, extend sessions + trackArtifacts",
+        "title": "Station Schema \u2014 lines, lineEvents, extend sessions + trackArtifacts",
         "phase": null,
         "tagged_next": false
       },
@@ -370,7 +370,7 @@
         "type": "signal",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Reference: Advisor system v2 — 9 spoke advisors + 5 hub advisors, hierarchy and ",
+        "title": "Reference: Advisor system v2 \u2014 9 spoke advisors + 5 hub advisors, hierarchy and ",
         "phase": null,
         "tagged_next": false
       },
@@ -380,7 +380,7 @@
         "type": "signal",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Anti-pattern: blocked_by refs not verified — check dependency exists before trea",
+        "title": "Anti-pattern: blocked_by refs not verified \u2014 check dependency exists before trea",
         "phase": null,
         "tagged_next": false
       },
