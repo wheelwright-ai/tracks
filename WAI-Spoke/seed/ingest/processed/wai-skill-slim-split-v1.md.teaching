@@ -1,0 +1,183 @@
+# Teaching: WAI Skill Slim Split + Closeout Dedup
+
+**Type:** Performance upgrade
+**Target:** All spokes
+**Version:** 1.0
+**Created:** 2026-04-09
+**safe_to_auto_adopt:** true
+**weight:** 10
+**fingerprint:** wai-skill-slim-split-v1
+
+---
+
+## What This Teaching Does
+
+Three improvements to the wai.md and wai-closeout.md skills that reduce wakeup
+and closeout baking time by 50-70%:
+
+1. **wai.md slim split** — replaces the 20KB protocol with a 1.7KB fast-path-only
+   version. Full protocol moved to `wai-full.md` (loaded on-demand for the rare
+   STALE brief case). Measured result: 14s wakeup vs 1m+ before.
+
+2. **session-start.sh track pre-write** — hook now writes the `session_start` track
+   entry during startup (outside the AI context window). `/wai` fast path makes
+   ZERO tool calls. Previous: 1 tool call (~15s round-trip).
+
+3. **wai-closeout.md dedup + slim** — removed triple-duplicated steps 0c/0d
+   (~5KB of junk), replaced inline Python in steps 11b/11c with tool calls
+   (`python3 tools/generate_ozi_brief.py` and `python3 tools/generate_wakeup_brief.py`).
+   Result: 24KB → 14KB.
+
+---
+
+## Prerequisites
+
+- `tools/generate_wakeup_brief.py` present (from wai-pre-post-wrapper-fast-path-v1)
+- `tools/generate_ozi_brief.py` present (from wai-pre-post-wrapper-fast-path-v1 or this session)
+- `.claude/hooks/session-start.sh` present with BRIEF_FRESH gate
+- `templates/commands/` present
+
+---
+
+## Batch Sequence
+
+**Block 1:** Replace `templates/commands/wai.md` with slim fast-path version
+**Block 2:** Create `templates/commands/wai-full.md` (full protocol, on-demand)
+**Block 3:** Replace `templates/commands/wai-closeout.md` with deduped+slim version + out-of-scope commit annotation
+**Block 4:** Patch `.claude/hooks/session-start.sh` with track pre-write
+**Block 5:** Sync to `.claude/commands/`
+
+Apply all blocks. Blocks 1-3 are file replacements. Block 4 is a hook patch.
+Block 5 is always required after any skill change.
+
+---
+
+## Version Check Before Applying
+
+```bash
+# Check if already applied
+grep -c "FAST PATH — Zero tool calls" templates/commands/wai.md
+# Expected: 1 (already present in old version)
+# If new slim version: wc -l templates/commands/wai.md should be < 60
+wc -l templates/commands/wai.md
+# < 60 = already applied, skip Block 1+2
+# >= 60 = needs update
+
+grep -c "0c. Tender Pipeline Check" templates/commands/wai-closeout.md
+# 1 = already deduped (applied), skip Block 3
+# 3 = needs dedup (apply Block 3)
+
+grep -c "Pre-write track entry" .claude/hooks/session-start.sh
+# 1 = already patched, skip Block 4
+# 0 = needs patch
+```
+
+---
+
+## Block 1: Replace templates/commands/wai.md
+
+Replace the ENTIRE content with the slim fast-path version.
+Copy from framework: `templates/commands/wai.md` (the slim version — 1.7KB, < 60 lines).
+
+The new wai.md contains only:
+- Fast path instructions (0 tool calls when FRESH brief)
+- Banner template using session-init data
+- Fallback: "Read templates/commands/wai-full.md for full protocol"
+
+---
+
+## Block 2: Create templates/commands/wai-full.md
+
+Copy from framework: `templates/commands/wai-full.md` (the full 19KB protocol).
+
+This file is the original wai.md content (Minimal Mode + Steps 1-9b + Incoming Routing).
+Only loaded when brief is STALE or missing — rare case.
+
+---
+
+## Block 3: Replace templates/commands/wai-closeout.md
+
+Replace the ENTIRE content with the deduped+slim version.
+Copy from framework: `templates/commands/wai-closeout.md` (14KB, 334 lines).
+
+Changes from old version:
+- Step 0b: now has content (was empty header)
+- Steps 0c/0d: appear exactly once (were tripled = bug)
+- Step 11b: `python3 tools/generate_ozi_brief.py` (was 44-line inline Python)
+- Step 11c (wakeup): `python3 tools/generate_wakeup_brief.py` (was 85-line inline Python)
+- Step 10b verification: now checks wai-full.md in diff
+
+---
+
+## Block 4: Patch .claude/hooks/session-start.sh
+
+Find the unique anchor at the end of session-start.sh — the `BRIEF` heredoc close
+followed immediately by `exit 0`. Replace this exact two-line sequence:
+
+```
+BRIEF
+
+exit 0
+```
+
+with:
+
+```
+BRIEF
+
+# ── Pre-write track entry (eliminates tool call from /wai fast path) ────────
+if [[ "$SKIP_SESSION_INIT" == "false" && -n "$SESSION_DIR" ]]; then
+  _TRK_MODE="standard"
+  [[ "$BRIEF_FRESH" == "true" ]] && _TRK_MODE="fast-path"
+  python3 -c "
+import json, datetime
+entry = {'event': 'session_start', 'session_id': '${SESSION_NAME}', 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'mode': '${_TRK_MODE}', 'wakeup': 'pre-computed'}
+with open('${SESSION_DIR}/track.jsonl', 'a') as f:
+    f.write(json.dumps(entry) + chr(10))
+" 2>/dev/null || true
+fi
+
+exit 0
+```
+
+The `BRIEF` heredoc close is unique in the file — this anchor is unambiguous.
+
+---
+
+## Block 5: Sync to .claude/commands/
+
+```bash
+\cp templates/commands/wai.md .claude/commands/wai.md
+\cp templates/commands/wai-full.md .claude/commands/wai-full.md
+\cp templates/commands/wai-closeout.md .claude/commands/wai-closeout.md
+```
+
+Verify: no output from:
+```bash
+diff templates/commands/wai.md .claude/commands/wai.md
+diff templates/commands/wai-full.md .claude/commands/wai-full.md
+diff templates/commands/wai-closeout.md .claude/commands/wai-closeout.md
+```
+
+---
+
+## Post-Install Verification
+
+```bash
+# 1. Confirm slim wai.md
+wc -l .claude/commands/wai.md
+# Expected: < 60
+
+# 2. Confirm wai-full.md exists
+test -f .claude/commands/wai-full.md && echo "OK"
+
+# 3. Confirm wai-closeout.md single 0c
+grep -c "0c. Tender Pipeline Check" .claude/commands/wai-closeout.md
+# Expected: 1
+
+# 4. Confirm hook has track pre-write
+grep -c "Pre-write track entry" .claude/hooks/session-start.sh
+# Expected: 1
+```
+
+Expected outcome: wakeup with FRESH brief takes 0 tool calls and ~15s.

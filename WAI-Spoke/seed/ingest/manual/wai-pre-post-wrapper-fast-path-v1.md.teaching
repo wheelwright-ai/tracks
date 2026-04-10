@@ -1,0 +1,509 @@
+# Teaching: WAI Pre/Post Wrapper + Wakeup Brief Fast Path
+
+**Type:** Infrastructure upgrade
+**Target:** All spokes
+**Version:** 1.0
+**Created:** 2026-04-09
+**safe_to_auto_adopt:** false
+**weight:** 12
+**fingerprint:** wai-pre-post-wrapper-fast-path-v1
+
+---
+
+## What This Teaching Does
+
+Installs three new infrastructure components that move expensive mechanical work
+out of the AI session and into shell scripts that run before/after:
+
+1. **`wai-enter.sh`** — pre-tool wrapper: regenerates wakeup brief, refreshes
+   context feeds, optionally calls `basher doctor audit`, launches the AI tool,
+   then calls wai-exit.sh on exit.
+
+2. **`wai-exit.sh`** — post-tool wrapper: regenerates wakeup-brief.json after
+   the session ends so the next wakeup always finds a fresh brief.
+
+3. **`tools/generate_wakeup_brief.py`** — standalone Python script that produces
+   `WAI-Spoke/wakeup-brief.json` with a `git_sha_at_generation` field.
+
+4. **session-start.sh BRIEF_FRESH gate** — early SHA comparison that skips
+   `spoke_integrity_score.py`, `spoke_expediter.py`, and `advisor_schedule_eval.py`
+   when the brief matches HEAD, turning a 3-6 min wakeup into ~45 seconds.
+
+**This is NOT:** A replacement for the WAI wakeup protocol. The protocol still
+runs; it just loads pre-computed data instead of re-computing it.
+
+---
+
+## Why This Exists
+
+Wakeup and closeout spend 40-60% of their time on mechanical work that doesn't
+require AI reasoning: counting lugs, checking file permissions, refreshing feeds,
+running integrity checks. Moving this into shell scripts (which run outside the
+AI context window) frees context budget for actual reasoning. The wakeup brief
+SHA gate means the expensive Python tools only run when something actually changed.
+
+---
+
+## Prerequisites
+
+- WAI-State.json present (`WAI-Spoke/WAI-State.json`)
+- Python 3 available (`python3 --version`)
+- `tools/score_backlog.py` present (required by generate_wakeup_brief.py)
+- `.claude/hooks/session-start.sh` present (will be patched)
+- `jq` available for session-start.sh fast path
+
+---
+
+## Batch Sequence
+
+This teaching has 4 independent changes. Apply in order; each is safe to apply
+independently if some already exist.
+
+**Block 1:** Install `tools/generate_wakeup_brief.py`
+**Block 2:** Install `wai-enter.sh` at project root
+**Block 3:** Install `wai-exit.sh` at project root
+**Block 4:** Patch `.claude/hooks/session-start.sh` with BRIEF_FRESH gate
+
+---
+
+## Version Check Before Applying
+
+Run:
+```bash
+test -f tools/generate_wakeup_brief.py && echo ALREADY_INSTALLED || echo NEEDS_INSTALL
+```
+
+If `ALREADY_INSTALLED`: check for `--spoke-path` support:
+```bash
+grep -q 'spoke.path\|spoke_path\|PROJECT_DIR' tools/generate_wakeup_brief.py && echo EXISTS
+```
+
+If wai-enter.sh already exists with the wai-exit.sh call:
+```bash
+grep -q 'wai-exit.sh' wai-enter.sh 2>/dev/null && echo SKIP_BLOCK_2
+```
+
+---
+
+## Block 1: Install generate_wakeup_brief.py
+
+Create `tools/generate_wakeup_brief.py`:
+
+```python
+#!/usr/bin/env python3
+"""
+generate_wakeup_brief.py — Standalone wakeup brief generator.
+
+Produces WAI-Spoke/wakeup-brief.json with a git_sha_at_generation field.
+The session-start.sh BRIEF_FRESH gate uses this SHA to skip expensive
+integrity/expediter/schedule checks when HEAD matches.
+
+Usage:
+    python3 tools/generate_wakeup_brief.py
+    python3 tools/generate_wakeup_brief.py --spoke-path /path/to/spoke
+"""
+
+import argparse
+import datetime
+import glob
+import json
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate wakeup brief for WAI spoke")
+    parser.add_argument("--spoke-path", default=None,
+                        help="Path to spoke root (default: auto-detect from script location)")
+    args = parser.parse_args()
+
+    if args.spoke_path:
+        PROJECT_DIR = Path(args.spoke_path).resolve()
+    else:
+        PROJECT_DIR = Path(__file__).parent.parent
+
+    SPOKE_DIR = PROJECT_DIR / "WAI-Spoke"
+    BRIEF_FILE = SPOKE_DIR / "wakeup-brief.json"
+    STATE_FILE = SPOKE_DIR / "WAI-State.json"
+
+    if not STATE_FILE.exists():
+        print(f"[generate_wakeup_brief] No WAI-State.json at {STATE_FILE} — skipping")
+        sys.exit(0)
+
+    state = json.loads(STATE_FILE.read_text())
+    ss = state.get("_session_state", {})
+    wq = state.get("_work_queue", {})
+    wheel = state.get("wheel", {})
+
+    # Git SHA
+    try:
+        git_sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR), stderr=subprocess.DEVNULL
+        ).decode().strip()
+    except Exception:
+        git_sha = "unknown"
+
+    # Lug counts
+    open_count = len(glob.glob(str(SPOKE_DIR / "lugs/bytype/*/open/*.json")))
+    ip_count = len(glob.glob(str(SPOKE_DIR / "lugs/bytype/*/in_progress/*.json")))
+
+    # Refresh backlog scoring
+    try:
+        subprocess.run(
+            ["python3", str(PROJECT_DIR / "tools/score_backlog.py"), "--update-state"],
+            cwd=str(PROJECT_DIR), capture_output=True, timeout=30
+        )
+        # Re-read state after scoring
+        state = json.loads(STATE_FILE.read_text())
+        wq = state.get("_work_queue", {})
+    except Exception:
+        pass
+
+    queue_state = wq.get("queue_state", {})
+    items = wq.get("items", [])
+
+    # Hub signals + teachings
+    hub_path = wheel.get("hub_path", "")
+    teachings_pending = 0
+    hub_signals = 0
+    if hub_path and os.path.isdir(hub_path):
+        sig_dir = os.path.join(hub_path, "WAI-Hub/signals/incoming/framework")
+        if os.path.isdir(sig_dir):
+            hub_signals = len([
+                f for f in glob.glob(os.path.join(sig_dir, "*.json"))
+                if ".gitkeep" not in f
+            ])
+        current = set(os.path.basename(f) for f in
+                      glob.glob(os.path.join(hub_path, "teachings_repo/spoke/current/*.teaching")))
+        processed = set(os.path.basename(f) for f in
+                        glob.glob(str(SPOKE_DIR / "seed/ingest/processed/*.teaching")))
+        teachings_pending = len(current - processed)
+
+    # Chain target detection
+    chain_target = None
+    auto_chain = ss.get("auto_chain", False)
+    if auto_chain and items:
+        ready_items = [i for i in items if i.get("status") == "ready"]
+        if ready_items:
+            next_item = ready_items[0]
+            lug_id = next_item.get("id", "")
+            for lug_path in (
+                glob.glob(str(SPOKE_DIR / "lugs/bytype/*/open/*.json")) +
+                glob.glob(str(SPOKE_DIR / "lugs/bytype/*/in_progress/*.json"))
+            ):
+                try:
+                    lug_data = json.loads(Path(lug_path).read_text())
+                    if lug_data.get("id") == lug_id:
+                        chain_target = {
+                            "id": lug_id,
+                            "title": lug_data.get("title", ""),
+                            "type": lug_data.get("type", ""),
+                            "target_files": lug_data.get("target_files", []),
+                            "lug_path": lug_path,
+                        }
+                        break
+                except Exception:
+                    pass
+
+    generation_mode = "chained" if chain_target else "standard"
+    top_ready = items[:5] if generation_mode == "standard" else items[:1]
+
+    brief = {
+        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "session_id": ss.get("last_session_id", ""),
+        "generation_mode": generation_mode,
+        "chain_target_lug": chain_target,
+        "open_lug_count": open_count + ip_count,
+        "queue_snapshot": queue_state,
+        "top_ready_lugs": [
+            {
+                "id": i.get("id"),
+                "title": i.get("title", ""),
+                "roi": i.get("roi", 0),
+                "effort": i.get("effort", 0),
+            }
+            for i in top_ready
+        ],
+        "teachings_pending": teachings_pending,
+        "hub_signals_pending": hub_signals,
+        "next_actions": [ss.get("next_session_recommendation", "")],
+        "spoke_version": wheel.get("version", ""),
+        "git_sha_at_generation": git_sha,
+    }
+
+    # Atomic write
+    tmp = str(BRIEF_FILE) + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(brief, f, indent=2)
+    os.replace(tmp, str(BRIEF_FILE))
+
+    print(f"[generate_wakeup_brief] Written: {BRIEF_FILE} (SHA={git_sha[:8]}, mode={generation_mode})")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+---
+
+## Block 2: Install wai-enter.sh
+
+Create `wai-enter.sh` at the project root and make it executable:
+
+```bash
+#!/bin/bash
+#
+# wai-enter.sh — WAI pre-tool wrapper
+#
+# Run instead of your AI tool directly:
+#   ./wai-enter.sh          # launches claude (default)
+#   ./wai-enter.sh gemini   # launches gemini
+#   ./wai-enter.sh codex    # launches codex
+#
+# What it does (outside the AI context window):
+#   1. Regenerate wakeup-brief.json so session-start.sh can take the fast path
+#   2. Refresh context feeds in the background
+#   3. Call basher doctor audit if basher is available
+#   4. Launch the requested AI tool
+#   5. Call wai-exit.sh after the tool exits
+#
+
+TOOL="${1:-claude}"
+PROJECT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+
+# Silent no-op if not a WAI project
+[[ -f "$PROJECT_DIR/WAI-Spoke/WAI-State.json" ]] || exec "$TOOL" "${@:2}"
+
+echo "[wai-enter] Preparing session..."
+
+# ── 1. Regenerate wakeup brief ───────────────────────────────────────────────
+if [[ -f "$PROJECT_DIR/tools/generate_wakeup_brief.py" ]]; then
+    if python3 "$PROJECT_DIR/tools/generate_wakeup_brief.py"; then
+        echo "[wai-enter] Brief: ready"
+    else
+        echo "[wai-enter] Brief: generation failed (non-fatal)"
+    fi
+else
+    echo "[wai-enter] Brief: generator not found — skipping"
+fi
+
+# ── 2. Refresh context feeds (background) ────────────────────────────────────
+if [[ -f "$PROJECT_DIR/tools/advisor_context_refresh.py" ]]; then
+    mkdir -p "$HOME/.claude/logs"
+    python3 "$PROJECT_DIR/tools/advisor_context_refresh.py" \
+        --quiet --spoke-path "$PROJECT_DIR" \
+        >> "$HOME/.claude/logs/context-refresh-$(date +%Y%m%d).log" 2>&1 &
+    echo "[wai-enter] Feeds: refresh running in background"
+fi
+
+# ── 3. Tool config audit (basher doctor) ────────────────────────────────────
+if command -v basher &>/dev/null; then
+    echo "[wai-enter] Running basher doctor audit..."
+    basher doctor audit 2>&1 | grep -E "FINDING|FIXED|ERROR" || true
+fi
+
+# ── 4. Anomaly scan — detect unexpected files outside WAI-Spoke/ ─────────────
+# (read-only: generates signal lugs, does NOT modify anything outside WAI-Spoke/)
+UNEXPECTED_ROOTS=(
+    "$PROJECT_DIR/session-"*
+    "$PROJECT_DIR/track.jsonl"
+)
+for item in "${UNEXPECTED_ROOTS[@]}"; do
+    [[ -e "$item" ]] || continue
+    BASENAME="$(basename "$item")"
+    SIGNAL_FILE="$PROJECT_DIR/WAI-Spoke/lugs/bytype/signal/undelivered/signal-anomaly-$(date +%Y%m%d%H%M%S)-$$.json"
+    mkdir -p "$(dirname "$SIGNAL_FILE")"
+    python3 -c "
+import json, datetime
+signal = {
+    'id': 'signal-anomaly-$(date +%Y%m%d%H%M%S)',
+    'type': 'signal',
+    'routed_to': 'LOCAL',
+    'status': 'open',
+    'title': 'Anomaly: unexpected file at project root',
+    'description': 'Found unexpected item at project root: $item',
+    'impact': 4,
+    'created_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'source': 'wai-enter anomaly scan',
+    'perceive': {'observation': 'Unexpected item at project root: $item'},
+    'execute': {'steps': ['Review item', 'Move to correct location or trash']},
+    'verify': {'done_when': 'Item removed from project root'}
+}
+print(json.dumps(signal, indent=2))
+" > "$SIGNAL_FILE" 2>/dev/null && echo "[wai-enter] Anomaly signal: $BASENAME"
+done
+
+# ── 5. Auto-fix inside WAI-Spoke/ only ───────────────────────────────────────
+# Ensure runtime dir exists
+mkdir -p "$PROJECT_DIR/WAI-Spoke/runtime"
+
+# Ensure hooks are executable
+for hook in "$PROJECT_DIR/.claude/hooks/"*.sh; do
+    [[ -f "$hook" ]] && chmod +x "$hook"
+done
+
+# Fix misplaced session dirs (only inside WAI-Spoke/)
+MISPLACED=$(ls -d "$PROJECT_DIR/WAI-Spoke/session-"*/ 2>/dev/null || true)
+if [[ -n "$MISPLACED" ]]; then
+    mkdir -p "$PROJECT_DIR/WAI-Spoke/sessions"
+    for d in "$PROJECT_DIR/WAI-Spoke/session-"/; do
+        name="$(basename "$d")"
+        if [[ ! -d "$PROJECT_DIR/WAI-Spoke/sessions/$name" ]]; then
+            mv "$d" "$PROJECT_DIR/WAI-Spoke/sessions/$name"
+            echo "[wai-enter] Fixed: $name -> WAI-Spoke/sessions/"
+        fi
+    done
+fi
+
+echo "[wai-enter] Done. Launching $TOOL..."
+
+# ── 6. Launch the AI tool ────────────────────────────────────────────────────
+"$TOOL" "${@:2}"
+EXIT_CODE=$?
+
+# ── 7. Post-session cleanup ───────────────────────────────────────────────────
+if [[ -f "$PROJECT_DIR/wai-exit.sh" ]]; then
+    "$PROJECT_DIR/wai-exit.sh"
+fi
+
+exit $EXIT_CODE
+```
+
+After creating the file:
+```bash
+chmod +x wai-enter.sh
+```
+
+---
+
+## Block 3: Install wai-exit.sh
+
+Create `wai-exit.sh` at the project root and make it executable:
+
+```bash
+#!/bin/bash
+#
+# wai-exit.sh — WAI post-tool wrapper
+#
+# Runs after the AI tool exits. Regenerates wakeup-brief.json so the
+# next wai-enter.sh always finds a fresh brief regardless of how the
+# session ended (clean closeout, interrupt, or crash).
+#
+# Called automatically by wai-enter.sh after the tool exits.
+# Can also be run manually after any session.
+#
+
+PROJECT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+
+# Silent no-op if not a WAI project
+[[ -f "$PROJECT_DIR/WAI-Spoke/WAI-State.json" ]] || exit 0
+
+echo "[wai-exit] Closing session..."
+
+# ── 1. Regenerate brief for next session ─────────────────────────────────────
+if [[ -f "$PROJECT_DIR/tools/generate_wakeup_brief.py" ]]; then
+    if python3 "$PROJECT_DIR/tools/generate_wakeup_brief.py"; then
+        echo "[wai-exit] Brief: ready for next session"
+    else
+        echo "[wai-exit] Brief: generation failed"
+    fi
+else
+    echo "[wai-exit] Brief: generator not found — skipping"
+fi
+
+# ── 2. Refresh context feeds in background ───────────────────────────────────
+if [[ -f "$PROJECT_DIR/tools/advisor_context_refresh.py" ]]; then
+    mkdir -p "$HOME/.claude/logs"
+    python3 "$PROJECT_DIR/tools/advisor_context_refresh.py" \
+        --quiet --spoke-path "$PROJECT_DIR" \
+        >> "$HOME/.claude/logs/context-refresh-$(date +%Y%m%d).log" 2>&1 &
+    echo "[wai-exit] Feeds: refresh running in background"
+fi
+
+echo "[wai-exit] Done. Next wakeup will use fast path."
+```
+
+After creating the file:
+```bash
+chmod +x wai-exit.sh
+```
+
+---
+
+## Block 4: Patch session-start.sh — BRIEF_FRESH gate
+
+In `.claude/hooks/session-start.sh`, find the section where `spoke_integrity_score.py`
+is called (search for `spoke_integrity_score`). Before that section, add the following
+SHA comparison block:
+
+```bash
+# ── BRIEF_FRESH gate — skip expensive checks if brief matches HEAD ────────────
+BRIEF_FRESH=false
+_BRIEF_PATH="$PROJECT_DIR/WAI-Spoke/wakeup-brief.json"
+if [[ -f "$_BRIEF_PATH" ]]; then
+  _CURRENT_SHA=$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null || echo "")
+  _BRIEF_SHA=$(jq -r '.git_sha_at_generation // ""' "$_BRIEF_PATH" 2>/dev/null || echo "")
+  if [[ -n "$_CURRENT_SHA" && -n "$_BRIEF_SHA" && "$_CURRENT_SHA" == "$_BRIEF_SHA" ]]; then
+    BRIEF_FRESH=true
+  fi
+fi
+```
+
+Then wrap the `spoke_integrity_score.py` call:
+
+```bash
+if [[ "$BRIEF_FRESH" == "true" ]]; then
+  INTEGRITY_SCORE="  Integrity: (from brief — fast path)"
+else
+  # ... existing integrity score block ...
+fi
+```
+
+Similarly wrap `spoke_expediter.py` and `advisor_schedule_eval.py` with:
+```bash
+if [[ "$BRIEF_FRESH" != "true" ]]; then
+  # ... existing call ...
+fi
+```
+
+In the wakeup status output, add:
+```bash
+if [[ "$BRIEF_FRESH" == "true" ]]; then
+  echo "  Wakeup brief: FRESH (fast path — integrity/expediter/schedule skipped)"
+else
+  echo "  Wakeup brief: STALE (new commits since generation)"
+fi
+```
+
+---
+
+## Post-Install Verification
+
+```bash
+# 1. Verify all files present and executable
+test -f tools/generate_wakeup_brief.py && echo "OK: generate_wakeup_brief.py"
+test -x wai-enter.sh && echo "OK: wai-enter.sh executable"
+test -x wai-exit.sh && echo "OK: wai-exit.sh executable"
+
+# 2. Run generate_wakeup_brief.py
+python3 tools/generate_wakeup_brief.py
+
+# 3. Verify brief output
+python3 -c "
+import json
+b = json.load(open('WAI-Spoke/wakeup-brief.json'))
+print(f'SHA: {b[\"git_sha_at_generation\"][:8]}')
+print(f'Lugs: {b[\"open_lug_count\"]}')
+print(f'Queue: {b[\"queue_snapshot\"]}')
+"
+
+# 4. Check BRIEF_FRESH gate in session-start.sh
+grep -c 'BRIEF_FRESH' .claude/hooks/session-start.sh
+```
+
+Expected: generate_wakeup_brief.py prints SHA, brief JSON has `git_sha_at_generation`,
+session-start.sh grep returns >= 3 (three uses of BRIEF_FRESH variable).
