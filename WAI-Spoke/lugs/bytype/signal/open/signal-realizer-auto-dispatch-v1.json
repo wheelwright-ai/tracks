@@ -1,0 +1,18 @@
+{
+  "id": "signal-realizer-auto-dispatch-v1",
+  "type": "signal",
+  "title": "Realizer fix-tasks should auto-dispatch on interrogation \u2014 remove manual Send step",
+  "summary": "interrogate() calls dispatch_lug_direct(lug, hub_path) which writes lug to spoke's WAI-Spoke/seed/ingest/incoming/ inbox directly. Manual Send step removed as it adds friction without safety.",
+  "impact": 8,
+  "status": "undelivered",
+  "created_at": "2026-04-05T12:31:00Z",
+  "source_spoke": "minder",
+  "why_it_matters": "Auto-dispatch is appropriate when the receiving agent must decide what to do with the lug anyway. Manual approval only adds friction, not safety.",
+  "pattern": "interrogate() \u2192 dispatch_lug_direct(lug, hub_path) \u2192 spoke inbox",
+  "files": [
+    "web/realizer_dispatch.py"
+  ],
+  "target": "spokes",
+  "delivered_by": "tracks",
+  "delivered_at": "2026-04-06T12:20:00Z"
+}

@@ -1,0 +1,24 @@
+{
+  "advisor_id": "tool-advisor",
+  "version": "1.0.0",
+  "mode": "update",
+  "project_root": "/home/mario/projects/wheelwright/tracks",
+  "score": 1,
+  "score_by_area": {
+    "Claude": "pass",
+    "Gemini": "skip",
+    "Codex": "skip",
+    "Shared": "skip"
+  },
+  "findings": [],
+  "auto_applied": [
+    {
+      "path": "CLAUDE.md",
+      "action": "normalized Claude wakeup guidance"
+    }
+  ],
+  "planned_fixes": [],
+  "proposals": [],
+  "audit_pending": false,
+  "audit_reason": ""
+}

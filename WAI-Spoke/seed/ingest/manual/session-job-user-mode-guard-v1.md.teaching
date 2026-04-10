@@ -1,0 +1,91 @@
+---
+id: session-job-user-mode-guard-v1
+title: "Fix false INTERRUPTED detection for job-initiated sessions"
+version: 1
+safe_to_auto_adopt: true
+target_files:
+  - .claude/hooks/session-start.sh
+  - WAI-Spoke/_hooks/session-start.sh
+  - WAI-Spoke/hooks/session-start.sh
+---
+
+## Problem
+
+`session-start.sh` flags the previous session as INTERRUPTED when its last track
+entry does not match `.completed == true or .event == "closeout"`.
+
+Automated sessions (gardener, cron, nightly runs) end with an `event: "session_end"`
+entry — not a closeout event — because they are not human sessions and do not run
+`/wai-closeout`. This causes false INTERRUPTED warnings at the start of every human
+session that follows an automated session, prompting unnecessary recovery decisions.
+
+Example gardener track (last line):
+```json
+{"event": "session_end", "session_id": "session-20260409-1721", "timestamp": "...", "summary": "Gardener maintenance cycle..."}
+```
+
+This is a clean end, but the hook reports it as INTERRUPTED.
+
+## Fix
+
+### 1. Broaden the CLEAN detection in `session-start.sh`
+
+Find the INTERRUPTED detection block (~line 74). Change:
+
+**Before:**
+```bash
+if echo "$LAST_LINE" | jq -e '.completed == true or .event == "closeout"' >/dev/null 2>&1; then
+  PREV_SESSION_STATUS="CLEAN"
+```
+
+**After:**
+```bash
+if echo "$LAST_LINE" | jq -e '.completed == true or .event == "closeout" or .event == "session_end"' >/dev/null 2>&1; then
+  PREV_SESSION_STATUS="CLEAN"
+```
+
+`session_end` is written by job sessions as their final entry. Treating it as CLEAN
+eliminates the false positive without affecting real INTERRUPTED detection (which
+fires when the last entry is a mid-work track entry or malformed JSON).
+
+### 2. Session track: opened_by field (convention)
+
+All non-hook tool session track entries should include an `opened_by` field:
+
+```json
+{"event": "session_start", "opened_by": "user", "wakeup": "brief-path", ...}
+{"event": "session_start", "opened_by": "job",  "wakeup": "brief-path", ...}
+```
+
+- `"user"` — human session (Gemini CLI, Code-Puppy, Codex, OpenCode)
+- `"job"` — automated session (gardener, cron, nightly script)
+
+This field is informational for now. Future tooling can use it to filter session
+lists, skip INTERRUPTED prompts for job sessions, or report session type in the
+briefing banner.
+
+## Prerequisites
+
+- `session-start.sh` must contain the INTERRUPTED detection block with the
+  `.completed == true or .event == "closeout"` pattern
+
+## Batch Sequence
+
+1. Find the detection line:
+   `grep -n 'completed == true or .event' .claude/hooks/session-start.sh`
+2. Edit: add `or .event == "session_end"` before the closing `'`
+3. Syntax check: `bash -n .claude/hooks/session-start.sh && echo OK`
+4. Apply same fix to `WAI-Spoke/_hooks/session-start.sh` if it exists:
+   `grep -n 'completed == true or .event' WAI-Spoke/_hooks/session-start.sh 2>/dev/null`
+5. Apply same fix to `WAI-Spoke/hooks/session-start.sh` if it exists
+
+## Notes
+
+The gardener session track already includes `"mode": "gardener-maintenance"` in
+its `session_start` entry. The hook does not currently read the first line of the
+previous track — only the last line. The `session_end` event check is therefore
+the minimal fix that requires no structural changes to how tracks are written.
+
+Adding `opened_by` to the `session_start` event written by `session-start.sh`
+itself is optional but recommended for consistency. Claude Code sessions would use
+`"opened_by": "user"` by default.

@@ -45,3 +45,8 @@ You are a **responsible partner**:
 ---
 
 *Wheelwright Framework — Claude Code Integration*
+## Wakeup Convergence
+
+- Finish the WAI Point briefing before asking for approval on teachings or side actions.
+- During wakeup, summarize teachings from filenames/frontmatter only.
+- Do not read full teaching bodies during wakeup unless the user explicitly asks to review them now.
