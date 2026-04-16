@@ -3,22 +3,26 @@
   "version": "1.0.0",
   "mode": "update",
   "project_root": "/home/mario/projects/wheelwright/tracks",
-  "score": 1,
+  "score": 2,
   "score_by_area": {
     "Claude": "pass",
     "Gemini": "skip",
     "Codex": "skip",
-    "Shared": "skip"
+    "Shared": "pass"
   },
   "findings": [],
-  "auto_applied": [
+  "auto_applied": [],
+  "planned_fixes": [],
+  "proposals": [
     {
-      "path": "CLAUDE.md",
-      "action": "normalized Claude wakeup guidance"
+      "area": "Claude",
+      "code": "mcp-not-configured",
+      "message": "No .mcp.json found \u2014 consider configuring MCP servers for enhanced tool capabilities",
+      "target_file": ".mcp.json",
+      "risk": "low",
+      "requires_human_review": true
     }
   ],
-  "planned_fixes": [],
-  "proposals": [],
   "audit_pending": false,
   "audit_reason": ""
 }

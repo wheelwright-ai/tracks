@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-04-16T08:45:10.192438+00:00",
+  "count": 1,
+  "note": "These proposals require human review before applying. None are auto-applied.",
+  "proposals": [
+    {
+      "code": "mcp-not-configured",
+      "area": "Claude",
+      "message": "No .mcp.json found \u2014 consider configuring MCP servers for enhanced tool capabilities",
+      "target_file": ".mcp.json",
+      "risk": "low",
+      "requires_human_review": true
+    }
+  ]
+}

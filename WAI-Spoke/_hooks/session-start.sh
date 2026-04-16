@@ -59,7 +59,7 @@ RECENT_DECISIONS=$(jq -r '
 
 # Get next actions
 NEXT_ACTIONS=$(jq -r '
-  .context.next_actions
+  (.context.next_actions // [])
   | .[0:5]
   | map("- " + .)
   | join("\n")

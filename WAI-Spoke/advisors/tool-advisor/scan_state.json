@@ -3,23 +3,32 @@
   "advisor_name": "Cross-Tool Configuration Advisor",
   "version": "1.0.0",
   "mission_statement": "Keep Claude, Gemini, and Codex/OpenAI integrations lean, non-recursive, and safe across spokes",
-  "last_audit_at": "2026-04-09T18:16:20.780783+00:00",
+  "last_audit_at": "2026-04-16T08:45:10.192438+00:00",
   "last_audit_session": null,
   "last_observed_session": null,
   "sessions_since_last_audit": 0,
   "audit_pending": false,
   "audit_reason": "",
   "last_drift_at": null,
-  "total_audits": 1,
-  "auto_applied_count": 1,
-  "current_score": 1,
+  "total_audits": 4,
+  "auto_applied_count": 4,
+  "current_score": 2,
   "score_by_area": {
     "Claude": "pass",
     "Gemini": "skip",
     "Codex": "skip",
-    "Shared": "skip"
+    "Shared": "pass"
   },
-  "pending_proposals": [],
+  "pending_proposals": [
+    {
+      "area": "Claude",
+      "code": "mcp-not-configured",
+      "message": "No .mcp.json found \u2014 consider configuring MCP servers for enhanced tool capabilities",
+      "target_file": ".mcp.json",
+      "risk": "low",
+      "requires_human_review": true
+    }
+  ],
   "last_findings": [],
   "last_fingerprint": "f10fae767f37cf8ceeb39efea0d9b857138b7d20299a2602816a27541077ce94",
   "fingerprint_entries": {
