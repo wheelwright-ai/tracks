@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-04-21T23:14:37.892267+00:00",
+  "session_id": "session-20260406-1206",
+  "generation_mode": "standard",
+  "chain_target_lug": null,
+  "open_lug_count": 16,
+  "queue_snapshot": {
+    "ready_count": 0,
+    "needs_refinement_count": 9,
+    "blocked_count": 1
+  },
+  "top_ready_lugs": [],
+  "teachings_pending": 5,
+  "hub_signals_pending": 0,
+  "next_actions": [
+    "Run improvement pass on prompt variants when real agent failure modes are available. 3 signals pending hub delivery."
+  ],
+  "spoke_version": "0.1.1",
+  "git_sha_at_generation": "26c846ea5fddb775c597779fc5d9904b85a0d313"
+}

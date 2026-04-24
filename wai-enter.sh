@@ -15,7 +15,7 @@ PROJECT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
 # ── Not a WAI project? Launch tool directly ──────────────────────────────────
 if [[ ! -f "$PROJECT_DIR/WAI-Spoke/WAI-State.json" ]]; then
-    exec "${1:-claude}"
+    exec "${1:-claude}" "${@:2}"
 fi
 
 echo "[wai-enter] Preparing session..."
@@ -143,7 +143,7 @@ fi
 # ── 6. Launch tool ──────────────────────────────────────────────────────────
 TOOL="${1:-}"
 if [[ -z "$TOOL" ]]; then
-    read -r -p "[wai-enter] Tool to launch (claude/gemini/codex): " TOOL
+    read -r -p "[wai-enter] Tool to launch (claude/gemini/codex/uvx): " TOOL
 fi
 
 if ! command -v "$TOOL" >/dev/null 2>&1; then
@@ -152,7 +152,7 @@ if ! command -v "$TOOL" >/dev/null 2>&1; then
 fi
 
 echo "[wai-enter] Launching $TOOL..."
-"$TOOL"
+"$TOOL" "${@:2}"
 
 # ── 7. Post-exit: regenerate brief for next session ─────────────────────────
 if [[ -f "$PROJECT_DIR/wai-exit.sh" ]]; then

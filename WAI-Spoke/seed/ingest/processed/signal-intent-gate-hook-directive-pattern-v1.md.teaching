@@ -1,0 +1,92 @@
+---
+id: signal-intent-gate-hook-directive-pattern-v1
+title: Intent-gate wakeup — hook DIRECTIVE must be intent-aware
+family: intent-gate-hook
+version: 1
+type: signal-teaching
+safe_to_auto_adopt: true
+impact: 8
+created_at: 2026-04-24
+source_spoke: basher
+source_session: session-20260423-1737
+---
+
+## Prerequisites
+
+None — standalone. Requires wai-enter.sh intent probe already implemented (session-intent.json written at session start).
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** wai-enter.sh intent probe (wai-enter.sh already writes session-intent.json)
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+## What This Teaching Does
+
+The `user-prompt-submit.sh` hook injected an unconditional `DIRECTIVE: Run WAI wakeup protocol` even when `wai-enter.sh` had written `session-intent.json` with `intent=implement`. This made the intent selection purely cosmetic — Claude always ran the full 13-step /wai ceremony regardless.
+
+**Fix:** Hook reads `WAI-Spoke/runtime/session-intent.json` at module level (unconditional — works even when brief is stale) and emits an intent-conditional DIRECTIVE:
+
+| Intent | Directive |
+|--------|-----------|
+| `implement` | Do NOT run /wai or teaching adoption. Read open lugs (1 call), begin implementation. |
+| `savepoint` | Read WAI-State._savepoint (1 call), load named lug, resume work. |
+| `teachings` | Run /wai-learn. |
+| `closeout` | Run /wai-closeout or /wai-shipit. |
+| `refinement` | Skip teaching adoption. Load needs_refinement queue. |
+| unset/other | Run WAI wakeup protocol (full). |
+
+The hook also appends `Intent: {intent} — {intent_label}` to the session-init output lines.
+
+## Why It Matters
+
+Without this fix, the intent gate installed by wai-enter.sh/wai-exit.sh has no effect on what Claude does at session start. The DIRECTIVE in the hook is what Claude actually obeys.
+
+## Apply Instructions
+
+In `user-prompt-submit.sh`, after `state_file = ...`:
+
+1. Add intent file reading (unconditional, before `brief_freshness`):
+```python
+intent_file = project_dir / 'WAI-Spoke' / 'runtime' / 'session-intent.json'
+intent = None
+intent_label = None
+if intent_file.exists():
+    try:
+        id_data = json.loads(intent_file.read_text())
+        intent = id_data.get('intent')
+        intent_label = id_data.get('intent_label', '')
+    except Exception:
+        pass
+```
+
+2. Before `content_lines` assembly, add intent to lines and build conditional directive:
+```python
+if intent:
+    lines.append(f'Intent: {intent} — {intent_label}')
+
+if intent == 'implement':
+    directive = ('DIRECTIVE: Intent=implement. Do NOT run /wai or teaching adoption. '
+                 'Read WAI-Spoke/lugs/bytype/task/open/ (1 call), brief user on in-progress lug state, begin implementation.')
+elif intent == 'savepoint':
+    directive = 'DIRECTIVE: Intent=savepoint resume. Read WAI-State._savepoint (1 call), load named lug, resume work.'
+elif intent == 'teachings':
+    directive = 'DIRECTIVE: Intent=teachings. Run /wai-learn.'
+elif intent == 'closeout':
+    directive = 'DIRECTIVE: Intent=closeout. Run /wai-closeout or /wai-shipit.'
+elif intent == 'refinement':
+    directive = ('DIRECTIVE: Intent=refinement. Skip teaching adoption. Load needs_refinement queue.')
+else:
+    directive = ('DIRECTIVE: Run WAI wakeup protocol (/wai skill). Include pending teachings. Do not stop before briefing is complete.')
+```
+
+3. Replace hardcoded directive string in `content_lines` with the `directive` variable.
+
+## Signal Lug
+
+```json
+{"id":"signal-intent-gate-hook-directive-pattern-v1","type":"signal","title":"Intent-gate wakeup: hook directive must be intent-aware to suppress /wai ceremony","impact":8,"source_spoke":"basher","session":"session-20260423-1737"}
+```

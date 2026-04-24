@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# WAI Session Hook — thin trigger for wakeup protocol
+# WAI Session Hook — injects pre-computed wakeup brief for fast path
 # Runs BEFORE Claude sees the user's message on first turn.
-# Injects directive to run /wai skill. All logic lives in wai.md.
+# Injects <wai-session-init> with brief data so /wai fast path fires without tool calls.
 #
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
@@ -15,13 +15,6 @@ STATE_FILE="$PROJECT_DIR/WAI-Spoke/WAI-State.json"
 RUNTIME_DIR="$PROJECT_DIR/WAI-Spoke/runtime"
 GUARD_FILE="$RUNTIME_DIR/session-guard.json"
 mkdir -p "$RUNTIME_DIR"
-
-# Post-compaction closeout hardening: one-shot injection if compacted flag set
-if [[ -f "$GUARD_FILE" ]] && jq -e '.compacted == true' "$GUARD_FILE" > /dev/null 2>&1; then
-  TMP=$(mktemp)
-  jq 'del(.compacted)' "$GUARD_FILE" > "$TMP" && mv "$TMP" "$GUARD_FILE"
-  echo '<wai-post-compact>Context was compacted. Read templates/commands/wai-closeout.md before proceeding with closeout.</wai-post-compact>'
-fi
 
 # Read guard state (if exists)
 GUARD_SESSION_ID=""
@@ -51,25 +44,123 @@ TMP=$(mktemp)
 jq '.protocol_completed = true |
     .protocol_last_run = (now | strftime("%Y-%m-%dT%H:%M:%SZ"))' "$GUARD_FILE" > "$TMP" && mv "$TMP" "$GUARD_FILE"
 
-# Inject wakeup directive — agent follows /wai skill (wai.md), no bash script needed
-cat << 'EOF'
-<wai-session-start>
-CRITICAL: This is your first turn in a new session. Before responding to the user:
+# Inject <wai-session-init> with pre-computed brief data (enables fast path in /wai)
+export PROJECT_DIR
+python3 - << 'PYEOF'
+import json, os, subprocess
+from pathlib import Path
 
-1. Run your WAI wakeup protocol by following the /wai skill (templates/commands/wai.md).
-   Produce the full WAI Point briefing: project identity, active work, context health, next actions.
+project_dir = Path(os.environ.get('PROJECT_DIR', '.'))
+brief_file  = project_dir / 'WAI-Spoke' / 'wakeup-brief.json'
+state_file  = project_dir / 'WAI-Spoke' / 'WAI-State.json'
 
-2. If briefing shows autosave checkpoints (incomplete work from previous session):
-   Ask: Resume [task]? (Green Light to resume / Red Light to inspect / skip)
+# --- Intent gate: read session-intent.json (unconditional, before brief_freshness) ---
+intent_file = project_dir / 'WAI-Spoke' / 'runtime' / 'session-intent.json'
+intent = None
+intent_label = None
+if intent_file.exists():
+    try:
+        id_data = json.loads(intent_file.read_text())
+        intent = id_data.get('intent')
+        intent_label = id_data.get('intent_label', '')
+    except Exception:
+        pass
 
-3. If briefing shows pending teachings in seed/ingest/:
-   Prioritize review before other work. Follow (deprecated - auto-discovery on wakeup) skill.
+def brief_freshness(brief):
+    """Returns 'FRESH' if brief SHA matches HEAD (smart: irrelevant commits don't stale)."""
+    try:
+        current_sha = subprocess.check_output(
+            ['git', 'rev-parse', 'HEAD'], cwd=str(project_dir),
+            stderr=subprocess.DEVNULL).decode().strip()
+    except Exception:
+        return 'STALE'
+    brief_sha = brief.get('git_sha_at_generation', '')
+    if not brief_sha:
+        return 'STALE'
+    if current_sha == brief_sha:
+        return 'FRESH'
+    # Smart staleness: only stale if relevant files changed
+    RELEVANT = ['WAI-Spoke/WAI-State.json', 'WAI-Spoke/lugs/bytype/',
+                'WAI-Spoke/seed/ingest/processed/', 'templates/commands/wai']
+    try:
+        changed = subprocess.check_output(
+            ['git', 'diff', '--name-only', brief_sha, current_sha],
+            cwd=str(project_dir), stderr=subprocess.DEVNULL).decode().strip().split('\n')
+        if not any(any(r in f for r in RELEVANT) for f in changed if f):
+            return 'FRESH'
+    except Exception:
+        pass
+    return 'STALE'
 
-4. Then respond to the user's message.
+lines = []
+status = 'STALE'
 
-EXCEPTION: If the user's message is a closeout command ("closeout", "/wai-closeout", "/wai-shipit"),
-skip the wakeup briefing entirely and proceed directly to closeout. Do NOT say "Wake complete."
-</wai-session-start>
-EOF
+if brief_file.exists():
+    try:
+        brief = json.loads(brief_file.read_text())
+        status = brief_freshness(brief)
+        if status == 'FRESH':
+            try:
+                state   = json.loads(state_file.read_text())
+                name    = state.get('wheel', {}).get('name', 'Unknown')
+                version = state.get('wheel', {}).get('version', '?')
+                sc      = state.get('_session_state', {}).get('session_count', 0)
+            except Exception:
+                name, version, sc = 'Unknown', '?', 0
+            qs = brief.get('queue_snapshot', {})
+            tp = brief.get('teachings_pending', 0)
+            hs = brief.get('hub_signals_pending', 0)
+            na = ((brief.get('next_actions') or ['None'])[0])[:120]
+            ol = brief.get('open_lug_count', 0)
+            lines += [
+                f'Project: {name} v{version}',
+                f'Session: {sc + 1}',
+                f'Active: {ol} open',
+                f'Queue: {qs.get("ready_count",0)} ready | {qs.get("needs_refinement_count",0)} refinement | {qs.get("blocked_count",0)} blocked',
+            ]
+            if tp > 0: lines.append(f'Teachings: {tp} pending')
+            if hs > 0: lines.append(f'Hub signals: {hs}')
+            lines.append(f'Next: {na}')
+    except Exception:
+        pass
+
+# Git health line
+try:
+    n = len([l for l in subprocess.check_output(
+        ['git', 'status', '--short'], cwd=str(project_dir),
+        stderr=subprocess.DEVNULL).decode().strip().split('\n') if l])
+    lines.append(f'Uncommitted: {n} files')
+except Exception:
+    pass
+
+# --- Intent label line ---
+if intent:
+    lines.append(f'Intent: {intent} — {intent_label}')
+
+# --- Build intent-conditional directive ---
+if intent == 'implement':
+    directive = ('DIRECTIVE: Intent=implement. Do NOT run /wai or teaching adoption. '
+                 'Read WAI-Spoke/lugs/bytype/task/open/ (1 call), brief user on in-progress lug state, begin implementation.')
+elif intent == 'savepoint':
+    directive = 'DIRECTIVE: Intent=savepoint resume. Read WAI-State._savepoint (1 call), load named lug, resume work.'
+elif intent == 'teachings':
+    directive = 'DIRECTIVE: Intent=teachings. Run /wai-learn.'
+elif intent == 'closeout':
+    directive = 'DIRECTIVE: Intent=closeout. Run /wai-closeout or /wai-shipit.'
+elif intent == 'refinement':
+    directive = 'DIRECTIVE: Intent=refinement. Skip teaching adoption. Load needs_refinement queue.'
+else:
+    directive = ('DIRECTIVE: Run WAI wakeup protocol (/wai skill, templates/commands/wai.md). '
+                 'Include pending teachings in briefing. Do not stop wakeup before briefing is complete.')
+
+content_lines = ['<wai-session-init>', f'Wakeup brief: {status}'] + lines + [
+    '',
+    directive,
+    'EXCEPTION: If user message is a closeout command (/wai-closeout, /wai-shipit), skip briefing.',
+    '</wai-session-init>',
+]
+import json as _json
+print(_json.dumps({'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit', 'additionalContext': '\n'.join(content_lines)}}))
+PYEOF
 
 exit 0

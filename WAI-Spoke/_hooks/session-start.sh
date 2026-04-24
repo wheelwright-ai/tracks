@@ -1,127 +1,540 @@
 #!/bin/bash
 #
-# Wheelwright SessionStart Hook
-# Automatically briefs the user when Claude Code starts a new session
+# WAI Session Start Hook
+# Runs at Claude Code session start — before first user message.
+# Pre-computes wakeup data so Claude doesn't need tool calls for init work.
+#
+# Outputs: <wai-session-init> block injected into session context
 #
 
-set -e
-
-PROJECT_DIR="${WAI_PROJECT_DIR:-${CODEX_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-.}}}"
+PROJECT_DIR="${WAI_PROJECT_DIR:-${CODEX_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$(pwd)}}}"
 STATE_FILE="$PROJECT_DIR/WAI-Spoke/WAI-State.json"
 
-# Exit silently if WAI-Spoke doesn't exist (not a wheel project)
+# Auto-init: if no WAI-State.json but template exists, bootstrap WAI-Spoke/
+TEMPLATE_FILE="$PROJECT_DIR/templates/spoke/WAI-State.json.template"
+if [[ ! -f "$STATE_FILE" && -f "$TEMPLATE_FILE" ]]; then
+  mkdir -p "$PROJECT_DIR/WAI-Spoke"
+  cp "$TEMPLATE_FILE" "$STATE_FILE"
+  # Create essential directories
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/sessions"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/lugs/bytype/epic/open"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/lugs/bytype/task/open"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/lugs/bytype/bug/open"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/lugs/bytype/feature/open"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/lugs/bytype/signal/undelivered"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/lugs/bytype/other/open"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/seed/ingest"
+  mkdir -p "$PROJECT_DIR/WAI-Spoke/runtime"
+fi
+
+# Exit silently if still no state file (not a WAI project)
 [[ ! -f "$STATE_FILE" ]] && exit 0
 
-# Detect if this is a new session FIRST
-LAST_SESSION_ID=$(jq -r '._session_state.last_session_id // ""' "$STATE_FILE")
-CURRENT_SESSION_ID=$(jq -r '._session_state.current_session.session_id // ""' "$STATE_FILE" 2>/dev/null || echo "")
+# ── Guard check: prevent mid-session re-entry overwrite ─────────────────────
+# SessionStart can re-fire mid-session (e.g. /context, IDE reconnect).
+# Reuse the existing session only if ALL conditions are true:
+#   1. Guard shows wakeup completed (not a cold start)
+#   2. Guard is from TODAY (stale guards from previous days are ignored)
+#   3. Guard session track has entries (actual work was done)
+#   4. Guard not explicitly closed by closeout
+_GUARD_FILE="$PROJECT_DIR/WAI-Spoke/runtime/session-guard.json"
+_TODAY_PREFIX="session-$(date +%Y%m%d)"
+SKIP_SESSION_INIT=false
+if [[ -f "$_GUARD_FILE" ]]; then
+  _GC=$(jq -r '.protocol_completed // false' "$_GUARD_FILE" 2>/dev/null || echo "false")
+  _GCLOSED=$(jq -r '.session_closed // false' "$_GUARD_FILE" 2>/dev/null || echo "false")
+  _GSID=$(jq -r '.session_id // ""' "$_GUARD_FILE" 2>/dev/null || echo "")
+  if [[ "$_GC" == "true" && "$_GCLOSED" != "true" && "$_GSID" == "${_TODAY_PREFIX}"* ]]; then
+    _GTRACK="$PROJECT_DIR/WAI-Spoke/sessions/$_GSID/track.jsonl"
+    if [[ -f "$_GTRACK" && -s "$_GTRACK" ]]; then
+      SESSION_NAME="$_GSID"
+      SKIP_SESSION_INIT=true
+    fi
+  fi
+fi
 
-# Determine session ID and whether this is new session
-if [[ -z "$CURRENT_SESSION_ID" || "$LAST_SESSION_ID" == "$CURRENT_SESSION_ID" ]]; then
-  # New session - generate fresh ID and reset protocol flag
-  SESSION_ID="$(whoami)-$(date +%Y-%m-%d-%H%M%S)"
-  NEW_SESSION=true
-  TMP_RESET=$(mktemp)
-  jq '._session_state.protocol_completed = false' "$STATE_FILE" > "$TMP_RESET"
-  mv "$TMP_RESET" "$STATE_FILE"
+# ── 1. Create session directory ──────────────────────────────────────────────
+if [[ "$SKIP_SESSION_INIT" == "false" ]]; then
+SESSION_NAME="session-$(date +%Y%m%d-%H%M)"
+SESSION_DIR="$PROJECT_DIR/WAI-Spoke/sessions/$SESSION_NAME"
+mkdir -p "$SESSION_DIR"
+touch "$SESSION_DIR/track.jsonl"
+fi
+
+# ── 1b. Check previous session track integrity ──────────────────────────────
+PREV_SESSION_STATUS="FIRST_SESSION"
+PREV_SESSION_ID=""
+PREV_SESSION=$(ls -1t "$PROJECT_DIR/WAI-Spoke/sessions/" 2>/dev/null | grep -v "^${SESSION_NAME}$" | head -1)
+if [[ -n "$PREV_SESSION" ]]; then
+  PREV_TRACK="$PROJECT_DIR/WAI-Spoke/sessions/$PREV_SESSION/track.jsonl"
+  PREV_SESSION_ID="$PREV_SESSION"
+  if [[ -f "$PREV_TRACK" && -s "$PREV_TRACK" ]]; then
+    LAST_LINE=$(tail -1 "$PREV_TRACK")
+    # CLEAN = completed turn OR explicit closeout event
+    if echo "$LAST_LINE" | jq -e '.completed == true or .event == "closeout"' >/dev/null 2>&1; then
+      PREV_SESSION_STATUS="CLEAN"
+    elif echo "$LAST_LINE" | jq . >/dev/null 2>&1; then
+      PREV_SESSION_STATUS="INTERRUPTED"
+    else
+      PREV_SESSION_STATUS="INTERRUPTED"
+    fi
+  else
+    PREV_SESSION_STATUS="EMPTY"
+  fi
+fi
+
+# ── 2. Update WAI-State.json with new session ────────────────────────────────
+# NOTE: session_count is incremented at closeout only (not here).
+# Agent-initiated sessions must not inflate the count.
+# Skipped if re-entering an active session (SKIP_SESSION_INIT=true).
+if [[ "$SKIP_SESSION_INIT" == "false" ]]; then
+TMP=$(mktemp)
+jq --arg sid "$SESSION_NAME" \
+   '._session_state.last_session_id = $sid |
+    ._session_state.track_path = ("WAI-Spoke/sessions/" + $sid + "/track.jsonl")' \
+   "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
+fi
+
+# ── Tool Advisor: cheap stale marker ────────────────────────────────────────
+if [[ -f "$PROJECT_DIR/tools/tool_advisor.py" ]]; then
+  python3 "$PROJECT_DIR/tools/tool_advisor.py" --root "$PROJECT_DIR" --mark-stale-if-needed --session-id "$SESSION_NAME" >/dev/null 2>&1 || true
+fi
+
+# ── 3. Lug scan ──────────────────────────────────────────────────────────────
+LUGS_DIR="$PROJECT_DIR/WAI-Spoke/lugs/bytype"
+
+count_lugs() {
+  local pattern="$1"
+  ls $pattern 2>/dev/null | wc -l | tr -d ' '
+}
+
+EPICS_OPEN=$(count_lugs "$LUGS_DIR/epic/open/*.json")
+EPICS_IP=$(count_lugs "$LUGS_DIR/epic/in_progress/*.json")
+TASKS_OPEN=$(count_lugs "$LUGS_DIR/task/open/*.json")
+BUGS_IP=$(count_lugs "$LUGS_DIR/bug/in_progress/*.json")
+FEATURES_IP=$(count_lugs "$LUGS_DIR/feature/in_progress/*.json")
+OTHER_OPEN=$(count_lugs "$LUGS_DIR/other/open/*.json")
+SIGNALS=$(count_lugs "$LUGS_DIR/signal/undelivered/*.json")
+
+# Get epic names (open + in_progress)
+EPIC_LIST=$(ls "$LUGS_DIR/epic/open/"*.json "$LUGS_DIR/epic/in_progress/"*.json 2>/dev/null \
+  | xargs -I{} basename {} .json 2>/dev/null | sort | head -15 | sed 's/^/  - /' | tr '\n' '\n')
+
+# Get in-progress lug names (non-epic)
+IP_LIST=$(ls "$LUGS_DIR/bug/in_progress/"*.json "$LUGS_DIR/feature/in_progress/"*.json 2>/dev/null \
+  | xargs -I{} basename {} .json 2>/dev/null | sort | sed 's/^/  - /' | tr '\n' '\n')
+
+# ── 4. Hub + teaching check ───────────────────────────────────────────────────
+HUB_PATH=$(jq -r '.wheel.hub_path // ""' "$STATE_FILE" 2>/dev/null)
+TEACH_DIR="$HUB_PATH/teachings_repo/framework/current"
+PROCESSED_DIR="$PROJECT_DIR/WAI-Spoke/seed/ingest/processed"
+
+HUB_STATUS="MISSING"
+TEACH_STATUS="MISSING"
+TEACH_TOTAL=0
+TEACH_ADOPTED=0
+TEACH_NEW=0
+NEW_TEACHINGS=""
+
+if [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
+  HUB_STATUS="OK"
+  if [[ -d "$TEACH_DIR" ]]; then
+    TEACH_STATUS="OK"
+    for f in "$TEACH_DIR"/*.teaching; do
+      [[ -f "$f" ]] || continue
+      TEACH_TOTAL=$((TEACH_TOTAL + 1))
+      fname=$(basename "$f")
+      if [[ -f "$PROCESSED_DIR/$fname" ]]; then
+        TEACH_ADOPTED=$((TEACH_ADOPTED + 1))
+      else
+        TEACH_NEW=$((TEACH_NEW + 1))
+        NEW_TEACHINGS="$NEW_TEACHINGS\n  - $fname"
+        # Read safe_to_auto_adopt flag
+        AUTO=$(grep -m1 'safe_to_auto_adopt' "$f" 2>/dev/null | grep -c 'true')
+        if [[ "$AUTO" -eq 1 ]]; then
+          NEW_TEACHINGS="$NEW_TEACHINGS [auto-adoptable]"
+        else
+          NEW_TEACHINGS="$NEW_TEACHINGS [manual review]"
+        fi
+      fi
+    done
+  fi
+fi
+
+# ── 5. Hub signals bulletin count ────────────────────────────────────────────
+# Count only framework-targeted signals (incoming/framework/) — hub/ signals are hub-session scope
+HUB_SIGNALS=0
+HUB_SIGNALS_HUB=0
+if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming" ]]; then
+  # framework-targeted signals
+  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/framework" ]]; then
+    HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/framework/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  else
+    # fallback: flat incoming/ (pre-subfolder layout)
+    HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  fi
+  # hub-targeted signals (informational only — processed by hub sessions)
+  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/hub" ]]; then
+    HUB_SIGNALS_HUB=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/hub/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  fi
+fi
+
+# ── 6. Next session recommendation ───────────────────────────────────────────
+NEXT_REC=$(jq -r '._session_state.next_session_recommendation // "None"' "$STATE_FILE" 2>/dev/null)
+SESSION_COUNT=$(jq -r '._session_state.session_count // 0' "$STATE_FILE" 2>/dev/null)
+
+# ── 7. Brief freshness pre-check (fast path gate) ───────────────────────────
+# Compute now so all subsequent sections can skip heavy Python tools when fresh.
+BRIEF_FRESH=false
+_BRIEF_PATH="$PROJECT_DIR/WAI-Spoke/wakeup-brief.json"
+if [[ -f "$_BRIEF_PATH" ]]; then
+  _CURRENT_SHA=$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null || echo "")
+  _BRIEF_SHA=$(jq -r '.git_sha_at_generation // ""' "$_BRIEF_PATH" 2>/dev/null || echo "")
+  if [[ -n "$_CURRENT_SHA" && -n "$_BRIEF_SHA" && "$_CURRENT_SHA" == "$_BRIEF_SHA" ]]; then
+    BRIEF_FRESH=true
+  fi
+fi
+
+# ── 7a. Spoke integrity score + parity check ────────────────────────────────
+INTEGRITY_SCORE=""
+PARITY_STATUS=""
+if [[ "$BRIEF_FRESH" == "true" ]]; then
+  INTEGRITY_SCORE="  Integrity: (from brief — fast path)"
+  PARITY_STATUS="  Parity: at head"
 else
-  # Continuing existing session - keep current ID
-  SESSION_ID="$CURRENT_SESSION_ID"
-  NEW_SESSION=false
+if [[ -f "$PROJECT_DIR/tools/spoke_integrity_score.py" ]]; then
+  _SCORE=$(python3 "$PROJECT_DIR/tools/spoke_integrity_score.py" --quiet 2>/dev/null)
+  if [[ -n "$_SCORE" ]]; then
+    if [[ "$_SCORE" -ge 80 ]]; then
+      INTEGRITY_SCORE="  Integrity: ${_SCORE}/100 [HEALTHY]"
+    elif [[ "$_SCORE" -ge 50 ]]; then
+      INTEGRITY_SCORE="  Integrity: ${_SCORE}/100 [DEGRADED]"
+    else
+      INTEGRITY_SCORE="  Integrity: ${_SCORE}/100 [CRITICAL]"
+    fi
+  fi
 fi
-
-# Check if protocol already completed this session
-PROTOCOL_COMPLETED=$(jq -r '._session_state.protocol_completed // false' "$STATE_FILE" 2>/dev/null || echo "false")
-if [[ "$PROTOCOL_COMPLETED" == "true" ]]; then
-  # Already ran - show brief status instead of full briefing
-  PROJECT_NAME=$(jq -r '.wheel.name // "Unknown Project"' "$STATE_FILE")
-  TURN_COUNT=$(jq -r '._session_state.current_session.turn_count // 0' "$STATE_FILE")
-  echo "✓ WAI Context Active | $PROJECT_NAME | Turn $TURN_COUNT"
-  exit 0
+if [[ -f "$PROJECT_DIR/tools/spoke_parity_check.py" ]]; then
+  if python3 "$PROJECT_DIR/tools/spoke_parity_check.py" --quiet 2>/dev/null; then
+    PARITY_STATUS="  Parity: at head"
+  else
+    PARITY_STATUS="  Parity: BEHIND HEAD — run spoke_parity_check.py"
+  fi
 fi
+fi  # end BRIEF_FRESH else block for integrity/parity
 
-# Read project state
-PROJECT_NAME=$(jq -r '.wheel.name // "Unknown Project"' "$STATE_FILE")
-CURRENT_PHASE=$(jq -r '.context.current_phase // "Unknown Phase"' "$STATE_FILE")
-LAST_MODIFIED_BY=$(jq -r '._session_state.last_modified_by // "Unknown"' "$STATE_FILE")
-LAST_MODIFIED_AT=$(jq -r '._session_state.last_modified_at // "Unknown"' "$STATE_FILE")
+# ── 7. Git status ─────────────────────────────────────────────────────────────
+GIT_DIRTY=$(git -C "$PROJECT_DIR" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+GIT_STATUS="clean"
+[[ "$GIT_DIRTY" -gt 0 ]] && GIT_STATUS="$GIT_DIRTY file(s) modified"
 
-# Get recent high-impact decisions (impact >= 8)
-RECENT_DECISIONS=$(jq -r '
-  .decisions
-  | map(select(.impact >= 8))
-  | sort_by(.date)
-  | reverse
-  | .[0:3]
-  | map("- " + .decision + " (impact: " + (.impact|tostring) + ")")
-  | join("\n")
-' "$STATE_FILE")
+# ── 8. CC health check (claude-maximizer trigger) ────────────────────────────
+CC_GAPS=""
+SETTINGS_FILE="$PROJECT_DIR/.claude/settings.json"
+CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"
 
-# Get next actions
-NEXT_ACTIONS=$(jq -r '
-  (.context.next_actions // [])
-  | .[0:5]
-  | map("- " + .)
-  | join("\n")
-' "$STATE_FILE")
+# Check deny rules
+DENY_COUNT=$(jq '.permissions.deny // [] | length' "$SETTINGS_FILE" 2>/dev/null || echo 0)
+[[ "$DENY_COUNT" -eq 0 ]] && CC_GAPS="${CC_GAPS}  - No deny rules in .claude/settings.json\n"
 
-# Check for uncommitted changes
-cd "$PROJECT_DIR"
-UNCOMMITTED_COUNT=$(git status --short 2>/dev/null | wc -l || echo "0")
-UNCOMMITTED_FILES=$(git status --short 2>/dev/null | head -10 || echo "")
-
-# Build briefing message
-BRIEFING="## 🎡 Wheelwright Context Loaded ✓
-
-**Project:** $PROJECT_NAME
-**Last session:** $LAST_MODIFIED_AT by $LAST_MODIFIED_BY
-**Current phase:** $CURRENT_PHASE
-
-**Recent changes:**
-$RECENT_DECISIONS
-
-**Next actions:**
-$NEXT_ACTIONS
-"
-
-# Add uncommitted changes warning if present
-if [[ $UNCOMMITTED_COUNT -gt 0 ]]; then
-  BRIEFING="$BRIEFING
-
-## ⚠️ Uncommitted Changes Detected
-
-I see $UNCOMMITTED_COUNT uncommitted changes from the previous session:
-$UNCOMMITTED_FILES
-
-**Recommendation:** These look like work-in-progress from the last session.
-Would you like to:
-- **Resume previous session** - Continue where we left off
-- **Start fresh** - I'll help closeout the previous session first
-- **Review changes** - Show me what changed before deciding
-"
+# Check CLAUDE.md weight
+if [[ -f "$CLAUDE_MD" ]]; then
+  CMD_LINES=$(wc -l < "$CLAUDE_MD" | tr -d ' ')
+  [[ "$CMD_LINES" -lt 50 ]] && CC_GAPS="${CC_GAPS}  - CLAUDE.md underweight (${CMD_LINES} lines, ideal 50+)\n"
 else
-  BRIEFING="$BRIEFING
-
-Working tree clean ✓ - Ready for new work!
-"
+  CC_GAPS="${CC_GAPS}  - CLAUDE.md missing\n"
 fi
 
-# Initialize conversation log for new session
-CONVERSATION_LOG="$PROJECT_DIR/WAI-Spoke/WAI-Session-Log.jsonl"
+# Check PreToolUse hook
+HAS_PRETOOL=$(jq '.hooks.PreToolUse // empty' "$SETTINGS_FILE" 2>/dev/null)
+[[ -z "$HAS_PRETOOL" ]] && CC_GAPS="${CC_GAPS}  - No PreToolUse guard hook configured\n"
 
-# Clear old log if this is a new session
-if [[ "$NEW_SESSION" == "true" ]]; then
-  rm -f "$CONVERSATION_LOG"
+# Check subagent definitions
+AGENTS_DIR="$PROJECT_DIR/.claude/agents"
+if [[ ! -d "$AGENTS_DIR" ]] || [[ -z "$(ls -A "$AGENTS_DIR" 2>/dev/null)" ]]; then
+  CC_GAPS="${CC_GAPS}  - No subagent definitions in .claude/agents/\n"
 fi
 
-# Write session guard to runtime file (gitignored) — keeps WAI-State.json clean between commits
-RUNTIME_DIR="$PROJECT_DIR/WAI-Spoke/runtime"
-GUARD_FILE="$RUNTIME_DIR/session-guard.json"
-mkdir -p "$RUNTIME_DIR"
-printf '{"session_id":"%s","protocol_completed":true,"protocol_last_run":"%s","started_at":"%s"}\n' \
-  "$SESSION_ID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$GUARD_FILE"
+# ── 8b. Skill sync check ─────────────────────────────────────────────────────
+SYNC_STATUS="OK"
+TEMPLATES_CMDS="$PROJECT_DIR/templates/commands"
+CLAUDE_CMDS="$PROJECT_DIR/.claude/commands"
+if [[ -d "$TEMPLATES_CMDS" && -d "$CLAUDE_CMDS" ]]; then
+  SYNC_OUT_OF_SYNC=""
+  for src in "$TEMPLATES_CMDS"/wai*.md; do
+    [[ -f "$src" ]] || continue
+    fname=$(basename "$src")
+    dst="$CLAUDE_CMDS/$fname"
+    if [[ ! -f "$dst" ]]; then
+      SYNC_OUT_OF_SYNC="$SYNC_OUT_OF_SYNC $fname"
+    else
+      src_md5=$(md5sum "$src" | cut -d' ' -f1)
+      dst_md5=$(md5sum "$dst" | cut -d' ' -f1)
+      [[ "$src_md5" != "$dst_md5" ]] && SYNC_OUT_OF_SYNC="$SYNC_OUT_OF_SYNC $fname"
+    fi
+  done
+  [[ -n "$SYNC_OUT_OF_SYNC" ]] && SYNC_STATUS="⚠ out of sync:$SYNC_OUT_OF_SYNC — run /shipit"
+fi
 
-# Output briefing to Claude
-echo "$BRIEFING"
+# ── 9. Historian advice (latest review) ──────────────────────────────────────
+HISTORIAN_ADVICE=""
+HISTORIAN_DIR="$PROJECT_DIR/WAI-Spoke/advisors/historian/reviews"
+if [[ -d "$HISTORIAN_DIR" ]]; then
+  LATEST_REVIEW=$(ls -1 "$HISTORIAN_DIR"/review-*.md 2>/dev/null | sort | tail -1)
+  if [[ -n "$LATEST_REVIEW" ]]; then
+    # Extract "Advice for Next Session" section
+    ADVICE=$(sed -n '/^## Advice for Next Session/,/^## /{ /^## Advice/d; /^## /d; p; }' "$LATEST_REVIEW" 2>/dev/null | head -10)
+    if [[ -n "$ADVICE" ]]; then
+      REVIEW_DATE=$(basename "$LATEST_REVIEW" .md | sed 's/review-//')
+      HISTORIAN_ADVICE="  Historian ($REVIEW_DATE):\n$(echo "$ADVICE" | sed 's/^/    /')"
+    fi
+  fi
+fi
+
+# ── 9b. Expediter summary ────────────────────────────────────────────────────
+EXPEDITER_SUMMARY=""
+EXPEDITER_STATE="$PROJECT_DIR/WAI-Spoke/advisors/expediter/scan_state.json"
+if [[ "$BRIEF_FRESH" == "true" ]]; then
+  # Fast path: use pre-computed queue data from brief instead of re-running expediter
+  _READY=$(jq -r '.queue_snapshot.ready_count // 0' "$_BRIEF_PATH" 2>/dev/null || echo "0")
+  _REFINE=$(jq -r '.queue_snapshot.needs_refinement_count // 0' "$_BRIEF_PATH" 2>/dev/null || echo "0")
+  EXPEDITER_SUMMARY="  Expediter: (from brief) queue ${_READY} ready | ${_REFINE} need refinement"
+else
+if [[ -f "$PROJECT_DIR/tools/spoke_expediter.py" ]]; then
+  python3 "$PROJECT_DIR/tools/spoke_expediter.py" --spoke-path "$PROJECT_DIR" >/dev/null 2>&1 || true
+fi
+if [[ -f "$EXPEDITER_STATE" ]]; then
+  EXP_AVG=$(jq -r '.stats.last_quality_avg // "?"' "$EXPEDITER_STATE" 2>/dev/null)
+  EXP_QUEUE=$(jq -r '.refinement_queue_size // 0' "$EXPEDITER_STATE" 2>/dev/null)
+  EXP_RUN=$(jq -r '.last_run_at // ""' "$EXPEDITER_STATE" 2>/dev/null | cut -c1-10)
+  EXPEDITER_SUMMARY="  Expediter: avg ${EXP_AVG}/10 | ${EXP_QUEUE} need refinement | last ${EXP_RUN}"
+fi
+fi  # end BRIEF_FRESH else block for expediter
+
+# ── 9c. Advisor context feed staleness check ─────────────────────────────────
+CONTEXT_FEED_STATUS=""
+ADVISORS_DIR="$PROJECT_DIR/WAI-Spoke/advisors"
+if [[ -d "$ADVISORS_DIR" && -f "$PROJECT_DIR/tools/advisor_context_refresh.py" ]]; then
+  STALE_ADVISORS=""
+  UNINIT_ADVISORS=""
+  NOW_TS=$(date +%s)
+
+  for advisor_dir in "$ADVISORS_DIR"/*/; do
+    [[ -f "${advisor_dir}feeds.yaml" ]] || continue
+    advisor=$(basename "$advisor_dir")
+    context_dir="${advisor_dir}context"
+
+    # Get refresh interval (default 7 days)
+    interval=$(python3 -c "
+import sys, yaml
+try:
+    d = yaml.safe_load(open('${advisor_dir}feeds.yaml'))
+    print(d.get('refresh_interval_days', 7))
+except: print(7)
+" 2>/dev/null || echo 7)
+
+    # Find most recent snapshot
+    if [[ -d "$context_dir" ]]; then
+      latest_snap=$(ls -1t "$context_dir"/snapshot-*.md 2>/dev/null | head -1)
+    else
+      latest_snap=""
+    fi
+
+    if [[ -z "$latest_snap" ]]; then
+      UNINIT_ADVISORS="$UNINIT_ADVISORS $advisor"
+    else
+      snap_ts=$(date -r "$latest_snap" +%s 2>/dev/null || echo 0)
+      age_days=$(( (NOW_TS - snap_ts) / 86400 ))
+      if [[ "$age_days" -gt "$interval" ]]; then
+        STALE_ADVISORS="$STALE_ADVISORS ${advisor}[${age_days}d]"
+      fi
+    fi
+  done
+
+  # Auto-init uninit advisors in background
+  if [[ -n "$UNINIT_ADVISORS" ]]; then
+    mkdir -p "$HOME/.claude/logs"
+    python3 "$PROJECT_DIR/tools/advisor_context_refresh.py" \
+      --init --quiet --spoke-path "$PROJECT_DIR" \
+      >> "$HOME/.claude/logs/context-refresh-$(date +%Y%m%d).log" 2>&1 &
+    UNINIT_COUNT=$(echo $UNINIT_ADVISORS | wc -w | tr -d ' ')
+    CONTEXT_FEED_STATUS="  Context feeds: ${UNINIT_COUNT} initializing in background (${UNINIT_ADVISORS# })"
+  elif [[ -n "$STALE_ADVISORS" ]]; then
+    STALE_COUNT=$(echo $STALE_ADVISORS | wc -w | tr -d ' ')
+    CONTEXT_FEED_STATUS="  Context feeds: ${STALE_COUNT} stale — run: python3 tools/advisor_context_refresh.py"
+  fi
+fi
+
+# ── 9b. Wakeup brief freshness check ───────────────────────────────────────
+# Note: BRIEF_FRESH/_BRIEF_PATH/_CURRENT_SHA/_BRIEF_SHA already set in section 7 above.
+WAKEUP_BRIEF_STATUS=""
+WAKEUP_BRIEF_PATH="$_BRIEF_PATH"
+if [[ -f "$WAKEUP_BRIEF_PATH" ]]; then
+  if [[ "$BRIEF_FRESH" == "true" ]]; then
+    MODE=$(jq -r '.generation_mode // "standard"' "$WAKEUP_BRIEF_PATH" 2>/dev/null || echo "standard")
+    CHAIN_ID=$(jq -r '.chain_target_lug.id // ""' "$WAKEUP_BRIEF_PATH" 2>/dev/null || echo "")
+    if [[ -n "$CHAIN_ID" ]]; then
+      CHAIN_TITLE=$(jq -r '.chain_target_lug.title // ""' "$WAKEUP_BRIEF_PATH" 2>/dev/null | cut -c1-60)
+      WAKEUP_BRIEF_STATUS="  Wakeup brief: FRESH (fast path — chained → ${CHAIN_ID}: ${CHAIN_TITLE})"
+    else
+      WAKEUP_BRIEF_STATUS="  Wakeup brief: FRESH (fast path — integrity/expediter/schedule skipped)"
+    fi
+  else
+    WAKEUP_BRIEF_STATUS="  Wakeup brief: STALE (new commits since generation)"
+  fi
+fi
+
+# ── 9b+. Savepoint pending check ───────────────────────────────────────────
+SAVEPOINT_STATUS=""
+if [[ -f "$STATE_FILE" ]]; then
+  SP_INFO=$(python3 -c "
+import json
+try:
+    s = json.load(open('$STATE_FILE'))
+    sp = s.get('_savepoint') or {}
+    if sp.get('status') == 'pending':
+        print(sp.get('lug_id',''))
+        print(sp.get('resume_note','')[:80])
+except Exception:
+    pass
+" 2>/dev/null)
+  if [[ -n "$SP_INFO" ]]; then
+    SP_LUG=$(echo "$SP_INFO" | sed -n '1p')
+    SP_NOTE=$(echo "$SP_INFO" | sed -n '2p')
+    if [[ -n "$SP_LUG" ]]; then
+      SAVEPOINT_STATUS="  Savepoint: PENDING [${SP_LUG}] — ${SP_NOTE}"
+    fi
+  fi
+fi
+
+# ── 9c. Advisor schedule evaluation ────────────────────────────────────────
+ADVISORS_READY=""
+if [[ "$BRIEF_FRESH" != "true" ]]; then
+if [[ -f "$PROJECT_DIR/tools/advisor_schedule_eval.py" && -f "$PROJECT_DIR/WAI-Spoke/advisors/schedule-index.json" ]]; then
+  EVAL_OUT=$(cd "$PROJECT_DIR" && python3 tools/advisor_schedule_eval.py --json 2>/dev/null)
+  if [[ -n "$EVAL_OUT" ]]; then
+    ADVISORS_READY=$(python3 -c "
+import json, sys
+results = json.loads('$EVAL_OUT'.replace(\"'\", '\"') if False else sys.stdin.read())
+ready = [r['advisor_id'] for r in results if r.get('should_fire')]
+if ready:
+    print('  Advisors ready to fire: ' + ', '.join(ready))
+" <<< "$EVAL_OUT" 2>/dev/null || true)
+  fi
+fi
+fi  # end BRIEF_FRESH guard for advisor schedule eval
+
+# ── 10. Ozi nightly report (if hub connected) ───────────────────────────────
+OZI_NIGHTLY=""
+if [[ -n "$HUB_PATH" && -d "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports" ]]; then
+  # Find most recent report (today or yesterday)
+  TODAY=$(date +%Y-%m-%d)
+  YESTERDAY=$(date -d "yesterday" +%Y-%m-%d 2>/dev/null || date -v-1d +%Y-%m-%d 2>/dev/null || echo "")
+  REPORT_FILE=""
+  [[ -f "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json" ]] && REPORT_FILE="$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json"
+  [[ -z "$REPORT_FILE" && -n "$YESTERDAY" && -f "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json" ]] && REPORT_FILE="$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json"
+
+  if [[ -n "$REPORT_FILE" ]]; then
+    REPORT_DATE=$(jq -r '.date // "unknown"' "$REPORT_FILE" 2>/dev/null)
+    FLEET_SCANNED=$(jq -r '.spokes_scanned // 0' "$REPORT_FILE" 2>/dev/null)
+    FLEET_GREEN=$(jq -r '.spokes_green // 0' "$REPORT_FILE" 2>/dev/null)
+    FLEET_RED=$(jq -r '.spokes_red // 0' "$REPORT_FILE" 2>/dev/null)
+    ITEMS_DONE=$(jq -r '.total_items_completed // 0' "$REPORT_FILE" 2>/dev/null)
+    ITEMS_FAIL=$(jq -r '.total_items_failed // 0' "$REPORT_FILE" 2>/dev/null)
+    TEACHINGS_ADOPTED=$(jq -r '.teachings_adopted // 0' "$REPORT_FILE" 2>/dev/null)
+
+    # This spoke's results
+    SPOKE_NAME=$(jq -r '.wheel.name // ""' "$STATE_FILE" 2>/dev/null)
+    SPOKE_ITEMS=$(jq -r --arg name "$SPOKE_NAME" '.per_spoke[]? | select(.name == $name) | "\(.items_completed // 0) completed, \(.items_failed // 0) failed"' "$REPORT_FILE" 2>/dev/null)
+    [[ -z "$SPOKE_ITEMS" ]] && SPOKE_ITEMS="not included in run"
+
+    OZI_NIGHTLY="  Ozi nightly ($REPORT_DATE): fleet ${FLEET_GREEN}/${FLEET_SCANNED} green"
+    [[ "$FLEET_RED" -gt 0 ]] && OZI_NIGHTLY="$OZI_NIGHTLY, ${FLEET_RED} red"
+    OZI_NIGHTLY="$OZI_NIGHTLY | ${ITEMS_DONE} items done"
+    [[ "$ITEMS_FAIL" -gt 0 ]] && OZI_NIGHTLY="$OZI_NIGHTLY, ${ITEMS_FAIL} failed"
+    OZI_NIGHTLY="$OZI_NIGHTLY | teachings: ${TEACHINGS_ADOPTED}"
+    OZI_NIGHTLY="$OZI_NIGHTLY\n  This spoke: ${SPOKE_ITEMS}"
+  fi
+fi
+
+# ── Tool Advisor: surface pending config drift ──────────────────────────────
+TOOL_ADVISOR_PENDING=""
+TOOL_ADVISOR_STATE="$PROJECT_DIR/WAI-Spoke/advisors/tool-advisor/scan_state.json"
+if [[ -f "$TOOL_ADVISOR_STATE" ]]; then
+  AUDIT_PENDING=$(jq -r '.audit_pending // false' "$TOOL_ADVISOR_STATE" 2>/dev/null)
+  AUDIT_REASON=$(jq -r '.audit_reason // ""' "$TOOL_ADVISOR_STATE" 2>/dev/null)
+  PENDING_PROPOSALS=$(jq -r '.pending_proposals | length' "$TOOL_ADVISOR_STATE" 2>/dev/null || echo 0)
+  LAST_FINDING=$(jq -r '.last_findings[0] // ""' "$TOOL_ADVISOR_STATE" 2>/dev/null)
+
+  [[ "$AUDIT_PENDING" == "true" ]] && TOOL_ADVISOR_PENDING="  ⚠ Tool audit due — ${AUDIT_REASON:-run /wai-tool-advisor}"
+  [[ "$PENDING_PROPOSALS" -gt 0 ]] && TOOL_ADVISOR_PENDING="${TOOL_ADVISOR_PENDING}\n  ⚠ Tool Advisor: ${PENDING_PROPOSALS} proposal(s) pending review"
+  [[ -n "$LAST_FINDING" ]] && TOOL_ADVISOR_PENDING="${TOOL_ADVISOR_PENDING}\n  ⚠ Last finding: ${LAST_FINDING}"
+fi
+
+# ── Static data for fast-path briefing (zero tool calls in wai skill) ────────
+PROJECT_NAME=$(jq -r '.wheel.name // "Wheelwright"' "$STATE_FILE" 2>/dev/null || echo "Wheelwright")
+PROJECT_VERSION=$(jq -r '.wheel.version // "?"' "$STATE_FILE" 2>/dev/null || echo "?")
+SKILLS_COUNT=$(wc -l < "$PROJECT_DIR/WAI-Spoke/skills/WAI-Skills.jsonl" 2>/dev/null | tr -d ' ' || echo 0)
+WAISTATE_GIT=$(git -C "$PROJECT_DIR" status --short WAI-Spoke/WAI-State.json 2>/dev/null | head -1 | awk '{print $1}' | xargs 2>/dev/null || echo "clean")
+CUSTOM_FILES=$(ls "$PROJECT_DIR"/*.md 2>/dev/null | grep -viE "/(README|CLAUDE|GEMINI|AGENTS|CHANGELOG)" | xargs -I{} basename {} 2>/dev/null | tr '\n' ' ' | xargs 2>/dev/null || echo "none")
+
+# ── Output ────────────────────────────────────────────────────────────────────
+cat << BRIEF
+<wai-session-init>
+Session ${SESSION_COUNT} initialized. Track: WAI-Spoke/sessions/${SESSION_NAME}/track.jsonl
+
+ACTIVE WORK
+  Epics: ${EPICS_OPEN} open, ${EPICS_IP} in-progress
+  Tasks: ${TASKS_OPEN} open | Bugs/Features in-progress: $((BUGS_IP + FEATURES_IP))
+  Other open: ${OTHER_OPEN} | Signals undelivered: ${SIGNALS}
+
+EPICS
+${EPIC_LIST}
+IN-PROGRESS (non-epic)
+${IP_LIST}
+TEACHINGS
+  Hub: ${HUB_STATUS} | Teachings repo: ${TEACH_STATUS}
+  Total: ${TEACH_TOTAL} | Adopted: ${TEACH_ADOPTED} | New: ${TEACH_NEW}
+$(if [[ $TEACH_NEW -gt 0 ]]; then printf "  New teachings:\n%b" "$NEW_TEACHINGS"; fi)
+
+HUB SIGNALS INBOX: ${HUB_SIGNALS} framework items$(if [[ $HUB_SIGNALS_HUB -gt 0 ]]; then printf " | %s hub-only (hub session scope)" "$HUB_SIGNALS_HUB"; fi)
+
+$(if [[ -n "$OZI_NIGHTLY" ]]; then printf "OZI NIGHTLY\n%b\n" "$OZI_NIGHTLY"; fi)
+$(if [[ -n "$HISTORIAN_ADVICE" ]]; then printf "HISTORIAN ADVICE\n%b\n" "$HISTORIAN_ADVICE"; fi)
+CONTEXT HEALTH
+  Git: ${GIT_STATUS}
+  Hub path: ${HUB_STATUS}
+  Prev session: ${PREV_SESSION_STATUS}$(if [[ -n "$PREV_SESSION_ID" ]]; then echo " (${PREV_SESSION_ID})"; fi)$(if [[ "$PREV_SESSION_STATUS" == "INTERRUPTED" ]]; then echo " ⚠ recovery options at wakeup"; fi)
+$(if [[ -n "$INTEGRITY_SCORE" ]]; then echo "$INTEGRITY_SCORE"; fi)
+$(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
+$(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)
+$(if [[ -n "$SAVEPOINT_STATUS" ]]; then echo "$SAVEPOINT_STATUS"; fi)
+  Sync: ${SYNC_STATUS}
+$(if [[ -n "$EXPEDITER_SUMMARY" ]]; then echo "$EXPEDITER_SUMMARY"; fi)
+$(if [[ -n "$CONTEXT_FEED_STATUS" ]]; then echo "$CONTEXT_FEED_STATUS"; fi)
+$(if [[ -n "$ADVISORS_READY" ]]; then echo "$ADVISORS_READY"; fi)
+$(if [[ -n "$CC_GAPS" ]]; then printf "\nCLAUDE OPTIMIZATION (run /wai-tool-advisor for details)\n%b" "$CC_GAPS"; fi)
+NEXT ACTIONS (from session $((SESSION_COUNT - 1)))
+  ${NEXT_REC}
+$(if [[ -n "$TOOL_ADVISOR_PENDING" ]]; then printf "\nTOOL ADVISOR\n%b\n" "$TOOL_ADVISOR_PENDING"; fi)
+STATIC DATA
+  Project: ${PROJECT_NAME} v${PROJECT_VERSION}
+  Skills: ${SKILLS_COUNT}
+  WAI-State git: ${WAISTATE_GIT:-clean}
+  Custom files: ${CUSTOM_FILES:-none detected}
+</wai-session-init>
+BRIEF
+
+# ── Pre-write track entry (eliminates tool call from /wai fast path) ────────
+if [[ "$SKIP_SESSION_INIT" == "false" && -n "$SESSION_DIR" ]]; then
+  _TRK_MODE="standard"
+  [[ "$BRIEF_FRESH" == "true" ]] && _TRK_MODE="fast-path"
+  python3 -c "
+import json, datetime
+entry = {'event': 'session_start', 'session_id': '${SESSION_NAME}', 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'mode': '${_TRK_MODE}', 'wakeup': 'pre-computed'}
+with open('${SESSION_DIR}/track.jsonl', 'a') as f:
+    f.write(json.dumps(entry) + chr(10))
+" 2>/dev/null || true
+fi
 
 exit 0
