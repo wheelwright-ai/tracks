@@ -11,13 +11,7 @@
     "Shared": "pass"
   },
   "findings": [],
-  "auto_applied": [
-    {
-      "path": "WAI-Spoke/_hooks/session-start.sh",
-      "action": "updated hook script to match framework template",
-      "code": "claude-hook-script-outdated"
-    }
-  ],
+  "auto_applied": [],
   "planned_fixes": [],
   "proposals": [
     {

@@ -83,5 +83,11 @@
       "Skill(*)",
       "Agent(*)"
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /home/mario/.claude/statusline.sh",
+    "padding": 2,
+    "refreshInterval": 30
   }
 }

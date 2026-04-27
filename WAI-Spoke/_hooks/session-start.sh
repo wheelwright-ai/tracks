@@ -179,6 +179,28 @@ if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming" ]]; then
   fi
 fi
 
+# ── 5b. Hub registry update ──────────────────────────────────────────────────
+# Update outstanding_work counts in hub-registry.json on every session start.
+# Match by path (not basename) — spoke directory name may differ from wheel_id.
+if [[ "$HUB_STATUS" == "OK" && -f "$HUB_PATH/hub-registry.json" ]]; then
+  WHEEL_ID=$(jq -r --arg path "$PROJECT_DIR" '.wheels[] | select(.path == $path) | .wheel_id' "$HUB_PATH/hub-registry.json" 2>/dev/null)
+  if [[ -n "$WHEEL_ID" && "$WHEEL_ID" != "null" ]]; then
+    _OPEN=$(count_lugs "$LUGS_DIR/*/open/*.json")
+    _IP=$(count_lugs "$LUGS_DIR/*/in_progress/*.json")
+    _TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    _TMP=$(mktemp)
+    jq --arg id "$WHEEL_ID" \
+       --argjson open "$_OPEN" \
+       --argjson ip "$_IP" \
+       --arg ts "$_TS" \
+       '(.wheels[] | select(.wheel_id == $id)).outstanding_work = {"open": $open, "in_progress": $ip, "last_checked": $ts} |
+        (.wheels[] | select(.wheel_id == $id)).last_sync = $ts' \
+       "$HUB_PATH/hub-registry.json" > "$_TMP" 2>/dev/null \
+      && mv "$_TMP" "$HUB_PATH/hub-registry.json" \
+      || rm -f "$_TMP"
+  fi
+fi
+
 # ── 6. Next session recommendation ───────────────────────────────────────────
 NEXT_REC=$(jq -r '._session_state.next_session_recommendation // "None"' "$STATE_FILE" 2>/dev/null)
 SESSION_COUNT=$(jq -r '._session_state.session_count // 0' "$STATE_FILE" 2>/dev/null)
@@ -407,6 +429,38 @@ except Exception:
   fi
 fi
 
+# ── 9b++. Stale in_progress lug warning ────────────────────────────────────
+STALE_LUGS_STATUS=""
+STALE_COUNT=$(python3 -c "
+import json, datetime, glob
+from pathlib import Path
+now = datetime.datetime.now(datetime.timezone.utc)
+cutoff_hours = 4
+stale = []
+for f in glob.glob('$PROJECT_DIR/WAI-Spoke/lugs/bytype/*/in_progress/*.json'):
+    try:
+        d = json.load(open(f))
+        ts = d.get('updated_at') or d.get('created_at') or ''
+        if not ts: continue
+        dt = datetime.datetime.fromisoformat(ts.replace('Z', '+00:00'))
+        if dt.tzinfo is None: dt = dt.replace(tzinfo=datetime.timezone.utc)
+        age_h = (now - dt).total_seconds() / 3600
+        if age_h > cutoff_hours:
+            stale.append((d.get('id', Path(f).stem), int(age_h)))
+    except Exception:
+        continue
+stale.sort(key=lambda x: -x[1])
+if stale:
+    head = ', '.join(f'{sid}({ah}h)' for sid, ah in stale[:3])
+    more = f' +{len(stale)-3}' if len(stale) > 3 else ''
+    print(f'{len(stale)}|{head}{more}')
+" 2>/dev/null)
+if [[ -n "$STALE_COUNT" ]]; then
+  _N=$(echo "$STALE_COUNT" | cut -d'|' -f1)
+  _LIST=$(echo "$STALE_COUNT" | cut -d'|' -f2-)
+  STALE_LUGS_STATUS="  Stale in_progress: ${_N} lug(s) unchanged >4h — ${_LIST}"
+fi
+
 # ── 9c. Advisor schedule evaluation ────────────────────────────────────────
 ADVISORS_READY=""
 if [[ "$BRIEF_FRESH" != "true" ]]; then
@@ -509,6 +563,7 @@ $(if [[ -n "$INTEGRITY_SCORE" ]]; then echo "$INTEGRITY_SCORE"; fi)
 $(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
 $(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)
 $(if [[ -n "$SAVEPOINT_STATUS" ]]; then echo "$SAVEPOINT_STATUS"; fi)
+$(if [[ -n "$STALE_LUGS_STATUS" ]]; then echo "$STALE_LUGS_STATUS"; fi)
   Sync: ${SYNC_STATUS}
 $(if [[ -n "$EXPEDITER_SUMMARY" ]]; then echo "$EXPEDITER_SUMMARY"; fi)
 $(if [[ -n "$CONTEXT_FEED_STATUS" ]]; then echo "$CONTEXT_FEED_STATUS"; fi)

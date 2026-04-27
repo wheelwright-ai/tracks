@@ -54,7 +54,7 @@ project_dir = Path(os.environ.get('PROJECT_DIR', '.'))
 brief_file  = project_dir / 'WAI-Spoke' / 'wakeup-brief.json'
 state_file  = project_dir / 'WAI-Spoke' / 'WAI-State.json'
 
-# --- Intent gate: read session-intent.json (unconditional, before brief_freshness) ---
+# Intent file reading (unconditional — works even when brief is stale)
 intent_file = project_dir / 'WAI-Spoke' / 'runtime' / 'session-intent.json'
 intent = None
 intent_label = None
@@ -133,11 +133,10 @@ try:
 except Exception:
     pass
 
-# --- Intent label line ---
+# Intent-conditional directive
 if intent:
     lines.append(f'Intent: {intent} — {intent_label}')
 
-# --- Build intent-conditional directive ---
 if intent == 'implement':
     directive = ('DIRECTIVE: Intent=implement. Do NOT run /wai or teaching adoption. '
                  'Read WAI-Spoke/lugs/bytype/task/open/ (1 call), brief user on in-progress lug state, begin implementation.')
