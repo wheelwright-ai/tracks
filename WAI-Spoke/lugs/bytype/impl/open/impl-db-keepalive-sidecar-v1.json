@@ -1,0 +1,48 @@
+{
+  "id": "impl-db-keepalive-sidecar-v1",
+  "type": "impl",
+  "status": "open",
+  "title": "Deploy Vercel sidecar cron for Appwrite database keepalive",
+  "one_liner": "Create a standalone Vercel cron worker in tools/vercel-db-keepalive/ that pings Appwrite on a schedule, keeping the hosted database active without deploying the main local-first app.",
+  "created_at": "2026-04-28T16:30:00Z",
+  "created_by": "claude-sonnet-4-6 (session-20260428-0905, triage of signal-db-keepalive-sidecar-v1)",
+  "routed_to": "TRACKS",
+  "priority": "P3",
+  "impact": 6,
+  "effort": 2,
+  "roi": 3.0,
+  "model_fit": "haiku",
+  "source_signal": "signal-db-keepalive-sidecar-v1",
+  "acceptance_criteria": [
+    "tools/vercel-db-keepalive/api/keepalive.js exists and pings Appwrite with CRON_SECRET validation",
+    "tools/vercel-db-keepalive/vercel.json exists with cron schedule configured",
+    ".env.template includes APPWRITE_KEEPALIVE_API_KEY and CRON_SECRET entries",
+    "Keepalive cron does not require deploying the main tracks application",
+    "Vercel deployment is scoped to tools/vercel-db-keepalive/ subdirectory only"
+  ],
+  "perceive": {
+    "current_state": "Appwrite hosted database requires periodic pings to stay active. No automated keepalive exists. Main tracks app is local-first and should not be deployed to Vercel.",
+    "files": [
+      "tools/vercel-db-keepalive/api/keepalive.js (create)",
+      "tools/vercel-db-keepalive/vercel.json (create)",
+      ".env.template (add APPWRITE_KEEPALIVE_API_KEY, CRON_SECRET)"
+    ]
+  },
+  "execute": {
+    "steps": [
+      "1. Create tools/vercel-db-keepalive/api/keepalive.js: validate CRON_SECRET header, ping Appwrite endpoint with API key, return 200",
+      "2. Create tools/vercel-db-keepalive/vercel.json: cron schedule (e.g. every 5 minutes), function route for /api/keepalive",
+      "3. Add APPWRITE_KEEPALIVE_API_KEY and CRON_SECRET to .env.template with placeholder values",
+      "4. Deploy via: cd tools/vercel-db-keepalive && vercel deploy --prod",
+      "5. Verify cron fires by checking Vercel function logs after first scheduled run"
+    ]
+  },
+  "verify": {
+    "done_when": [
+      "tools/vercel-db-keepalive/api/keepalive.js exists with CRON_SECRET guard and Appwrite ping",
+      "tools/vercel-db-keepalive/vercel.json exists with cron schedule",
+      ".env.template has APPWRITE_KEEPALIVE_API_KEY and CRON_SECRET entries",
+      "Vercel function logs show successful ping after deployment"
+    ]
+  }
+}
