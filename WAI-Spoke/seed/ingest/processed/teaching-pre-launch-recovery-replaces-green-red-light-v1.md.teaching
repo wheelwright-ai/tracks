@@ -1,0 +1,84 @@
+# Teaching: Pre-Launch Recovery Replaces Green/Red Light Skills v1
+
+**Family:** framework
+**Version:** 1.0
+**Created:** 2026-04-29
+**Impact:** 8
+**Source Session:** session-20260429-1232
+**safe_to_auto_adopt:** false
+
+---
+
+## Prerequisites
+- `wai-enter.sh` exists at spoke root (all spokes since v2.0.x)
+- `wai.md` Step 1 contains the INTERRUPTED check
+
+## Batch Sequence
+**Batch:** pre-launch-recovery-v1 | **Apply order:** 1 of 1 | **Parallel safe:** yes
+
+---
+
+## What This Teaching Does
+
+Deprecates `/wai-green-light` and `/wai-red-light` skills. Moves interrupted session detection to `wai-enter.sh` (pre-launch, before Claude Code starts), eliminating the in-context token cost and G/R/S/N prompt entirely.
+
+### Why
+
+Green/Red light skills were built around an autosave JSONL protocol that no longer exists. After stripping deprecated parts, all they did was read `sessions/{prev}/track.jsonl` + `bytype/*/in_progress/` — trivial logic that doesn't justify loading skill files into Claude's context on every interrupted session.
+
+### What to change
+
+**1. Add recovery block to `wai-enter.sh`** (before the intent menu, after the savepoint block):
+
+The block scans last 5 sessions from the past 7 days. For each with a meaningful last action that wasn't cleanly closed, it prints a formatted recovery block to the terminal:
+
+```
+──────────────────────────────────────────────────────────
+⚠  Interrupted work — session-YYYYMMDD-HHMM
+
+  Last action : {last meaningful track event summary}
+  In-progress : {lug_id} — {lug title}
+  Code changes: {first uncommitted non-runtime file} (+N more)
+
+  ── Paste to resume ──────────────────────────────────────
+  Resume interrupted session {id}. Last action: {summary}.
+  In-progress: {lug_id}. N uncommitted file(s) — verify
+  changes are complete before continuing.
+  ──────────────────────────────────────────────────────────
+```
+
+Detection logic:
+- Sessions where `track.jsonl` last line lacks `completed=true` or `event=closeout` → INTERRUPTED
+- Sessions with only `session_start` events → skip (nothing to recover)
+- Uncommitted files: `git diff --name-only HEAD` excluding runtime state files (`WAI-State.json`, `wakeup-brief.json`, `ozi-brief.json`, `advisors/*/scan_state.json`)
+
+**2. Update `wai.md` Step 1:**
+
+Remove:
+```
+- Surface in briefing: `⚠ INTERRUPTED — [G]reen Light / [R]ed Light / [S]kip / [N]ew Project`
+```
+
+Replace with:
+```
+note it in the banner as `⚠ Prev session interrupted — recovery prompt shown pre-launch`. No action needed.
+```
+
+**3. Update `session-start.sh` line ~645:**
+
+Change: `"⚠ recovery options at wakeup"`
+To: `"⚠ recovery prompt shown pre-launch"`
+
+**4. Delete skill files:**
+
+Remove `wai-green-light.md` and `wai-red-light.md` from all locations:
+- `.claude/commands/`
+- `WAI-Spoke/reference/auto/`
+- Any `skills/green-light/` or `skills/red-light/` directories
+
+**5. Remove references** from: `wai-reference.md`, `SKILL-EXAMPLES.md`, `wai-track-generate.md`, `manifest.json`, `WAI-Skills.jsonl`, `CLAUDE.md`, `GEMINI.md`, `WAI-Guide.md` (remove autosave protocol section if present).
+
+---
+
+## Post-Completion
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

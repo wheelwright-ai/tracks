@@ -1,0 +1,63 @@
+# Teaching: Time-to-Value Decision Rule — Choose Now vs Later Based on Advantage v1
+
+**Family:** wai-protocol
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** time-to-value-decision-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+When deciding whether to build something now or defer it, apply the time-to-value decision rule: build now if doing it now provides a clear, measurable advantage. Defer if the benefit depends on future unknowns or requires an integration that isn't proven yet.
+
+**Rule:**
+- **Build now** if: the thing works in isolation AND the value is realized immediately AND it doesn't require waiting on another system.
+- **Defer** if: the value depends on an integration that isn't proven, OR the feature needs another component that doesn't exist yet, OR you'd be building to a spec that will change.
+
+**Examples:**
+
+| Scenario | Decision |
+|----------|----------|
+| Teaching system works — write the teaching | NOW |
+| API integration for unbuilt system | DEFER |
+| Cleanup that unblocks current work | NOW |
+| Cleanup that's "nice to have" | DEFER |
+| Core feature of a proven pattern | NOW |
+| Feature that requires a future migration | DEFER |
+
+**Why:** This rule was formalized in session S70 to prevent over-engineering. The pattern "build it now in case we need it" consistently produced unreachable code and integration debt. The pattern "defer until the integration target is proven" consistently reduced waste.
+
+**Application in lug ROI scoring:**
+A lug that requires a deferred integration as a prerequisite should have its readiness set to `blocked` or `needs_refinement`, not `ready`.
+
+---
+
+## Migration
+
+Behavioral norm — no file changes needed. Apply during lug triage and planning sessions.
+
+---
+
+## Post-Completion
+
+Review the current `needs_refinement` queue — confirm any "blocked by unproven integration" items are correctly flagged.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

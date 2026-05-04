@@ -1,0 +1,78 @@
+# Teaching: Hook Commands Must Use Absolute Paths — No Env Var Substitution v1
+
+**Family:** hooks
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 9
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** hook-path-absolute-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Hook commands in `settings.json` must use absolute paths. Environment variables like `$CLAUDE_PROJECT_DIR` are never resolved by Claude Code — they silently produce broken hooks that appear healthy until inspected.
+
+**Before (broken — 16/18 spokes affected):**
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/user-prompt-submit.sh"
+    }]
+  }
+}
+```
+
+**After (correct):**
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{
+      "command": "/home/mario/projects/myproject/.claude/hooks/user-prompt-submit.sh"
+    }]
+  }
+}
+```
+
+**Why:** Fleet audit (March 2026) found 16/18 spokes had silently broken hooks. `$CLAUDE_PROJECT_DIR` was never set by Claude Code in hook execution context. Health checks passed falsely because hooks exited 0 (command not found exits 0 in some shells). Hooks ran, did nothing, returned success.
+
+**How to check:**
+```bash
+grep -r '\$CLAUDE_PROJECT_DIR\|\$PROJECT_DIR\|\$HOME' .claude/settings.json settings.local.json 2>/dev/null
+```
+Any match in a hook `command` field is broken.
+
+---
+
+## Migration
+
+For each hook command in `settings.json` or `settings.local.json`:
+1. Replace any `$VAR/path/to/hook.sh` with the full absolute path `/home/mario/projects/spoke-name/.claude/hooks/hook.sh`
+2. Verify the hook file actually exists at that path
+3. Run `bash -n /path/to/hook.sh` to syntax-check the hook
+
+---
+
+## Post-Completion
+
+```bash
+grep -r 'CLAUDE_PROJECT_DIR\|PROJECT_DIR' .claude/settings.json .claude/settings.local.json 2>/dev/null && echo 'FAIL: env vars found' || echo 'PASS: no env vars in hook paths'
+```
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

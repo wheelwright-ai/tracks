@@ -1,0 +1,84 @@
+# Teaching: No Significant Work Without a Lug; No Work Returned Without Verified Tests v1
+
+**Family:** wai-protocol
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — extends P11 (Lug-First).
+
+## Batch Sequence
+
+**Batch:** lug-gate-before-work-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Two gates bracket every implementation task:
+
+1. **Entry gate:** A lug with complete PEV (perceive / execute / verify) must exist before any implementation begins.
+2. **Exit gate:** Tests must pass and be verified before the lug is marked done.
+
+**Before (missing gates):**
+```
+User: "Add X"
+Claude: [writes code, marks done]
+```
+
+**After (correct):**
+```
+User: "Add X"
+Claude: [creates lug with PEV] → [implements] → [runs tests] → [marks done]
+```
+
+**Why:** P11 (Lug-First) ensures work state survives sessions. The exit gate ensures correctness. Without the entry gate, intent is lost across sessions. Without the exit gate, broken implementations get committed and cost more to fix than to prevent.
+
+**Entry gate checklist:**
+- `perceive` field: current state, files to read
+- `execute` field: numbered steps, no ambiguity
+- `verify` field: shell commands that prove completion
+
+**Exit gate checklist:**
+- Tests ran: `python3 -m pytest tests/ -x`
+- Relevant assertions pass
+- Lug status updated to `done` with `completed_at`
+
+**How to check (entry gate):**
+```bash
+python3 -c "
+import json, glob
+incomplete = []
+for f in glob.glob('WAI-Spoke/lugs/bytype/implementation/open/*.json'):
+    d = json.load(open(f))
+    for field in ['perceive','execute','verify']:
+        if field not in d:
+            incomplete.append((f, field))
+for f, field in incomplete: print(f'MISSING {field}: {f}')
+"
+```
+
+---
+
+## Migration
+
+This teaching establishes a behavioral norm — no file changes needed. Add a reminder to the CLAUDE.md Anti-Patterns section if not already present.
+
+---
+
+## Post-Completion
+
+Review the CLAUDE.md Anti-Patterns section — confirm both gates are referenced.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

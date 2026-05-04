@@ -1,0 +1,74 @@
+# Teaching: Integration Tests Must Tolerate Empty Operational Queues v1
+
+**Family:** test-authoring
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 5
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** test-queue-empty-tolerance-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Integration tests that read from operational queues (signal inboxes, incoming directories, work queues) must not assert `len > 0`. These queues are legitimately empty after correct triage operations. An empty queue is valid system state, not a bug.
+
+**Before (broken):**
+```python
+def test_can_read_real_signals():
+    signal_files = list(Path("WAI-Hub/signals/incoming/").glob("*.json"))
+    assert len(signal_files) > 0  # fails after correct triage clears the inbox
+```
+
+**After (correct):**
+```python
+def test_can_read_real_signals():
+    signal_files = list(Path("WAI-Hub/signals/incoming/").glob("*.json"))
+    if not signal_files:
+        pytest.skip("No signals in inbox — directory correctly empty after triage")
+    # assertions about signal content follow
+```
+
+**Why:** After a correct hub triage operation clears the inbox, this type of test begins failing. The test is asserting operational state (queue has items) rather than structural invariants (queue directory exists, items are valid JSON when present). Empty queues are correct post-triage state.
+
+**How to check:**
+```bash
+grep -rn "assert len.*> 0\|assert len.*!= 0" tests/ --include="*.py"
+```
+Review each hit — check whether the collection being asserted on is an operational queue vs. a static fixture.
+
+---
+
+## Migration
+
+For each test that asserts `len(queue) > 0` on an operational queue:
+
+1. Replace the assertion with a `pytest.skip()` when the collection is empty.
+2. Move structural assertions (directory exists, files are valid JSON) before the skip.
+3. Keep content assertions after the skip guard.
+
+---
+
+## Post-Completion
+
+Run the test suite — previously failing queue-empty tests should now skip cleanly:
+```bash
+python3 -m pytest tests/ -v 2>&1 | grep -E "SKIP|PASS|FAIL"
+```
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

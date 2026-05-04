@@ -1,0 +1,68 @@
+# Teaching: Hub Signals Inbox Pre-Triage Pattern v1
+
+**Family:** signal-triage
+**Version:** 1.0
+**Created:** 2026-03-31
+**Impact:** 8
+**Source Session:** session-20260331-2023
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** hub-inbox-triage-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Before doing detailed review of hub signals inbox items, run a fast pre-triage to identify signals already covered by existing local lugs, processed teachings, or implemented code. In S119, 16/18 inbox signals (89%) were already covered — detailed review was unnecessary.
+
+**Pre-triage check order:**
+
+1. **Processed teachings:** `ls WAI-Spoke/seed/ingest/processed/ | grep {signal-id}` — already adopted?
+2. **Existing local lugs:** `ls WAI-Spoke/lugs/bytype/*/open/*.json | grep {topic-keyword}` — lug already exists?
+3. **Implemented in code:** `grep -r "{keyword}" tools/ .claude/hooks/` — feature already built?
+4. **CLAUDE.md anti-patterns:** `grep "{pattern}" CLAUDE.md` — already documented?
+
+If any check matches → archive signal to processed, no new lug needed.
+
+**Only create a new local lug when all 4 checks fail.**
+
+**Why:** Hub inbox can accumulate 10-20+ signals that were incorporated via parallel paths (direct commits, session teachings, CLAUDE.md entries). Without pre-triage, every signal gets detailed review — wasting tokens and blocking the inbox for multiple sessions. Pre-triage reduces detailed review to 10-20% of signals.
+
+---
+
+## Migration
+
+Add to your wakeup signal triage procedure (before Step 5 or equivalent):
+
+```bash
+# Pre-triage: check for already-covered signals
+for signal_file in $HUB/WAI-Hub/signals/by-target/$SPOKE_ID/*.json; do
+    signal_id=$(basename $signal_file .json)
+    # Check processed
+    [ -f "WAI-Spoke/seed/ingest/processed/$signal_id.md.teaching" ] && echo "COVERED: $signal_id" && continue
+    # Check existing lugs
+    ls WAI-Spoke/lugs/bytype/*/open/*.json 2>/dev/null | xargs -I{} basename {} .json | grep -q "$signal_id" && echo "HAS LUG: $signal_id" && continue
+    echo "NEEDS REVIEW: $signal_id"
+done
+```
+
+Archive covered signals to `$HUB/WAI-Hub/signals/processed/`. Review only the `NEEDS REVIEW` items.
+
+---
+
+## Post-Completion
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

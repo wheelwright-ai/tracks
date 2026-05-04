@@ -19,7 +19,7 @@ Pre-conditions met: hook pre-computed all data, track entry already written by s
 **Steps:**
 
 **1. Interrupted session check.** If `Prev session: INTERRUPTED` in session-init CONTEXT HEALTH:
-- Surface in briefing: `⚠ INTERRUPTED — [G]reen Light / [R]ed Light / [S]kip / [N]ew Project`
+- note it in the banner as `⚠ Prev session interrupted — recovery prompt shown pre-launch`. No action needed.
 
 **2. Display banner** using session-init sections:
 

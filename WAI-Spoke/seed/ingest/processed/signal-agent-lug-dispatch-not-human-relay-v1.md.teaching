@@ -1,0 +1,64 @@
+# Teaching: Agents Dispatch Lugs Directly — Humans Must Not Relay Between Agents v1
+
+**Family:** wai-protocol
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** agent-lug-dispatch-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+When an agent (Haiku subagent, Realizer, Ozi) completes work that should go to a spoke, it must write a lug directly. Humans must not act as message relays between agents — copying outputs and pasting them as inputs.
+
+**Before (human relay — wrong):**
+```
+Agent-A produces output → Human copies → Human pastes into Agent-B
+```
+
+**After (correct — direct dispatch):**
+```
+Agent-A produces output → Agent-A writes lug to WAI-Spoke/lugs/ → Agent-B reads lug at next wakeup
+```
+
+**Why:** Human relay breaks the async dispatch model. It:
+1. Creates a synchronous bottleneck requiring human availability
+2. Introduces transcription errors
+3. Loses provenance (the lug won't have the right `created_by_advisor`, `advisor_run_id`, etc.)
+4. Defeats the purpose of autonomous agent dispatch
+
+**The correct pattern:**
+- Agents write `implementation` or `feature` lugs with full PEV to the target spoke's `lugs/bytype/` directory
+- The lug includes `routed_to`, `created_by`, and `source_session`
+- The target spoke's next session picks it up from the work queue
+
+---
+
+## Migration
+
+Behavioral norm — no file changes needed. When instructing an agent that produces spoke work, instruct it to write the output as a lug, not to return it as conversation text for a human to relay.
+
+---
+
+## Post-Completion
+
+Review the last 3 agent-produced lugs — confirm they have `created_by` and `routed_to` fields set correctly.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

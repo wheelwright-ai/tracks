@@ -22,8 +22,6 @@ The hook at `.claude/hooks/user-prompt-submit.sh` injects this directive automat
 | `/wai-shipit` | Quality gates + closeout + commit |
 | `/wai-time` | Token usage estimate |
 | `/wai-status` | Quick health check |
-| `/wai-red-light` | Inspect crash recovery |
-| `/wai-green-light` | Resume from checkpoint |
 | `/wai-rules` | Project boundaries |
 
 ## Session Tracking

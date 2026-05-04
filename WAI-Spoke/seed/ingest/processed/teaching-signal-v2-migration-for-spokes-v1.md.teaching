@@ -1,0 +1,280 @@
+# Teaching: Signal v2 Migration — bytype/signal/ → WAI-Spoke/signals/
+
+**Type:** Protocol Enhancement
+**Version:** 1.0.0
+**Created:** 2026-04-28
+**safe_to_auto_adopt:** false
+**Affects:** WAI-Spoke/lugs/bytype/signal/, WAI-Spoke/signals/, WAI-Spoke/hooks/session-start.sh
+**Supersedes:** nothing
+**weight:** 30
+**fingerprint:** sv2
+
+---
+
+## Prerequisites
+
+**Applies if spoke has old-pattern signal storage:**
+```bash
+ls WAI-Spoke/lugs/bytype/signal/ 2>/dev/null && echo "APPLIES — old signal pattern exists" || echo "SKIP — already migrated or no signals"
+```
+
+**Check session-start.sh v2 support (informational — Step 0 patches it if missing):**
+```bash
+# Spokes may use WAI-Spoke/hooks/ or WAI-Spoke/_hooks/
+_SSH=$(ls WAI-Spoke/hooks/session-start.sh WAI-Spoke/_hooks/session-start.sh 2>/dev/null | head -1)
+grep -q "Apply pending signals v2" "$_SSH" 2>/dev/null && echo "PASS — v2 hooks present, skip Step 0" || echo "NEEDS PATCH — run Step 0"
+```
+
+## Batch Sequence
+
+**Batch:** signal-v2-migration
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Migrates a spoke from the old v1 signal storage (`WAI-Spoke/lugs/bytype/signal/undelivered/` or `open/`) to the v2 signal system (`WAI-Spoke/signals/inbound/`, `processed/`, `registry.json`). After migration: signals are auto-applied at session start, the loop-close mechanism clears them when teachings arrive, and score_backlog.py ignores them entirely.
+
+---
+
+## Why This Matters
+
+Old-pattern signals in `bytype/signal/` are treated as work lugs by score_backlog.py, appear in triage queues, and are never auto-applied. They accumulate indefinitely. The v2 system is automatic and self-clearing — signals apply at wakeup, teachings close the loop, queue stays small.
+
+---
+
+## How to Apply This Teaching
+
+### Step 0 — Patch session-start.sh with v2 signal support (skip if PASS above)
+
+Find the spoke's session-start.sh (may be in `WAI-Spoke/hooks/` or `WAI-Spoke/_hooks/`):
+
+```bash
+_SSH=$(ls WAI-Spoke/hooks/session-start.sh WAI-Spoke/_hooks/session-start.sh 2>/dev/null | head -1)
+echo "Patching: $_SSH"
+```
+
+Insert sections 0.5 and 0.6 immediately after the `[[ ! -f "$STATE_FILE" ]] && exit 0` line using Python (safe for multi-line insertion):
+
+```bash
+python3 - << 'PATCH_EOF'
+import re, sys
+
+hook_path_candidates = [
+    "WAI-Spoke/hooks/session-start.sh",
+    "WAI-Spoke/_hooks/session-start.sh",
+]
+hook_path = next((p for p in hook_path_candidates
+                  if __import__("os").path.exists(p)), None)
+if not hook_path:
+    print("ERROR: session-start.sh not found", file=sys.stderr)
+    sys.exit(1)
+
+with open(hook_path) as f:
+    content = f.read()
+
+if "Apply pending signals v2" in content:
+    print("SKIP — v2 signal support already present")
+    sys.exit(0)
+
+INSERT_AFTER = '[[ ! -f "$STATE_FILE" ]] && exit 0'
+V2_BLOCK = r"""
+
+# ── 0.5. Apply pending signals v2 (before wai-session-init) ─────────────────
+# Behavioral patches in WAI-Spoke/signals/inbound/ are applied at session start.
+# They are plain-language directives included in the CONTEXT HEALTH block.
+SIGNALS_APPLIED_COUNT=0
+SIGNALS_APPLIED_PATCHES=""
+_SIG_REG="$PROJECT_DIR/WAI-Spoke/signals/registry.json"
+if [[ -f "$_SIG_REG" && -d "$PROJECT_DIR/WAI-Spoke/signals/inbound" ]]; then
+  for _sigfile in "$PROJECT_DIR/WAI-Spoke/signals/inbound/"*.json; do
+    [[ -f "$_sigfile" ]] || continue
+    _SIG_ID=$(jq -r '.id // ""' "$_sigfile" 2>/dev/null)
+    [[ -z "$_SIG_ID" ]] && continue
+    _ALREADY=$(jq -r --arg id "$_SIG_ID" '.applied | index($id) // empty' "$_SIG_REG" 2>/dev/null)
+    [[ -n "$_ALREADY" ]] && continue
+    _SIG_FLAVOR=$(jq -r '.flavor // "delivery"' "$_sigfile" 2>/dev/null)
+    _SIG_RISK=$(jq -r '.risk_score // 5' "$_sigfile" 2>/dev/null)
+    _SIG_TITLE=$(jq -r '.title // ""' "$_sigfile" 2>/dev/null)
+    if [[ "$_SIG_FLAVOR" == "patch" ]]; then
+      _SIG_PATCH=$(jq -r '.patch // .description // ""' "$_sigfile" 2>/dev/null | head -c 200)
+      SIGNALS_APPLIED_PATCHES="${SIGNALS_APPLIED_PATCHES}\n  [PATCH risk=${_SIG_RISK}] ${_SIG_TITLE}: ${_SIG_PATCH}"
+      SIGNALS_APPLIED_COUNT=$((SIGNALS_APPLIED_COUNT + 1))
+      _SIG_TMP=$(mktemp)
+      _SIG_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      jq --arg id "$_SIG_ID" --arg ts "$_SIG_TS" \
+         '.applied += [$id] | .applied_at[$id] = $ts' \
+         "$_SIG_REG" > "$_SIG_TMP" 2>/dev/null && mv "$_SIG_TMP" "$_SIG_REG" || rm -f "$_SIG_TMP"
+    fi
+  done
+fi
+
+# ── 0.6. Signal loop-close: teaching arrived → remove registry entry ─────────
+# When a teaching that closes a signal is adopted (appears in processed/), archive
+# the signal from inbound/ and remove its registry entry.
+if [[ -f "$_SIG_REG" ]]; then
+  _LC_PROCESSED="$PROJECT_DIR/WAI-Spoke/seed/ingest/processed"
+  _LC_ARCHIVE="$PROJECT_DIR/WAI-Spoke/signals/processed"
+  _LOOP_CLOSED=""
+  for _lcsigfile in "$PROJECT_DIR/WAI-Spoke/signals/inbound/"*.json; do
+    [[ -f "$_lcsigfile" ]] || continue
+    _LC_ID=$(jq -r '.id // ""' "$_lcsigfile" 2>/dev/null)
+    [[ -z "$_LC_ID" ]] && continue
+    _LC_TEACHING=$(ls "$_LC_PROCESSED/"*"${_LC_ID}"*.teaching 2>/dev/null | head -1)
+    if [[ -n "$_LC_TEACHING" ]]; then
+      _LC_TMP=$(mktemp)
+      jq --arg id "$_LC_ID" \
+         '.applied = [.applied[] | select(. != $id)] | del(.applied_at[$id])' \
+         "$_SIG_REG" > "$_LC_TMP" 2>/dev/null && mv "$_LC_TMP" "$_SIG_REG" || rm -f "$_LC_TMP"
+      mkdir -p "$_LC_ARCHIVE"
+      mv "$_lcsigfile" "$_LC_ARCHIVE/" 2>/dev/null || true
+      _LOOP_CLOSED="$_LOOP_CLOSED $_LC_ID"
+    fi
+  done
+fi
+"""
+
+patched = content.replace(INSERT_AFTER, INSERT_AFTER + V2_BLOCK, 1)
+if patched == content:
+    print(f"ERROR: anchor line not found in {hook_path}", file=sys.stderr)
+    sys.exit(1)
+
+with open(hook_path, "w") as f:
+    f.write(patched)
+print(f"PATCHED: {hook_path} — sections 0.5 and 0.6 inserted")
+PATCH_EOF
+```
+
+Verify the patch applied:
+```bash
+_SSH=$(ls WAI-Spoke/hooks/session-start.sh WAI-Spoke/_hooks/session-start.sh 2>/dev/null | head -1)
+grep -q "Apply pending signals v2" "$_SSH" && echo "PASS — v2 sections present" || echo "FAIL — check patch output"
+```
+
+### Step 1 — Create v2 directories
+
+```bash
+mkdir -p WAI-Spoke/signals/inbound
+mkdir -p WAI-Spoke/signals/processed
+```
+
+### Step 2 — Initialize registry
+
+```bash
+echo '{"_schema":"signals-registry-v2","applied":[],"applied_at":{}}' > WAI-Spoke/signals/registry.json
+```
+
+### Step 3 — Triage existing signals
+
+For each signal in `WAI-Spoke/lugs/bytype/signal/undelivered/` and `open/`:
+
+**Classify:**
+- Cross-spoke, fleet-generalizable, patch-now → **keep as signal**: migrate to `signals/inbound/` with v2 schema
+- Spoke-specific feature/fix → **convert to impl/feature/bug lug**: create proper lug, archive signal
+- Already resolved/adopted fleet-wide → **archive directly**: move to `signals/processed/`
+
+**Migrate a genuine patch signal:**
+```bash
+# Read existing signal, add v2 fields if missing, copy to inbound/
+python3 - << 'EOF'
+import json, shutil, os
+
+src = "WAI-Spoke/lugs/bytype/signal/undelivered/signal-xxx-v1.json"
+dst = "WAI-Spoke/signals/inbound/signal-xxx-v1.json"
+
+with open(src) as f:
+    sig = json.load(f)
+
+# Ensure v2 schema fields
+sig.setdefault("flavor", "patch")           # or "delivery"
+sig.setdefault("risk_score", sig.pop("impact", 5))
+sig.pop("roi", None)                        # remove v1 field
+
+with open(dst, "w") as f:
+    json.dump(sig, f, indent=2)
+
+os.rename(src, f"WAI-Spoke/signals/processed/{os.path.basename(src)}")
+print(f"Migrated: {os.path.basename(src)}")
+EOF
+```
+
+**Archive an already-resolved signal:**
+```bash
+mv WAI-Spoke/lugs/bytype/signal/undelivered/signal-xxx-v1.json WAI-Spoke/signals/processed/
+# OR from open/:
+mv WAI-Spoke/lugs/bytype/signal/open/signal-xxx-v1.json WAI-Spoke/signals/processed/
+```
+
+### Step 4 — Verify bytype/signal/ is empty
+
+```bash
+find WAI-Spoke/lugs/bytype/signal/ -name "*.json" 2>/dev/null | wc -l | xargs -I{} test {} -eq 0 && echo "PASS — bytype/signal/ empty" || echo "REVIEW — signals remain"
+```
+
+### Step 5 — Verify v2 session-start.sh is active
+
+```bash
+_SSH=$(ls WAI-Spoke/hooks/session-start.sh WAI-Spoke/_hooks/session-start.sh 2>/dev/null | head -1)
+grep -q "Apply pending signals v2" "$_SSH" && echo "PASS — patch-apply section present" || echo "FAIL — re-run Step 0"
+```
+
+### Step 6 — Remove bytype/signal/ directory if empty
+
+```bash
+rmdir WAI-Spoke/lugs/bytype/signal/undelivered 2>/dev/null || true
+rmdir WAI-Spoke/lugs/bytype/signal/open 2>/dev/null || true
+rmdir WAI-Spoke/lugs/bytype/signal 2>/dev/null || true
+```
+
+### Step 7 — Commit
+
+```bash
+git add WAI-Spoke/signals/
+git add WAI-Spoke/hooks/session-start.sh
+git commit -m "chore: migrate signals to v2 storage — bytype/signal/ retired"
+```
+
+### Step 8 — Mark as adopted
+
+```bash
+mkdir -p WAI-Spoke/seed/ingest/processed
+cp /path/to/hub/teachings_repo/framework/current/teaching-signal-v2-migration-for-spokes-v1.md.teaching \
+   WAI-Spoke/seed/ingest/processed/teaching-signal-v2-migration-for-spokes-v1.md.teaching
+```
+
+---
+
+## Verification
+
+```bash
+# v2 directories exist
+ls WAI-Spoke/signals/inbound/ && ls WAI-Spoke/signals/processed/ && cat WAI-Spoke/signals/registry.json && echo "PASS — v2 structure OK"
+
+# bytype/signal/ is empty or gone
+[ ! -d WAI-Spoke/lugs/bytype/signal ] && echo "PASS — bytype/signal/ gone" || \
+  find WAI-Spoke/lugs/bytype/signal/ -name "*.json" | wc -l | xargs -I{} test {} -eq 0 && echo "PASS — empty" || echo "REVIEW"
+
+# session-start.sh has v2 support
+grep -q "Apply pending signals v2" WAI-Spoke/hooks/session-start.sh && echo "PASS" || echo "FAIL"
+```
+
+---
+
+## Behavioral Implications
+
+After migration:
+- Patch-flavor signals in `signals/inbound/` auto-apply at session start (no manual triage)
+- score_backlog.py no longer picks up signal-type lugs (they're not in bytype/ anymore)
+- Loop-close: when matching teaching adopted → signal removed from registry + archived to processed/
+- Signal queue stays small and self-clearing
+
+---
+
+**Teaching Package:** teaching-signal-v2-migration-for-spokes-v1
+**safe_to_auto_adopt:** false
+**Impact:** Structural migration — moves signal storage. Requires manual triage step for existing signals. Run verification before committing.

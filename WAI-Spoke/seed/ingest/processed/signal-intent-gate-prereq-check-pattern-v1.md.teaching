@@ -1,0 +1,57 @@
+---
+id: signal-intent-gate-prereq-check-pattern-v1
+title: Teaching prereq checks must be runtime-observable, not source-pattern-based
+family: teaching-prereq-check-pattern
+version: 1
+type: signal-teaching
+safe_to_auto_adopt: true
+impact: 8
+created_at: 2026-04-24
+source_spoke: basher
+source_session: session-20260423-2310
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+## What This Teaching Does
+
+Teaching prerequisite checks should verify runtime-observable state (files written, fields present), not source-code patterns (grep for keywords in implementation files).
+
+**The failure:** Hub auto-check for `signal-intent-gate-hook-directive-pattern-v1` grepped `wai-enter.sh` for intent probe keywords and returned "prerequisite failed". Basher had a full intent probe implemented — the check was a false negative because the implementation used different variable names than the pattern matched.
+
+**The correct check for "intent probe present":**
+```bash
+# Runtime check (correct)
+test -f WAI-Spoke/runtime/session-intent.json && echo PASS || echo FAIL
+
+# Source check (brittle — don't do this)
+grep -q 'session-intent.json' wai-enter.sh && echo PASS || echo FAIL
+```
+
+**Rule:** Prerequisites must be expressible as shell commands that check observable outputs, not implementation internals. This makes checks robust to refactoring and implementation variation across spokes.
+
+**Format for teaching prerequisite blocks:**
+```markdown
+## Prerequisites
+
+| Requirement | Verify with | Blocks |
+|---|---|---|
+| Intent probe writes session-intent.json | `test -f WAI-Spoke/runtime/session-intent.json && echo PASS \|\| echo FAIL` | Intent directive never fires |
+```
+
+## Signal Lug
+
+```json
+{"id":"signal-intent-gate-prereq-check-pattern-v1","type":"signal","title":"Teaching prereq checks must be runtime-observable, not source-pattern-based","impact":8,"source_spoke":"basher","session":"session-20260423-2310"}
+```

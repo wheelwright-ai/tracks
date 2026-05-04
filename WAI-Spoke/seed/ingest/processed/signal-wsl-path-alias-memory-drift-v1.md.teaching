@@ -1,0 +1,73 @@
+# Teaching: WSL Path Aliases Create Silent Duplicate AI Memory Contexts v1
+
+**Family:** wsl
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** wsl-path-alias-memory-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+On WSL, using `/mnt/c/code/myproject` as an alias for `/home/mario/projects/myproject` creates two distinct AI memory contexts for the same project. Claude Code and similar tools key their memory, settings, and session history to the path used at invocation.
+
+**Before (split context):**
+```bash
+# Windows terminal (mounts C:\code\myproject):
+cd /mnt/c/code/myproject && claude
+
+# WSL terminal (uses native Linux path):
+cd /home/mario/projects/myproject && claude
+```
+Result: two separate `.claude/` directories, two memory stores, two session histories — but the same files.
+
+**After (correct — always use canonical WSL path):**
+```bash
+cd /home/mario/projects/myproject && claude
+```
+
+**Why:** Claude Code stores project memory keyed to the working directory path. Different paths = different memory stores, even if they resolve to the same files. You lose continuity, settings, and accumulated context every time you switch between the two paths.
+
+**How to check:**
+```bash
+ls /home/mario/projects/myproject/.claude/ 2>/dev/null && ls /mnt/c/code/myproject/.claude/ 2>/dev/null
+```
+If both exist and both have `memory/` or `settings.json`, you have split context.
+
+---
+
+## Migration
+
+1. Pick the canonical path: always `/home/mario/projects/` (native WSL)
+2. Copy `.claude/` from the alias path to the canonical path if it has newer state: `\cp -r /mnt/c/code/myproject/.claude/ /home/mario/projects/myproject/`
+3. Remove or stop using the alias path for AI tool invocations
+4. Add canonical path to muscle memory: bookmark it in terminal or set a shell alias that resolves to the canonical path
+
+---
+
+## Post-Completion
+
+```bash
+# Confirm only one .claude/ directory exists for the project:
+find /mnt/c/code/myproject /home/mario/projects/myproject -name '.claude' -type d 2>/dev/null
+```
+Should return exactly one path.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

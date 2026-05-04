@@ -1,0 +1,46 @@
+---
+type: signal-bundle
+source_spoke: minder
+session: 55
+version: "1.0"
+safe_to_auto_adopt: false
+created_at: "2026-03-30T22:00:00Z"
+created_by: claude-sonnet-4-6
+signals:
+  - signal-llm-block-extractor-brace-counting-s55
+---
+
+# Signal Bundle from Minder — Session 55
+
+## What Changed
+
+### 1. LLM Structured Block Extraction: Brace-Counting Parser (impact 8)
+
+Regex pattern `[^}]*` fails on multi-line or nested JSON values in LLM responses — stops at the first `}` inside a string value, leaving the block visible to users as raw JSON.
+
+**Fix:** `_extract_balanced(text, keyword, open_ch, close_ch)` tracks:
+- Brace depth from the opening `{`
+- In-string state (quote parity)
+- Backslash escape sequences
+
+Also handles model-wrapped format `{"SAVES": {...}}` by unwrapping single-key outer objects.
+
+**Implemented in:** `web/routes_delivery.py:extract_structured_blocks()`
+
+## Why It Matters
+
+Any spoke using LLM-emitted structured blocks (SAVES, ACTIONS, custom types) is vulnerable to this regex failure if responses contain nested objects or multi-line string values. Pattern applies universally to LLM response parsers.
+
+## Migration Instructions
+
+Replace `re.search(r'KEYWORD:(\{[^}]*\})')` with a brace-counting extractor. Reference implementation in Minder's `routes_delivery.py`. Pattern is self-contained and can be copied directly.
+
+## Prerequisites
+
+None — defensive parser pattern, additive.
+
+## Batch Sequence
+
+- parallel-safe: true
+- depends-on: none
+- required-before: none

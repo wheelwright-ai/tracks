@@ -1,0 +1,40 @@
+# Teaching: Signal PEV Completeness Standard v1
+
+**Family:** framework
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 9
+**Source Session:** session-20260424-1842
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+None — standalone.
+
+## Batch Sequence
+**Batch:** signal-pev-completeness-standard-v1 | **Apply order:** 1 of 1 | **Parallel safe:** yes
+
+---
+
+## What This Teaching Does
+
+Signals must carry PEV completeness (perceive + execute + verify) so any spoke agent can apply the patch without interpretation.
+
+A signal is a patch-now directive, not a note. When a signal lacks PEV, spoke agents must invent the patch steps — leading to inconsistent application across the fleet.
+
+**Required fields for all signal lugs:**
+- `perceive` — what to scan for on the target spoke (file path, config key, or behavior symptom)
+- `execute` — exact patch steps the receiving spoke must apply (array of numbered strings)
+- `verify` — how to confirm the patch was applied correctly
+
+**Schema location:** wai-lug-schema.md → Signal Required Fields section
+
+**Score_backlog behavior:** Signals with full PEV classify as `ready`. Signals without PEV also classify as `ready` (not `needs_refinement`) — they appear in the Teachings & Signals queue, not the refinement queue. The `needs_refinement` bucket is strictly for non-signal lugs missing PEV.
+
+**wai-enter.sh menu:** Item `[1]` is now `Teachings & Signals` showing combined count of pending teachings + open/undelivered signals. Item `[2] Refinement` count excludes signals entirely.
+
+---
+
+## Post-Completion
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

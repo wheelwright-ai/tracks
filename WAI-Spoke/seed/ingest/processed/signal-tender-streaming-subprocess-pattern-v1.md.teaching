@@ -1,0 +1,74 @@
+# Teaching: Long-Running Subprocess Endpoints Must Stream — Synchronous Run Blocks v1
+
+**Family:** tender
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** tender-streaming-subprocess-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Any endpoint or tool that runs a subprocess expected to take more than a few seconds must stream output. Using `subprocess.run()` (blocking, waits for completion) on a long-running process will block the caller thread and eventually time out.
+
+**Before (blocking — times out):**
+```python
+result = subprocess.run(
+    ["python3", "tools/run_nightly.py"],
+    capture_output=True, text=True
+)
+print(result.stdout)
+```
+
+**After (correct — streaming):**
+```python
+process = subprocess.Popen(
+    ["python3", "tools/run_nightly.py"],
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+)
+for line in process.stdout:
+    print(line, end="", flush=True)
+process.wait()
+```
+
+**Why:** A nightly Tender run can take 5–30 minutes. A synchronous `subprocess.run()` blocks the calling process for the entire duration. If invoked via an HTTP endpoint (e.g. a Vercel function), the request times out after 30–60 seconds — the run appears to fail even though it may complete successfully in the background.
+
+**Streaming benefits:**
+- Caller sees real-time progress
+- No timeout on long-running operations
+- Errors surface immediately rather than at completion
+
+---
+
+## Migration
+
+Find all `subprocess.run()` calls in tools that invoke long-running processes:
+```bash
+grep -rn 'subprocess.run' tools/ --include="*.py"
+```
+For each: if the process runs longer than 10 seconds, convert to `Popen` + streaming readline loop.
+
+---
+
+## Post-Completion
+
+Verify the converted endpoint returns a streaming response and does not time out on a 5-minute test run.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

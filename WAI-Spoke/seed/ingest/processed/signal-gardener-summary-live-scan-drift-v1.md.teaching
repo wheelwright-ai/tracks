@@ -1,0 +1,68 @@
+# Teaching: Fleet Orchestration Must Prefer Fresh Verification Over Cached Health Summaries v1
+
+**Family:** fleet-ops
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** gardener-live-scan-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+When the Gardener (or any fleet orchestrator) uses stored health summaries to route or prioritize work, those summaries can overstate health after subsequent drift. Routing decisions and prioritization must prefer a fresh `verify_health` scan over a cached all-green claim.
+
+**Before (cached summary drift):**
+```python
+# Gardener reads last summary
+summary = json.load(open("spoke/last_health_summary.json"))
+if summary["status"] == "healthy":
+    skip_spoke()  # ← spoke may have drifted since summary was written
+```
+
+**After (correct — live scan before routing):**
+```python
+# Gardener re-verifies before skipping
+live_status = verify_health(spoke_path)
+if live_status == "healthy":
+    skip_spoke()
+```
+
+**Why:** A nightly tender run marks a spoke as green. Between runs, the spoke's state changes (new lugs open, hooks break, stale in_progress accumulates). The Gardener's summary still says "healthy" — and routes around it. This is silent misdirection, not a crash.
+
+**Rule:** Summaries are for display and historical audit. Routing decisions require live verification. When in doubt, scan.
+
+**Exception:** Batch operations across many spokes where re-scanning is cost-prohibitive may use cached summaries with a staleness threshold — but must log the staleness prominently.
+
+---
+
+## Migration
+
+In any Gardener or orchestrator code that reads a stored health summary to skip/deprioritize a spoke:
+1. Add a staleness check: if summary is older than 1 nightly cycle (24h), re-verify
+2. Log when a cached summary is used for a routing decision
+3. Prefer `verify_health()` calls over summary reads in the critical dispatch path
+
+---
+
+## Post-Completion
+
+Review Gardener dispatch logic — confirm `verify_health()` is called before any spoke is skipped based on a stored summary.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

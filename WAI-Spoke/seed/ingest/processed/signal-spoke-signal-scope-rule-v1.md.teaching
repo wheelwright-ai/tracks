@@ -1,0 +1,63 @@
+# Teaching: Spokes Must Only Emit Hub Signals for Cross-Spoke-Generalizable Patterns v1
+
+**Family:** signal-lifecycle
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** spoke-signal-scope-rule-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+A spoke should only emit a hub signal when the learning applies to all (or most) spokes in the fleet. Spoke-local bugs, project-specific fixes, and one-off decisions must not be routed to the hub.
+
+**Signal worthy of hub routing — YES:**
+- A hook pattern that was broken across 16/18 spokes (env var path issue)
+- A test authoring anti-pattern that any spoke could repeat
+- A WAI protocol correction (closeout must write terminal entry)
+
+**NOT worthy of hub routing — NO:**
+- "I fixed a bug in my Django model"
+- "I changed a config value for my specific stack"
+- "The realizer in my spoke had an inline repair opportunity"
+
+**Decision rule:** Before routing a signal to the hub, ask: *"Would this teaching make any other spoke safer or more correct?"* If yes → hub signal. If no → local lug or discard.
+
+**Why:** The hub signal queue became inflated (31+ items) partly because spoke-local decisions were signaled as if they were fleet patterns. Excessive hub signals drown out the high-impact ones and impose triage overhead every session.
+
+**How to check:**
+When writing a signal with `routed_to: HUB`, verify:
+1. The pattern is not project-specific (no framework/library names specific to this project)
+2. At least 2+ other spokes could benefit from this teaching
+3. The teaching is actionable without spoke-specific context
+
+---
+
+## Migration
+
+Behavioral norm — no file changes needed. Add to signal capture checklist in `wai-signal-capture.md`.
+
+---
+
+## Post-Completion
+
+Review the last 5 signals routed to hub — confirm each passes the cross-spoke-generalizability test.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

@@ -254,7 +254,6 @@ Agent:
 
 ## Related Commands
 
-- `/wai-green-light` - Resume from existing track in WAI-Spoke environment
 - `/wai-closeout` - Finalize session (includes automatic track writing if WAI-Spoke/ exists)
 
 ---

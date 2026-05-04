@@ -1,0 +1,71 @@
+---
+id: signal-tender-glm5-upgrade-write-guards-v1
+title: "Tender: GLM-5 upgrade + write_file loop guards"
+version: 1
+safe_to_auto_adopt: true
+target_files:
+  - scripts/tender.py
+---
+
+## What This Teaching Does
+
+Two improvements discovered during S84 of Minder:
+
+### 1. GLM-5 is available on z.ai and dramatically better for tender
+
+`glm-5` is available at `https://api.z.ai/api/coding/paas/v4/chat/completions`.
+It eliminates the write_file argument-drop loops that plagued glm-4.5/glm-4.5-air.
+GLM-5 uses bash_run strategies naturally instead of looping on write_file.
+
+Update in scripts/tender.py:
+```python
+MODEL_TEACHING = "glm-5"
+MODEL_LUG = "glm-5"
+```
+
+### 2. write_file loop guard
+
+When GLM models repeatedly call write_file with missing/empty args, inject a correction
+message after 3 consecutive failures to break the loop:
+
+```python
+consecutive_write_failures = 0
+# In tool dispatch loop:
+if fn["name"] == "write_file" and result.startswith("ERROR:"):
+    consecutive_write_failures += 1
+    if consecutive_write_failures >= 3:
+        result = ("CORRECTION: write_file has failed with missing arguments "
+                  f"{consecutive_write_failures} times. Required: "
+                  '{"path": "/absolute/path", "content": "full text"}. '
+                  "Both fields are mandatory strings.")
+        consecutive_write_failures = 0
+else:
+    consecutive_write_failures = 0
+```
+
+### 3. Empty-content guard
+
+```python
+elif name == "write_file":
+    content = args["content"]
+    if not content:
+        return "ERROR: write_file called with empty content — refusing to overwrite existing file with 0 bytes."
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(content)
+    return f"OK: wrote {len(content)} bytes to {p}"
+```
+
+## Impact
+
+GLM-5: framework spoke went from 60 turns (max, no teachings applied) to 21 turns (2 teachings applied + git push). 15/15 fleet spokes taught successfully.
+
+## Batch Sequence
+
+1. Update MODEL_TEACHING and MODEL_LUG to "glm-5" in scripts/tender.py
+2. Add consecutive_write_failures counter and correction injection in tool_loop()
+3. Add empty-content guard in execute_tool()
+4. Mark processed
+
+## Prerequisites
+
+None.

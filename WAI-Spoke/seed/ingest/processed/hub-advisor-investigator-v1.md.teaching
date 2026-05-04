@@ -1,0 +1,342 @@
+# Teaching: Hub Advisor — Investigator (Knowledge Department)
+
+**Type:** Protocol Enhancement
+**Version:** 1.0.0
+**Created:** 2026-04-28
+**safe_to_auto_adopt:** true
+**Affects:** hub/WAI-Hub/advisors/investigator/, hub/WAI-Hub/advisors/registry.json, hub/WAI-Hub/advisors/departments.json
+**Supersedes:** nothing
+**weight:** 25
+**fingerprint:** 119
+
+---
+
+## Prerequisites
+
+**Standalone (no dependencies):**
+None — requires adaptive-advisor department system (Phase 1-4) to be complete. Verify with:
+
+```bash
+ls hub/WAI-Hub/advisor-templates/registry.json && echo "PASS — template registry exists" || echo "FAIL — adaptive-advisor epic not complete"
+```
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Adds the **Investigator** to the hub's advisor fleet as a Knowledge department advisor. The Investigator monitors the external AI ecosystem (model deprecations, provider pricing shifts, new tooling, security advisories) and surfaces exposure risks and high-value opportunities. This fills the gap in the hub advisor fleet: all current advisors (Octo, Gardener, Spinner, Cartologist, Quartermaster) are internally focused; none monitor the external environment.
+
+---
+
+## Why This Matters
+
+Without the Investigator, the fleet has no visibility into external AI ecosystem shifts — model deprecations, pricing changes, new tooling — until they become a crisis. The Investigator provides proactive intelligence so the hub can surface risks and opportunities before they become blockers.
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Create Investigator directory
+
+```bash
+mkdir -p hub/WAI-Hub/advisors/investigator/
+```
+
+### Step 2 — Create charter.md
+
+Create `hub/WAI-Hub/advisors/investigator/charter.md`:
+
+```markdown
+# Investigator — Charter
+
+**Department:** Knowledge
+**Role:** External Environment Monitor
+**Model:** Sonnet
+**Schedule:** Weekly
+
+## Mission
+
+Evaluate the external AI ecosystem. Flag exposure risks and surface high-value opportunities before they become blockers.
+
+## Scope (IN)
+
+- Model deprecation notices (provider announcements, timeline)
+- Provider pricing shifts that affect fleet cost baseline
+- New tooling or frameworks relevant to WAI/Wheelwright
+- Security advisories affecting models or APIs used by fleet
+- Significant capability upgrades that spokes should know about
+
+## Scope (OUT)
+
+- Internal fleet metrics (→ Quartermaster owns that)
+- Per-spoke health or lug scoring (→ Gardener/Expediter own that)
+- Implementation decisions or architecture choices (→ Archie owns that)
+- Model routing within sessions (→ Navigator owns that)
+
+## Output Format
+
+Each Investigator run produces a structured report:
+
+```json
+{
+  "run_at": "<ISO>",
+  "period_covered": "<YYYY-MM-DD to YYYY-MM-DD>",
+  "exposure_risks": [
+    {
+      "risk_id": "risk-<slug>",
+      "title": "<what the risk is>",
+      "severity": "HIGH | MEDIUM | LOW",
+      "source": "<where this was detected>",
+      "affected": ["<model or tool>"],
+      "recommended_action": "<what to do>"
+    }
+  ],
+  "opportunities": [
+    {
+      "opportunity_id": "opp-<slug>",
+      "title": "<what the opportunity is>",
+      "value": "<why it matters to the fleet>",
+      "recommended_action": "<what to consider>"
+    }
+  ],
+  "recommended_actions": ["<top 3 fleet-level actions from this scan>"]
+}
+```
+
+## Relationship to Other Advisors
+
+- **Quartermaster** — internal resource tracking; Investigator is external-only
+- **Navigator** — routes model selection within sessions; Investigator flags when a model in use is being deprecated fleet-wide
+- **Gardener** — fleet health; Investigator surfaces risks to escalate as signals
+```
+
+### Step 3 — Create context_prompt.md
+
+Create `hub/WAI-Hub/advisors/investigator/context_prompt.md`:
+
+```markdown
+You are the **Investigator**, a Knowledge department advisor for the Wheelwright hub.
+
+Your job: scan for external AI ecosystem shifts that expose the fleet to risk or create actionable opportunities.
+
+## What to look for
+
+**Exposure risks (report all you find):**
+- Model deprecation or retirement notices (e.g., API versions going away)
+- Provider pricing changes that affect fleet cost baseline
+- Security vulnerabilities in models or APIs used by fleet spokes
+- Breaking API changes or endpoint deprecations
+- Significant policy changes from providers (usage limits, TOS)
+
+**Opportunities (report top 3-5):**
+- New model capabilities that would improve agent quality or cost
+- New tooling that integrates well with the Wheelwright/WAI stack
+- Provider deals or pricing improvements worth evaluating
+
+## Output format
+
+Return a JSON object matching the charter output format:
+- `exposure_risks[]` — each with risk_id, title, severity, source, affected, recommended_action
+- `opportunities[]` — each with opportunity_id, title, value, recommended_action
+- `recommended_actions[]` — top 3 fleet-level actions
+
+## Scope boundary
+
+You are external-only. Do NOT analyze:
+- Internal lug counts, spoke health, or fleet metrics (Quartermaster's job)
+- Implementation decisions or code quality (Archie's job)
+- Session-level model routing (Navigator's job)
+
+## Tone
+
+Be specific and actionable. Each risk should have a clear recommended_action. Each opportunity should say WHY it matters to this fleet specifically (WAI framework, Python/Bash tooling, multi-spoke orchestration).
+```
+
+### Step 4 — Create scan_state.json
+
+Create `hub/WAI-Hub/advisors/investigator/scan_state.json`:
+
+```json
+{
+  "advisor_id": "investigator",
+  "advisor_name": "Investigator — External Environment Monitor",
+  "department": "knowledge",
+  "version": "1.0.0",
+  "status": "stub",
+  "preferred_model_class": "sonnet",
+  "run_schedule": "weekly",
+  "initialized_at": null,
+  "last_run_at": null,
+  "last_run_result": null,
+  "total_runs": 0,
+  "last_report_path": null
+}
+```
+
+### Step 5 — Create or update advisors/registry.json
+
+If `hub/WAI-Hub/advisors/registry.json` does not exist, create it. If it exists, append the Investigator entry.
+
+**Full file if creating fresh:**
+```json
+[
+  {
+    "advisor_id": "investigator",
+    "advisor_name": "Investigator — External Environment Monitor",
+    "department": "knowledge",
+    "role_type": "specialist",
+    "mission": "Monitor the external AI ecosystem for exposure risks and opportunities. Scope: provider changes, model deprecations, pricing shifts, new tooling, security advisories.",
+    "preferred_model_class": "sonnet",
+    "run_schedule": "weekly",
+    "charter_path": "advisors/investigator/charter.md",
+    "context_prompt_path": "advisors/investigator/context_prompt.md",
+    "scan_state_path": "advisors/investigator/scan_state.json"
+  }
+]
+```
+
+**If appending to existing list:**
+```python
+import json
+path = "hub/WAI-Hub/advisors/registry.json"
+registry = json.load(open(path))
+if not any(a["advisor_id"] == "investigator" for a in registry):
+    registry.append({
+        "advisor_id": "investigator",
+        "advisor_name": "Investigator — External Environment Monitor",
+        "department": "knowledge",
+        "role_type": "specialist",
+        "mission": "Monitor the external AI ecosystem for exposure risks and opportunities.",
+        "preferred_model_class": "sonnet",
+        "run_schedule": "weekly",
+        "charter_path": "advisors/investigator/charter.md",
+        "context_prompt_path": "advisors/investigator/context_prompt.md",
+        "scan_state_path": "advisors/investigator/scan_state.json"
+    })
+    with open(path, "w") as f:
+        json.dump(registry, f, indent=2)
+print("registry updated")
+```
+
+### Step 6 — Create or update departments.json
+
+If `hub/WAI-Hub/advisors/departments.json` does not exist, create it. If it exists, add/update the Knowledge department.
+
+**Full file if creating fresh:**
+```json
+{
+  "departments": [
+    {
+      "department_id": "knowledge",
+      "department_name": "Knowledge",
+      "mission": "Capture, synthesize, and surface intelligence — both internal (historian, librarian) and external (investigator).",
+      "advisor_ids": ["investigator"]
+    }
+  ]
+}
+```
+
+**If updating existing:**
+```python
+import json
+path = "hub/WAI-Hub/advisors/departments.json"
+depts = json.load(open(path))
+knowledge = next((d for d in depts["departments"] if d["department_id"] == "knowledge"), None)
+if knowledge is None:
+    depts["departments"].append({
+        "department_id": "knowledge",
+        "department_name": "Knowledge",
+        "mission": "Capture, synthesize, and surface intelligence.",
+        "advisor_ids": ["investigator"]
+    })
+elif "investigator" not in knowledge["advisor_ids"]:
+    knowledge["advisor_ids"].append("investigator")
+with open(path, "w") as f:
+    json.dump(depts, f, indent=2)
+print("departments updated")
+```
+
+### Step 7 — Move teaching to processed
+
+```bash
+mkdir -p WAI-Spoke/seed/ingest/processed/
+mv WAI-Spoke/seed/ingest/hub-advisor-investigator-v1.md.teaching WAI-Spoke/seed/ingest/processed/
+```
+
+---
+
+## Context Doc Patch
+
+```json
+[
+  {
+    "section": "Hub Advisor Fleet",
+    "action": "add",
+    "content": "**Investigator** (Knowledge department): External environment monitor. Scans for AI ecosystem shifts — model deprecations, provider pricing changes, new tooling, security advisories. Emits exposure_risks and opportunities. Run schedule: weekly. Model: sonnet."
+  }
+]
+```
+
+---
+
+## Behavioral Implications
+
+After this teaching is applied:
+- The hub advisor fleet has a dedicated external intelligence advisor
+- Investigator scans produce structured risk and opportunity reports
+- Gardener or Octo can escalate Investigator risk findings as hub signals
+- Navigator can consult Investigator output when advising on model deprecations
+
+---
+
+## Verification
+
+```bash
+# Directory exists
+ls hub/WAI-Hub/advisors/investigator/ && echo "PASS — directory exists" || echo "FAIL"
+
+# Required files exist
+for f in charter.md context_prompt.md scan_state.json; do
+  [ -f "hub/WAI-Hub/advisors/investigator/$f" ] && echo "PASS — $f" || echo "FAIL — $f missing"
+done
+
+# Registry entry exists
+python3 -c "
+import json
+r = json.load(open('hub/WAI-Hub/advisors/registry.json'))
+assert any(a['advisor_id'] == 'investigator' for a in r), 'investigator not in registry'
+print('PASS — investigator in registry')
+"
+
+# Department entry exists
+python3 -c "
+import json
+d = json.load(open('hub/WAI-Hub/advisors/departments.json'))
+knowledge = next((x for x in d['departments'] if x['department_id'] == 'knowledge'), None)
+assert knowledge and 'investigator' in knowledge['advisor_ids']
+print('PASS — investigator in knowledge department')
+"
+```
+
+---
+
+## Backward Compatibility
+
+- All existing hub advisors are unaffected
+- No schema changes to existing advisor files
+- registry.json and departments.json are new files (no prior state to preserve)
+
+---
+
+**Teaching Package:** hub-advisor-investigator-v1
+**safe_to_auto_adopt:** true
+**Impact:** Adds new hub Knowledge department advisor. No changes to existing advisors.

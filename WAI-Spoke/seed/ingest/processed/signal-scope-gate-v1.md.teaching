@@ -1,0 +1,36 @@
+# Teaching: Signal Scope Gate v1
+
+**Family:** framework
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260424-1842
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+None — standalone.
+
+## Batch Sequence
+**Batch:** signal-scope-gate-v1 | **Apply order:** 1 of 1 | **Parallel safe:** yes
+
+---
+
+## What This Teaching Does
+
+Before emitting a hub signal, apply this scope test: **Does this learning apply to at least one other spoke besides the originator?**
+
+- **Yes** → emit hub signal (cross-spoke generalization)
+- **No** → write a local lug or memory instead (local pattern = local record only)
+
+Exception: if a shared framework tool needs a fix that affects all spokes using that tool, emit a hub task lug (not a signal).
+
+This gate was established after sessions where spoke-local patterns (UX choices, internal advisor ownership, single-spoke architecture decisions) were broadcast as hub signals with no value to other spokes.
+
+**Schema location:** wai-lug-schema.md → Signal Required Fields → Signal Scope Gate section
+
+---
+
+## Post-Completion
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

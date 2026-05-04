@@ -1,0 +1,87 @@
+# Teaching: Assessor Model Intelligence Wakeup Block — Step 4b
+
+**Type:** Protocol Enhancement
+**Version:** 1.0.0
+**Created:** 2026-04-30
+**safe_to_auto_adopt:** true
+**Affects:** templates/commands/wai.md (Step 4b), templates/spoke/skills/wai/wai.md
+**Supersedes:** nothing
+**weight:** 15
+**fingerprint:** ami
+
+---
+
+## Prerequisites
+
+**Conditional (only applies if spoke has assessor-matrix.json):**
+```bash
+ls WAI-Spoke/assessor-matrix.json 2>/dev/null && echo "APPLIES" || echo "SKIP — no assessor matrix yet (block suppresses silently)"
+```
+
+## Batch Sequence
+
+**Batch:** assessor-bootstrap-v1
+**Apply order:** 2 of 2
+**Depends on:** teaching-assessor-bootstrap-v1 (hub/advisors/assessor/ must exist)
+**Parallel safe:** no
+
+---
+
+## What This Teaching Provides
+
+Adds a Model Intelligence block (Step 4b) to the WAI wakeup protocol. The block reads `WAI-Spoke/assessor-matrix.json` and displays the recommended model for the top work queue item. Suppressed entirely if the file does not exist — zero friction for spokes without Assessor data.
+
+---
+
+## The Protocol Addition
+
+After Step 4 (Work Queue Interactive Mode), add Step 4b:
+
+```
+Model Intelligence:
+  Recommended: {model_id} ({provider})
+  Rationale: {rationale}
+  Fleet rework rate: {rework_rate}
+  ⚠ Matrix stale ({age}d)  ← only if > 30 days old
+  New models: {list}       ← only if new_models[] non-empty
+  Deprecated: {list}       ← only if deprecated[] non-empty
+```
+
+Suppression rules:
+- If `WAI-Spoke/assessor-matrix.json` does not exist: skip entirely (silent)
+- Each line renders independently: if field is null/unavailable, omit that line
+- Never print `null`, `[]`, or `{}`
+
+---
+
+## How to Apply
+
+### Step 1 — Add Step 4b to wai.md
+
+After the Work Queue block (the `[P] Parallel dispatch:` line), insert the Model Intelligence block. See `templates/commands/wai.md` Step 4b for the exact code block.
+
+### Step 2 — Mirror to spoke copy
+
+Apply the same block to `templates/spoke/skills/wai/wai.md` after the `[A]uto-chain:` line.
+
+### Step 3 — Mark as adopted
+
+```bash
+cp /path/to/hub/teachings_repo/framework/current/teaching-assessor-model-intelligence-wakeup-v1.md.teaching \
+   WAI-Spoke/seed/ingest/processed/teaching-assessor-model-intelligence-wakeup-v1.md.teaching
+```
+
+---
+
+## Verification
+
+```bash
+grep -n "Model Intelligence\|assessor-matrix" templates/commands/wai.md | head -3
+# Should show: "Model Intelligence" heading and "assessor-matrix.json" path
+```
+
+---
+
+**Teaching Package:** teaching-assessor-model-intelligence-wakeup-v1
+**safe_to_auto_adopt:** true
+**Impact:** Additive — adds optional display block to wakeup. No behavior change when assessor-matrix.json is absent.

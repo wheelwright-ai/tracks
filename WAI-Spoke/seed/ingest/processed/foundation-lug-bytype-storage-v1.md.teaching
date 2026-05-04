@@ -1,0 +1,56 @@
+---
+id: foundation-lug-bytype-storage-v1
+title: Foundation Lug Storage — bytype/foundation/ (not WAI-Lugs-active.jsonl)
+version: 1
+type: protocol-correction
+safe_to_auto_adopt: true
+created_at: 2026-04-22
+source_session: session-20260421-1607
+---
+
+## Problem
+
+`wai-foundation.md` previously referenced `WAI-Spoke/lugs/active/WAI-Lugs-active.jsonl` for
+foundation lug storage. That path no longer exists — the system migrated to `bytype/` in S51.
+This caused the foundation skill to fail silently when checking for or writing foundation lugs.
+
+## Correction
+
+Foundation lugs live at:
+
+```
+WAI-Spoke/lugs/bytype/foundation/{open,in_progress,completed}/{id}.json
+```
+
+**Read (find current foundation):**
+```bash
+ls WAI-Spoke/lugs/bytype/foundation/completed/*.json 2>/dev/null | sort | tail -1
+```
+
+**Write (new foundation):**
+```
+WAI-Spoke/lugs/bytype/foundation/completed/lug-fnd-{8hex}.json
+```
+
+The `bytype/foundation/` directory must exist. Create with `.gitkeep` files in
+`open/`, `in_progress/`, `completed/` if missing.
+
+## Prerequisites
+
+- Spoke uses bytype lug storage (all spokes post-S51)
+- `WAI-Spoke/lugs/bytype/` directory exists
+
+## Batch Sequence
+
+1. Check `WAI-Spoke/lugs/bytype/foundation/` exists — create if missing
+2. Check `WAI-Spoke/lugs/bytype/other/completed/` for any `lug-fnd-*.json` (migration artifact)
+3. If found: move to `bytype/foundation/completed/`, backfill fields from `WAI-State._project_foundation`
+4. Verify `wai-foundation.md` storage reference says `bytype/foundation/` — update if not
+
+## Verification
+
+```bash
+ls WAI-Spoke/lugs/bytype/foundation/
+# Should show: completed/  in_progress/  open/
+python3 -c "import json; l=json.load(open('WAI-Spoke/lugs/bytype/foundation/completed/lug-fnd-*.json')); print(l['identity']['name'])"
+```

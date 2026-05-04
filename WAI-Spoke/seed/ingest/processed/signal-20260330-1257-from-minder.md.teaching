@@ -1,0 +1,56 @@
+---
+type: signal-bundle
+source_spoke: minder
+session: 53
+version: "1.0"
+safe_to_auto_adopt: false
+created_at: "2026-03-30T12:57:00Z"
+created_by: claude-opus-4-6
+signals:
+  - signal-uptime-observability-pattern-s53
+  - signal-telegram-ideas-only-architecture-s53
+  - signal-orko-progressive-saves-s53
+  - signal-gemini-json-multiline-repair-s53
+---
+
+# Signal Bundle from Minder — Session 53
+
+## What Changed
+
+Four signals from Minder Session 53:
+
+### 1. 3-Tier Uptime Observability (impact 8)
+For services used as remote capture tools: (1) cron watchdog on PID files for auto-restart every 5min, (2) /health HTTP endpoint reading PID + self-ping file, (3) in-process self-ping via bot.get_me() every 15min writing to logs/self_ping.json. Pattern proven after Minder bot was silently dead 24h+.
+
+### 2. Telegram = Ideas Only (impact 8)
+Minder's Telegram bot role simplified to ideas-only capture. Tracks move to wheelwright-ai-website MCP server. Minder stays as standalone spoke with direct wheel access — not absorbed into hub.
+
+### 3. Orko Progressive SAVES (impact 8)
+LLM-powered conversational assistants must emit SAVES as fields are learned, not waiting for explicit user approval. Otherwise natural conversations produce empty records on create. Also: preserve original user prompt (source_prompt) as appendix when substantially longer than synthesis.
+
+### 4. Gemini Multi-Line JSON Repair (impact 8)
+When instructed to produce richer output, Gemini produces multi-line string values breaking json.loads(). Fix: track quote parity across lines — when a line opens a string without closing it, collapse subsequent lines with \n escapes. Pattern applies to any LLM JSON parsing with longer field values.
+
+## Why It Matters
+
+- Pattern 1 prevents silent service death across any spoke running persistent services
+- Pattern 2 shapes the framework's track delivery architecture (MCP at website, not per-spoke)
+- Pattern 3 affects any spoke using LLM-powered intake forms
+- Pattern 4 is defensive JSON parsing for any Gemini integration
+
+## Migration Instructions
+
+These are signals (learnings), not code changes. Spokes should adopt patterns as relevant:
+- Spokes with persistent services: consider adopting Pattern 1
+- Spokes with LLM intake: adopt Patterns 3 and 4
+- Pattern 2 is an architecture decision — no action until wheelwright-ai-website is scoped
+
+## Prerequisites
+
+None — these are signals for awareness and selective adoption.
+
+## Batch Sequence
+
+- parallel-safe: true
+- depends-on: none
+- required-before: none

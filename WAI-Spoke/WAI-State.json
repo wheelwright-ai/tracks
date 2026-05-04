@@ -56,7 +56,7 @@
         "Authentication, database, any runtime dependencies"
       ],
       "constraints": [
-        "Pure documentation — no package.json, no node_modules, no build step",
+        "Pure documentation \u2014 no package.json, no node_modules, no build step",
         "All wheelwright.ai and framework repo links must be present",
         "Prompts must be self-contained (raw URL usable as LLM instruction)",
         "Samples must be realistic enough to demonstrate portability"
@@ -121,12 +121,12 @@
     ]
   },
   "_session_state": {
-    "last_session_id": "session-20260406-1206",
-    "last_modified_by": "Gemini",
-    "last_modified_at": "2026-04-27T10:00:00Z",
+    "last_session_id": "session-20260504-1237",
+    "last_modified_by": "claude-sonnet-4-6",
+    "last_modified_at": "2026-05-04T19:52:11.691322+00:00",
     "requires_review": false,
     "review_reason": null,
-    "session_count": 2,
+    "session_count": 3,
     "current_session": {
       "id": "trk-session-20260319-0731",
       "started_at": "2026-03-19T07:31:07Z",
@@ -141,7 +141,7 @@
         "last_timestamp": "2026-03-17T01:40:00Z"
       }
     },
-    "last_closeout": "2026-04-06T12:20:00Z",
+    "last_closeout": "2026-05-04T19:52:11.691322+00:00",
     "protocol_completed": false,
     "current_ai": "gpt-5.4",
     "ai_id": "openai/gpt-5.4",
@@ -162,8 +162,8 @@
       "wai-rules"
     ],
     "protocol_last_run": "2026-03-19T07:31:07Z",
-    "track_path": "WAI-Spoke/sessions/session-20260406-1206/track.jsonl",
-    "next_session_recommendation": "Run improvement pass on prompt variants when real agent failure modes are available. 3 signals pending hub delivery."
+    "track_path": "WAI-Spoke/sessions/session-20260504-1237/track.jsonl",
+    "next_session_recommendation": "Continue epic-station-master-lines-v1: refine lug-station-schema-v1 (needs_refinement) then unblock lug-station-orchestrator-v1. Also: 3 signals still pending hub delivery (check signals/processed/ for undelivered). Run /wai-tool-advisor \u2014 1 proposal pending review."
   },
   "_auto_implementation": {
     "enabled": false,
@@ -178,7 +178,7 @@
   },
   "analytics": {
     "sessions": {
-      "total_count": 0,
+      "total_count": 1,
       "total_turns": 0,
       "total_duration_seconds": 0,
       "avg_duration_seconds": 0
@@ -212,12 +212,12 @@
   "wheel": {
     "name": "Tracks",
     "abbrev": "TRK",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "type": "Documentation and Prompt Library",
     "description": "Portable conversation records and prompt library for WAI Track generation",
     "repository": "https://github.com/wheelwright-ai/tracks",
     "created": "2026-03-17",
-    "last_updated": "2026-04-27",
+    "last_updated": "2026-05-04",
     "status": "active",
     "workspace": {
       "ide_cmd": null,
@@ -275,7 +275,7 @@
       "Shipit and release-oriented teachings assume delivery surfaces this documentation-and-prompts repo does not currently own"
     ],
     "insights": [
-      "Tracks is a documentation and prompt library — no app code, no build system",
+      "Tracks is a documentation and prompt library \u2014 no app code, no build system",
       "Three prompt variants (closing-request, prep-and-request, active-collection) are the core deliverable",
       "Portability framing: frees intellectual product trapped in the LLM chat",
       "WAI-Spoke state should defer to README/spec/prompts/samples when hub teachings or session metadata drift",
@@ -292,7 +292,7 @@
         "endpoint": "https://api.z.ai/api/coding/paas/v4/chat/completions",
         "model_teaching_adoption": "glm-4.5-air",
         "model_lug_execution": "glm-4.5",
-        "auth": "Bearer $ZAI_API_KEY (from .env.dev — never committed)"
+        "auth": "Bearer $ZAI_API_KEY (from .env.dev \u2014 never committed)"
       }
     }
   },
@@ -352,7 +352,7 @@
         "type": "task",
         "status": "gated",
         "readiness": "blocked",
-        "title": "Station Master Orchestrator — ingest() entry point wiring all station modules",
+        "title": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
         "phase": null,
         "tagged_next": false
       },
@@ -362,7 +362,7 @@
         "type": "task",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Station Schema — lines, lineEvents, extend sessions + trackArtifacts",
+        "title": "Station Schema \u2014 lines, lineEvents, extend sessions + trackArtifacts",
         "phase": null,
         "tagged_next": false
       },
@@ -372,7 +372,7 @@
         "type": "signal",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Reference: Advisor system v2 — 9 spoke advisors + 5 hub advisors, hierarchy and ",
+        "title": "Reference: Advisor system v2 \u2014 9 spoke advisors + 5 hub advisors, hierarchy and ",
         "phase": null,
         "tagged_next": false
       },
@@ -382,7 +382,7 @@
         "type": "signal",
         "status": "ready",
         "readiness": "needs_refinement",
-        "title": "Anti-pattern: blocked_by refs not verified — check dependency exists before trea",
+        "title": "Anti-pattern: blocked_by refs not verified \u2014 check dependency exists before trea",
         "phase": null,
         "tagged_next": false
       },

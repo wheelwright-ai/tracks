@@ -1,0 +1,160 @@
+# Teaching: External Services Integration Pattern — CLI, Schema-as-Code, Backup Before Work
+
+**Type:** Protocol Enhancement
+**Version:** 1.0.0
+**Created:** 2026-04-28
+**safe_to_auto_adopt:** true
+**Affects:** agent behavior when encountering new external service dependencies
+**Supersedes:** nothing
+**weight:** 18
+**fingerprint:** esp
+
+---
+
+## Prerequisites
+
+**Standalone (no dependencies):**
+None — behavioral teaching, applies to all spokes on adoption.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Establishes the proactive posture for any agent encountering an external service dependency (database, GitHub, Vercel, Appwrite, Redis, etc.): install the management CLI, pull schema-as-code, and build backup/restore before proceeding with work. Discovered when nurturator S9 found no Appwrite CLI, no schema versioning, and no backup before performing a migration.
+
+---
+
+## Why This Matters
+
+Without this pattern, agents proceed with service integration in a fragile state: no CLI for reliable operations, no version-controlled schema representation, and no backup if a write operation goes wrong. The user should never need to prompt an agent to set up the management interfaces for a service the agent is already using.
+
+---
+
+## The Pattern
+
+**Trigger:** Any session where the agent writes code that depends on an external service it has not previously inventoried, OR encounters a service-related error.
+
+**Protocol:**
+1. **Inventory** — scan env vars and config files for external service indicators
+2. **CLI check** — verify management CLI/SDK is installed; propose and install if absent
+3. **Schema-as-code** — pull schema representation if service supports it; commit to repo
+4. **Backup first** — generate a backup script before any write operations proceed
+5. **Restore runbook** — document how to restore so it exists before it is needed
+6. **Flag gaps** — services with no backup path are a stewardship risk; surface in session
+
+---
+
+## Service-Specific Patterns
+
+| Service | CLI | Schema pull | Backup |
+|---------|-----|------------|--------|
+| Appwrite | `appwrite` CLI | `appwrite client pull tables` → `appwrite.config.json` committed | `node-appwrite` pagination of all collections to JSON |
+| GitHub | `gh` CLI | Branch protection rules + PR template committed | N/A (GitHub is the backup) |
+| Vercel | `vercel` CLI | Preview deploy on every PR; rollback command documented | N/A (Vercel has rollback) |
+| Redis | `redis-cli` | N/A | RDB snapshot schedule confirmed; restore tested in staging |
+| Supabase | `supabase` CLI | `supabase db dump` | Periodic dump to version-controlled file |
+| PlanetScale | `pscale` CLI | Schema migrations tracked | `pscale database dump` |
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Inventory on session start
+
+When starting a session that involves an external service:
+
+```bash
+# Scan env file for service indicators
+grep -E "(APPWRITE|SUPABASE|REDIS|VERCEL|GITHUB|DATABASE)" .env 2>/dev/null | grep -v "^#"
+```
+
+### Step 2 — CLI check and install
+
+```bash
+# Example: Appwrite
+command -v appwrite >/dev/null 2>&1 && echo "PASS — appwrite CLI installed" || echo "MISSING — install: npm install -g appwrite"
+
+# Example: GitHub
+command -v gh >/dev/null 2>&1 && echo "PASS — gh CLI installed" || echo "MISSING — install: sudo apt install gh"
+```
+
+### Step 3 — Schema pull (if applicable)
+
+```bash
+# Appwrite
+appwrite client pull tables  # produces appwrite.config.json
+git add appwrite.config.json && git commit -m "chore: pull Appwrite schema as code"
+
+# Supabase
+supabase db dump -f schema.sql
+git add schema.sql && git commit -m "chore: pull Supabase schema"
+```
+
+### Step 4 — Backup script
+
+Before any write operation, verify a backup script exists:
+
+```bash
+ls tools/backup-*.sh 2>/dev/null || echo "NO BACKUP — generate one before proceeding"
+```
+
+If absent, generate and commit:
+```bash
+cat > tools/backup-appwrite.sh << 'EOF'
+#!/bin/bash
+# Appwrite data export — run before migrations
+node tools/appwrite-export.js > backups/appwrite-$(date +%Y%m%d-%H%M%S).json
+EOF
+chmod +x tools/backup-appwrite.sh
+git add tools/backup-appwrite.sh && git commit -m "chore: add Appwrite backup script"
+```
+
+### Step 5 — Mark as adopted
+
+```bash
+cp /path/to/hub/teachings_repo/framework/current/teaching-external-services-integration-pattern-v1.md.teaching \
+   WAI-Spoke/seed/ingest/processed/teaching-external-services-integration-pattern-v1.md.teaching
+```
+
+---
+
+## Verification
+
+```bash
+# CLI installed for known services
+for service in appwrite gh vercel; do
+  command -v $service >/dev/null 2>&1 && echo "PASS — $service CLI" || echo "MISSING — $service CLI"
+done
+
+# Backup script exists
+ls tools/backup-*.sh 2>/dev/null && echo "PASS — backup script(s) exist" || echo "REVIEW — no backup scripts"
+
+# Schema versioned
+ls appwrite.config.json schema.sql supabase/schema.sql 2>/dev/null && echo "PASS — schema committed" || echo "N/A or MISSING"
+```
+
+---
+
+## Behavioral Implications
+
+After adoption:
+- Agents inventory external services at session start, not reactively
+- CLI installation is proposed before any service operation
+- No migration or write operation proceeds without a backup script in place
+- Schema-as-code is committed so changes are reviewable in git history
+- Stewardship flag surfaces in session if backup gap is detected
+
+---
+
+**Teaching Package:** teaching-external-services-integration-pattern-v1
+**safe_to_auto_adopt:** true
+**Impact:** Behavioral — prevents fragile external service setups. No file changes required for adoption; adds optional checklist to session protocol.

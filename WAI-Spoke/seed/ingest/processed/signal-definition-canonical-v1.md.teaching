@@ -1,0 +1,193 @@
+# Teaching: Signal Definition — Canonical "patch-now alert" + lifecycle
+
+**Type:** Protocol Correction
+**Version:** 1.0.0
+**Created:** 2026-04-28
+**safe_to_auto_adopt:** true
+**Affects:** wai-signal-capture.md, wai-reference.md, spoke_expediter.py
+**Supersedes:** nothing
+**weight:** 5
+**fingerprint:** c7d
+
+---
+
+## Prerequisites
+
+**Standalone (no dependencies):**
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Corrects the definition of "signal" across skill files to the canonical form: **a patch-now alert broadcast to all spokes**. Adds the full lifecycle (emitted → broadcast to all spokes → framework absorbs → teaching posted → cleared fleet-wide) to the signal capture skill. Fixes the lug directory tree reference in wai-reference.md to reflect v2 signal storage (`WAI-Spoke/signals/`) and updates `spoke_expediter.py` to scan the correct v2 path.
+
+---
+
+## Why This Matters
+
+Without this fix, agents may describe signals as "decisions and learnings" or "communication events" — a weaker definition that obscures their mandatory patch semantics. The v1 directory tree reference (`bytype/signal/undelivered/`) points to a retired location, causing `--signals` triage to silently find nothing.
+
+---
+
+## What Changed in templates/commands/wai-signal-capture.md
+
+Added canonical definition at the top of the file:
+
+**Before:**
+```
+# WAI Signal Capture
+
+Detect and log high-impact decisions and learnings during the session.
+```
+
+**After:**
+```
+# WAI Signal Capture
+
+**A signal is a patch-now alert broadcast to all spokes.** Lifecycle: emitted → broadcast to all spokes → framework absorbs → teaching posted → cleared fleet-wide.
+
+Capture signals during a session when you detect a high-impact decision or pattern that needs fleet-wide propagation (risk_score >= 8).
+```
+
+## What Changed in templates/commands/wai-reference.md
+
+Removed stale `signal/{undelivered,delivered}/` entry from bytype/ directory tree. Added `WAI-Spoke/signals/` block with v2 layout:
+
+```
+WAI-Spoke/signals/
+  inbound/                         — incoming signals awaiting processing
+  processed/                       — applied/archived signals
+  registry.json                    — patch application registry {applied: [{id, applied_at, risk_score}]}
+```
+
+## What Changed in tools/spoke_expediter.py
+
+`scan_signals()` path updated from v1 (`bytype/signal/undelivered/`) to v2 (`signals/inbound/`).
+
+---
+
+## Context Doc Patch
+
+```json
+[
+  {
+    "section": "Signal System",
+    "action": "replace",
+    "content": "**A signal is a patch-now alert broadcast to all spokes.** Lifecycle: emitted → broadcast to all spokes → framework absorbs → teaching posted → cleared fleet-wide. Signals live in `WAI-Spoke/signals/inbound/` (v2). Applied patches tracked in `registry.json`. Signals are NOT generic communication events or routing artifacts."
+  }
+]
+```
+
+---
+
+## Resolving {framework_path}
+
+```bash
+FRAMEWORK_PATH=$(python3 -c "import json; d=json.load(open('WAI-Spoke/WAI-State.json')); print(d['wheel'].get('framework_path') or '')")
+echo "Framework path: $FRAMEWORK_PATH"
+```
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Update wai-signal-capture.md
+
+In `{framework_path}/templates/commands/wai-signal-capture.md` (or your local copy if synced), replace the opening:
+
+```
+# WAI Signal Capture
+
+Detect and log high-impact decisions and learnings during the session.
+```
+
+with:
+
+```
+# WAI Signal Capture
+
+**A signal is a patch-now alert broadcast to all spokes.** Lifecycle: emitted → broadcast to all spokes → framework absorbs → teaching posted → cleared fleet-wide.
+
+Capture signals during a session when you detect a high-impact decision or pattern that needs fleet-wide propagation (risk_score >= 8).
+```
+
+### Step 2 — Update wai-reference.md directory tree
+
+In `{framework_path}/templates/commands/wai-reference.md`, in the lug folder structure block, remove:
+```
+    signal/{undelivered,delivered}/
+```
+
+After the closing ` ``` ` of the lugs block, add:
+```
+WAI-Spoke/signals/
+  inbound/                         — incoming signals awaiting processing
+  processed/                       — applied/archived signals
+  registry.json                    — patch application registry {applied: [{id, applied_at, risk_score}]}
+```
+
+### Step 3 — Update spoke_expediter.py (if present)
+
+In `tools/spoke_expediter.py`, update `scan_signals()`:
+
+```python
+# Old:
+pattern = os.path.join(spoke_path, "WAI-Spoke", "lugs", "bytype", "signal", "undelivered", "*.json")
+# New:
+pattern = os.path.join(spoke_path, "WAI-Spoke", "signals", "inbound", "*.json")
+```
+
+### Step 4 — Move teaching to processed
+
+```bash
+mkdir -p WAI-Spoke/seed/ingest/processed/
+mv WAI-Spoke/seed/ingest/signal-definition-canonical-v1.md.teaching WAI-Spoke/seed/ingest/processed/
+```
+
+---
+
+## Behavioral Implications
+
+After this teaching is applied, agents will:
+- Define signals as "patch-now alerts broadcast to all spokes" — not "decisions" or "communication events"
+- Cite the full lifecycle when discussing signal flow
+- `spoke_expediter.py --signals` will correctly scan `WAI-Spoke/signals/inbound/` (v2 path)
+
+---
+
+## Verification
+
+```bash
+# No wrong terminology in skill files
+grep -rn "communication event\|routing message\|routing artifact" templates/commands/ && echo "FAIL — wrong definition found" || echo "PASS — no wrong terminology"
+
+# Canonical definition present in wai-signal-capture.md
+grep -q "patch-now alert broadcast to all spokes" templates/commands/wai-signal-capture.md && echo "PASS — canonical definition present" || echo "FAIL — definition missing"
+
+# v2 signal path in expediter
+grep -q "signals/inbound" tools/spoke_expediter.py && echo "PASS — v2 path in expediter" || echo "FAIL — stale path"
+```
+
+---
+
+## Backward Compatibility
+
+- Spokes that don't have `spoke_expediter.py` are unaffected
+- Spokes still on v1 signal storage (bytype/signal/) should migrate before running expediter `--signals`
+- Teaching does not change signal schema or registry format
+
+---
+
+**Teaching Package:** signal-definition-canonical-v1
+**safe_to_auto_adopt:** true
+**Impact:** Wording correction + path fix across signal-related skill files. Low risk, no schema changes.

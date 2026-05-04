@@ -140,6 +140,77 @@ if [[ -d "$PROJECT_DIR/.claude/hooks" ]]; then
     chmod +x "$PROJECT_DIR/.claude/hooks/"*.sh 2>/dev/null || true
 fi
 
+# ── 5b. Interrupted session recovery prompt ──────────────────────────────────
+# Scans last 5 sessions from past 7 days. For the most recent unclosed session,
+# prints a formatted recovery block with a paste-ready resume prompt.
+_SESSIONS_DIR="$PROJECT_DIR/WAI-Spoke/sessions"
+_RUNTIME_PATTERNS="WAI-State\.json|wakeup-brief\.json|ozi-brief\.json|scan_state\.json"
+
+if [[ -d "$_SESSIONS_DIR" ]]; then
+  mapfile -t _SESS_LIST < <(ls -1d "$_SESSIONS_DIR"/session-*/ 2>/dev/null | sort -r | head -5)
+  for _SESS_PATH in "${_SESS_LIST[@]}"; do
+    [[ -d "$_SESS_PATH" ]] || continue
+    _SESS_ID=$(basename "$_SESS_PATH")
+    _TRACK="$_SESS_PATH/track.jsonl"
+    [[ -f "$_TRACK" ]] || continue
+    _EVENTS=$(wc -l < "$_TRACK" 2>/dev/null || echo 0)
+    [[ "$_EVENTS" -le 1 ]] && continue
+    _LAST=$(tail -1 "$_TRACK" 2>/dev/null)
+    echo "$_LAST" | grep -qE '"event"\s*:\s*"(closeout|completed)"' && continue
+    echo "$_LAST" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('completed') else 1)" 2>/dev/null && continue
+
+    _LAST_ACTION=$(tail -1 "$_TRACK" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    parts = []
+    if d.get('event'): parts.append(d['event'])
+    if d.get('summary'): parts.append(d['summary'][:80])
+    elif d.get('description'): parts.append(d['description'][:80])
+    print(' — '.join(parts) if parts else 'unknown')
+except: print('unknown')
+" 2>/dev/null || echo "unknown")
+
+    _IP_LUGS=$(find "$PROJECT_DIR/WAI-Spoke/lugs/bytype" -path "*/in_progress/*.json" 2>/dev/null | head -1)
+    _IP_LUG_STR="none"
+    if [[ -n "$_IP_LUGS" ]]; then
+      _IP_LUG_STR=$(python3 -c "
+import json, os
+try:
+    d = json.load(open('$_IP_LUGS'))
+    print(d.get('id','?') + ' — ' + d.get('title','?')[:60])
+except: print(os.path.basename('$_IP_LUGS'))
+" 2>/dev/null || echo "$(basename "$_IP_LUGS")")
+    fi
+
+    _UNCOMMITTED=$(git -C "$PROJECT_DIR" diff --name-only HEAD 2>/dev/null | grep -vE "($_RUNTIME_PATTERNS)" || true)
+    _UNCOMMITTED_COUNT=$(echo "$_UNCOMMITTED" | grep -c . 2>/dev/null || echo 0)
+    _FIRST_FILE=$(echo "$_UNCOMMITTED" | head -1)
+    if [[ "$_UNCOMMITTED_COUNT" -gt 1 ]]; then
+      _CODE_CHANGES="$_FIRST_FILE (+$((_UNCOMMITTED_COUNT - 1)) more)"
+    elif [[ "$_UNCOMMITTED_COUNT" -eq 1 ]]; then
+      _CODE_CHANGES="$_FIRST_FILE"
+    else
+      _CODE_CHANGES="none"
+    fi
+
+    echo ""
+    echo "──────────────────────────────────────────────────────────"
+    echo "⚠  Interrupted work — $_SESS_ID"
+    echo ""
+    echo "  Last action : $_LAST_ACTION"
+    echo "  In-progress : $_IP_LUG_STR"
+    echo "  Code changes: $_CODE_CHANGES"
+    echo ""
+    echo "  ── Paste to resume ──────────────────────────────────────"
+    printf "  Resume interrupted session %s. Last action: %s.\n" "$_SESS_ID" "$_LAST_ACTION"
+    [[ "$_IP_LUG_STR" != "none" ]] && printf "  In-progress: %s.\n" "$_IP_LUG_STR"
+    [[ "$_UNCOMMITTED_COUNT" -gt 0 ]] && printf "  %s uncommitted file(s) — verify changes are complete before continuing.\n" "$_UNCOMMITTED_COUNT"
+    echo "  ──────────────────────────────────────────────────────────"
+    break
+  done
+fi
+
 # ── 6. Launch tool ──────────────────────────────────────────────────────────
 TOOL="${1:-}"
 if [[ -z "$TOOL" ]]; then

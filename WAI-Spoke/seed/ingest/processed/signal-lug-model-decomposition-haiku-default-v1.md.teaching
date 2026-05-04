@@ -1,0 +1,96 @@
+# Teaching: Implementation Lugs Must Declare model_fit; Default is Haiku v1
+
+**Family:** lug-authoring
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 9
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** lug-model-decomposition-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Every implementation lug must declare a `model_fit` field. The default is `haiku`. If the lug cannot be executed by Haiku, decompose it into child lugs until each child can be.
+
+**Before (missing field):**
+```json
+{
+  "id": "impl-some-feature-v1",
+  "type": "implementation",
+  "title": "Build the feature",
+  "execute": "..."
+}
+```
+
+**After (correct):**
+```json
+{
+  "id": "impl-some-feature-v1",
+  "type": "implementation",
+  "title": "Build the feature",
+  "model_fit": "haiku",
+  "execute": "Step 1: ...\nStep 2: ...\n(each step max 15 min Haiku work)"
+}
+```
+
+**model_fit values:**
+- `haiku` — default; mechanical execution, file writes, JSON edits, straightforward code
+- `sonnet` — judgment required; design decisions, ambiguous requirements, multi-system reasoning
+- `opus` — reserved for architectural sessions and closeout
+
+**Decomposition rule:** If a lug requires Sonnet to execute safely, split it. Each child lug should be independently executable by Haiku with no ambiguity. The parent epic remains Sonnet-level for planning.
+
+**Why:** Self-directed model routing. Tender routes the cheapest capable model per lug. Without `model_fit`, Sonnet handles everything — 3–10× cost overhead. Haiku lugs are also faster, reducing session length.
+
+**How to check:**
+```bash
+python3 -c "
+import json, glob
+missing = [f for f in glob.glob('WAI-Spoke/lugs/bytype/implementation/open/*.json')
+           if 'model_fit' not in json.load(open(f))]
+print(f'{len(missing)} implementation lugs missing model_fit:')
+for f in missing: print(f'  {f}')
+"
+```
+
+---
+
+## Migration
+
+For each open implementation lug missing `model_fit`:
+1. Read the lug's `execute` section
+2. If steps are mechanical (file writes, JSON edits, copy patterns): set `"model_fit": "haiku"`
+3. If steps require design judgment: set `"model_fit": "sonnet"` and consider decomposing
+4. Add `model_fit` field after `effort`
+
+---
+
+## Post-Completion
+
+```bash
+python3 -c "
+import json, glob
+missing = [f for f in glob.glob('WAI-Spoke/lugs/bytype/implementation/open/*.json')
+           if 'model_fit' not in json.load(open(f))]
+assert not missing, f'{len(missing)} still missing model_fit'
+print('PASS: all open impl lugs have model_fit')
+"
+```
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

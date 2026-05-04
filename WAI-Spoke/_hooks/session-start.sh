@@ -30,6 +30,60 @@ fi
 # Exit silently if still no state file (not a WAI project)
 [[ ! -f "$STATE_FILE" ]] && exit 0
 
+# ── 0.5. Apply pending signals v2 (before wai-session-init) ─────────────────
+# Behavioral patches in WAI-Spoke/signals/inbound/ are applied at session start.
+# They are plain-language directives included in the CONTEXT HEALTH block.
+SIGNALS_APPLIED_COUNT=0
+SIGNALS_APPLIED_PATCHES=""
+_SIG_REG="$PROJECT_DIR/WAI-Spoke/signals/registry.json"
+if [[ -f "$_SIG_REG" && -d "$PROJECT_DIR/WAI-Spoke/signals/inbound" ]]; then
+  for _sigfile in "$PROJECT_DIR/WAI-Spoke/signals/inbound/"*.json; do
+    [[ -f "$_sigfile" ]] || continue
+    _SIG_ID=$(jq -r '.id // ""' "$_sigfile" 2>/dev/null)
+    [[ -z "$_SIG_ID" ]] && continue
+    _ALREADY=$(jq -r --arg id "$_SIG_ID" '.applied | index($id) // empty' "$_SIG_REG" 2>/dev/null)
+    [[ -n "$_ALREADY" ]] && continue
+    _SIG_FLAVOR=$(jq -r '.flavor // "delivery"' "$_sigfile" 2>/dev/null)
+    _SIG_RISK=$(jq -r '.risk_score // 5' "$_sigfile" 2>/dev/null)
+    _SIG_TITLE=$(jq -r '.title // ""' "$_sigfile" 2>/dev/null)
+    if [[ "$_SIG_FLAVOR" == "patch" ]]; then
+      _SIG_PATCH=$(jq -r '.patch // .description // ""' "$_sigfile" 2>/dev/null | head -c 200)
+      SIGNALS_APPLIED_PATCHES="${SIGNALS_APPLIED_PATCHES}\n  [PATCH risk=${_SIG_RISK}] ${_SIG_TITLE}: ${_SIG_PATCH}"
+      SIGNALS_APPLIED_COUNT=$((SIGNALS_APPLIED_COUNT + 1))
+      _SIG_TMP=$(mktemp)
+      _SIG_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      jq --arg id "$_SIG_ID" --arg ts "$_SIG_TS" \
+         '.applied += [$id] | .applied_at[$id] = $ts' \
+         "$_SIG_REG" > "$_SIG_TMP" 2>/dev/null && mv "$_SIG_TMP" "$_SIG_REG" || rm -f "$_SIG_TMP"
+    fi
+  done
+fi
+
+# ── 0.6. Signal loop-close: teaching arrived → remove registry entry ─────────
+# When a teaching that closes a signal is adopted (appears in processed/), archive
+# the signal from inbound/ and remove its registry entry.
+if [[ -f "$_SIG_REG" ]]; then
+  _LC_PROCESSED="$PROJECT_DIR/WAI-Spoke/seed/ingest/processed"
+  _LC_ARCHIVE="$PROJECT_DIR/WAI-Spoke/signals/processed"
+  _LOOP_CLOSED=""
+  for _lcsigfile in "$PROJECT_DIR/WAI-Spoke/signals/inbound/"*.json; do
+    [[ -f "$_lcsigfile" ]] || continue
+    _LC_ID=$(jq -r '.id // ""' "$_lcsigfile" 2>/dev/null)
+    [[ -z "$_LC_ID" ]] && continue
+    _LC_TEACHING=$(ls "$_LC_PROCESSED/"*"${_LC_ID}"*.teaching 2>/dev/null | head -1)
+    if [[ -n "$_LC_TEACHING" ]]; then
+      _LC_TMP=$(mktemp)
+      jq --arg id "$_LC_ID" \
+         '.applied = [.applied[] | select(. != $id)] | del(.applied_at[$id])' \
+         "$_SIG_REG" > "$_LC_TMP" 2>/dev/null && mv "$_LC_TMP" "$_SIG_REG" || rm -f "$_LC_TMP"
+      mkdir -p "$_LC_ARCHIVE"
+      mv "$_lcsigfile" "$_LC_ARCHIVE/" 2>/dev/null || true
+      _LOOP_CLOSED="$_LOOP_CLOSED $_LC_ID"
+    fi
+  done
+fi
+
+
 # ── Guard check: prevent mid-session re-entry overwrite ─────────────────────
 # SessionStart can re-fire mid-session (e.g. /context, IDE reconnect).
 # Reuse the existing session only if ALL conditions are true:
@@ -558,7 +612,7 @@ $(if [[ -n "$HISTORIAN_ADVICE" ]]; then printf "HISTORIAN ADVICE\n%b\n" "$HISTOR
 CONTEXT HEALTH
   Git: ${GIT_STATUS}
   Hub path: ${HUB_STATUS}
-  Prev session: ${PREV_SESSION_STATUS}$(if [[ -n "$PREV_SESSION_ID" ]]; then echo " (${PREV_SESSION_ID})"; fi)$(if [[ "$PREV_SESSION_STATUS" == "INTERRUPTED" ]]; then echo " ⚠ recovery options at wakeup"; fi)
+  Prev session: ${PREV_SESSION_STATUS}$(if [[ -n "$PREV_SESSION_ID" ]]; then echo " (${PREV_SESSION_ID})"; fi)$(if [[ "$PREV_SESSION_STATUS" == "INTERRUPTED" ]]; then echo " ⚠ recovery prompt shown pre-launch"; fi)
 $(if [[ -n "$INTEGRITY_SCORE" ]]; then echo "$INTEGRITY_SCORE"; fi)
 $(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
 $(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)

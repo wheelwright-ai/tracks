@@ -1,0 +1,86 @@
+# Teaching: recommended_model — Optional Lug Field for Assessor Matrix Recommendations
+
+**Type:** Schema Extension
+**Version:** 1.0.0
+**Created:** 2026-04-30
+**safe_to_auto_adopt:** true
+**Affects:** WAI-Lug-Schema-Spec.md, templates/commands/wai-lug-schema.md (CREATE step)
+**Supersedes:** nothing
+**weight:** 14
+**fingerprint:** rml
+
+---
+
+## Prerequisites
+
+**Standalone (no dependencies):**
+None — additive schema field. Existing lugs without it remain valid.
+
+## Batch Sequence
+
+**Batch:** assessor-bootstrap-v1
+**Apply order:** 1 of 2
+**Depends on:** none
+**Parallel safe:** yes
+
+---
+
+## What This Teaching Provides
+
+Documents `recommended_model` as an optional lug field, and adds an injection step to the lug CREATE lifecycle. When `WAI-Spoke/assessor-matrix.json` exists, the field is populated from the recommendation matrix during lug authoring. When absent: the field is set to `{model_id: null, note: "insufficient data"}`.
+
+---
+
+## Schema
+
+```json
+"recommended_model": {
+  "model_id": "string | null",
+  "provider": "string | null",
+  "rationale": "string | null",
+  "confidence": "high" | "medium" | "low" | null,
+  "note": "string | null"
+}
+```
+
+- Always an object (never bare null) once the Assessor is operational
+- If no matrix data: `{model_id: null, note: "insufficient data"}`
+- If matrix data present: populated with winning model for (work_type × complexity) slot
+
+---
+
+## How to Apply
+
+### Step 1 — Add to WAI-Lug-Schema-Spec.md field reference table
+
+Append to the Appendix: Field Reference table:
+```
+| recommended_model | object | no | Model recommendation from Assessor matrix. ... |
+```
+See `WAI-Lug-Schema-Spec.md` line 523 for the full entry.
+
+### Step 2 — Add injection step to wai-lug-schema.md CREATE lifecycle
+
+After "Ensure PEV fields are present" in the CREATE step, add the matrix lookup code block. See `templates/commands/wai-lug-schema.md` for the exact Python snippet.
+
+### Step 3 — Mark as adopted
+
+```bash
+cp /path/to/hub/teachings_repo/framework/current/teaching-recommended-model-lug-field-v1.md.teaching \
+   WAI-Spoke/seed/ingest/processed/teaching-recommended-model-lug-field-v1.md.teaching
+```
+
+---
+
+## Verification
+
+```bash
+grep -n "recommended_model" WAI-Lug-Schema-Spec.md | head -2
+grep -n "recommended_model\|assessor-matrix" templates/commands/wai-lug-schema.md | head -3
+```
+
+---
+
+**Teaching Package:** teaching-recommended-model-lug-field-v1
+**safe_to_auto_adopt:** true
+**Impact:** Additive schema field + authoring step. Backward compatible — existing lugs without it remain valid.

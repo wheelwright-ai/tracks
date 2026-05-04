@@ -1,0 +1,69 @@
+# Teaching: Freshness Tests Must Anchor to run_ts, Not datetime.now() v1
+
+**Family:** test-authoring
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 6
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** test-freshness-anchor-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Freshness tests (e.g. "was this spoke recently tended?") must anchor their time comparison to `run_ts` — the timestamp recorded when the nightly run completed — not to `datetime.now()` at test execution time.
+
+**Before (broken):**
+```python
+assert last_tended > datetime.now(timezone.utc) - timedelta(hours=48)
+```
+
+**After (correct):**
+```python
+assert last_tended > run_ts - timedelta(hours=24)
+```
+
+**Why:** Using `datetime.now()` creates a narrow failure window. If a run completed 38h ago but spoke tending happened 40h ago (1.5h before the run finished), the test fails despite the data being valid. Anchoring to `run_ts` makes the comparison invariant to when tests are executed.
+
+**How to check:**
+```bash
+grep -r "datetime.now.*timedelta\|timedelta.*datetime.now" tests/ --include="*.py"
+```
+Any match that is inside a freshness assertion is a candidate for this fix.
+
+---
+
+## Migration
+
+For each freshness assertion that compares a timestamp against `datetime.now() - timedelta(...)`:
+
+1. Ensure the test has access to `run_ts` (the nightly run's recorded completion timestamp).
+2. Replace `datetime.now(timezone.utc) - timedelta(hours=N)` with `run_ts - timedelta(hours=N)`.
+3. Adjust the window if needed — `run_ts`-anchored windows are tighter and more meaningful.
+
+---
+
+## Post-Completion
+
+Run verification:
+```bash
+grep -r "datetime.now" tests/ --include="*.py" | grep -v "isoformat\|strftime\|#"
+```
+Review each hit — legitimate uses (e.g. generating timestamps in test fixtures) are fine; freshness comparisons are not.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

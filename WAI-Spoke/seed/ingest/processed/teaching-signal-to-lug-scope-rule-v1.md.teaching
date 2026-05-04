@@ -1,0 +1,157 @@
+# Teaching: Signal-to-Lug Scope Rule — When Signals Should Be Lugs
+
+**Type:** Protocol Correction
+**Version:** 1.0.0
+**Created:** 2026-04-28
+**safe_to_auto_adopt:** true
+**Affects:** agent behavior (classification of signals vs lugs), WAI-Spoke/lugs/bytype/signal/ cleanup
+**Supersedes:** nothing
+**weight:** 20
+**fingerprint:** s2l
+
+---
+
+## Prerequisites
+
+**Standalone (no dependencies):**
+None — behavioral teaching, applies to all spokes immediately on adoption.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Establishes the canonical rule for distinguishing signals from lugs, and the resolution protocol: every signal must be addressed (implement → generate teaching → clear queue). Signals that describe spoke-specific work or already-resolved patterns should be converted to proper lugs and archived.
+
+---
+
+## Why This Matters
+
+Signals were accumulating as a perpetual triage queue rather than being resolved. Some were misclassified: spoke-specific features stored as signals, already-fixed patterns left as open signals, and feature requests routed as `delivery` signals instead of proper lugs. This causes the signal queue to grow without clearing, which degrades session-start clarity and masks real fleet-wide hazards.
+
+---
+
+## The Rule
+
+**A signal is valid if and only if:**
+1. It describes a cross-spoke, fleet-generalizable hazard or correction
+2. It requires immediate behavioral change ("patch-now") before a proper fix lands
+3. It cannot wait for a normal lug cycle — risk of harm or repeated mistakes is high
+
+**A signal should be a lug if:**
+- It is specific to one spoke's codebase (e.g., Appwrite keepalive for tracks → `impl` lug in tracks)
+- It describes a feature or enhancement (even a good one) rather than a hazard → `feature` lug
+- The "fix" has already been applied and the signal is just documenting what happened → generate teaching + archive
+- It is a minder/realizer/UI pattern with no fleet-wide harm → `feature` lug in the owning spoke
+
+---
+
+## The Resolution Protocol
+
+When processing a signal (in framework session or any spoke triage):
+
+```
+1. Classify: is this genuinely cross-spoke + patch-now? → keep as signal
+   No? → convert to proper lug type (impl/feature/bug) in the right spoke
+2. Address: implement the fix or create the lug
+3. Generate a teaching: document the proper approach with PEV
+4. Archive: move signal from queue → processed/
+5. The teaching distributes fleet-wide via hub teachings_repo
+```
+
+**Never let a signal sit unresolved.** Triage → address → teach → clear.
+
+---
+
+## What to Undo (Patches That Were Applied Locally)
+
+If a signal was applied as a behavioral patch and the proper fix is now in place:
+1. Remove the signal from `WAI-Spoke/signals/inbound/`
+2. Remove its entry from `WAI-Spoke/signals/registry.json`
+3. The session-start.sh loop-close (section 0.6) handles this automatically when a matching teaching is adopted
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Audit your bytype/signal/ directory
+
+```bash
+ls WAI-Spoke/lugs/bytype/signal/undelivered/ 2>/dev/null
+ls WAI-Spoke/lugs/bytype/signal/open/ 2>/dev/null
+```
+
+For each signal found, apply the classification rule above.
+
+### Step 2 — Convert misclassified signals to lugs
+
+For spoke-specific signals:
+```bash
+# Example: signal about a tracks-specific feature
+# Create the lug in the right location, then archive the signal
+mkdir -p WAI-Spoke/lugs/bytype/impl/open/
+# Write impl lug JSON with full PEV
+# Then archive the signal:
+mkdir -p WAI-Spoke/signals/processed/
+mv WAI-Spoke/lugs/bytype/signal/undelivered/signal-xxx-v1.json WAI-Spoke/signals/processed/
+```
+
+### Step 3 — Archive already-resolved signals
+
+If the signal's fix is already applied (patch in place, teaching adopted, or pattern already known):
+```bash
+mkdir -p WAI-Spoke/signals/processed/
+mv WAI-Spoke/lugs/bytype/signal/undelivered/signal-xxx-v1.json WAI-Spoke/signals/processed/
+# OR for bytype/signal/open/ directory:
+mv WAI-Spoke/lugs/bytype/signal/open/signal-xxx-v1.json WAI-Spoke/signals/processed/
+```
+
+### Step 4 — Generate a teaching for each resolved signal
+
+The teaching is the deliverable. Even if the fix is trivial, document:
+- What the pattern is (perceive)
+- How to apply it (execute)
+- How to verify it's working (verify)
+
+### Step 5 — Mark as adopted
+
+```bash
+cp /path/to/hub/teachings_repo/framework/current/teaching-signal-to-lug-scope-rule-v1.md.teaching \
+   WAI-Spoke/seed/ingest/processed/teaching-signal-to-lug-scope-rule-v1.md.teaching
+```
+
+---
+
+## Verification
+
+```bash
+# No open signals in old bytype/ pattern
+ls WAI-Spoke/lugs/bytype/signal/undelivered/ 2>/dev/null | wc -l | xargs -I{} test {} -eq 0 && echo "PASS — no old-pattern signals" || echo "REVIEW — signals remain in bytype/"
+
+# No signals with roi field (v1 schema) — they should have risk_score
+find WAI-Spoke/signals/inbound/ -name "*.json" -exec grep -l '"roi"' {} \; 2>/dev/null | wc -l | xargs -I{} test {} -eq 0 && echo "PASS — no v1 schema signals" || echo "REVIEW — v1 schema signals exist"
+```
+
+---
+
+## Behavioral Implications
+
+After adoption:
+- Agents classify new signals strictly: cross-spoke + patch-now only
+- Spoke-specific patterns → impl/feature/bug lugs, not signals
+- Every signal triage produces a teaching as the resolution artifact
+- Signal queues stay small — only active, unresolved fleet hazards
+
+---
+
+**Teaching Package:** teaching-signal-to-lug-scope-rule-v1
+**safe_to_auto_adopt:** true
+**Impact:** Behavioral — no file changes required. Prevents signal queue growth.

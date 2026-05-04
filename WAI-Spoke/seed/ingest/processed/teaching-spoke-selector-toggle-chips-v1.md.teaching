@@ -1,0 +1,171 @@
+# Teaching: Spoke Selector — Toggle Chips Grouped by Evaluated / Available
+
+**Type:** Protocol Enhancement
+**Version:** 1.0.0
+**Created:** 2026-04-28
+**safe_to_auto_adopt:** true
+**Affects:** web/templates/realizer.html (or equivalent spoke selector UI in any spoke)
+**Supersedes:** nothing
+**weight:** 12
+**fingerprint:** tgc
+
+---
+
+## Prerequisites
+
+**Conditional (only applies if spoke has a web UI with spoke selection):**
+Skip if the spoke has no web interface with a multi-spoke selector.
+
+```bash
+ls web/templates/realizer.html 2>/dev/null && echo "APPLIES — spoke selector UI present" || echo "SKIP — no spoke selector UI"
+```
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Replaces `<select multiple>` spoke selectors with toggle chip buttons. Groups chips by evaluation status: **Evaluated** (spoke has been scanned; has `.latest` data in fleet entry) first, **Available** (never scanned) second. Pre-selects the active spoke on page load. Pattern originated in minder (session-72), delivered to tracks.
+
+---
+
+## Why This Matters
+
+`<select multiple>` makes add and remove asymmetrical — holding Ctrl to multi-select is unintuitive. Toggle chips allow any chip to be clicked on/off symmetrically. Evaluated/Available grouping surfaces the most actionable spokes first, reducing cognitive load when dispatching to a large fleet.
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Perceive
+
+In any spoke web UI with a spoke selector, find the HTML element. Check if it uses `<select multiple>` or a similar multi-select dropdown.
+
+```bash
+grep -n "select.*multiple\|<select" web/templates/realizer.html 2>/dev/null | head -10
+```
+
+### Step 2 — Execute
+
+Replace the `<select multiple>` spoke selector with toggle chip buttons.
+
+**2a. Add renderSpokeToggles function:**
+
+```javascript
+function renderSpokeToggles(fleet, preselect) {
+  const evaluated = fleet.filter(s => s.latest);
+  const available = fleet.filter(s => !s.latest);
+
+  let html = '';
+
+  if (evaluated.length > 0) {
+    html += '<div class="chip-group"><label class="chip-group-label">Evaluated</label>';
+    html += evaluated.map(s =>
+      `<button type="button" class="chip ${s.id === preselect ? 'active' : ''}"
+        data-spoke="${s.id}" onclick="toggleSpoke(this)">${s.name || s.id}</button>`
+    ).join('');
+    html += '</div>';
+  }
+
+  if (available.length > 0) {
+    html += '<div class="chip-group"><label class="chip-group-label">Available</label>';
+    html += available.map(s =>
+      `<button type="button" class="chip ${s.id === preselect ? 'active' : ''}"
+        data-spoke="${s.id}" onclick="toggleSpoke(this)">${s.name || s.id}</button>`
+    ).join('');
+    html += '</div>';
+  }
+
+  return html;
+}
+```
+
+**2b. Add toggleSpoke and getSelectedSpokes functions:**
+
+```javascript
+function toggleSpoke(btn) {
+  btn.classList.toggle('active');
+}
+
+function getSelectedSpokes() {
+  return Array.from(document.querySelectorAll('.chip.active'))
+    .map(btn => btn.dataset.spoke);
+}
+```
+
+**2c. Add chip styles (or add to existing CSS):**
+
+```css
+.chip-group { margin-bottom: 8px; }
+.chip-group-label { font-size: 0.75rem; color: #888; display: block; margin-bottom: 4px; }
+.chip {
+  display: inline-block;
+  padding: 4px 10px;
+  margin: 2px;
+  border: 1px solid #ccc;
+  border-radius: 16px;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.chip.active {
+  background: #0066cc;
+  color: #fff;
+  border-color: #0055aa;
+}
+```
+
+**2d. Replace the `<select multiple>` element with a chip container:**
+
+```html
+<!-- Replace: <select multiple id="spoke-select">...</select> -->
+<!-- With: -->
+<div id="spoke-toggles"></div>
+```
+
+**2e. On page load, call renderSpokeToggles:**
+
+```javascript
+// In your init or DOMContentLoaded:
+const activeSpokeId = getCurrentSpokeId(); // your existing method
+document.getElementById('spoke-toggles').innerHTML = renderSpokeToggles(fleetData, activeSpokeId);
+```
+
+### Step 3 — Verify
+
+```
+- Spoke selector shows toggle chips in two labeled groups (Evaluated / Available)
+- Active spoke is pre-selected on load
+- Clicking a chip toggles it on/off
+- No <select multiple> element exists in spoke selector UI
+- getSelectedSpokes() returns correct array after toggle interactions
+```
+
+### Step 4 — Mark as adopted
+
+```bash
+cp /path/to/hub/teachings_repo/framework/current/teaching-spoke-selector-toggle-chips-v1.md.teaching \
+   WAI-Spoke/seed/ingest/processed/teaching-spoke-selector-toggle-chips-v1.md.teaching
+```
+
+---
+
+## Backward Compatibility
+
+- Only applies to spokes with web UIs containing spoke selectors
+- No changes to backend or lug storage
+- Purely a frontend UI improvement
+
+---
+
+**Teaching Package:** teaching-spoke-selector-toggle-chips-v1
+**safe_to_auto_adopt:** true
+**Impact:** Frontend UX improvement for spokes with spoke-selector web interfaces. Conditional — skip if no web UI.

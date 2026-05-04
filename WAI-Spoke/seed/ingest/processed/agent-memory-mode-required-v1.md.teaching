@@ -1,0 +1,80 @@
+# Teaching: Agent Definitions Require memory: project Frontmatter v1
+
+**Family:** cc-advisor
+**Version:** 1.0
+**Created:** 2026-03-31
+**Impact:** 8
+**Source Session:** session-20260331-2023
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** agent-memory-mode-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+All agent definition files in `.claude/agents/` must declare `memory: project` (or `memory: local`) in YAML frontmatter at the top of the file. Without this declaration, Claude Code agents may not retain project context across invocations.
+
+**Before (broken):**
+```markdown
+# CC Advisor Agent
+
+Runs the ClaudeCode configuration audit...
+```
+
+**After (correct):**
+```markdown
+---
+memory: project
+---
+
+# CC Advisor Agent
+
+Runs the ClaudeCode configuration audit...
+```
+
+**Why:** CC Advisor audit (Area 6: Subagents) checks for `memory` declaration. Missing frontmatter causes a FAIL and a regression delta. Two of four agents (`cc-advisor.md`, `ozi-nightly.md`) were missing it — discovered as a regression in S119 audit #3.
+
+**How to check:**
+```bash
+for f in .claude/agents/*.md; do echo "$(basename $f): $(grep 'memory:' $f | head -1 || echo MISSING)"; done
+```
+
+---
+
+## Migration
+
+For each file in `.claude/agents/` that lacks frontmatter: add at the very top of the file:
+
+```
+---
+memory: project
+---
+
+```
+
+Then the existing `# Title` heading follows.
+
+---
+
+## Post-Completion
+
+Run verification:
+```bash
+for f in .claude/agents/*.md; do grep -q 'memory:' "$f" && echo "PASS: $(basename $f)" || echo "FAIL: $(basename $f)"; done
+```
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

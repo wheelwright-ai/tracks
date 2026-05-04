@@ -1,0 +1,72 @@
+---
+id: signal-hub-registry-spoke-live-update-v1
+title: Spokes update hub registry outstanding_work on every session start
+family: hub-registry-spoke-update
+version: 1
+type: signal-teaching
+safe_to_auto_adopt: true
+impact: 8
+created_at: 2026-04-24
+source_spoke: basher
+source_session: session-20260423-2310
+---
+
+## Prerequisites
+
+None — standalone. Requires hub_path set in WAI-State.json and hub-registry.json accessible.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+## What This Teaching Does
+
+Spoke session-start hooks should update the hub registry with live outstanding work counts on every session start. Without this, hub-registry.json has stale data (last_sync months old, no work counts).
+
+**Add section 5b to `WAI-Spoke/_hooks/session-start.sh`** after the hub signals section (section 5) and before the next session recommendation section (section 6):
+
+```bash
+# ── 5b. Hub registry update ──────────────────────────────────────────────────
+if [[ "$HUB_STATUS" == "OK" && -f "$HUB_PATH/hub-registry.json" ]]; then
+  WHEEL_ID=$(basename "$PROJECT_DIR")
+  _OPEN=$(count_lugs "$LUGS_DIR/*/open/*.json")
+  _IP=$(count_lugs "$LUGS_DIR/*/in_progress/*.json")
+  _TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  _TMP=$(mktemp)
+  jq --arg id "$WHEEL_ID" \
+     --argjson open "$_OPEN" \
+     --argjson ip "$_IP" \
+     --arg ts "$_TS" \
+     '(.wheels[] | select(.wheel_id == $id)).outstanding_work = {"open": $open, "in_progress": $ip, "last_checked": $ts} |
+      (.wheels[] | select(.wheel_id == $id)).last_sync = $ts' \
+     "$HUB_PATH/hub-registry.json" > "$_TMP" 2>/dev/null \
+    && mv "$_TMP" "$HUB_PATH/hub-registry.json" \
+    || rm -f "$_TMP"
+fi
+```
+
+**Why `basename "$PROJECT_DIR"` for WHEEL_ID:** Matches the hub-registry.json `wheel_id` field without hardcoding. Works for any spoke whose project directory name matches its wheel_id (standard convention).
+
+**Why `count_lugs` instead of `grep -vc`:** `grep -vc` returns exit code 1 when count is 0, which triggers `|| echo 0` and doubles the output. `count_lugs` uses `wc -l` which always exits 0.
+
+## Fields Written
+
+```json
+"outstanding_work": {
+  "open": 16,
+  "in_progress": 0,
+  "last_checked": "2026-04-24T06:10:51Z"
+},
+"last_sync": "2026-04-24T06:10:51Z"
+```
+
+## Signal Lug
+
+```json
+{"id":"signal-hub-registry-spoke-live-update-v1","type":"signal","title":"Hub registry: spoke updates outstanding_work on every session start","impact":8,"source_spoke":"basher","session":"session-20260423-2310"}
+```

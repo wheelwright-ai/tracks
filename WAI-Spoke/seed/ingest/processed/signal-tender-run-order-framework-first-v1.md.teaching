@@ -1,0 +1,67 @@
+# Teaching: Tender Run Order Is Framework First, Recent Spokes Next, Hub Last v1
+
+**Family:** tender
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** tender-run-order-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+Tender must execute spokes in this order:
+1. **Framework spoke** — runs first, always
+2. **Recently active spokes** — ordered by last session date, most recent first
+3. **Hub** — runs last
+
+**Before (wrong order):**
+```
+Hub → Spoke-A → Framework → Spoke-B
+```
+
+**After (correct):**
+```
+Framework → Spoke-B (active yesterday) → Spoke-A (active last week) → Hub
+```
+
+**Why:**
+- **Framework first:** Framework defines patterns that everything else follows. When framework's teachings or protocol changes are applied first, subsequent spokes run against the updated protocol.
+- **Recent spokes before stale spokes:** Recently active spokes are more likely to have in-progress work that benefits from nightly execution. Stale spokes are lower priority.
+- **Hub last:** Hub consolidates and distributes — it should have complete information from all spokes before it runs. Running hub first means it misses updates from spokes processed after it.
+
+---
+
+## Migration
+
+In `run_nightly.py` or the Tender dispatch script, sort the spoke execution list:
+```python
+spokes = sorted(spoke_list, key=lambda s: (
+    0 if s.is_framework else 2 if s.is_hub else 1,
+    -s.last_session_timestamp
+))
+```
+
+---
+
+## Post-Completion
+
+Verify Tender's spoke execution log shows framework spoke completing before any other spoke.
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.

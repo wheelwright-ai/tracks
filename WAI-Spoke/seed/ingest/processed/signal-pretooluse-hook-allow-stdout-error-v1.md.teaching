@@ -1,0 +1,72 @@
+# Teaching: PreToolUse Allow Hooks Must Not Write JSON to stdout v1
+
+**Family:** hooks
+**Version:** 1.0
+**Created:** 2026-04-24
+**Impact:** 8
+**Source Session:** session-20260423-2359
+**safe_to_auto_adopt:** true
+
+---
+
+## Prerequisites
+
+None — standalone.
+
+## Batch Sequence
+
+**Batch:** pretooluse-hook-stdout-v1
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Does
+
+PreToolUse hooks that allow a tool call must not write any content to stdout. Claude Code reads stdout from PreToolUse hooks as the decision JSON. Any extra output causes a parse error displayed as a hook error message.
+
+**Before (broken):**
+```bash
+#!/bin/bash
+echo "Checking tool: $TOOL_NAME"       # ← this line breaks it
+echo '{"decision": "allow"}'
+```
+
+**After (correct):**
+```bash
+#!/bin/bash
+echo "Checking tool: $TOOL_NAME" >&2   # log to stderr only
+echo '{"decision": "allow"}'           # only the decision goes to stdout
+```
+
+**Why:** Claude Code treats the entire stdout stream of a PreToolUse hook as the decision payload. Any text before or after the JSON decision object causes a JSON parse error. The error appears as a hook error message in the UI, even though the hook "worked." Debugging is hard because the hook exits 0.
+
+**How to check:**
+```bash
+grep -A5 'decision.*allow' .claude/hooks/pre-tool*.sh | grep -v '>&2' | grep 'echo\|printf'
+```
+Any `echo`/`printf` to stdout in an allow path is a bug.
+
+---
+
+## Migration
+
+For each PreToolUse hook that allows tool calls:
+1. Audit every `echo`, `printf`, or other stdout write in the allow code path
+2. Redirect debug/logging output to stderr: append `>&2` to each such line
+3. Ensure only the final `{"decision": "allow"}` (or block equivalent) goes to stdout
+
+---
+
+## Post-Completion
+
+Test by running the hook manually and checking stdout:
+```bash
+output=$(bash .claude/hooks/pre-tool-guard.sh <<< '{"tool_name":"Bash","tool_input":{}}' 2>/dev/null)
+echo "$output" | python3 -c "import sys,json; json.load(sys.stdin); print('PASS: valid JSON')"
+```
+
+Move this file to `WAI-Spoke/seed/ingest/processed/`.
