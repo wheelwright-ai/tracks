@@ -61,7 +61,8 @@ fi
 
 # ── 0.6. Signal loop-close: teaching arrived → remove registry entry ─────────
 # When a teaching that closes a signal is adopted (appears in processed/), archive
-# the signal from inbound/ and remove its registry entry.
+# the signal from inbound/ and remove its registry entry. This closes the loop
+# started by impl-signal-hub-trigger-v1 / impl-signal-teaching-autogen-v1.
 if [[ -f "$_SIG_REG" ]]; then
   _LC_PROCESSED="$PROJECT_DIR/WAI-Spoke/seed/ingest/processed"
   _LC_ARCHIVE="$PROJECT_DIR/WAI-Spoke/signals/processed"
@@ -70,6 +71,7 @@ if [[ -f "$_SIG_REG" ]]; then
     [[ -f "$_lcsigfile" ]] || continue
     _LC_ID=$(jq -r '.id // ""' "$_lcsigfile" 2>/dev/null)
     [[ -z "$_LC_ID" ]] && continue
+    # A teaching closes this signal if its filename contains the signal id
     _LC_TEACHING=$(ls "$_LC_PROCESSED/"*"${_LC_ID}"*.teaching 2>/dev/null | head -1)
     if [[ -n "$_LC_TEACHING" ]]; then
       _LC_TMP=$(mktemp)
@@ -81,8 +83,10 @@ if [[ -f "$_SIG_REG" ]]; then
       _LOOP_CLOSED="$_LOOP_CLOSED $_LC_ID"
     fi
   done
+  if [[ -n "$_LOOP_CLOSED" ]]; then
+    SIGNALS_APPLIED_PATCHES="${SIGNALS_APPLIED_PATCHES}\n  [LOOP-CLOSED] Teaching matched, signals archived:${_LOOP_CLOSED}"
+  fi
 fi
-
 
 # ── Guard check: prevent mid-session re-entry overwrite ─────────────────────
 # SessionStart can re-fire mid-session (e.g. /context, IDE reconnect).
@@ -180,8 +184,15 @@ IP_LIST=$(ls "$LUGS_DIR/bug/in_progress/"*.json "$LUGS_DIR/feature/in_progress/"
 
 # ── 4. Hub + teaching check ───────────────────────────────────────────────────
 HUB_PATH=$(jq -r '.wheel.hub_path // ""' "$STATE_FILE" 2>/dev/null)
-TEACH_DIR="$HUB_PATH/teachings_repo/framework/current"
+NODE_TYPE=$(jq -r '.wheel.node_type // "spoke"' "$STATE_FILE" 2>/dev/null || echo "spoke")
 PROCESSED_DIR="$PROJECT_DIR/WAI-Spoke/seed/ingest/processed"
+
+# Spoke nodes read spoke/current + cross_spoke/current; hub nodes read hub-only/current + cross_spoke/current
+if [[ "$NODE_TYPE" == "hub" ]]; then
+  TEACH_DIRS=("$HUB_PATH/teachings_repo/hub-only/current" "$HUB_PATH/teachings_repo/cross_spoke/current")
+else
+  TEACH_DIRS=("$HUB_PATH/teachings_repo/spoke/current" "$HUB_PATH/teachings_repo/cross_spoke/current")
+fi
 
 HUB_STATUS="MISSING"
 TEACH_STATUS="MISSING"
@@ -192,8 +203,9 @@ NEW_TEACHINGS=""
 
 if [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
   HUB_STATUS="OK"
-  if [[ -d "$TEACH_DIR" ]]; then
-    TEACH_STATUS="OK"
+  TEACH_STATUS="OK"
+  for TEACH_DIR in "${TEACH_DIRS[@]}"; do
+    [[ -d "$TEACH_DIR" ]] || continue
     for f in "$TEACH_DIR"/*.teaching; do
       [[ -f "$f" ]] || continue
       TEACH_TOTAL=$((TEACH_TOTAL + 1))
@@ -203,7 +215,6 @@ if [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
       else
         TEACH_NEW=$((TEACH_NEW + 1))
         NEW_TEACHINGS="$NEW_TEACHINGS\n  - $fname"
-        # Read safe_to_auto_adopt flag
         AUTO=$(grep -m1 'safe_to_auto_adopt' "$f" 2>/dev/null | grep -c 'true')
         if [[ "$AUTO" -eq 1 ]]; then
           NEW_TEACHINGS="$NEW_TEACHINGS [auto-adoptable]"
@@ -212,7 +223,7 @@ if [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
         fi
       fi
     done
-  fi
+  done
 fi
 
 # ── 5. Hub signals bulletin count ────────────────────────────────────────────
@@ -220,9 +231,22 @@ fi
 HUB_SIGNALS=0
 HUB_SIGNALS_HUB=0
 if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming" ]]; then
-  # framework-targeted signals
+  # framework-targeted signals (exclude status=delivered — already absorbed)
   if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/framework" ]]; then
-    HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/framework/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+    HUB_SIGNALS=$(python3 -c "
+import json, glob, os, sys
+count = 0
+for f in sorted(glob.glob(sys.argv[1] + '/*.json')):
+    if os.path.basename(f) == '.gitkeep':
+        continue
+    try:
+        d = json.load(open(f))
+        if d.get('status') != 'delivered':
+            count += 1
+    except Exception:
+        count += 1
+print(count)
+" "$HUB_PATH/WAI-Hub/signals/incoming/framework" 2>/dev/null || echo "0")
   else
     # fallback: flat incoming/ (pre-subfolder layout)
     HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
@@ -464,21 +488,34 @@ fi
 SAVEPOINT_STATUS=""
 if [[ -f "$STATE_FILE" ]]; then
   SP_INFO=$(python3 -c "
-import json
+import json, glob
 try:
     s = json.load(open('$STATE_FILE'))
     sp = s.get('_savepoint') or {}
     if sp.get('status') == 'pending':
-        print(sp.get('lug_id',''))
-        print(sp.get('resume_note','')[:80])
+        lug_id = sp.get('lug_id', '')
+        title = ''
+        lug_files = glob.glob('$PROJECT_DIR/WAI-Spoke/lugs/bytype/*/in_progress/' + lug_id + '.json')
+        if lug_files:
+            lug_data = json.load(open(lug_files[0]))
+            raw_title = lug_data.get('title', '')
+            title = raw_title.split(' — ')[0].split(' -- ')[0][:60]
+        print(lug_id)
+        print(title)
+        print(sp.get('resume_note', '')[:100])
 except Exception:
     pass
 " 2>/dev/null)
   if [[ -n "$SP_INFO" ]]; then
     SP_LUG=$(echo "$SP_INFO" | sed -n '1p')
-    SP_NOTE=$(echo "$SP_INFO" | sed -n '2p')
+    SP_TITLE=$(echo "$SP_INFO" | sed -n '2p')
+    SP_NOTE=$(echo "$SP_INFO" | sed -n '3p')
     if [[ -n "$SP_LUG" ]]; then
-      SAVEPOINT_STATUS="  Savepoint: PENDING [${SP_LUG}] — ${SP_NOTE}"
+      if [[ -n "$SP_TITLE" ]]; then
+        SAVEPOINT_STATUS="  Savepoint: PENDING \"${SP_TITLE}\" — ${SP_NOTE}"
+      else
+        SAVEPOINT_STATUS="  Savepoint: PENDING [${SP_LUG}] — ${SP_NOTE}"
+      fi
     fi
   fi
 fi
@@ -618,6 +655,7 @@ $(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
 $(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)
 $(if [[ -n "$SAVEPOINT_STATUS" ]]; then echo "$SAVEPOINT_STATUS"; fi)
 $(if [[ -n "$STALE_LUGS_STATUS" ]]; then echo "$STALE_LUGS_STATUS"; fi)
+$(if [[ $SIGNALS_APPLIED_COUNT -gt 0 ]]; then printf "  Signals: Applied %d patch(es):%b\n" "$SIGNALS_APPLIED_COUNT" "$SIGNALS_APPLIED_PATCHES"; fi)
   Sync: ${SYNC_STATUS}
 $(if [[ -n "$EXPEDITER_SUMMARY" ]]; then echo "$EXPEDITER_SUMMARY"; fi)
 $(if [[ -n "$CONTEXT_FEED_STATUS" ]]; then echo "$CONTEXT_FEED_STATUS"; fi)

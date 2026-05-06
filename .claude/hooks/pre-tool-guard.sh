@@ -8,8 +8,8 @@
 input=$(cat)
 tool=$(echo "$input" | jq -r '.tool_name // ""')
 
-# Only guard Bash commands
-[[ "$tool" != "Bash" ]] && echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}' && exit 0
+# Only guard Bash commands — exit 0 silently to allow (no stdout; stdout causes hook error messages)
+[[ "$tool" != "Bash" ]] && exit 0
 
 cmd=$(echo "$input" | jq -r '.tool_input.command // ""')
 
@@ -66,6 +66,5 @@ if echo "$first_line" | grep -qE '^\s*\\?rm\s'; then
   fi
 fi
 
-# Allow everything else
-echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'
+# Allow everything else — exit 0 silently (no stdout)
 exit 0

@@ -36,8 +36,17 @@ if [[ -z "$GUARD_SESSION_ID" || "$GUARD_SESSION_ID" == "$LAST_SESSION_ID" ]]; th
   GUARD_COMPLETED="false"
 fi
 
-# Skip if protocol already ran this session
-[[ "$GUARD_COMPLETED" == "true" ]] && exit 0
+# Check for post-compaction recovery (flag written by pre-compact.sh)
+COMPACT_FLAG="$RUNTIME_DIR/compacted.flag"
+POST_COMPACT=false
+if [[ -f "$COMPACT_FLAG" ]]; then
+  POST_COMPACT=true
+  rm -f "$COMPACT_FLAG"
+fi
+export POST_COMPACT
+
+# Skip if protocol already ran this session (unless post-compact recovery needed)
+[[ "$GUARD_COMPLETED" == "true" && "$POST_COMPACT" == "false" ]] && exit 0
 
 # Mark protocol as triggered (in runtime file only — WAI-State.json stays clean)
 TMP=$(mktemp)
@@ -143,19 +152,33 @@ if intent == 'implement':
 elif intent == 'savepoint':
     directive = 'DIRECTIVE: Intent=savepoint resume. Read WAI-State._savepoint (1 call), load named lug, resume work.'
 elif intent == 'teachings':
-    directive = 'DIRECTIVE: Intent=teachings. Run /wai-learn.'
+    directive = 'DIRECTIVE: Intent=teachings. Run /wai (wai-learn is deprecated — absorbed into wai Step 3a).'
 elif intent == 'closeout':
-    directive = 'DIRECTIVE: Intent=closeout. Run /wai-closeout or /wai-shipit.'
+    directive = 'DIRECTIVE: Intent=closeout. Run /wai-closeout.'
 elif intent == 'refinement':
     directive = 'DIRECTIVE: Intent=refinement. Skip teaching adoption. Load needs_refinement queue.'
 else:
     directive = ('DIRECTIVE: Run WAI wakeup protocol (/wai skill, templates/commands/wai.md). '
                  'Include pending teachings in briefing. Do not stop wakeup before briefing is complete.')
 
-content_lines = ['<wai-session-init>', f'Wakeup brief: {status}'] + lines + [
+post_compact = os.environ.get('POST_COMPACT', 'false') == 'true'
+post_compact_block = []
+if post_compact:
+    post_compact_block = [
+        '',
+        '<wai-post-compact>',
+        'Context compaction just occurred. Before responding to the user:',
+        '1. Re-read WAI-State.json to restore session context.',
+        '2. If mid-closeout: re-read wai-closeout.md and resume from the step you were on.',
+        '3. Check recent track entries to understand what was in progress.',
+        'P1-Persist and P11-Lug-First are still active.',
+        '</wai-post-compact>',
+    ]
+
+content_lines = ['<wai-session-init>', f'Wakeup brief: {status}'] + lines + post_compact_block + [
     '',
     directive,
-    'EXCEPTION: If user message is a closeout command (/wai-closeout, /wai-shipit), skip briefing.',
+    'EXCEPTION: If user message is a closeout command (/wai-closeout), skip briefing.',
     '</wai-session-init>',
 ]
 import json as _json

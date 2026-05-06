@@ -1,0 +1,782 @@
+{
+  "schema_version": "1.1",
+  "generated_at": "2026-05-06T05:25:24.271820+00:00",
+  "valid_through": "2026-05-07T05:25:24.271820+00:00",
+  "assay_sessions_incorporated": 0,
+  "fleet_chart_sessions": 36,
+  "profiles": {
+    "coding_high": {
+      "task_profile": {
+        "work_type": "coding",
+        "complexity": 4,
+        "requires_tool_use": true,
+        "requires_reasoning": true,
+        "requires_image": false,
+        "budget_posture": "normal"
+      },
+      "default": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "cost_optimized": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-6",
+        "provider": "anthropic",
+        "score": 0.645,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 1.0,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.0,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "glm-5",
+        "provider": "z_ai",
+        "score": 0.732,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.92,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "do_not_use": [
+        "claude-haiku-4-5",
+        "deepseek-ai/DeepSeek-V3",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "glm-4.5-air",
+        "gpt-4o-mini",
+        "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+      ]
+    },
+    "coding_low": {
+      "task_profile": {
+        "work_type": "coding",
+        "complexity": 2,
+        "requires_tool_use": false,
+        "requires_reasoning": false,
+        "requires_image": false,
+        "budget_posture": "cost-sensitive"
+      },
+      "default": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.7619,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9688,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "cost_optimized": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.7619,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9688,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-6",
+        "provider": "anthropic",
+        "score": 0.625,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.0,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.7619,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9688,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "glm-4.5-air",
+        "provider": "z_ai",
+        "score": 0.7617,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9667,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "do_not_use": []
+    },
+    "planning_high": {
+      "task_profile": {
+        "work_type": "planning",
+        "complexity": 4,
+        "requires_tool_use": false,
+        "requires_reasoning": true,
+        "requires_image": false,
+        "budget_posture": "normal"
+      },
+      "default": {
+        "model_id": "gemini-2.5-pro",
+        "provider": "gemini",
+        "score": 0.7469,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 1.0,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.85,
+          "cost_fit": 0.8438,
+          "stability_fit": 0.75,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "cost_optimized": {
+        "model_id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "provider": "together",
+        "score": 0.7206,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.956,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-6",
+        "provider": "anthropic",
+        "score": 0.645,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 1.0,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.0,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gemini-2.5-pro",
+        "provider": "gemini",
+        "score": 0.7469,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 1.0,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.85,
+          "cost_fit": 0.8438,
+          "stability_fit": 0.75,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "do_not_use": [
+        "claude-haiku-4-5",
+        "gemini-2.5-flash",
+        "glm-4.5-air",
+        "gpt-4o-mini"
+      ]
+    },
+    "debugging_medium": {
+      "task_profile": {
+        "work_type": "debugging",
+        "complexity": 3,
+        "requires_tool_use": true,
+        "requires_reasoning": true,
+        "requires_image": false,
+        "budget_posture": "normal"
+      },
+      "default": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "cost_optimized": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-6",
+        "provider": "anthropic",
+        "score": 0.625,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.0,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "glm-5",
+        "provider": "z_ai",
+        "score": 0.732,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.92,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "do_not_use": [
+        "claude-haiku-4-5",
+        "deepseek-ai/DeepSeek-V3",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "glm-4.5-air",
+        "gpt-4o-mini",
+        "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+      ]
+    },
+    "review_low": {
+      "task_profile": {
+        "work_type": "review",
+        "complexity": 2,
+        "requires_tool_use": false,
+        "requires_reasoning": true,
+        "requires_image": false,
+        "budget_posture": "normal"
+      },
+      "default": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "cost_optimized": {
+        "model_id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "provider": "together",
+        "score": 0.7206,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.956,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-6",
+        "provider": "anthropic",
+        "score": 0.625,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.0,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gemini-2.5-pro",
+        "provider": "gemini",
+        "score": 0.7269,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.85,
+          "cost_fit": 0.8438,
+          "stability_fit": 0.75,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "deepseek-ai/DeepSeek-V3",
+        "provider": "together",
+        "score": 0.7338,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.9375,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "do_not_use": [
+        "claude-haiku-4-5",
+        "gemini-2.5-flash",
+        "glm-4.5-air",
+        "gpt-4o-mini"
+      ]
+    },
+    "closeout_low": {
+      "task_profile": {
+        "work_type": "review",
+        "complexity": 1,
+        "requires_tool_use": false,
+        "requires_reasoning": false,
+        "requires_image": false,
+        "budget_posture": "cost-sensitive"
+      },
+      "default": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.7419,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.8,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9688,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "cost_optimized": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "gemini",
+        "score": 0.7209,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.8,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.85,
+          "cost_fit": 0.9844,
+          "stability_fit": 0.75,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-6",
+        "provider": "anthropic",
+        "score": 0.625,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.0,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.7419,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.8,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9688,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "glm-4.5-air",
+        "provider": "z_ai",
+        "score": 0.7417,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.8,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9667,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "do_not_use": []
+    },
+    "ideation_medium": {
+      "task_profile": {
+        "work_type": "ideation",
+        "complexity": 3,
+        "requires_tool_use": false,
+        "requires_reasoning": true,
+        "requires_image": false,
+        "budget_posture": "normal"
+      },
+      "default": {
+        "model_id": "glm-4.5",
+        "provider": "z_ai",
+        "score": 0.734,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.94,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "cost_optimized": {
+        "model_id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "provider": "together",
+        "score": 0.7206,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.956,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-6",
+        "provider": "anthropic",
+        "score": 0.625,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.0,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gemini-2.5-pro",
+        "provider": "gemini",
+        "score": 0.7269,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.85,
+          "cost_fit": 0.8438,
+          "stability_fit": 0.75,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "deepseek-ai/DeepSeek-V3",
+        "provider": "together",
+        "score": 0.7338,
+        "dimension_scores": {
+          "access_fit": 0.7,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.7,
+          "cost_fit": 0.9375,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "do_not_use": [
+        "claude-haiku-4-5",
+        "gemini-2.5-flash",
+        "glm-4.5-air",
+        "gpt-4o-mini"
+      ]
+    }
+  }
+}

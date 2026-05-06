@@ -31,4 +31,8 @@ Rules still active: P1-Persist, P2-Verify, P3-Steward, P10-Autonomy, P11-Lug-Fir
 </wai-pre-compact>
 COMPACT
 
+# Write flag so user-prompt-submit.sh re-orients the model after compaction
+mkdir -p "$PROJECT_DIR/WAI-Spoke/runtime"
+printf 'true' > "$PROJECT_DIR/WAI-Spoke/runtime/compacted.flag"
+
 exit 0
