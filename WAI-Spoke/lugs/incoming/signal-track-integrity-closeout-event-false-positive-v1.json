@@ -1,0 +1,14 @@
+{
+  "id": "signal-track-integrity-closeout-event-false-positive-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Track integrity check false-positive: closeout-event entries lack 'completed' field",
+  "signal": "Track integrity check false-positive: closeout-event track entries use event+summary schema (no turn or completed fields). Wakeup check tests d.get(completed) which fails, flagging valid closeout sessions as INTERRUPTED. Fix: check for event==closeout OR completed==true when determining track health.",
+  "impact": 8,
+  "rationale": "False INTERRUPTED detection causes unnecessary recovery prompts at wakeup, erodes trust in the integrity check, and may cause redundant recovery work.",
+  "source_session": "session-20260331-1535",
+  "by": "claude-sonnet-4-6",
+  "created_at": "2026-03-31T23:17:31Z",
+  "fw_ver": "2.0.137",
+  "routed_to": "FRAMEWORK"
+}

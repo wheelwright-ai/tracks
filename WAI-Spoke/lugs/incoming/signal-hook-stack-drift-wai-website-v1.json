@@ -1,0 +1,12 @@
+{
+  "id": "signal-hook-stack-drift-wai-website-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Spoke hook stack drift: old session-start.sh + stale wai.md caused 9 PreToolUse:Bash hook errors per wakeup",
+  "signal": "wheelwright-ai-website had: wai.md 30 days stale (pre wai-session-init), session-start.sh old version at WAI-Spoke/_hooks/ (not .claude/hooks/), CLAUDE_PROJECT_DIR unset so PROJECT_DIR=.. Result: wakeup fell back to 9 bash commands, some hitting archived/trashed files. Fixed: all hooks synced to canonical framework versions, settings.json updated.",
+  "impact": 8,
+  "routed_to": "SIGNAL",
+  "rationale": "Need a fleet-wide hook freshness check \u2014 compare spoke hook mtimes to framework canonical. Stale > 14 days should surface in wakeup briefing.",
+  "created_at": "2026-04-05T08:10:40.459034+00:00",
+  "created_by": "session-20260404-1306"
+}

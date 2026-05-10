@@ -1,0 +1,12 @@
+{
+  "id": "signal-p11-lug-first-memory-20260322",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "P11 Lug-First Memory: if work state is not in a lug, the next agent starts blind",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.214300+00:00",
+  "description": "TaskCreate calls, scratch md files, and in-head state do not survive session ends. Only WAI-Lugs.jsonl is read on wakeup.",
+  "impact": 9,
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-03-22T00:00:00Z"
+}

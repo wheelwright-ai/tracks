@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-456864cf35a1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Station Master API production-ready after critical bug fixes \u2014 /api/tracks now s",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.214161+00:00",
+  "timestamp": "2026-03-25T20:40:00Z",
+  "session_id": "session-20260325-2032",
+  "impact": 8,
+  "rationale": "Enables v0.2.8 deployment; core Vault capability now functional. Unblocks Browser UAT and subsequent deployment.",
+  "by": "Claude Haiku 4.5",
+  "description": "Station Master API production-ready after critical bug fixes \u2014 /api/tracks now successfully ingests and persists tracks with automatic Line assignment and fork awareness",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

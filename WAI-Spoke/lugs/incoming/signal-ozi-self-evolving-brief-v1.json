@@ -1,0 +1,11 @@
+{
+  "id": "signal-ozi-self-evolving-brief-v1",
+  "type": "signal",
+  "title": "Ozi Self-Evolving Brief Collection \u2014 builder-validator pattern with evidence-based promotion",
+  "signal": "Applied DSPy-GEPA tightening approach to Ozi brief generation: (1) Builder-validator pattern with 5 validation rules (schema compliance, cross-check accuracy, timestamp freshness, expediter consistency, teaching count sanity). (2) Refinement logging to WAI-Spoke/advisors/ozi/refinements.jsonl on validation failure. (3) Promotion gates: 3 occurrences required before promotion. (4) Escalation trigger: 3+ failures in 10 runs. System self-improves without manual intervention. Files: tools/generate_ozi_brief.py, tools/promote_brief_refinement.py, WAI-Spoke/skills/brief-validation.md.",
+  "impact": 9,
+  "routed_to": "FRAMEWORK",
+  "rationale": "Pattern applicable to all advisors (Ozi, Octo, Expediter, Historian). Replaces manual prompt editing with evidence-based, bounded refinement with promotion gates.",
+  "created_at": "2026-04-03T22:33:42.833878+00:00",
+  "created_by": "session-20260403-2233"
+}

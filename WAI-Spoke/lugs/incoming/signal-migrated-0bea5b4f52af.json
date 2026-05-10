@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-0bea5b4f52af",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Documentation sprawl cleanup pattern: Move reference-worthy files to WAI-Spoke/r",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.212731+00:00",
+  "timestamp": "2026-03-18T11:52:00Z",
+  "session_id": "session-44-wakeup",
+  "impact": 9,
+  "rationale": "Prevents documentation rot and confusion.",
+  "by": "Gemini CLI (via hub teaching)",
+  "description": "Documentation sprawl cleanup pattern: Move reference-worthy files to WAI-Spoke/reference/, delete historical files, maintain single canonical docs location.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

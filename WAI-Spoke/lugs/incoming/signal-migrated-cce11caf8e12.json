@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-cce11caf8e12",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "v0.18 HSP Track Prompt spec ingested and mapped. Canonical payload schema: sessi",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.213956+00:00",
+  "timestamp": "2026-03-25T09:38:30Z",
+  "session_id": "session-20260325-0714",
+  "impact": 8,
+  "rationale": "The wire format for all track ingestion is now defined. Normalizer must handle this plus WAI Claude format. Critical for Station Master build \u2014 determines StationRecord canonical schema.",
+  "by": "claude-sonnet-4-6",
+  "description": "v0.18 HSP Track Prompt spec ingested and mapped. Canonical payload schema: session_header (codename, line_id, station_id, governance_mode), exchange (id={codename}-t{N}, user.raw, assistant.raw, events[], artifacts_referenced[]), state_snapshot (every 10 turns). Export order: FILENAME line \u2192 session_header \u2192 artifact_manifest \u2192 provenance_manifest \u2192 line/station_manifest \u2192 state_snapshot \u2192 exchanges. Ingest sources: live_session | pasted_track | uploaded_file.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

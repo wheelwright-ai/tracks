@@ -1,0 +1,13 @@
+{
+  "id": "signal-tender-dry-run-pass1-cost-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "wheel-tender.sh --dry-run still runs Pass 1 Haiku session (~$0.50) \u2014 not free",
+  "signal": "wheel-tender.sh --dry-run still runs Pass 1 (Haiku fleet Claude session, ~2 min, ~$0.50). Dry-run only skips Pass 2 and Pass 3. To check filter result without cost, read the gardener log after a real run or parse filter logic directly. Avoid --dry-run when filter visibility is the goal.",
+  "impact": 8,
+  "rationale": "Wasted $0.52 on a verification pass that gave no new information \u2014 the filter result was already visible in the log from the previous run.",
+  "source_session": "session-20260330-1255",
+  "by": "claude-sonnet-4-6",
+  "created_at": "2026-03-30T20:35:00Z",
+  "routed_to": "LOCAL"
+}

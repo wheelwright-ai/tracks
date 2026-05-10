@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-eb1f446aa964",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Use printf (not echo) when piping secrets to vercel CLI \u2014 echo appends a newline",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.213366+00:00",
+  "timestamp": "2026-03-24T05:00:00Z",
+  "session_id": "session-20260323-deploy-auth",
+  "impact": 8,
+  "rationale": "Wasted multiple debug cycles tracing OAuth failures back to \\n-contaminated env vars. Simple printf fix prevents a hard-to-diagnose class of deployment errors.",
+  "by": "Claude Code (claude-sonnet-4-6)",
+  "description": "Use printf (not echo) when piping secrets to vercel CLI \u2014 echo appends a newline that gets stored as part of the secret value, causing silent auth failures downstream",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

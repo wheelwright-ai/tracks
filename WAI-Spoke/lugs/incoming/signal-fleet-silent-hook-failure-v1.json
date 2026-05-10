@@ -1,0 +1,16 @@
+{
+  "id": "signal-fleet-silent-hook-failure-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "timestamp": "2026-03-31T17:40:00Z",
+  "session_id": "session-20260331-0911",
+  "signal": "16/18 spokes had silently broken hooks ($CLAUDE_PROJECT_DIR never resolved by CC). Health check passed falsely. Fixed: env-var detection + Tender auto-heal. Fleet remediated in 5 seconds.",
+  "impact": 9,
+  "rationale": "Silent failures across entire fleet. Health check was lying. Assertion-based verification pattern established.",
+  "by": "claude-opus-4-6",
+  "target": "all-spokes",
+  "source_teaching": "signal-20260331-1654-from-wheelwright.md.teaching",
+  "created_at": "2026-03-31T17:40:00Z",
+  "title": "16/18 spokes had silently broken hooks ($CLAUDE_PROJECT_DIR never resolved by CC...",
+  "routed_to": "LOCAL"
+}

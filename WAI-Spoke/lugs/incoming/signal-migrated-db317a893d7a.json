@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-db317a893d7a",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "NEXTAUTH_URL must be the base domain only (e.g. https://www.wheelwright.ai) \u2014 Ne",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.213638+00:00",
+  "timestamp": "2026-03-24T05:00:00Z",
+  "session_id": "session-20260323-deploy-auth",
+  "impact": 8,
+  "rationale": "Setting NEXTAUTH_URL to the full callback path caused every OAuth attempt to generate malformed redirect_uri values, making it impossible to complete sign-in.",
+  "by": "Claude Code (claude-sonnet-4-6)",
+  "description": "NEXTAUTH_URL must be the base domain only (e.g. https://www.wheelwright.ai) \u2014 NextAuth constructs /api/auth/callback/[provider] automatically. Setting the full callback path breaks all OAuth flows.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

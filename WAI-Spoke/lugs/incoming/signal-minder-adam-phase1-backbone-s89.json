@@ -1,0 +1,12 @@
+{
+  "id": "signal-minder-adam-phase1-backbone-s89",
+  "type": "signal",
+  "title": "Minder Adam Phase 0+1A+1B complete — OpenCode ACP adapter pattern established",
+  "description": "Adam COO operations layer Phase 0 (conventions), Phase 1A (OpenCode backbone), and Phase 1B (Duncan activity log) are implemented in minder. Key pattern: OpenCode ACP server is launched as a subprocess (opencode acp --port N --cwd path), communicated with via HTTP, and supervised by a background asyncio watcher task. Session state is persisted to data/adam/sessions.json. Windows toast via PowerShell WinRT from WSL. Duncan extracts activity from session-summary lugs, track.jsonl decisions, and completed lugs.",
+  "impact": 8,
+  "target": "spokes",
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-04-03T19:49:00Z",
+  "session_id": "session-20260403-1949",
+  "rationale": "Establishes the first working pattern for AI agent session supervision in the Wheelwright fleet. The OpenCode ACP adapter contract and async watcher pattern are reusable for other tool integrations."
+}

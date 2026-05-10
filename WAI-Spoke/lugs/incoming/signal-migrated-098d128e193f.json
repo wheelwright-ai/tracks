@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-098d128e193f",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "GitHub Actions integration failures diagnosed: 126 lug status validation errors,",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.212492+00:00",
+  "timestamp": "2026-03-18T11:38:00Z",
+  "session_id": "session-20260318-wakeup",
+  "impact": 8,
+  "rationale": "Identifies schema drift between implementation and validation in CI.",
+  "by": "Gemini CLI (via hub teaching)",
+  "description": "GitHub Actions integration failures diagnosed: 126 lug status validation errors, 3 wai.md missing sections, 4 inbox routing doc gaps. Root cause: test schema out of sync with current lug lifecycle.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

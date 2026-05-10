@@ -1,0 +1,12 @@
+{
+  "id": "signal-flat-lug-orphan-migration-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "WAI-Lugs.jsonl flat format orphaned 111 lugs across 5 spokes \u2014 not in bytype/ canonical structure",
+  "signal": "The old WAI-Lugs.jsonl flat file was still being written to alongside bytype/ on 5 spokes. 111 lugs existed only in the flat file, never migrated to bytype/. Migrated this session; flat files archived as WAI-Lugs-archived.jsonl. Root cause: no migration guard during the bytype/ transition.",
+  "impact": 8,
+  "routed_to": "SIGNAL",
+  "rationale": "Closeout scripts that still write to WAI-Lugs.jsonl need to be identified and updated to write to bytype/ only.",
+  "created_at": "2026-04-05T08:10:40.459028+00:00",
+  "created_by": "session-20260404-1306"
+}

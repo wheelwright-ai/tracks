@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-4f9c061a64c3",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Historian pattern-scan activity_filter_exclude: 22-token blocklist added to filt",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.211681+00:00",
+  "timestamp": "2026-03-16T00:45:00Z",
+  "session_id": "session-20260316-0011",
+  "impact": 8,
+  "rationale": "Pattern-scan quality was severely degraded by maintenance-routine phrases that appear in nearly every session. This fix makes the scan signal-to-noise ratio viable for long-term use.",
+  "by": "Claude Sonnet 4.6",
+  "description": "Historian pattern-scan activity_filter_exclude: 22-token blocklist added to filter protocol-routine activity[] phrases before Jaccard similarity scan. First pass found 30/40 clusters were noise from 'committed', 'updated', 'copied' etc. Filter applied only to activity[] field \u2014 open[] and decisions[] unfiltered. Eliminates calibration noise from all future pattern-scan runs across all spokes.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

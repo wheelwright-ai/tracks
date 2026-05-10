@@ -1,0 +1,12 @@
+{
+  "id": "signal-fleet-ingest-cleanup-pattern-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Fleet ingest cleanup: old flat WAI files dumped into seed/ingest/ during migration \u2014 systemic pattern across all spokes",
+  "signal": "During spoke migration, the old pre-WAI-Spoke flat structure (WAI-Events.json, WAI-Guide.md, WAI-State.md, WAI-Lugs.jsonl, scripts, etc.) was copied wholesale into WAI-Spoke/seed/ingest/ instead of being retired. Also: seed/processed/ was used as a pipeline path before seed/ingest/processed/ was canonical, causing a split. Fixed across 17 spokes this session.",
+  "impact": 9,
+  "routed_to": "SIGNAL",
+  "rationale": "Init migration script needs a guard: only teaching files belong in seed/ingest/. All other old WAI files must be retired to trash_bin at migration time.",
+  "created_at": "2026-04-05T08:10:40.459000+00:00",
+  "created_by": "session-20260404-1306"
+}
