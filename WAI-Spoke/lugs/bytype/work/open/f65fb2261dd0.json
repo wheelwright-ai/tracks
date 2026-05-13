@@ -1,0 +1,47 @@
+{
+  "i": "f65fb2261dd0",
+  "t": "Record hub-assigned dev port block [4020-4029] and set primary port 4020",
+  "ty": "work",
+  "work": {
+    "kind": "task"
+  },
+  "s": "o",
+  "ca": "2026-05-13T00:00:00Z",
+  "gb": "claude-sonnet-4-6",
+  "fw_ver": "3.1.0",
+  "priority": "P2",
+  "impact": 4,
+  "routed_to": "LOCAL",
+  "source_wheel_id": "wheelwright-hub",
+  "destination_wheel_id": "tracks",
+  "_behavior_directive": {
+    "what_this_is": "A work item to TRACK and implement \u2014 record this spoke's hub-assigned port block in local config and update dev server startup",
+    "what_this_is_NOT": "An instruction to execute automatically on receipt. Add to task tracker and implement in the next working session."
+  },
+  "context": "The hub now maintains a coordinated port namespace. Every active spoke has a reserved 10-port block so concurrent dev sessions never collide. This spoke (tracks) owns: ports 4020-4029, primary port 4020, local hostname 'tracks.local'. Source of truth: hub-registry.json at /home/mario/projects/wheelwright/hub/hub-registry.json, field wheels[].dev for wheel_id='tracks'. Group 'wheelwright' range: {'root':3000-3999,'wheelwright':4000-4999,'client-work':5000-5999}[group]. Windows hosts file maps tracks.local \u2192 127.0.0.1 so the project is reachable at http://tracks.local/ when dev server is running.",
+  "perceive": [
+    "Open /home/mario/projects/wheelwright/hub/hub-registry.json",
+    "Find the entry with wheel_id='tracks' and read the 'dev' field",
+    "Confirm: port_block=[4020, 4029], primary_port=4020, hostname='tracks.local', folder_group='wheelwright'",
+    "Check whether WAI-Spoke/dev-config.json already exists in this project",
+    "Check package.json (if present) \u2014 does the 'dev' script already specify this port?",
+    "Check .env.local / .env (if present) \u2014 is PORT already set?"
+  ],
+  "execute": [
+    "Create or overwrite WAI-Spoke/dev-config.json with the following content:\n  {\"port_block\":[4020, 4029],\"primary_port\":4020,\"hostname\":\"tracks.local\",\"folder_group\":\"wheelwright\",\"source\":\"hub-registry.json\",\"assigned_at\":\"2026-05-13\"}",
+    "In package.json 'dev' script, set the server port to 4020",
+    "If .env.local exists and doesn't already have PORT: add PORT=4020 to it",
+    "Do NOT use any port outside 4020-4029 for this project's dev server"
+  ],
+  "verify": [
+    "WAI-Spoke/dev-config.json exists and contains primary_port=4020",
+    "Running the dev server starts on port 4020 with no binding error",
+    "(If hosts file synced) http://tracks.local/ loads the running dev server"
+  ],
+  "tags": [
+    "port-allocation",
+    "dev-config",
+    "hub-directive",
+    "fleet-coordination"
+  ]
+}

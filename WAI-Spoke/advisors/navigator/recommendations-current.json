@@ -1,9 +1,9 @@
 {
   "schema_version": "1.1",
-  "generated_at": "2026-05-10T04:57:53.434806+00:00",
-  "valid_through": "2026-05-11T04:57:53.434806+00:00",
+  "generated_at": "2026-05-10T09:37:11.956699+00:00",
+  "valid_through": "2026-05-11T09:37:11.956699+00:00",
   "assay_sessions_incorporated": 10,
-  "fleet_chart_sessions": 38,
+  "fleet_chart_sessions": 41,
   "profiles": {
     "coding_high": {
       "task_profile": {

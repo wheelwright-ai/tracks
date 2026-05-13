@@ -14,21 +14,6 @@
   "findings": [],
   "auto_applied": [
     {
-      "path": "CLAUDE.md",
-      "action": "appended 19 missing canonical anti-pattern entries",
-      "code": "claude-md-antipatterns-gap"
-    },
-    {
-      "path": ".claude/commands/",
-      "action": "copied 12 missing skill files from framework template: SKILL-EXAMPLES.md, chat-to-track.md, manifest.json, spoke-telemetry-closeout.md, wai-apply-all.md, wai-chain-load.md, wai-reference.md, wai-savepoint.md, wai-tool-advisor-reference.md, wai-tool-advisor.md, wai-tool-maximizer-gemini-reference.md, wai-tool-maximizer-gemini.md",
-      "code": "claude-commands-incomplete"
-    },
-    {
-      "path": "CLAUDE.md",
-      "action": "added Behavioral Protocols / Man Lug System row",
-      "code": "claude-md-behavioral-protocols-gap"
-    },
-    {
       "path": "WAI-Spoke/advisors/registry.json",
       "action": "added Sage advisor stub entry",
       "code": "sage-advisor-missing"
