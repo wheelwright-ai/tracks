@@ -1,0 +1,51 @@
+{
+  "i": "0c7223777d41",
+  "t": "Caddy dev URL standard: bind to env PORT=4020, log http://tracks.local on startup",
+  "ty": "work",
+  "work": {
+    "kind": "implementation"
+  },
+  "s": "o",
+  "ca": "2026-05-13T20:58:26Z",
+  "gb": "claude-sonnet-4-6",
+  "fw_ver": "3.1.31",
+  "priority": "P2",
+  "impact": 5,
+  "routed_to": "LOCAL",
+  "source_wheel_id": "wheelwright-hub",
+  "destination_wheel_id": "tracks",
+  "tags": [
+    "caddy",
+    "dev-standard",
+    "port-binding",
+    "hub-directive",
+    "env-dev"
+  ],
+  "_behavior_directive": {
+    "what_this_is": "A follow-on work item to track and implement \u2014 adopt the fleet dev URL standard for this spoke's dev server",
+    "what_this_is_NOT": "An instruction to execute immediately on receipt. Add to task tracker and implement in the next working session."
+  },
+  "policy": "Hub edict (2026-05-13): The Caddyfile at /etc/caddy/Caddyfile is generated from hub-registry.json and routes http://tracks.local \u2192 localhost:4020. Hub owns Caddy config. Each spoke owns its dev server binding. The canonical local dev URL for this spoke is http://tracks.local \u2014 not localhost:4020. Every spoke must bind its dev server to primary_port and log the .local URL on startup.",
+  "prior_lug": "Port-block assignment delivered in Session 103 (tag: port-allocation, dev-config). This is the follow-on implementing the full standard.",
+  "perceive": [
+    "Read hub-registry.json \u2192 wheels[wheel_id='tracks'].dev \u2014 confirm primary_port=4020, hostname='tracks.local'",
+    "Check .env.dev in project root \u2014 does it exist? Does it contain PORT=4020?",
+    "Locate the dev server entry point (serve.ts, server.ts, index.ts, app.py, etc.)",
+    "Check whether the dev server reads PORT from env or hardcodes a port number",
+    "Check package.json 'dev' script \u2014 does it load .env.dev when starting the server?",
+    "Check the startup log message \u2014 does it print http://{hostname} or localhost:{port}?"
+  ],
+  "execute": [
+    "Ensure .env.dev exists and contains PORT=4020 (create or add the line if missing)",
+    "Update dev server entry point: replace any hardcoded port with process.env.PORT ?? 4020 (or language equivalent)",
+    "Update 'bun dev' script (or equivalent) to load .env.dev \u2014 e.g. bun --env-file=.env.dev <server-file>",
+    "Update startup log to print 'http://tracks.local  (localhost:4020)' \u2014 not just localhost:4020",
+    "If WAI-Spoke/dev-config.json exists, confirm it has primary_port=4020 and hostname='tracks.local' (create if missing)"
+  ],
+  "verify": [
+    "Running 'bun dev' (or equivalent) starts the server on port 4020 with no bind error",
+    "Startup log prints http://tracks.local",
+    ".env.dev contains PORT=4020",
+    "http://tracks.local loads the running dev server (requires Caddy to be running)"
+  ]
+}

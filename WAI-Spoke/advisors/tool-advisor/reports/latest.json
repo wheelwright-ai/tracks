@@ -12,13 +12,7 @@
     "Shared": "pass"
   },
   "findings": [],
-  "auto_applied": [
-    {
-      "path": "WAI-Spoke/advisors/registry.json",
-      "action": "added Sage advisor stub entry",
-      "code": "sage-advisor-missing"
-    }
-  ],
+  "auto_applied": [],
   "planned_fixes": [],
   "proposals": [
     {

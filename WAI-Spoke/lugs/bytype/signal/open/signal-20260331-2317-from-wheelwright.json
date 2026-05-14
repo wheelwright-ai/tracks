@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-03-31T23:17:31Z",
+  "session_id": "session-20260331-1535",
+  "signal": "Post-compaction closeout recall hardening pattern: pre-compact.sh writes compacted=true to guard file; user-prompt-submit.sh detects flag and injects one-shot <wai-post-compact> block directing model to read skill file before acting; flag cleared after injection. Prevents silent skill reconstruction from degraded context.",
+  "impact": 9,
+  "rationale": "Context compaction silently strips skill knowledge. Without explicit re-read directive, model reconstructs closeout from memory which degrades. One-shot injection avoids noise on every subsequent turn.",
+  "by": "claude-sonnet-4-6",
+  "fw_ver": "2.0.137",
+  "delivered_at": "2026-04-30T06:49:08.996107+00:00",
+  "delivered_from": "minder"
+}

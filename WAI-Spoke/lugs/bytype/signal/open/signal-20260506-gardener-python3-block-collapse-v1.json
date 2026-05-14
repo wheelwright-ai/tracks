@@ -1,0 +1,13 @@
+{
+  "id": "signal-20260506-gardener-python3-block-collapse-v1",
+  "type": "signal",
+  "title": "Gardener lifecycle session corrupted multi-line python3 -c blocks in wai-enter.sh",
+  "description": "Gardener lifecycle session (commit 1efb086) collapsed all multi-line python3 -c heredoc-style blocks into single-line strings with literal \\n characters. This broke both bash (syntax error: BASHER_EXIT=$?\\n    if) and Python (rejects literal \\n as statement separator in -c mode). Six python3 blocks affected.",
+  "impact": 8,
+  "source_spoke": "basher",
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-05-06T18:50:00Z",
+  "session_id": "session-20260506-1100",
+  "target": "spokes",
+  "rationale": "Multi-line python3 -c blocks in bash scripts must not be collapsed by automated tools. Any spoke with wai-enter.sh or similar inline Python is at risk. Mitigation: bash -n syntax check in pre-commit hook."
+}

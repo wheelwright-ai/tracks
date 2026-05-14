@@ -1,9 +1,9 @@
 {
   "schema_version": "1.1",
-  "generated_at": "2026-05-10T09:37:11.956699+00:00",
-  "valid_through": "2026-05-11T09:37:11.956699+00:00",
+  "generated_at": "2026-05-13T09:37:12.731718+00:00",
+  "valid_through": "2026-05-14T09:37:12.731718+00:00",
   "assay_sessions_incorporated": 10,
-  "fleet_chart_sessions": 41,
+  "fleet_chart_sessions": 43,
   "profiles": {
     "coding_high": {
       "task_profile": {
@@ -110,7 +110,6 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "deepseek-ai/DeepSeek-V3",
         "gemini-2.5-flash",
         "gemini-2.5-pro",
         "glm-4.5-air",
@@ -439,7 +438,6 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "deepseek-ai/DeepSeek-V3",
         "gemini-2.5-flash",
         "gemini-2.5-pro",
         "glm-4.5-air",
@@ -533,16 +531,16 @@
         ]
       },
       "fallback": {
-        "model_id": "deepseek-ai/DeepSeek-V3",
-        "provider": "together",
-        "score": 0.7338,
+        "model_id": "glm-5",
+        "provider": "z_ai",
+        "score": 0.732,
         "dimension_scores": {
           "access_fit": 0.7,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.7,
-          "cost_fit": 0.9375,
+          "cost_fit": 0.92,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
@@ -750,16 +748,16 @@
         ]
       },
       "fallback": {
-        "model_id": "deepseek-ai/DeepSeek-V3",
-        "provider": "together",
-        "score": 0.7338,
+        "model_id": "glm-5",
+        "provider": "z_ai",
+        "score": 0.732,
         "dimension_scores": {
           "access_fit": 0.7,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.7,
-          "cost_fit": 0.9375,
+          "cost_fit": 0.92,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },

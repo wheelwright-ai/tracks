@@ -1,0 +1,20 @@
+{
+  "id": "signal-post-compact-recovery-flag-pattern-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "routed_to": "SIGNAL",
+  "target": "spokes",
+  "source_spoke": "wheelwright-hub",
+  "impact": 9,
+  "title": "Post-compaction recovery: pre-compact.sh writes compacted.flag, user-prompt-submit.sh injects re-orientation block on next prompt",
+  "perceive": "After context compaction, the model silently reconstructs context (often incorrectly). Without intervention the next user prompt resumes as if nothing happened.",
+  "execute": [
+    "pre-compact.sh: write 'true' to WAI-Spoke/runtime/compacted.flag before exit",
+    "user-prompt-submit.sh: check for compacted.flag before GUARD_COMPLETED skip — if found, set POST_COMPACT=true, delete flag",
+    "user-prompt-submit.sh: change guard skip to [[ GUARD_COMPLETED == true && POST_COMPACT == false ]] && exit 0",
+    "user-prompt-submit.sh Python block: if POST_COMPACT env var is true, append <wai-post-compact> re-orientation block to additionalContext"
+  ],
+  "verify": "grep POST_COMPACT .claude/hooks/user-prompt-submit.sh returns results; grep compacted.flag .claude/hooks/pre-compact.sh returns results",
+  "created_at": "2026-04-30T00:00:00Z",
+  "created_by": "claude-sonnet-4-6"
+}
