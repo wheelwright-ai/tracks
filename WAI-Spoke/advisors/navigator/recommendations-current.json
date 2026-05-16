@@ -1,9 +1,9 @@
 {
   "schema_version": "1.1",
-  "generated_at": "2026-05-13T09:37:12.731718+00:00",
-  "valid_through": "2026-05-14T09:37:12.731718+00:00",
-  "assay_sessions_incorporated": 10,
-  "fleet_chart_sessions": 43,
+  "generated_at": "2026-05-14T09:37:06.474885+00:00",
+  "valid_through": "2026-05-15T09:37:06.474885+00:00",
+  "assay_sessions_incorporated": 11,
+  "fleet_chart_sessions": 47,
   "profiles": {
     "coding_high": {
       "task_profile": {
@@ -55,11 +55,11 @@
       "high_confidence": {
         "model_id": "claude-sonnet-4-6",
         "provider": "anthropic",
-        "score": 0.7225,
+        "score": 0.724,
         "dimension_scores": {
           "access_fit": 0.7,
           "capability_fit": 1.0,
-          "local_success_fit": 0.55,
+          "local_success_fit": 0.56,
           "rework_risk": 0.5,
           "speed_fit": 0.7,
           "cost_fit": 0.55,
@@ -167,11 +167,11 @@
       "high_confidence": {
         "model_id": "claude-sonnet-4-6",
         "provider": "anthropic",
-        "score": 0.6725,
+        "score": 0.674,
         "dimension_scores": {
           "access_fit": 0.7,
           "capability_fit": 0.9,
-          "local_success_fit": 0.55,
+          "local_success_fit": 0.56,
           "rework_risk": 0.5,
           "speed_fit": 0.7,
           "cost_fit": 0.25,
