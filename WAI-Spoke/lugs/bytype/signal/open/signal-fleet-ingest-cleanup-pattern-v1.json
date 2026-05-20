@@ -8,5 +8,6 @@
   "routed_to": "SIGNAL",
   "rationale": "Init migration script needs a guard: only teaching files belong in seed/ingest/. All other old WAI files must be retired to trash_bin at migration time.",
   "created_at": "2026-04-05T08:10:40.459000+00:00",
-  "created_by": "session-20260404-1306"
+  "created_by": "session-20260404-1306",
+  "target": "spokes"
 }
