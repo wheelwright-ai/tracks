@@ -242,7 +242,8 @@
     "framework_version": "2.0.39",
     "node_type": "spoke",
     "spoke_id": "tracks",
-    "wheel_id": "tracks"
+    "wheel_id": "tracks",
+    "initialized_at_version": "1.0.0"
   },
   "hub": {
     "summary": null,
