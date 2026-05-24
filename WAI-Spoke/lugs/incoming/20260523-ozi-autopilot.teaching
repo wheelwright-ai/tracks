@@ -1,0 +1,153 @@
+---
+since_version: "2.0.225"
+---
+# Teaching: Ozi Autopilot Capability v1
+
+**Type:** Skill Capability
+**Version:** 1.0.0
+**Created:** 2026-05-23
+**Updated:** 2026-05-23
+**Impact:** 7
+**safe_to_auto_adopt:** true
+**Affects:** WAI-Spoke/advisors/autopilot/, .claude/commands/
+**Supersedes:** nothing
+
+---
+
+## Prerequisites
+
+| Requirement | Verify with | Blocks |
+|---|---|---|
+| WAI spoke exists | `test -d WAI-Spoke && echo PASS \|\| echo FAIL` | Not a WAI project |
+| tools/ozi_autopilot.py present in framework | `test -f {framework}/tools/ozi_autopilot.py && echo PASS \|\| echo FAIL` | Autopilot cannot run without the controller |
+| wai-ozi-autopilot skill published | `test -f .claude/commands/wai-ozi-autopilot.md && echo PASS \|\| echo FAIL` | Skills must be deployed first |
+
+## Batch Sequence
+
+**Batch:** ozi-autopilot
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Creates the `WAI-Spoke/advisors/autopilot/` advisor directory and seeds the state files that
+Ozi Autopilot uses to track its runs. After adoption, the spoke can be processed
+autonomously by `tools/ozi_autopilot.py` -- no interactive session needed.
+
+Also confirms the two Autopilot skill files (`wai-ozi-autopilot` and `wai-ozi-review`) are present
+in `.claude/commands/` so they appear in the session skill list.
+
+---
+
+## Why This Matters
+
+Spokes without the `advisors/autopilot/` directory cannot receive autopilot automation. Ozi Autopilot
+cannot write its activity log or update its scan state, causing the nightly tender run to
+skip the spoke entirely. This teaching seeds the minimum state so Ozi Autopilot can operate from the
+first run.
+
+---
+
+## How to Apply This Teaching
+
+### Step 0 -- Detect absolute project path
+
+```bash
+PROJECT_ROOT=$(pwd)
+echo "Project root: $PROJECT_ROOT"
+```
+
+### Step 1 -- Create autopilot advisor directory
+
+Check if already present; skip if so (idempotent).
+
+```bash
+if [[ -d "$PROJECT_ROOT/WAI-Spoke/advisors/autopilot" ]]; then
+  echo "advisors/autopilot already exists -- skip create"
+else
+  mkdir -p "$PROJECT_ROOT/WAI-Spoke/advisors/autopilot"
+  echo "created WAI-Spoke/advisors/autopilot"
+fi
+```
+
+### Step 2 -- Seed scan_state.json
+
+Create with fresh (zero-run) state. Do NOT overwrite if file already exists.
+
+```bash
+SCAN_STATE="$PROJECT_ROOT/WAI-Spoke/advisors/autopilot/scan_state.json"
+if [[ -f "$SCAN_STATE" ]]; then
+  echo "scan_state.json already exists -- skip seed"
+else
+  python3 -c "
+import json
+seed = {
+  'advisor_id': 'ozi-autopilot',
+  'advisor_name': 'Ozi Autopilot',
+  'version': '1.0.0',
+  'last_run_at': None,
+  'last_run_summary': None,
+  'gastown_queue': [],
+  'next_run_recommendation': '24h',
+  'stats': {
+    'total_runs': 0,
+    'total_lugs_completed': 0,
+    'total_teachings_adopted': 0,
+    'total_tokens_used': 0
+  }
+}
+json.dump(seed, open('$SCAN_STATE', 'w'), indent=2)
+print('scan_state.json seeded')
+"
+fi
+```
+
+### Step 3 -- Touch activity-log.jsonl
+
+Creates an empty log file that Ozi Autopilot appends to after each run.
+
+```bash
+ACTIVITY_LOG="$PROJECT_ROOT/WAI-Spoke/advisors/autopilot/activity-log.jsonl"
+if [[ ! -f "$ACTIVITY_LOG" ]]; then
+  touch "$ACTIVITY_LOG"
+  echo "activity-log.jsonl created"
+else
+  echo "activity-log.jsonl already exists -- skip"
+fi
+```
+
+### Step 4 -- Confirm skill files present
+
+The skills must have been deployed before this teaching runs. Check and warn if missing.
+
+```bash
+for skill in wai-ozi-autopilot.md wai-ozi-review.md; do
+  if [[ -f "$PROJECT_ROOT/.claude/commands/$skill" ]]; then
+    echo "PASS: .claude/commands/$skill"
+  else
+    echo "WARN: .claude/commands/$skill missing -- copy from framework templates/commands/"
+  fi
+done
+```
+
+---
+
+## Verify
+
+```bash
+ls "$PROJECT_ROOT/WAI-Spoke/advisors/autopilot/scan_state.json" && echo "scan_state PASS" || echo "scan_state FAIL"
+ls "$PROJECT_ROOT/WAI-Spoke/advisors/autopilot/activity-log.jsonl" && echo "activity-log PASS" || echo "activity-log FAIL"
+python3 -c "import json; d=json.load(open('$PROJECT_ROOT/WAI-Spoke/advisors/autopilot/scan_state.json')); assert d['advisor_id']=='ozi-autopilot'; print('scan_state schema PASS')"
+```
+
+Expected output:
+```
+scan_state PASS
+activity-log PASS
+scan_state schema PASS
+```
