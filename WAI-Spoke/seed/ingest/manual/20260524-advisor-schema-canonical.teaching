@@ -1,0 +1,154 @@
+---
+since_version: "2.0.228"
+safe_to_auto_adopt: false
+weight: 25
+---
+# Teaching: Advisor Schema Canonical v1 — YAML artifacts, lifecycle, pilot contracts, shadow mode
+
+**Type:** schema
+**safe_to_auto_adopt:** false
+**weight:** 25
+
+---
+
+## Prerequisites
+
+| Requirement | Verify with | Blocks |
+|---|---|---|
+| Fleet index migration 001 applied to Supabase | `test -f WAI-Spoke/db/migrations/001_fleet_index_schema.sql && echo PASS` | Advisor sync |
+| Fleet index migration 002 applied to Supabase | `test -f WAI-Spoke/db/migrations/002_advisor_tables.sql && echo PASS` | Advisor registry |
+| WAI-State._index.sync_enabled | `python3 -c "import json; print(json.load(open('WAI-Spoke/WAI-State.json'))['_index']['sync_enabled'])"` | Must be true before activating advisors |
+| advisor_manager.py present | `test -f WAI-Spoke/advisors/advisor_manager.py && echo PASS` | Status transitions |
+| PyYAML available | `python3 -c "import yaml; print('PASS')"` | YAML parsing |
+
+## Batch Sequence
+
+**Batch:** advisor-schema-canonical-v1
+**Apply order:** 1 of 1
+**Depends on:** fleet-index-substrate (WAI-State._index.sync_enabled = true)
+**Required before:** hub-advisor-definitions (Prioritizer, Architect, Assessor, BI)
+**Parallel safe:** no (schema change, apply alone)
+
+## Adoption Gate
+
+**DO NOT ADOPT** until the fleet index substrate is operational (Supabase migrations 001 and 002 applied and sync_enabled set to true in WAI-State.json). Adopting the advisor YAML schema before the registry tables exist means the AdvisorManager cannot sync status transitions.
+
+---
+
+## What This Teaching Does
+
+Establishes advisors as first-class, self-describing, versioned YAML artifacts in the WAI system. Before this teaching, advisors were defined only by convention and CLAUDE.md entries. After adoption, every advisor has a machine-readable YAML definition, a complete pilot contract, and a lifecycle enforced by AdvisorManager.
+
+### 1. Advisor YAML Artifacts
+
+Every advisor now lives at:
+```
+{node}/advisors/{advisor_id}/
+  v{version}.yaml     -- full definition at that version
+  active.yaml         -- pointer: current: v1.0.0
+```
+The canonical schema reference is at `WAI-Spoke/advisors/schema/advisor-schema-v1.yaml`. Every field is documented inline with allowed values and whether it is required or optional.
+
+**Key fields:**
+| Field | Required | Meaning |
+|-------|----------|---------|
+| `advisor.id` | Yes | Stable machine identifier (kebab-case, never changes) |
+| `advisor.status` | Yes | `new \| piloting \| promoted \| refined \| removed` |
+| `advisor.pilot_contract` | Required for `status >= piloting` | Complete contract with hypothesis + KPIs |
+| `advisor.patterns[].shadow` | Yes per pattern | `true` = logs what would surface without surfacing it |
+| `advisor.patterns[].evolution_risk` | Yes per pattern | `low \| medium \| high` |
+
+### 2. Status Lifecycle and the One-Piloting-Slot Rule
+
+```
+new --> piloting --> promoted
+                --> refined (stays piloting, pilot_iteration++)
+                --> removed
+```
+
+**Maximum 1 advisor per spoke may have `status: piloting` at any time.**
+
+This is enforced at two levels:
+- **Code:** `AdvisorManager.activate_advisor()` checks for an active pilot before transition. Raises `AdvisorSlotOccupiedError` if slot is taken.
+- **Database:** Partial unique index `uniq_one_pilot_per_wheel ON advisor_registry (wheel_id) WHERE status = 'piloting'` prevents concurrent pilots even from concurrent writes.
+
+To force-promote past the constraint: `AdvisorManager.force_activate(advisor_id, reason="...")` — non-empty reason is required and logged to `lifecycle.jsonl`.
+
+### 3. Pilot Contract (Non-Optional for Piloting)
+
+A `new` advisor cannot enter `piloting` status without a complete pilot contract. The contract is the mechanism that makes evaluation a built-in cycle, not improvised:
+
+```yaml
+pilot_contract:
+  hypothesis: |
+    A specific, falsifiable statement of value.
+  kpis:
+    - name: <metric_name>
+      definition: "What this measures"
+      target: "> 40%"
+  data_required_for_evaluation:
+    minimum_observations: 30
+    minimum_time_window: "30 days"
+    minimum_advisor_fires: 20
+  decision_criteria:
+    promote_if: "Both KPIs met"
+    refine_if: "Partial KPI movement"
+    remove_if: "No movement after window"
+```
+
+Missing any of `hypothesis`, `kpis`, `data_required_for_evaluation`, or `decision_criteria` causes `AdvisorManager.activate_advisor()` to raise `ValueError`.
+
+### 4. Shadow Mode
+
+All new advisors should start with `shadow: true` on every pattern. Shadow mode logs what the advisor would surface without actually surfacing it. Use it to:
+- Verify the advisor is not pathologically noisy before activating
+- Establish a baseline of how often patterns would fire
+- Build the `minimum_advisor_fires` count required for evaluation
+
+Set `shadow: false` only after confirming low noise and activating the pilot contract.
+
+### 5. Use AdvisorManager — Never Edit YAML Status Directly
+
+**WRONG:** editing `v1.0.0.yaml` to change `status: new` to `status: piloting` manually.
+
+**RIGHT:**
+```python
+import sys
+sys.path.insert(0, 'WAI-Spoke')
+from advisors.advisor_manager import AdvisorManager
+mgr = AdvisorManager()
+mgr.activate_advisor('my-advisor', to_status='piloting', reason='Pilot contract complete and approved')
+```
+The AdvisorManager:
+- Enforces the one-slot rule
+- Validates the pilot contract
+- Writes the lifecycle event to `advisors/lifecycle.jsonl`
+- Syncs to the advisor_registry Supabase table (when sync_enabled)
+
+---
+
+## Verification
+
+After adopting this teaching on a spoke:
+
+```bash
+# 1. Schema reference exists
+test -f WAI-Spoke/advisors/schema/advisor-schema-v1.yaml && echo PASS
+
+# 2. Schema parses
+python3 -c "import yaml; yaml.safe_load(open('WAI-Spoke/advisors/schema/advisor-schema-v1.yaml')); print('PASS')"
+
+# 3. AdvisorManager imports
+python3 -c "import sys; sys.path.insert(0,'WAI-Spoke'); from advisors.advisor_manager import AdvisorManager; m=AdvisorManager(); print('pilot:', m.get_active_pilot()); print('PASS')"
+
+# 4. Skill doc exists
+test -f templates/commands/wai-advisor-schema.md && echo PASS
+```
+
+---
+
+## What This Teaching Does NOT Change
+
+- Existing advisors defined only by CLAUDE.md or charter.md: those remain valid but should be converted to YAML definitions as a follow-up
+- The Historian advisor's current behavior: the YAML definition for Historian starts at `status: new`; it does not activate automatically
+- Any project-specific advisor logic: the schema defines structure, not behavior
