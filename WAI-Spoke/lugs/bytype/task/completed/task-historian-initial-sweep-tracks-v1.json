@@ -1,11 +1,12 @@
 {
   "id": "task-historian-initial-sweep-tracks-v1",
   "type": "task",
-  "status": "open",
+  "status": "completed",
   "routed_to": "LOCAL",
   "from_spoke": "framework",
   "originated_session": "session-20260525-2235",
   "created_at": "2026-05-26T07:38:40.318605+00:00",
+  "completed_at": "2026-05-27T00:00:00Z",
   "title": "Historian Initial Sweep \u2014 tracks",
   "one_liner": "Run the Historian advisor's initial_sweep mode to build baseline theme coverage and pattern index for this spoke.",
   "why_this_matters": "The initiative-theme tracking system requires each spoke's Historian to have a baseline sweep before theme imbalance patterns can fire accurately.",

@@ -1,0 +1,58 @@
+{
+  "swept_at": "2026-05-27T00:00:00Z",
+  "spoke": "tracks",
+  "total_epics_scanned": 1,
+  "active_epics": [
+    "epic-station-master-lines-v1"
+  ],
+  "theme_coverage": {
+    "quality": {
+      "active_epics": [
+        "epic-station-master-lines-v1"
+      ],
+      "count": 1,
+      "neglected": false
+    },
+    "growth": {
+      "active_epics": [
+        "epic-station-master-lines-v1"
+      ],
+      "count": 1,
+      "neglected": false
+    },
+    "impact": {
+      "active_epics": [],
+      "count": 0,
+      "neglected": true
+    },
+    "enablement": {
+      "active_epics": [],
+      "count": 0,
+      "neglected": true
+    },
+    "performance": {
+      "active_epics": [],
+      "count": 0,
+      "neglected": true
+    },
+    "awareness": {
+      "active_epics": [],
+      "count": 0,
+      "neglected": true
+    },
+    "satisfaction": {
+      "active_epics": [],
+      "count": 0,
+      "neglected": true
+    }
+  },
+  "neglected_themes": [
+    "impact",
+    "enablement",
+    "performance",
+    "awareness",
+    "satisfaction"
+  ],
+  "epics_missing_themes": [],
+  "baseline_established": true
+}
