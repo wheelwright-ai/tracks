@@ -1,0 +1,322 @@
+{
+  "id": "task-track-rebuild-audit-20260527-tracks-v1",
+  "type": "task",
+  "status": "open",
+  "title": "Track rebuild \u2014 22 sessions reconstructed on Tracks, initiative audit ready",
+  "routed_to": "FRAMEWORK",
+  "model_fit": "sonnet",
+  "effort_score": 3,
+  "created_at": "2026-05-27T01:33:43.805695+00:00",
+  "created_by": "historian-track-rebuild-fleet",
+  "perceive": "Fleet track rebuild ran on spoke 'Tracks' at /home/mario/projects/wheelwright/tracks. 22 sessions reconstructed (6 with no data). Sources used: git-log, lug-activity, spoke-changelog.",
+  "execute": [
+    "Review completed_lugs \u2014 confirm each is in bytype/*/completed/",
+    "Review new_lugs_created \u2014 close stale open ones",
+    "Create lugs for unanchored_requests that never got one",
+    "Review undocumented_initiatives \u2014 anchor to parent epics"
+  ],
+  "verify": [
+    "find WAI-Spoke/sessions/session-2026* -name wai_track_ledger.md | wc -l \u2192 \u2265 22"
+  ],
+  "initiative_inventory": {
+    "spoke": "Tracks",
+    "spoke_path": "/home/mario/projects/wheelwright/tracks",
+    "sessions_reconstructed": 22,
+    "sessions_with_no_data": 6,
+    "completed_lugs": [],
+    "new_lugs_created": [
+      {
+        "id": "signal-fleet-silent-hook-failure-v1",
+        "title": "16/18 spokes had silently broken hooks ($CLAUDE_PROJECT_DIR ",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-fleet-silent-hook-failure-env-var-v1",
+        "title": "Fleet anti-pattern: $CLAUDE_PROJECT_DIR in hook commands sil",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-subagent-parallelism-pattern-validated-v1",
+        "title": "Sub-agent parallelism pattern validated \u2014 5 parallel agents,",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-track-integrity-false-positive-v1",
+        "title": "Track integrity check false-positive: closeout-event track e",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-track-integrity-closeout-event-false-positive-v1",
+        "title": "Track integrity check false-positive: closeout-event entries",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-claude-gitignore-fleet-antipattern-s121",
+        "title": "Fleet anti-pattern: blanket .claude/ gitignore causes silent",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-spoke-signal-scope-rule-v1",
+        "title": "Spokes must only emit hub signals for cross-spoke-generaliza",
+        "status": "undelivered"
+      },
+      {
+        "id": "task-tracks-realizer-remediate-stale_activity-v1",
+        "title": "Resume activity and update last_updated for tracks",
+        "status": "open"
+      },
+      {
+        "id": "signal-intent-gate-hook-directive-pattern-v1",
+        "title": "Intent-gate wakeup: hook directive must be intent-aware to s",
+        "status": ""
+      },
+      {
+        "id": "signal-pretooluse-hook-allow-stdout-error-v1",
+        "title": "PreToolUse hooks must not output JSON to stdout on allow \u2014 c",
+        "status": "undelivered"
+      },
+      {
+        "id": "impl-db-keepalive-sidecar-v1",
+        "title": "Deploy Vercel sidecar cron for Appwrite database keepalive",
+        "status": "open"
+      },
+      {
+        "id": "signal-pre-compact-hookspecificoutput-compliance-v1",
+        "title": "pre-compact.sh must output hookSpecificOutput JSON \u2014 plain t",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-post-compact-recovery-flag-pattern-v1",
+        "title": "Post-compaction recovery: pre-compact.sh writes compacted.fl",
+        "status": "undelivered"
+      },
+      {
+        "id": "signal-20260506-gardener-python3-block-collapse-v1",
+        "title": "Gardener lifecycle session corrupted multi-line python3 -c b",
+        "status": ""
+      },
+      {
+        "id": "signal-assay-aggregate-silent-crash-fix-v1",
+        "title": "navigator_assay_aggregate.py silent crash: sub_agents string",
+        "status": "undelivered"
+      }
+    ],
+    "savepoint_summaries": [],
+    "undocumented_initiatives": [
+      {
+        "commit": "4aa4dba4",
+        "subject": "chore: gardener remediation 2026-03-31",
+        "files": [
+          ".claude/commands/wai-brief-reference.md",
+          ".claude/commands/wai-complexity-gate-reference.md",
+          ".claude/commands/wai-dogfood.md",
+          ".claude/commands/wai-foundation-reference.md",
+          ".claude/commands/wai-ide-setup-reference.md"
+        ]
+      },
+      {
+        "commit": "14fadf63",
+        "subject": "chore: gardener lifecycle 2026-04-07 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/WAI-State.json",
+          "WAI-Spoke/advisors/expediter/refinement-queue.jsonl",
+          "WAI-Spoke/advisors/expediter/scan_state.json",
+          "WAI-Spoke/lugs/bytype/signal/delivered/signal-closeout-track-terminal-entry-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/delivered/signal-normalize-ingest-source-override-v1.json"
+        ]
+      },
+      {
+        "commit": "f40cbdfc",
+        "subject": "chore: gardener lifecycle 2026-04-10 \u2014 teachings + work",
+        "files": [
+          ".claude/commands/wai-closeout.md",
+          ".claude/commands/wai-full.md",
+          ".claude/commands/wai.md",
+          "WAI-Spoke/seed/ingest/manual/wai-pre-post-wrapper-fast-path-v1.md.teaching",
+          "WAI-Spoke/seed/ingest/processed/wai-skill-slim-split-v1.md.teaching"
+        ]
+      },
+      {
+        "commit": "323ec9f9",
+        "subject": "chore: gardener lifecycle 2026-04-27 \u2014 teachings + work",
+        "files": [
+          ".claude/hooks/user-prompt-submit.sh",
+          ".claude/settings.json",
+          "WAI-Spoke/WAI-State.json",
+          "WAI-Spoke/_hooks/session-start.sh",
+          "WAI-Spoke/advisors/tool-advisor/passes.jsonl"
+        ]
+      },
+      {
+        "commit": "80cdb456",
+        "subject": "chore: gardener lifecycle 2026-04-24 \u2014 teachings + work",
+        "files": [
+          ".claude/hooks/pre-compact.sh",
+          ".claude/hooks/pre-tool-guard.sh",
+          ".claude/hooks/user-prompt-submit.sh",
+          "WAI-Spoke/.claude/hooks/pre-tool-guard.sh",
+          "WAI-Spoke/_hooks/session-start.sh"
+        ]
+      },
+      {
+        "commit": "a3a387f8",
+        "subject": "chore: gardener lifecycle 2026-04-30 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/WAI-State.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-framework-teaching-scope-principle-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-intent-gate-hook-directive-pattern-v1.json",
+          "WAI-Spoke/lugs/incoming/signal-p11-lug-first-memory-20260322.json",
+          "WAI-Spoke/lugs/incoming/signal-pretooluse-hook-allow-stdout-error-v1.json"
+        ]
+      },
+      {
+        "commit": "d3cf8e83",
+        "subject": "chore: signal v2 migration \u2014 bytype/signal/ retired, 63 sign",
+        "files": [
+          "WAI-Spoke/lugs/bytype/impl/open/impl-db-keepalive-sidecar-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-pretooluse-hook-allow-stdout-error-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-realizer-auto-dispatch-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-spoke-toggle-chips-ux-pattern-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-tender-run-order-framework-first-v1.json"
+        ]
+      },
+      {
+        "commit": "a9922f11",
+        "subject": "chore: gardener lifecycle 2026-05-01 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/.env.template",
+          "WAI-Spoke/lugs/bytype/impl/completed/impl-db-keepalive-sidecar-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-p11-lug-first-memory-20260322.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-pretooluse-hook-allow-stdout-error-v1.json",
+          "WAI-Spoke/sessions/session-20260501-0316/track.jsonl"
+        ]
+      },
+      {
+        "commit": "680e4532",
+        "subject": "chore: gardener lifecycle 2026-05-06 \u2014 teachings + work",
+        "files": [
+          ".claude/hooks/pre-compact.sh",
+          ".claude/hooks/pre-tool-guard.sh",
+          ".claude/hooks/user-prompt-submit.sh",
+          "WAI-Spoke/_hooks/session-start.sh",
+          "WAI-Spoke/advisors/navigator/catalog-cache.json"
+        ]
+      },
+      {
+        "commit": "63d1230a",
+        "subject": "chore: gardener lifecycle 2026-05-10 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/lugs/bytype/signal/open/signal-flat-lug-orphan-migration-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-fleet-ingest-cleanup-pattern-v1.json",
+          "WAI-Spoke/sessions/session-20260510-1707/track.jsonl"
+        ]
+      },
+      {
+        "commit": "cd783433",
+        "subject": "chore: gardener lifecycle 2026-05-10 \u2014 teachings + work (fai",
+        "files": [
+          ".claude/commands/SKILL-EXAMPLES.md",
+          ".claude/commands/chat-to-track.md",
+          ".claude/commands/manifest.json",
+          ".claude/commands/spoke-telemetry-closeout.md",
+          ".claude/commands/wai-apply-all.md"
+        ]
+      },
+      {
+        "commit": "94b47fe1",
+        "subject": "chore: gardener lifecycle 2026-05-13 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/lugs/bytype/signal/open/signal-fleet-silent-hook-failure-env-var-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-fleet-silent-hook-failure-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-hook-stack-drift-wai-website-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-migrated-027d9ad05236.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-migrated-098d128e193f.json"
+        ]
+      },
+      {
+        "commit": "e502997c",
+        "subject": "chore: gardener lifecycle 2026-05-13 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/advisors/navigator/catalog-cache.json",
+          "WAI-Spoke/advisors/navigator/recommendations-current.json",
+          "WAI-Spoke/advisors/registry.json",
+          "WAI-Spoke/advisors/tool-advisor/passes.jsonl",
+          "WAI-Spoke/advisors/tool-advisor/reports/latest.json"
+        ]
+      },
+      {
+        "commit": "8e7235d3",
+        "subject": "chore: gardener lifecycle 2026-05-14 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/lugs/bytype/signal/open/signal-claude-gitignore-fleet-antipattern-s121.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-fleet-hook-silent-failure-20260331.json",
+          "WAI-Spoke/sessions/session-20260514-0233/track.jsonl"
+        ]
+      },
+      {
+        "commit": "e84f05e4",
+        "subject": "chore: gardener lifecycle 2026-05-14 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/advisors/navigator/catalog-cache.json",
+          "WAI-Spoke/advisors/navigator/recommendations-current.json",
+          "WAI-Spoke/advisors/tool-advisor/passes.jsonl",
+          "WAI-Spoke/advisors/tool-advisor/reports/latest.json",
+          "WAI-Spoke/advisors/tool-advisor/reports/proposals-latest.json"
+        ]
+      },
+      {
+        "commit": "7d9f7b0c",
+        "subject": "chore: gardener lifecycle 2026-05-16 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/advisors/navigator/catalog-cache.json",
+          "WAI-Spoke/advisors/navigator/recommendations-current.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-post-compact-recovery-flag-pattern-v1.json",
+          "WAI-Spoke/lugs/incoming/signal-navigator-nightly-chain-operational-v1.json",
+          "WAI-Spoke/sessions/session-20260516-0231/track.jsonl"
+        ]
+      },
+      {
+        "commit": "7bafe3c6",
+        "subject": "chore: gardener lifecycle 2026-05-17 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/advisors/navigator/catalog-cache.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-pre-compact-hookspecificoutput-compliance-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-pretooluse-hook-allow-stdout-error-v1.json",
+          "WAI-Spoke/lugs/bytype/task/completed/lug-station-schema-v1.json",
+          "WAI-Spoke/sessions/session-20260517-0231/track.jsonl"
+        ]
+      },
+      {
+        "commit": "f71bd591",
+        "subject": "chore: gardener lifecycle 2026-05-20 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/lugs/bytype/signal/open/signal-framework-teaching-scope-principle-v1.json",
+          "WAI-Spoke/lugs/incoming/signal-fleet-secrets-template-audit-v1.json",
+          "WAI-Spoke/sessions/session-20260520-0235/track.jsonl"
+        ]
+      },
+      {
+        "commit": "62888ca9",
+        "subject": "chore: gardener lifecycle 2026-05-20 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/advisors/navigator/catalog-cache.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-flat-lug-orphan-migration-v1.json",
+          "WAI-Spoke/lugs/bytype/signal/open/signal-fleet-ingest-cleanup-pattern-v1.json",
+          "WAI-Spoke/lugs/incoming/signal-fleet-secrets-template-audit-v1.json",
+          "WAI-Spoke/lugs/incoming/signal-framework-teaching-scope-principle-v1.json"
+        ]
+      },
+      {
+        "commit": "8721b542",
+        "subject": "chore: gardener lifecycle 2026-05-21 \u2014 teachings + work",
+        "files": [
+          "WAI-Spoke/advisors/navigator/catalog-cache.json",
+          "WAI-Spoke/advisors/tool-advisor/passes.jsonl",
+          "WAI-Spoke/advisors/tool-advisor/reports/proposals-latest.json",
+          "WAI-Spoke/advisors/tool-advisor/scan_state.json",
+          "WAI-Spoke/advisors/tool-advisor/vectors.jsonl"
+        ]
+      }
+    ]
+  }
+}
