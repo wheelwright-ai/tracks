@@ -1,0 +1,53 @@
+{
+  "id": "enrich-basher-json-tracks-v1",
+  "type": "task",
+  "status": "open",
+  "routed_to": "TRACKS",
+  "created_at": "2026-05-30T03:53:17Z",
+  "originated_in": "basher/env-enrich",
+  "title": "Enrich basher.json for tracks",
+  "one_liner": "Fill in environment.path_entries, hooks, and tooling.required in WAI-Spoke/basher.json for tracks.",
+  "why_this_matters": "basher.json for tracks has tab/alias/tier but empty environment/hooks/tooling sections. Basher cannot restore this spoke's environment without these fields. Spoke agent has filesystem access to detect these accurately.",
+  "impact": 6,
+  "effort": 2,
+  "model_fit": "HAIKU",
+  "urgency": 4,
+  "perceive": {
+    "current_state": "basher.json environment/hooks/tooling sections are empty",
+    "basher_json_path": "/home/mario/projects/wheelwright/tracks/WAI-Spoke/basher.json",
+    "spoke_path": "/home/mario/projects/wheelwright/tracks"
+  },
+  "execute": {
+    "steps": [
+      "1. Read dotfiles/bashrc.basher (or .bashrc.basher at root) \u2014 extract 'export PATH=' lines \u2192 environment.path_entries[] with dir, purpose, introduced_by='enrich-lug', restore_criticality based on whether project needs it to run",
+      "2. Read .claude/settings.json \u2014 extract hooks whose command path is NOT under ~/.claude/ (local hooks only) \u2192 hooks[] with event, command, purpose",
+      "3. Read package.json / requirements.txt / Cargo.toml / go.mod \u2192 tooling.required[] with name, install_cmd, check_cmd, purpose",
+      "4. Set provenance.last_modified_by = 'enrich-lug' and provenance.last_modified_at = <now>",
+      "5. Write updated basher.json to /home/mario/projects/wheelwright/tracks/WAI-Spoke/basher.json"
+    ]
+  },
+  "verify": {
+    "done_when": [
+      "jq '.environment.path_entries,.hooks,.tooling.required | length' /home/mario/projects/wheelwright/tracks/WAI-Spoke/basher.json \u2014 at least one > 0",
+      "provenance.last_modified_by == 'enrich-lug'"
+    ]
+  },
+  "acceptance_criteria": [
+    "At least one of path_entries, hooks, or tooling.required is non-empty after update",
+    "All added entries have purpose and restore_criticality fields set",
+    "JSON is valid and basher.json remains parseable"
+  ],
+  "target_files": [
+    "/home/mario/projects/wheelwright/tracks/WAI-Spoke/basher.json"
+  ],
+  "tags": [
+    "basher-v2",
+    "enrich",
+    "basher-json",
+    "tracks"
+  ],
+  "_behavior_directive": {
+    "what_this_is": "A fill-in task for the spoke agent to populate its own basher.json by reading its own filesystem",
+    "what_this_is_NOT": "A request to change code, create new scripts, or modify anything outside basher.json"
+  }
+}

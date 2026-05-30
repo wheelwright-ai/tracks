@@ -1,0 +1,245 @@
+---
+since_version: "2.0.243"
+safe_to_auto_adopt: false
+supersedes: spoke-ozi-crew-evaluation-v1.md.teaching
+---
+# Teaching: Ozi Spoke Crew Evaluation v2
+
+**Type:** Advisor Setup — User Review Required
+**Version:** 2.0.0
+**Created:** 2026-05-28
+**Impact:** 7
+**safe_to_auto_adopt:** false
+**Affects:** WAI-Spoke/advisors/ (read-only evaluation — creates nothing without user approval)
+
+---
+
+## What Changed in v2
+
+- Added the **Design Crew** (UX Lead + Flow Advisor + UI Advisor + Accessibility Advisor)
+  to the canonical advisor options table
+- Introduced the `crew_lead` role type convention for hierarchical advisor groups
+- Design crew is always proposed as a unit — never individual members standalone
+
+---
+
+## Why This Teaching Requires Review
+
+Ozi evaluates the spoke's profile and proposes an advisor crew tailored to this project.
+No advisors are created during adoption. Ozi presents its proposal and stops — the user
+reviews and approves before any advisor directory or config is created.
+
+This is intentional: the hub cannot know what this spoke needs. Ozi reads the spoke,
+reasons locally, and proposes. You decide.
+
+---
+
+## Prerequisites
+
+| Requirement | Verify | Blocks |
+|---|---|---|
+| WAI-Spoke/WAI-State.json exists | `test -f WAI-Spoke/WAI-State.json && echo PASS` | Cannot evaluate without project profile |
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Copy to processed/ immediately (acknowledge receipt before evaluation)
+
+This teaching is `safe_to_auto_adopt: false`. Mark it received right away so it doesn't
+re-surface on every wakeup. The evaluation happens in Step 2.
+
+```bash
+cp {hub_teachings}/{this_filename} WAI-Spoke/seed/ingest/processed/{this_filename}
+echo "Teaching acknowledged — proceeding to crew evaluation"
+```
+
+### Step 2 — Ozi evaluates the spoke profile
+
+Read the following and build a picture of the spoke:
+
+```bash
+# Project identity
+python3 -c "
+import json
+s = json.load(open('WAI-Spoke/WAI-State.json'))
+w = s.get('wheel', {})
+print('name:', w.get('name'))
+print('stack:', w.get('stack'))
+print('domain:', w.get('domain'))
+print('wai_phase:', w.get('wai_phase'))
+print('node_type:', w.get('node_type', 'spoke'))
+"
+```
+
+```bash
+# What advisors already exist
+ls WAI-Spoke/advisors/ 2>/dev/null || echo "(none)"
+```
+
+```bash
+# Lug backlog size and types
+find WAI-Spoke/lugs/bytype -path "*/open/*.json" -o -path "*/in_progress/*.json" 2>/dev/null \
+  | python3 -c "
+import sys, json
+from pathlib import Path
+files = [l.strip() for l in sys.stdin if l.strip()]
+by_type = {}
+for f in files:
+    try:
+        d = json.load(open(f))
+        t = d.get('type', Path(f).parts[-3])
+        by_type[t] = by_type.get(t, 0) + 1
+    except: pass
+print('open lugs by type:', by_type)
+print('total open:', sum(by_type.values()))
+"
+```
+
+```bash
+# Session count (proxy for spoke maturity)
+ls WAI-Spoke/sessions/ 2>/dev/null | wc -l || echo 0
+```
+
+```bash
+# Check if spoke has browser-rendered UI (design crew eligibility)
+python3 -c "
+import json
+s = json.load(open('WAI-Spoke/WAI-State.json'))
+w = s.get('wheel', {})
+stack = w.get('stack', '')
+domain = w.get('domain', '')
+print('stack:', stack)
+print('domain:', domain)
+has_ui = any(kw in (stack + ' ' + domain).lower() for kw in ['react', 'vue', 'svelte', 'next', 'nuxt', 'web', 'frontend', 'browser', 'html', 'tailwind'])
+print('likely has browser UI:', has_ui)
+"
+```
+
+### Step 3 — Evaluate which advisors fit this spoke
+
+Using the gathered profile, reason through the canonical advisor options.
+For each, apply the criteria below. List only advisors that genuinely fit — do not
+propose everything.
+
+#### Canonical advisor options
+
+| Advisor | Slug | Create when |
+|---|---|---|
+| Autopilot | `autopilot` | Spoke has open lugs. Runs Ozi dispatch autonomously between sessions. |
+| Archie | `archie` | Technical project (code, APIs, data). Scans for architecture/quality gaps. |
+| CC Advisor | `cc-advisor` | Any WAI spoke using Claude Code. Tracks hook/permission health. |
+| Expediter | `expediter` | Spoke has 5+ open lugs. Scores PEV quality, identifies refinement candidates. |
+| Historian | `historian` | Spoke has 10+ sessions. Surfaces patterns and strategic observations. |
+| Navigator | `navigator` | Spoke makes AI API calls or needs model routing guidance. |
+| Tool Advisor | `tool-advisor` | Spoke uses multiple dev tools (gh, vercel, supabase, etc.). |
+| **UX Lead** *(Design Crew)* | `ux-lead` + `flow-advisor` + `ui-advisor` + `accessibility-advisor` | Spoke has browser-rendered UI with multi-page user flows. Always propose all 4 together — never individual members standalone. See crew note below. |
+
+#### Design Crew Note
+
+The UX Lead is a **crew_lead** advisor — it coordinates three domain expert sub-advisors:
+
+- **Flow Advisor** (`flow-advisor`) — user journeys, IA, cross-page continuity
+- **UI Advisor** (`ui-advisor`) — visual hierarchy, component quality, micro-interactions
+- **Accessibility Advisor** (`accessibility-advisor`) — WCAG AA + ICP rendering standards
+
+**When proposing the design crew:**
+- Always propose all 4 advisors together as a unit
+- Never propose individual crew members without their crew_lead
+- The UX Lead synthesizes outputs from all three sub-advisors into a single report
+
+Reference: `hub/learnings/architecture/design-crew-pattern.md`
+
+**Do not propose an advisor if the spoke already has it** (check Step 2 `ls advisors/` output).
+**Do not propose Autopilot if `tools/ozi_autopilot.py` does not exist** in the framework path.
+**Do not propose the design crew if the spoke has no browser-rendered UI** (CLI, data pipeline,
+background service, pure API spoke).
+
+### Step 4 — Write and present the proposal
+
+Produce a clear crew proposal in this format and STOP. Do not create any files.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ozi Crew Proposal — {spoke_name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Profile: {stack} | phase: {wai_phase} | {N} open lugs | {M} sessions
+Existing advisors: {list or "none"}
+
+Proposed crew:
+
+  ✦ {advisor-slug}
+    Why: {one sentence specific to this spoke — not generic}
+    Creates: WAI-Spoke/advisors/{slug}/ with scan_state.json
+
+  [For design crew, show as a grouped entry:]
+  ✦ ux-lead (Design Crew Coordinator)
+    Why: {specific reason for this spoke}
+    Creates: WAI-Spoke/advisors/ux-lead/ (with UI_UX_DESIGNER.md)
+    └─ flow-advisor — user journeys & IA analysis
+    └─ ui-advisor — visual design & component quality
+    └─ accessibility-advisor — WCAG AA + ICP rendering
+
+Not proposed:
+  - {advisor}: {reason why it doesn't fit this spoke}
+
+To accept: reply "create crew" and Ozi will scaffold each listed advisor.
+To modify: reply with changes ("skip historian", "add navigator", "skip design crew").
+To decline: reply "skip" and this evaluation will not be repeated.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**STOP HERE. Wait for user response before creating anything.**
+
+---
+
+## After User Approves
+
+Only after explicit approval, for each accepted advisor:
+
+```bash
+mkdir -p WAI-Spoke/advisors/{slug}
+python3 -c "
+import json
+seed = {
+    'advisor_id': '{slug}',
+    'advisor_name': '{Human-readable name}',
+    'version': '1.0.0',
+    'last_run_at': None,
+    'last_run_summary': None,
+    'stats': {'total_runs': 0}
+}
+json.dump(seed, open('WAI-Spoke/advisors/{slug}/scan_state.json', 'w'), indent=2)
+print('seeded WAI-Spoke/advisors/{slug}/')
+"
+```
+
+**If design crew is approved**, also copy the reference doc:
+
+```bash
+# Copy UI_UX_DESIGNER.md to the ux-lead advisor directory
+# Source: hub KB or origin spoke (ezorg-email-website)
+# Destination: WAI-Spoke/advisors/ux-lead/UI_UX_DESIGNER.md
+cp {source}/UI_UX_DESIGNER.md WAI-Spoke/advisors/ux-lead/UI_UX_DESIGNER.md
+```
+
+Commit after all approved advisors are scaffolded:
+
+```bash
+git add WAI-Spoke/advisors/ WAI-Spoke/seed/ingest/processed/
+git commit -m "feat(advisors): scaffold Ozi crew from spoke-ozi-crew-evaluation-v2 teaching"
+```
+
+---
+
+## Verify
+
+```bash
+# Each approved advisor directory exists
+ls WAI-Spoke/advisors/{slug}/scan_state.json && echo "PASS" || echo "FAIL"
+# Teaching marked processed
+ls WAI-Spoke/seed/ingest/processed/spoke-ozi-crew-evaluation-v2.md.teaching && echo "PASS" || echo "FAIL"
+# If design crew approved: UI_UX_DESIGNER.md exists
+ls WAI-Spoke/advisors/ux-lead/UI_UX_DESIGNER.md && echo "PASS" || echo "FAIL"
+```
