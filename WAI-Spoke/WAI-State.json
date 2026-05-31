@@ -56,7 +56,7 @@
         "Authentication, database, any runtime dependencies"
       ],
       "constraints": [
-        "Pure documentation \u2014 no package.json, no node_modules, no build step",
+        "Pure documentation — no package.json, no node_modules, no build step",
         "All wheelwright.ai and framework repo links must be present",
         "Prompts must be self-contained (raw URL usable as LLM instruction)",
         "Samples must be realistic enough to demonstrate portability"
@@ -243,7 +243,9 @@
     "node_type": "spoke",
     "spoke_id": "tracks",
     "wheel_id": "tracks",
-    "initialized_at_version": "1.0.0"
+    "initialized_at_version": "1.0.0",
+    "harness_version": "1.1",
+    "at_head": true
   },
   "hub": {
     "summary": null,
@@ -317,8 +319,7 @@
     "signals": {
       "threshold": 8,
       "instruction": "Append to WAI-Signals.jsonl if decision impact >= 8"
-    }
-  },
+    },
   "ai_context": {
     "conversation_tracking": true,
     "capacity_monitoring": true,

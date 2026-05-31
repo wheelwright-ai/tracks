@@ -1,0 +1,216 @@
+# Teaching: WAI Teaching Adoption Audit Protocol
+
+⚠️ **CRITICAL FRAMEWORK INFRASTRUCTURE** — Run this first, before any other teachings.
+
+**Type:** skill-teaching
+**Target:** All spokes
+**Safe to auto-adopt:** true ← DEFAULT (framework-vetted, trust the distribution)
+**Priority:** CRITICAL (blocks all other teaching processing)
+**Version:** 1.0
+**Created:** 2026-03-25
+**Author:** Mario Vaccari + Claude (audited on Wheelwright Framework)
+
+---
+
+## 🚨 CRITICAL DIRECTIVE
+
+**This teaching MUST run before any other teachings are processed.**
+
+If this teaching is not applied and verified, your spoke cannot reliably adopt future teachings. The entire framework depends on this working.
+
+**Action Required:**
+1. Auto-adopt this teaching immediately (safe_to_auto_adopt: true)
+2. Run the audit (Step 3 below)
+3. Confirm all processed teachings are actually adopted
+4. Only then process other pending teachings
+
+**If audit fails:** Do NOT proceed with other teachings. Contact hub or resolve failures first.
+
+---
+
+## Prerequisites
+
+| Requirement | Verify with | Blocks |
+|---|---|---|
+| WAI-Spoke exists | `test -d WAI-Spoke && echo PASS \|\| echo FAIL` | Cannot audit without spoke structure |
+| Processed teachings dir | `test -d WAI-Spoke/seed/ingest/processed && echo PASS \|\| echo FAIL` | Need teachings to audit |
+
+---
+
+## Batch Sequence
+
+**Batch:** teaching-adoption-assurance
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** ALL other teachings — blocks teaching discovery until audit completes
+**Blocks:** All other teaching processing (wakeup Step 5 will not offer other teachings until this is verified)
+**Parallel safe:** yes — each spoke audits independently
+**Blocking rule:** IF this teaching not verified as adopted, wakeup MUST surface: "⚠️ CRITICAL: Teaching adoption audit required before other teachings"
+**Full batch order:** skill-wai-teaching-adoption-audit-v1 → (all other teachings blocked until passed)
+
+---
+
+## What This Teaching Provides
+
+A **self-audit protocol** for spokes to verify that teachings marked as "processed" were **actually adopted** — i.e., the prescribed code/behavioral changes were applied, not just the teaching file moved to processed/.
+
+**Problem It Solves:**
+
+Teaching files are moved to `processed/` as proof of adoption. But "moved" ≠ "applied". A spoke can silently accumulate teachings that were never actually absorbed, appearing healthy at wakeup but missing critical framework updates.
+
+**Real Example:**
+
+A spoke processed `skill-wai-wakeup-discovery-fix-v1.md.teaching` but never applied the prescribed changes to `wai.md`. For multiple sessions, wakeup ran the old protocol without detection. User noticed format mismatch and discovered the teaching was processed but not adopted.
+
+**Solution:**
+
+This teaching defines a **verification protocol** spokes can run at wakeup (on first session after receiving this teaching) to confirm adoption of all processed teachings.
+
+---
+
+## How to Apply This Teaching
+
+### Step 1: Create the Audit Skill
+
+Create a new skill file: `WAI-Spoke/skills/teaching-audit/wai-teaching-adoption-audit.md`
+
+Copy this content:
+
+```markdown
+# WAI Teaching Adoption Audit
+
+## Purpose
+
+Verify that teachings in `seed/ingest/processed/` were actually adopted, not just moved.
+
+## Audit Protocol
+
+### For Each Teaching File in processed/:
+
+1. **Read the teaching** — extract the "Changes to Make" or "How to Apply" section
+2. **Identify target file** — what file should this teaching have modified?
+3. **Find verification fingerprint** — each teaching must include one (unique string, code marker, or filename)
+   - If teaching says "Search for: `Do NOT skip silently`" → grep for that text
+   - If teaching says "Create file: `wai-improve-reference.md`" → check if file exists
+   - If teaching says "Add field: `routed_to`" → grep for that field in target
+4. **Verify fingerprint exists** — if found: PASS, if not found: FAIL
+5. **Report result**:
+   - PASS: Teaching was adopted ✓
+   - FAIL: Teaching was processed but not adopted ✗ (mark for re-review)
+
+### Remediation (If Teaching Fails Audit)
+
+If a teaching fails verification:
+1. **Re-read the original teaching** (don't just trust processed/ copy — re-fetch from hub if available)
+2. **Apply the prescribed changes manually**
+3. **Re-run verification** to confirm
+4. **Document as signal**: "Teaching {id} was processed but not adopted on {date}. Now corrected."
+
+### At Wakeup
+
+Add a new substep to Wakeup Step 7 (Display Briefing):
+
+```
+## Step 7a: Teaching Adoption Audit (on first session)
+
+IF this is your first session since receiving this teaching:
+  FOR EACH file in WAI-Spoke/seed/ingest/processed/:
+    Run verification fingerprint check
+    IF verification fails:
+      Surface in briefing: "⚠️ {teaching-name} processed but not adopted — re-review required"
+      Keep teaching in briefing for user attention
+  Report summary: "Teaching audit: N passed, M failed"
+
+IF no failures:
+  Report: "Teaching audit: all N teachings verified ✓"
+```
+
+### Future Teaching Requirements
+
+**Every teaching MUST include a machine-checkable verification fingerprint** in its "Changes to Make" section.
+
+Examples:
+```
+Search for this text to verify adoption:
+  "Do NOT skip silently" (in wai.md Step 5)
+
+Or verify this file was created:
+  "wai-improve-reference.md" (in templates/commands/)
+
+Or grep for this field:
+  "routed_to.*local.*framework.*signal" (in lug JSON)
+```
+
+If teaching cannot provide a verification fingerprint, it should be re-written.
+```
+
+### Step 2: Run the Audit (Manual for This Session)
+
+1. List all processed teachings:
+   ```bash
+   ls WAI-Spoke/seed/ingest/processed/*.teaching
+   ```
+
+2. For a sample (start with 5-10), extract and verify:
+   ```bash
+   # Example: skill-wai-wakeup-discovery-fix-v1.md.teaching
+   grep "Search for\|verify\|fingerprint" WAI-Spoke/seed/ingest/processed/skill-wai-wakeup-discovery-fix-v1.md.teaching
+   # Should see: "Search for the text: Do NOT skip silently"
+
+   # Then verify in target file:
+   grep "Do NOT skip silently" WAI-Spoke/skills/wai/wai.md && echo "✓ ADOPTED" || echo "✗ NOT ADOPTED"
+   ```
+
+3. Document results in a lug: `audit-teaching-adoption-{date}.json` in `bytype/other/open/`
+   - Title: "Teaching Adoption Audit — [Spoke Name] (Session N)"
+   - Status: "open"
+   - Include sample results (passed/failed count)
+   - Note any teachings that failed and need re-application
+
+### Step 3: Add to Regular Wakeup (Future Sessions)
+
+Once you've created the audit skill, integrate into wakeup protocol:
+
+Find Wakeup **Step 7: Display Briefing**
+
+Add after "Context Budget Governor" and before "Display Briefing":
+
+```
+## Step 7a: Teaching Adoption Audit (One-Time at Wakeup)
+
+IF this is the first wakeup since receiving skill-wai-teaching-adoption-audit-v1.md.teaching:
+  Call the teaching audit skill (see above)
+  Report pass/fail summary in briefing
+  If failures: surface as "⚠️ Teachings need re-application"
+  Mark this teaching as reviewed (set flag in WAI-State.json: `_teaching_audit_completed: true`)
+
+ELSE:
+  Skip (already audited once)
+```
+
+---
+
+## Verification Checklist
+
+- [ ] Audit skill created: `WAI-Spoke/skills/teaching-audit/wai-teaching-adoption-audit.md`
+- [ ] Manual audit run on sample of 5-10 teachings
+- [ ] Results documented as lug in `lugs/bytype/other/open/`
+- [ ] Audit protocol integrated into wakeup (for future sessions)
+- [ ] Any failed teachings re-applied and re-verified
+
+---
+
+## Expected Outcome
+
+- Spoke confirms **all processed teachings were actually adopted**
+- Clear visibility into teaching adoption status at wakeup
+- Automatic detection if teaching processing fails in future
+- Framework updates flow reliably to all spokes
+
+---
+
+## Related
+
+- `task-teaching-adoption-audit-protocol-v1` (original task requesting this teaching)
+- Wheelwright Framework audit result: `audit-wheelwright-teachings-adoption-20260325.json` (verified: all 93 teachings adopted ✓)
+

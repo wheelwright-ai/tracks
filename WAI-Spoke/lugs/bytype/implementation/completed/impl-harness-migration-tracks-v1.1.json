@@ -1,0 +1,23 @@
+{
+  "id": "impl-harness-migration-tracks-v1.1",
+  "type": "implementation",
+  "status": "open",
+  "created_at": "2026-05-31T08:07:09.293572Z",
+  "updated_at": "2026-05-31T08:07:09.293572Z",
+  "title": "Harness migration to v1.1 for tracks",
+  "harness_version_from": "1.1",
+  "harness_version_to": "1.1",
+  "execution_mode": "auto",
+  "model_fit": "haiku",
+  "routed_to": "LOCAL",
+  "effort_score": 2,
+  "authored_by": "hub-wheel-mode",
+  "perceive": "Migrate WAI-Spoke skill files for spoke tracks from hub bootstrap v1.1/. Hub path: /home/mario/projects/wheelwright/hub. Bootstrap source: /home/mario/projects/wheelwright/hub/WAI-Spoke/hub/harness/bootstrap/v1.1/",
+  "execute": [
+    "1. Copy updated skill files from /home/mario/projects/wheelwright/hub/WAI-Spoke/hub/harness/bootstrap/v1.1/ to this spoke's WAI-Spoke/templates/commands/ (or equivalent skills path).",
+    "2. Update wheel.harness_version to '1.1' in WAI-State.json.",
+    "3. Set wheel.at_head = true in WAI-State.json.",
+    "4. Commit with message: 'chore: harness migration to v1.1'."
+  ],
+  "verify": "python3 -c \"import json; s=json.load(open('WAI-Spoke/WAI-State.json')); assert s.get('wheel',{}).get('harness_version')=='1.1', 'version not updated'\""
+}

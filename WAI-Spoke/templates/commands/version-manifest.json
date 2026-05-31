@@ -1,0 +1,39 @@
+{
+  "version": "1.1",
+  "released_at": "2026-05-31T08:07:09.238481Z",
+  "consolidated_from": "1.0",
+  "upgrade_array": [],
+  "hygiene_removals": [
+    {
+      "file": "wai-chain-load.md",
+      "pattern_id": "framework_version_field",
+      "description": "WAI-State wheel.framework_version \u2014 rename to harness_version"
+    },
+    {
+      "file": "wai-closeout.md",
+      "pattern_id": "routed_to_SIGNAL",
+      "description": "routed_to field value SIGNAL \u2014 deprecated routing"
+    },
+    {
+      "file": "wai-full.md",
+      "pattern_id": "routed_to_SIGNAL",
+      "description": "routed_to field value SIGNAL \u2014 deprecated routing"
+    },
+    {
+      "file": "wai-lug-schema.md",
+      "pattern_id": "routed_to_SIGNAL",
+      "description": "routed_to field value SIGNAL \u2014 deprecated routing"
+    },
+    {
+      "file": "wai-ozi-work-queue-monitor.md",
+      "pattern_id": "routed_to_SIGNAL",
+      "description": "routed_to field value SIGNAL \u2014 deprecated routing"
+    },
+    {
+      "file": "wai-track-review.md",
+      "pattern_id": "routed_to_SIGNAL",
+      "description": "routed_to field value SIGNAL \u2014 deprecated routing"
+    }
+  ],
+  "source": "wheelwright-framework-templates/commands"
+}

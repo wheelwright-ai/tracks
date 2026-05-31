@@ -1,9 +1,9 @@
 {
-  "cached_at": "2026-05-29T09:37:08.781790+00:00",
+  "cached_at": "2026-05-31T09:37:21.000926+00:00",
   "ttl_hours": 24,
   "catalog": null,
   "fleet_chart": {
-    "generated_at": "2026-05-29T09:37:08.684670+00:00",
+    "generated_at": "2026-05-31T09:37:20.890869+00:00",
     "spoke_count": 18,
     "total_sessions": 86,
     "observations": [
@@ -161,7 +161,7 @@
         "avg_rework_rate": null,
         "avg_tokens_in": null,
         "avg_tokens_out": null,
-        "last_observed_at": "2026-05-29T08:42:04.782747+00:00"
+        "last_observed_at": "2026-05-29T18:14:33.741624+00:00"
       },
       {
         "model_id": "claude-sonnet-4-6",
@@ -189,6 +189,6 @@
       }
     ]
   },
-  "recommendations_pulled_at": "2026-05-29T09:37:08.781790+00:00",
-  "recommendations_valid_through": "2026-05-30T09:37:08.733926+00:00"
+  "recommendations_pulled_at": "2026-05-31T09:37:21.000926+00:00",
+  "recommendations_valid_through": "2026-06-01T09:37:20.945513+00:00"
 }
