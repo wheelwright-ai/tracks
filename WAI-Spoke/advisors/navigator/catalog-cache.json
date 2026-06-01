@@ -1,5 +1,5 @@
 {
-  "cached_at": "2026-05-31T09:37:21.000926+00:00",
+  "cached_at": "2026-06-01T07:26:00.584710+00:00",
   "ttl_hours": 24,
   "catalog": null,
   "fleet_chart": {
@@ -189,6 +189,6 @@
       }
     ]
   },
-  "recommendations_pulled_at": "2026-05-31T09:37:21.000926+00:00",
-  "recommendations_valid_through": "2026-06-01T09:37:20.945513+00:00"
+  "recommendations_pulled_at": "2026-06-01T07:26:00.584710+00:00",
+  "recommendations_valid_through": "2026-06-02T07:25:52.707716+00:00"
 }

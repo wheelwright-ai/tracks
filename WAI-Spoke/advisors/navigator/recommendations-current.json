@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
-  "generated_at": "2026-05-31T09:37:20.945513+00:00",
-  "valid_through": "2026-06-01T09:37:20.945513+00:00",
+  "generated_at": "2026-06-01T07:25:52.707716+00:00",
+  "valid_through": "2026-06-02T07:25:52.707716+00:00",
   "assay_sessions_incorporated": 21,
   "fleet_chart_sessions": 86,
   "profiles": {
