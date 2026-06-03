@@ -1,7 +1,7 @@
 {
   "id": "signal-claude-gitignore-fleet-antipattern-s121",
   "type": "signal",
-  "status": "undelivered",
+  "status": "delivered",
   "title": "Fleet anti-pattern: blanket .claude/ gitignore causes silent command drift",
   "signal": "Correct pattern: only ignore .claude/.provider (CC runtime state) and .claude/settings.local.json (local overrides). Track everything else: commands/, agents/, hooks/, settings.json. Blanket .claude/ gitignore causes wai.md and hook configs to silently diverge or vanish on clone/reset. Found in Minder (blanket ignore) and Basher (settings.json ignored with wrong comment 'contains API keys'). Spoke template .gitignore corrected in framework S121.",
   "impact": 8,
@@ -13,5 +13,7 @@
   "generated_by": "claude-sonnet-4-6",
   "fw_ver": "2.0.143",
   "delivered_at": "2026-04-30T06:49:08.996107+00:00",
-  "delivered_from": "minder"
+  "delivered_from": "minder",
+  "updated_at": "2026-06-03T09:04:36.712696+00:00",
+  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527"
 }

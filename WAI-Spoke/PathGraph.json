@@ -1,0 +1,322 @@
+{
+  "schema_version": "1.0",
+  "scope": "spoke",
+  "spoke": "tracks",
+  "archaeology_complete": true,
+  "archaeology_draft": false,
+  "draft_generated_at": "2026-06-02T00:58:25.093819+00:00",
+  "last_scan_at": null,
+  "aspirations": [
+    {
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "module": "spec/format",
+      "intent": "Define a canonical Track format spec \u2014 a structured per-session event format for AI session continuity across the WAI fleet.",
+      "spirit_summary": "Give AI agents a durable, machine-readable record of what happened in a session so context survives across sessions and compaction.",
+      "source_sessions": [
+        "session-1",
+        "session-20260403-0335"
+      ],
+      "current_state": "completed",
+      "confidence": "stated",
+      "mario_verified": false,
+      "source_lugs": [
+        "signal-flat-lug-orphan-migration-v1",
+        "signal-migrated-cce11caf8e12",
+        "signal-closeout-track-terminal-entry-v1"
+      ],
+      "lug_status": "open"
+    },
+    {
+      "aspiration_id": "asp-tracks-prompt-variants-v1",
+      "module": "prompts",
+      "intent": "Ship three track-capture prompt variants (active-collection, closing-request, prep-and-request) and upgrade them to rich v2/v0.24 capture with post-compaction hooks.",
+      "spirit_summary": "Different session moments need different capture prompts; richer capture yields higher-fidelity tracks for downstream reconstruction.",
+      "source_sessions": [
+        "session-2",
+        "session-summary-session-2"
+      ],
+      "current_state": "completed",
+      "confidence": "stated",
+      "mario_verified": false,
+      "source_lugs": [
+        "session-20260406-1206",
+        "signal-post-compact-recovery-flag-pattern-v1",
+        "signal-migrated-cce11caf8e12"
+      ],
+      "lug_status": "completed"
+    },
+    {
+      "aspiration_id": "asp-tracks-sample-corpus-v1",
+      "module": "samples",
+      "intent": "Provide reference sample tracks covering distinct session archetypes: coding, learning, and strategy sessions.",
+      "spirit_summary": "Concrete examples anchor the format spec and act as a corpus for testing track tooling and prompts.",
+      "source_sessions": [
+        "session-1"
+      ],
+      "current_state": "completed",
+      "confidence": "observed",
+      "mario_verified": false,
+      "source_lugs": [
+        "task-track-rebuild-audit-20260527-tracks-v1",
+        "signal-migrated-cce11caf8e12",
+        "enrich-basher-json-tracks-v1"
+      ],
+      "lug_status": "open"
+    },
+    {
+      "aspiration_id": "asp-tracks-station-master-api-v1",
+      "module": "api/station",
+      "intent": "Build a headless Station Master handler in lib/station/ sitting between /api/ routes and storage, exposing /api/tracks for track submission.",
+      "spirit_summary": "Decouple HTTP routing from track-processing logic so the same handler can serve API, batch, and headless ingestion paths reliably.",
+      "source_sessions": [
+        "session-20260517-0231"
+      ],
+      "current_state": "in_progress",
+      "confidence": "observed",
+      "mario_verified": false,
+      "source_lugs": [
+        "signal-migrated-21d4e68d3a75",
+        "signal-migrated-456864cf35a1",
+        "task-track-rebuild-audit-20260527-tracks-v1"
+      ],
+      "lug_status": "open"
+    },
+    {
+      "aspiration_id": "asp-tracks-db-keepalive-sidecar-v1",
+      "module": "infra/db",
+      "intent": "Deploy a Vercel sidecar cron to keep the Appwrite database warm and prevent cold-start/idle suspension.",
+      "spirit_summary": "Serverless free-tier databases idle out; a scheduled keepalive guarantees track ingestion never hits a cold/suspended backend.",
+      "source_sessions": [
+        "session-20260501-0316"
+      ],
+      "current_state": "completed",
+      "confidence": "stated",
+      "mario_verified": false,
+      "source_lugs": [
+        "impl-db-keepalive-sidecar-v1"
+      ],
+      "lug_status": "open"
+    },
+    {
+      "aspiration_id": "asp-tracks-historian-sweep-v1",
+      "module": "historian",
+      "intent": "Run a historian initial theme sweep over the tracks corpus and rebuild/reconstruct 22 sessions of tracks for pattern analysis.",
+      "spirit_summary": "Reconstruct and theme the accumulated track corpus so historical sessions become queryable intelligence rather than dead logs.",
+      "source_sessions": [
+        "session-20260527-0000"
+      ],
+      "current_state": "completed",
+      "confidence": "stated",
+      "mario_verified": false,
+      "source_lugs": [
+        "task-historian-initial-sweep-tracks-v1",
+        "task-track-rebuild-audit-20260527-tracks-v1",
+        "signal-migrated-4f9c061a64c3"
+      ],
+      "lug_status": "completed"
+    },
+    {
+      "aspiration_id": "asp-tracks-chat-to-track-v1",
+      "module": "skills/export",
+      "intent": "Build a chat-to-track exporter skill/prompt that converts raw chat logs into the canonical track event format.",
+      "spirit_summary": "Let sessions that didn't capture tracks natively be retro-converted, widening corpus coverage from any chat transcript.",
+      "source_sessions": [],
+      "current_state": "completed",
+      "confidence": "inferred",
+      "mario_verified": false,
+      "source_lugs": [
+        "signal-migrated-cce11caf8e12",
+        "task-track-rebuild-audit-20260527-tracks-v1",
+        "task-historian-initial-sweep-tracks-v1"
+      ],
+      "lug_status": "completed"
+    },
+    {
+      "aspiration_id": "asp-tracks-track-generate-v1",
+      "module": "skills/generate",
+      "intent": "Provide a track-generate skill that produces well-formed track event entries on demand.",
+      "spirit_summary": "Standardize track emission via a skill so agents append schema-valid entries instead of hand-rolling JSON.",
+      "source_sessions": [],
+      "current_state": "completed",
+      "confidence": "inferred",
+      "mario_verified": false,
+      "source_lugs": [
+        "signal-track-integrity-closeout-event-false-positive-v1",
+        "signal-track-integrity-false-positive-v1",
+        "signal-closeout-track-terminal-entry-v1"
+      ],
+      "lug_status": "open"
+    },
+    {
+      "aspiration_id": "asp-tracks-skills-authority-cutover-v1",
+      "module": "skills",
+      "intent": "Reorganize the Skills/ tree under a skills-authority-policy with a planned post-cutover refactor and reconciliation workstreams.",
+      "spirit_summary": "As skills proliferated (slim/reference/full variants), a single authority policy and cutover plan was needed to prevent skill drift and duplication.",
+      "source_sessions": [],
+      "current_state": "in_progress",
+      "confidence": "inferred",
+      "mario_verified": false,
+      "source_lugs": [],
+      "lug_status": "no_lug_found"
+    },
+    {
+      "aspiration_id": "asp-tracks-anti-hallucination-spec-v1",
+      "module": "spec/quality",
+      "intent": "Define a universal Anti-Hallucination Specification Pattern for preventing AI invention/drift when filling track and spec fields.",
+      "spirit_summary": "Track fidelity depends on agents not fabricating fields; a reusable spec pattern enforces grounded, verifiable capture.",
+      "source_sessions": [],
+      "current_state": "unknown",
+      "confidence": "observed",
+      "mario_verified": false,
+      "source_lugs": [
+        "signal-migrated-8c26a4859490",
+        "signal-claude-gitignore-fleet-antipattern-s121",
+        "signal-fleet-silent-hook-failure-env-var-v1"
+      ],
+      "lug_status": "open"
+    }
+  ],
+  "decisions": [
+    {
+      "decision_id": "dec-tracks-signal-v2-migration-v1",
+      "description": "Retire the bytype/signal/ canonical structure and migrate to signal v2; 63 legacy signals archived.",
+      "rationale": "Old flat/by-type signal storage caused orphaned signals; v2 consolidates and archives history cleanly.",
+      "source_sessions": [
+        "session-20260504-1237"
+      ],
+      "confidence": "stated"
+    },
+    {
+      "decision_id": "dec-tracks-station-headless-lib-v1",
+      "description": "Station Master is a headless handler in lib/station/ between API routes and storage, not logic embedded in /api/ routes.",
+      "rationale": "Separating routing from processing makes the track ingestion path testable and reusable across entry points.",
+      "source_sessions": [
+        "session-20260517-0231"
+      ],
+      "confidence": "observed"
+    },
+    {
+      "decision_id": "dec-tracks-supabase-pooler-v1",
+      "description": "Always connect to Supabase via the pooler host, never the direct DB host.",
+      "rationale": "The direct Supabase DB host resolves IPv6-only and is unreachable from WSL2; the pooler is the only working path.",
+      "source_sessions": [],
+      "confidence": "stated"
+    },
+    {
+      "decision_id": "dec-tracks-provider-db-client-v1",
+      "description": "Provider-specific database clients must not sit behind a generic DATABASE_URL abstraction.",
+      "rationale": "A generic URL hides provider quirks (auth, pooling, dialect) that the specific client must handle explicitly.",
+      "source_sessions": [],
+      "confidence": "observed"
+    },
+    {
+      "decision_id": "dec-tracks-nextauth-base-domain-v1",
+      "description": "NEXTAUTH_URL must be set to the base domain only (e.g. https://www.wheelwright.ai).",
+      "rationale": "NextAuth derives callback paths from the base; including a path breaks auth redirects.",
+      "source_sessions": [],
+      "confidence": "stated"
+    },
+    {
+      "decision_id": "dec-tracks-maintenance-only-mode-v1",
+      "description": "The tracks spoke operates in maintenance-only mode, characterized as a 'documentation_and_prompt_library'.",
+      "rationale": "Tracks is primarily a spec/prompt/sample artifact library; gardener sessions route teachings/mail but execute little net-new work.",
+      "source_sessions": [
+        "session-2026-04-09-0000",
+        "session-20260405-0337"
+      ],
+      "confidence": "stated"
+    },
+    {
+      "decision_id": "dec-tracks-harness-v11-v1",
+      "description": "Migrate the tracks spoke harness to v1.1, updating WAI-State.json and copying harness files.",
+      "rationale": "Keep the spoke aligned with the current fleet harness contract for hooks and session tracking.",
+      "source_sessions": [
+        "session-20260531-1234"
+      ],
+      "confidence": "stated"
+    }
+  ],
+  "drift_flags": [],
+  "open_threads": [
+    {
+      "description": "lug-station-orchestrator-v1 remained open with no PEV/acceptance_criteria and a directive NOT to auto-execute; only lug-station-schema-v1 was ever executed, so the orchestrator half of Station Master is unbuilt.",
+      "source_sessions": [
+        "session-20260404-gardener",
+        "session-20260517-0231"
+      ]
+    },
+    {
+      "description": "49 open lugs (almost all undelivered/open signals) accumulated without delivery or resolution \u2014 a growing signal backlog never routed to the hub or actioned.",
+      "source_sessions": [
+        "session-20260520-0234",
+        "session-20260513-0232"
+      ]
+    },
+    {
+      "description": "Recurring tool-call / read-file loop-detection repeatedly blocked incoming mail routing across many sessions; root cause never fixed, only worked around session-to-session.",
+      "source_sessions": [
+        "session-20260510-0232",
+        "session-20260510-1707",
+        "session-20260513-0231",
+        "session-20260514-0232",
+        "session-20260520-0235",
+        "session-20260521-0925"
+      ]
+    },
+    {
+      "description": "Anti-Hallucination Specification Pattern was captured as a 'universal pattern' signal but never traced to an implementation or adoption \u2014 status unresolved.",
+      "source_sessions": []
+    },
+    {
+      "description": "Session 2 'Teaching adoption + prompt variants v0.24' remains an open session-summary lug; unclear whether the v0.24 prompt-variant line was fully closed out vs. superseded by later v0.39 track work.",
+      "source_sessions": [
+        "session-2"
+      ]
+    }
+  ],
+  "orphan_implementations": [
+    {
+      "description": "Web track viewer (browser UI to render a track library) \u2014 no aspiration trail in any session; appears only in the codebase.",
+      "evidence": "viewer/app.js, viewer/index.html, viewer/styles.css, viewer/library.example.json"
+    },
+    {
+      "description": "Skills authority/post-cutover planning artifacts (overnight refactor plans, reconciliation report, workstream jsonl) exist without a session-level decision record.",
+      "evidence": "plans/skills-refactor-overnight.md, plans/skills-authority-policy.md, plans/skills-reconciliation-report.md"
+    },
+    {
+      "description": "Ozi autopilot advisors seeded into the spoke via teaching adoption rather than a spoke-originated aspiration.",
+      "evidence": "f0b3807 feat: adopt 20260523-ozi-autopilot teaching \u2014 seed advisors/autopilot/"
+    },
+    {
+      "description": "src/lib code tree backing Station Master \u2014 implementation present but only partially traced to stated intent (schema executed, orchestrator never built).",
+      "evidence": "src/lib, signal lug 'Station Master API production-ready after critical bug fixes'"
+    }
+  ],
+  "orphan_lug_work": [
+    {
+      "lug_id": "impl-harness-migration-tracks-v1.1",
+      "title": "Harness migration to v1.1 for tracks",
+      "type": "implementation",
+      "completed_at": ""
+    },
+    {
+      "lug_id": "lug-station-schema-v1",
+      "title": "",
+      "type": "",
+      "completed_at": ""
+    },
+    {
+      "lug_id": "refine-tracks-char-type",
+      "title": "Add missing characteristic: type",
+      "type": "task",
+      "completed_at": ""
+    },
+    {
+      "lug_id": "task-tracks-realizer-remediate-stale_activity-v1",
+      "title": "Resume activity and update last_updated for tracks",
+      "type": "task",
+      "completed_at": ""
+    }
+  ],
+  "archaeology_accepted_at": "2026-06-02T00:58:25.134564+00:00"
+}

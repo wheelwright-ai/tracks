@@ -4,7 +4,7 @@
   "title": "PreToolUse hooks must not output JSON to stdout on allow \u2014 causes hook error messages",
   "summary": "A PreToolUse hook that outputs {\"decision\":\"allow\"} to stdout on every allowed command causes Claude Code to show 'PreToolUse:[Tool] hook error' for every invocation. Correct contract: exit 0 silently to allow, exit 2 + stderr to block. Also add 2>/dev/null to jq calls to prevent parse error leakage.",
   "impact": 8,
-  "status": "undelivered",
+  "status": "delivered",
   "source_spoke": "minder",
   "rule": "PreToolUse allow = exit 0, no stdout. Block = exit 2 + stderr only.",
   "applies_to": "All spokes with PreToolUse hook scripts",
@@ -13,5 +13,7 @@
   "_behavior_directive": {
     "action": "track_only"
   },
-  "target": "spokes"
+  "target": "spokes",
+  "updated_at": "2026-06-03T09:04:36.712696+00:00",
+  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527"
 }

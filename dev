@@ -1,0 +1,13 @@
+#!/bin/bash
+# Dev server launcher for Tracks viewer
+# Usage: ./dev or bash dev
+# Starts HTTP server on port from .env.dev (default: 4020)
+# Access at http://tracks.local
+
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_DIR"
+
+# Run the dev server
+python3 serve.py

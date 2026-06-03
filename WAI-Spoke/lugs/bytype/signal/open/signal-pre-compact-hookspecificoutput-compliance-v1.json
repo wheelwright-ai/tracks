@@ -1,12 +1,12 @@
 {
   "id": "signal-pre-compact-hookspecificoutput-compliance-v1",
   "type": "signal",
-  "status": "undelivered",
+  "status": "delivered",
   "routed_to": "SIGNAL",
   "target": "spokes",
   "source_spoke": "wheelwright-hub",
   "impact": 8,
-  "title": "pre-compact.sh must output hookSpecificOutput JSON — plain text stdout rejected by CC v2.1.118+",
+  "title": "pre-compact.sh must output hookSpecificOutput JSON \u2014 plain text stdout rejected by CC v2.1.118+",
   "perceive": "Claude Code v2.1.118+ validates all hook stdout as JSON. pre-compact.sh using cat << COMPACT heredoc produces plain text output that fails validation on every compaction event.",
   "execute": [
     "Replace cat << COMPACT heredoc with python3 block that outputs JSON",
@@ -15,5 +15,7 @@
   ],
   "verify": "grep -c hookSpecificOutput .claude/hooks/pre-compact.sh returns >= 1",
   "created_at": "2026-04-30T00:00:00Z",
-  "created_by": "claude-sonnet-4-6"
+  "created_by": "claude-sonnet-4-6",
+  "updated_at": "2026-06-03T09:04:36.712696+00:00",
+  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527"
 }

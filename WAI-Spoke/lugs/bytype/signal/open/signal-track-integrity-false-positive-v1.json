@@ -1,7 +1,7 @@
 {
   "id": "signal-track-integrity-false-positive-v1",
   "type": "signal",
-  "status": "undelivered",
+  "status": "superseded",
   "timestamp": "2026-03-31T23:17:31Z",
   "session_id": "session-20260331-1535",
   "signal": "Track integrity check false-positive: closeout-event track entries use event+summary schema (no turn or completed fields). Wakeup check tests d.get(completed) which fails, flagging valid closeout sessions as INTERRUPTED. Fix: check for event==closeout OR completed==true when determining track health.",
@@ -11,5 +11,7 @@
   "fw_ver": "2.0.137",
   "created_at": "2026-03-31T23:17:31Z",
   "title": "Track integrity check false-positive: closeout-event track entries use event+sum...",
-  "routed_to": "LOCAL"
+  "routed_to": "LOCAL",
+  "updated_at": "2026-06-03T09:04:36.712696+00:00",
+  "audit_note": "Processed via hub WAI-Hub/signals/processed/ (pre-lug signal system) \u2014 closed by audit task-track-rebuild-audit-20260527"
 }

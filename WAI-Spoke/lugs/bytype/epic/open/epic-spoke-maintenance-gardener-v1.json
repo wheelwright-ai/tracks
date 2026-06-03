@@ -1,0 +1,142 @@
+{
+  "id": "epic-spoke-maintenance-gardener-v1",
+  "type": "epic",
+  "status": "open",
+  "title": "Spoke Maintenance — Gardener Lifecycle & Infrastructure Work",
+  "created_at": "2026-06-03T00:00:00Z",
+  "created_by": "task-track-rebuild-audit-20260527-tracks-v1",
+  "routed_to": "LOCAL",
+  "impact": 4,
+  "tags": ["gardener", "maintenance", "lifecycle", "infrastructure"],
+  "content": {
+    "what": "Parent epic anchoring all gardener-automated maintenance commits on the Tracks spoke. These are commits made by the nightly gardener lifecycle that pre-date session track coverage or occur outside WAI sessions. They include: hook stack updates, teachings adoption, signal filing, lug status migrations, and tool-advisor/navigator advisor state updates.",
+    "why": "The track rebuild historian (2026-05-27) identified 21 commits on the Tracks repo that had no associated WAI session track. These are real infrastructure changes that need organizational anchoring to avoid being treated as unaccounted drift.",
+    "completed_commits": [
+      {
+        "sha": "4aa4dba4",
+        "date": "2026-03-31",
+        "subject": "chore: gardener remediation 2026-03-31",
+        "type": "hook-fix"
+      },
+      {
+        "sha": "14fadf63",
+        "date": "2026-04-07",
+        "subject": "chore: gardener lifecycle 2026-04-07 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "f40cbdfc",
+        "date": "2026-04-10",
+        "subject": "chore: gardener lifecycle 2026-04-10 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "323ec9f9",
+        "date": "2026-04-27",
+        "subject": "chore: gardener lifecycle 2026-04-27 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "80cdb456",
+        "date": "2026-04-24",
+        "subject": "chore: gardener lifecycle 2026-04-24 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "a3a387f8",
+        "date": "2026-04-30",
+        "subject": "chore: gardener lifecycle 2026-04-30 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "d3cf8e83",
+        "date": "2026-05-01",
+        "subject": "chore: signal v2 migration — bytype/signal/ retired, 63 signals migrated",
+        "type": "migration"
+      },
+      {
+        "sha": "a9922f11",
+        "date": "2026-05-01",
+        "subject": "chore: gardener lifecycle 2026-05-01 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "680e4532",
+        "date": "2026-05-06",
+        "subject": "chore: gardener lifecycle 2026-05-06 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "63d1230a",
+        "date": "2026-05-10",
+        "subject": "chore: gardener lifecycle 2026-05-10 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "cd783433",
+        "date": "2026-05-10",
+        "subject": "chore: gardener lifecycle 2026-05-10 — teachings + work (failsafe)",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "94b47fe1",
+        "date": "2026-05-13",
+        "subject": "chore: gardener lifecycle 2026-05-13 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "e502997c",
+        "date": "2026-05-13",
+        "subject": "chore: gardener lifecycle 2026-05-13 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "8e7235d3",
+        "date": "2026-05-14",
+        "subject": "chore: gardener lifecycle 2026-05-14 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "e84f05e4",
+        "date": "2026-05-14",
+        "subject": "chore: gardener lifecycle 2026-05-14 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "7d9f7b0c",
+        "date": "2026-05-16",
+        "subject": "chore: gardener lifecycle 2026-05-16 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "7bafe3c6",
+        "date": "2026-05-17",
+        "subject": "chore: gardener lifecycle 2026-05-17 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "f71bd591",
+        "date": "2026-05-20",
+        "subject": "chore: gardener lifecycle 2026-05-20 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "62888ca9",
+        "date": "2026-05-20",
+        "subject": "chore: gardener lifecycle 2026-05-20 — teachings + work",
+        "type": "lifecycle"
+      },
+      {
+        "sha": "8721b542",
+        "date": "2026-05-21",
+        "subject": "chore: gardener lifecycle 2026-05-21 — teachings + work",
+        "type": "lifecycle"
+      }
+    ]
+  },
+  "_behavior_directive": {
+    "what_this_is": "Organizational anchor for gardener-automated commits. Not actionable work — the commits are already landed.",
+    "what_this_is_NOT": "A tasklist for future work. These commits are done. Epic stays open as a reference anchor.",
+    "processing_agent": "wakeup briefing may surface this; user can close it once comfortable with the historical record"
+  }
+}

@@ -1,0 +1,5 @@
+{"ts": "2026-06-03T08:59:35.888270Z", "op_type": "lug_pickup", "lug_id": "task-track-rebuild-audit-20260527-tracks-v1", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-03T09:05:50.967037Z", "op_type": "lug_complete", "lug_id": "task-track-rebuild-audit-20260527-tracks-v1", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-03T09:05:50.971779Z", "op_type": "lug_pickup", "lug_id": "f65fb2261dd0", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-03T09:07:00.771278Z", "op_type": "lug_complete", "lug_id": "f65fb2261dd0", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-03T09:07:00.771861Z", "op_type": "lug_pickup", "lug_id": "impl-caddy-dev-std-v1", "outcome": "success", "delta": "", "teaching_candidate": false}
