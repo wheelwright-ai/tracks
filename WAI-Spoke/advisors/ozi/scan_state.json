@@ -1,0 +1,91 @@
+{
+  "last_coverage_eval_at": "2026-06-04T11:40:05.521553Z",
+  "active_scopes": [
+    {
+      "scope_trigger": "framework_development",
+      "status": "detected",
+      "detection_keywords": [
+        "teaching",
+        "protocol",
+        "skill",
+        "wai",
+        "framework",
+        "lug schema",
+        "signal",
+        "spoke"
+      ]
+    },
+    {
+      "scope_trigger": "documentation",
+      "status": "detected",
+      "detection_keywords": [
+        "docs",
+        "documentation",
+        "readme",
+        "content",
+        "writing"
+      ]
+    },
+    {
+      "scope_trigger": "deployment_automation",
+      "status": "detected",
+      "detection_keywords": [
+        "deploy",
+        "hook",
+        "bash",
+        "automation"
+      ]
+    },
+    {
+      "scope_trigger": "architecture_oversight",
+      "status": "detected",
+      "detection_keywords": [
+        "schema",
+        "protocol",
+        "architecture"
+      ]
+    }
+  ],
+  "gaps_detected": [
+    {
+      "scope": "framework_development",
+      "missing_advisors": [
+        "archie",
+        "historian",
+        "expediter"
+      ],
+      "proposed_template": "engineering-advisor",
+      "priority": "high",
+      "justification": "Project contains WAI framework protocols and teaching infrastructure; requires dedicated oversight of architecture, history/evolution, and expedition/timeline management",
+      "proposal_status": "pending"
+    },
+    {
+      "scope": "documentation",
+      "missing_advisors": [
+        "clara"
+      ],
+      "proposed_template": "quality-advisor",
+      "priority": "low",
+      "justification": "Project identity is documentation and prompt library; benefits from dedicated writing and content quality review",
+      "proposal_status": "pending"
+    },
+    {
+      "scope": "deployment_automation",
+      "missing_advisors": [
+        "will"
+      ],
+      "proposed_template": "engineering-advisor",
+      "priority": "medium",
+      "justification": "Multiple open signals about git hooks, bash automation, and deployment infrastructure require monitoring for reliability and best practices",
+      "proposal_status": "pending"
+    }
+  ],
+  "roster_summary": {
+    "active_advisors_count": 1,
+    "active_advisors": [
+      "sage"
+    ],
+    "total_advisor_slots_needed": 4,
+    "coverage_percent": 25
+  }
+}

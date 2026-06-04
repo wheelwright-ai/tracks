@@ -1,9 +1,9 @@
 {
   "schema_version": "1.1",
-  "generated_at": "2026-06-03T09:37:05.944217+00:00",
-  "valid_through": "2026-06-04T09:37:05.944217+00:00",
+  "generated_at": "2026-06-04T09:37:19.995509+00:00",
+  "valid_through": "2026-06-05T09:37:19.995509+00:00",
   "assay_sessions_incorporated": 21,
-  "fleet_chart_sessions": 89,
+  "fleet_chart_sessions": 91,
   "profiles": {
     "coding_high": {
       "task_profile": {
@@ -16,106 +16,204 @@
         "use_context": "interactive"
       },
       "default": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "high_confidence": {
-        "model_id": "claude-opus-4-6",
+        "model_id": "claude-opus-4-8",
         "provider": "anthropic",
-        "score": 0.645,
+        "score": 0.78,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 1.0,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.55,
-          "cost_fit": 0.0,
+          "cost_fit": 0.75,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fast": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fallback": {
-        "model_id": "glm-5",
-        "provider": "z_ai",
-        "score": 0.732,
+        "model_id": "o3-mini",
+        "provider": "openai",
+        "score": 0.82,
         "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
+          "access_fit": 1.0,
+          "capability_fit": 1.0,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.92,
+          "speed_fit": 0.95,
+          "cost_fit": 0.75,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-haiku-4-5-20251001",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-001",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash-lite-001",
+        "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash",
+        "gemini-2.5-flash-image",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-3.5-flash",
+        "gemini-embedding-001",
+        "gemini-embedding-2",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview",
         "glm-4.5-air",
-        "gpt-4o-mini",
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-instruct",
+        "gpt-3.5-turbo-instruct-0914",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-4-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4.1",
+        "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-mini-2025-04-14",
+        "gpt-4.1-nano",
+        "gpt-4.1-nano-2025-04-14",
+        "gpt-5",
+        "gpt-5-2025-08-07",
+        "gpt-5-chat-latest",
+        "gpt-5-codex",
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
+        "gpt-5-search-api",
+        "gpt-5-search-api-2025-10-14",
+        "gpt-5.1",
+        "gpt-5.1-2025-11-13",
+        "gpt-5.1-chat-latest",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex-mini",
+        "gpt-5.2",
+        "gpt-5.2-2025-12-11",
+        "gpt-5.2-chat-latest",
+        "gpt-5.2-codex",
+        "gpt-5.2-pro",
+        "gpt-5.2-pro-2025-12-11",
+        "gpt-5.3-chat-latest",
+        "gpt-5.3-codex",
+        "gpt-5.4",
+        "gpt-5.4-2026-03-05",
+        "gpt-5.4-mini",
+        "gpt-5.4-mini-2026-03-17",
+        "gpt-5.4-nano",
+        "gpt-5.4-nano-2026-03-17",
+        "gpt-5.4-pro",
+        "gpt-5.4-pro-2026-03-05",
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.5-pro",
+        "gpt-5.5-pro-2026-04-23",
+        "gpt-audio",
+        "gpt-audio-1.5",
+        "gpt-audio-2025-08-28",
+        "gpt-audio-mini",
+        "gpt-audio-mini-2025-10-06",
+        "gpt-audio-mini-2025-12-15",
+        "gpt-image-1",
+        "gpt-image-1-mini",
+        "gpt-image-1.5",
+        "gpt-image-2",
+        "gpt-image-2-2026-04-21",
+        "gpt-realtime",
+        "gpt-realtime-1.5",
+        "gpt-realtime-2",
+        "gpt-realtime-2025-08-28",
+        "gpt-realtime-mini",
+        "gpt-realtime-mini-2025-10-06",
+        "gpt-realtime-mini-2025-12-15",
+        "gpt-realtime-translate",
+        "gpt-realtime-whisper",
         "meta-llama/Llama-3.3-70B-Instruct-Turbo"
       ]
     },
@@ -132,9 +230,9 @@
       "default": {
         "model_id": "gpt-4o-mini",
         "provider": "openai",
-        "score": 0.7619,
+        "score": 0.8219,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
@@ -144,16 +242,15 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
         "model_id": "gpt-4o-mini",
         "provider": "openai",
-        "score": 0.7619,
+        "score": 0.8219,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
@@ -163,35 +260,33 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "high_confidence": {
-        "model_id": "claude-opus-4-6",
+        "model_id": "claude-opus-4-8",
         "provider": "anthropic",
-        "score": 0.625,
+        "score": 0.7433,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.55,
-          "cost_fit": 0.0,
+          "cost_fit": 0.5833,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fast": {
         "model_id": "gpt-4o-mini",
         "provider": "openai",
-        "score": 0.7619,
+        "score": 0.8219,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
@@ -201,16 +296,15 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fallback": {
         "model_id": "glm-4.5-air",
         "provider": "z_ai",
-        "score": 0.7617,
+        "score": 0.8217,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
@@ -220,11 +314,12 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
-      "do_not_use": []
+      "do_not_use": [
+        "claude-haiku-4-5"
+      ]
     },
     "planning_high": {
       "task_profile": {
@@ -237,105 +332,173 @@
         "use_context": "interactive"
       },
       "default": {
-        "model_id": "gemini-2.5-pro",
+        "model_id": "gemini-2.5-flash",
         "provider": "gemini",
-        "score": 0.7469,
+        "score": 0.8341,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 1.0,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.85,
-          "cost_fit": 0.8438,
-          "stability_fit": 0.75,
+          "cost_fit": 0.9906,
+          "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
-        "model_id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-        "provider": "together",
-        "score": 0.7206,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.956,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-6",
-        "provider": "anthropic",
-        "score": 0.645,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.0,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gemini-2.5-pro",
+        "model_id": "gemini-2.5-flash",
         "provider": "gemini",
-        "score": 0.7469,
+        "score": 0.8341,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 1.0,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.85,
-          "cost_fit": 0.8438,
-          "stability_fit": 0.75,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "cost_fit": 0.9906,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-8",
+        "provider": "anthropic",
+        "score": 0.78,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 1.0,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.75,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
           "no_local_data_yet"
         ]
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "gemini-2.5-flash",
+        "claude-haiku-4-5-20251001",
         "glm-4.5-air",
-        "gpt-4o-mini"
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-instruct",
+        "gpt-3.5-turbo-instruct-0914",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-4-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4.1",
+        "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-mini-2025-04-14",
+        "gpt-4.1-nano",
+        "gpt-4.1-nano-2025-04-14",
+        "gpt-5",
+        "gpt-5-2025-08-07",
+        "gpt-5-chat-latest",
+        "gpt-5-codex",
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
+        "gpt-5-search-api",
+        "gpt-5-search-api-2025-10-14",
+        "gpt-5.1",
+        "gpt-5.1-2025-11-13",
+        "gpt-5.1-chat-latest",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex-mini",
+        "gpt-5.2",
+        "gpt-5.2-2025-12-11",
+        "gpt-5.2-chat-latest",
+        "gpt-5.2-codex",
+        "gpt-5.2-pro",
+        "gpt-5.2-pro-2025-12-11",
+        "gpt-5.3-chat-latest",
+        "gpt-5.3-codex",
+        "gpt-5.4",
+        "gpt-5.4-2026-03-05",
+        "gpt-5.4-mini",
+        "gpt-5.4-mini-2026-03-17",
+        "gpt-5.4-nano",
+        "gpt-5.4-nano-2026-03-17",
+        "gpt-5.4-pro",
+        "gpt-5.4-pro-2026-03-05",
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.5-pro",
+        "gpt-5.5-pro-2026-04-23",
+        "gpt-audio",
+        "gpt-audio-1.5",
+        "gpt-audio-2025-08-28",
+        "gpt-audio-mini",
+        "gpt-audio-mini-2025-10-06",
+        "gpt-audio-mini-2025-12-15",
+        "gpt-image-1",
+        "gpt-image-1-mini",
+        "gpt-image-1.5",
+        "gpt-image-2",
+        "gpt-image-2-2026-04-21",
+        "gpt-realtime",
+        "gpt-realtime-1.5",
+        "gpt-realtime-2",
+        "gpt-realtime-2025-08-28",
+        "gpt-realtime-mini",
+        "gpt-realtime-mini-2025-10-06",
+        "gpt-realtime-mini-2025-12-15",
+        "gpt-realtime-translate",
+        "gpt-realtime-whisper"
       ]
     },
     "debugging_medium": {
@@ -349,106 +512,204 @@
         "use_context": "interactive"
       },
       "default": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "high_confidence": {
-        "model_id": "claude-opus-4-6",
+        "model_id": "claude-opus-4-8",
         "provider": "anthropic",
-        "score": 0.625,
+        "score": 0.76,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.55,
-          "cost_fit": 0.0,
+          "cost_fit": 0.75,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fast": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fallback": {
-        "model_id": "glm-5",
-        "provider": "z_ai",
-        "score": 0.732,
+        "model_id": "gpt-4o-mini-2024-07-18",
+        "provider": "openai",
+        "score": 0.8,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.92,
+          "speed_fit": 0.95,
+          "cost_fit": 0.75,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-haiku-4-5-20251001",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-001",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash-lite-001",
+        "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash",
+        "gemini-2.5-flash-image",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-3.5-flash",
+        "gemini-embedding-001",
+        "gemini-embedding-2",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview",
         "glm-4.5-air",
-        "gpt-4o-mini",
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-instruct",
+        "gpt-3.5-turbo-instruct-0914",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-4-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4.1",
+        "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-mini-2025-04-14",
+        "gpt-4.1-nano",
+        "gpt-4.1-nano-2025-04-14",
+        "gpt-5",
+        "gpt-5-2025-08-07",
+        "gpt-5-chat-latest",
+        "gpt-5-codex",
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
+        "gpt-5-search-api",
+        "gpt-5-search-api-2025-10-14",
+        "gpt-5.1",
+        "gpt-5.1-2025-11-13",
+        "gpt-5.1-chat-latest",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex-mini",
+        "gpt-5.2",
+        "gpt-5.2-2025-12-11",
+        "gpt-5.2-chat-latest",
+        "gpt-5.2-codex",
+        "gpt-5.2-pro",
+        "gpt-5.2-pro-2025-12-11",
+        "gpt-5.3-chat-latest",
+        "gpt-5.3-codex",
+        "gpt-5.4",
+        "gpt-5.4-2026-03-05",
+        "gpt-5.4-mini",
+        "gpt-5.4-mini-2026-03-17",
+        "gpt-5.4-nano",
+        "gpt-5.4-nano-2026-03-17",
+        "gpt-5.4-pro",
+        "gpt-5.4-pro-2026-03-05",
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.5-pro",
+        "gpt-5.5-pro-2026-04-23",
+        "gpt-audio",
+        "gpt-audio-1.5",
+        "gpt-audio-2025-08-28",
+        "gpt-audio-mini",
+        "gpt-audio-mini-2025-10-06",
+        "gpt-audio-mini-2025-12-15",
+        "gpt-image-1",
+        "gpt-image-1-mini",
+        "gpt-image-1.5",
+        "gpt-image-2",
+        "gpt-image-2-2026-04-21",
+        "gpt-realtime",
+        "gpt-realtime-1.5",
+        "gpt-realtime-2",
+        "gpt-realtime-2025-08-28",
+        "gpt-realtime-mini",
+        "gpt-realtime-mini-2025-10-06",
+        "gpt-realtime-mini-2025-12-15",
+        "gpt-realtime-translate",
+        "gpt-realtime-whisper",
         "meta-llama/Llama-3.3-70B-Instruct-Turbo"
       ]
     },
@@ -463,105 +724,173 @@
         "use_context": "interactive"
       },
       "default": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
-        "model_id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-        "provider": "together",
-        "score": 0.7206,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.956,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-6",
-        "provider": "anthropic",
-        "score": 0.625,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.0,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gemini-2.5-pro",
+        "model_id": "gemini-2.5-flash",
         "provider": "gemini",
-        "score": 0.7269,
+        "score": 0.8141,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.85,
-          "cost_fit": 0.8438,
-          "stability_fit": 0.75,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "glm-5",
-        "provider": "z_ai",
-        "score": 0.732,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.92,
+          "cost_fit": 0.9906,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-8",
+        "provider": "anthropic",
+        "score": 0.76,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.75,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "gemini",
+        "score": 0.8141,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.85,
+          "cost_fit": 0.9906,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
           "no_local_data_yet"
         ]
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "gemini-2.5-flash",
+        "claude-haiku-4-5-20251001",
         "glm-4.5-air",
-        "gpt-4o-mini"
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-instruct",
+        "gpt-3.5-turbo-instruct-0914",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-4-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4.1",
+        "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-mini-2025-04-14",
+        "gpt-4.1-nano",
+        "gpt-4.1-nano-2025-04-14",
+        "gpt-5",
+        "gpt-5-2025-08-07",
+        "gpt-5-chat-latest",
+        "gpt-5-codex",
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
+        "gpt-5-search-api",
+        "gpt-5-search-api-2025-10-14",
+        "gpt-5.1",
+        "gpt-5.1-2025-11-13",
+        "gpt-5.1-chat-latest",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex-mini",
+        "gpt-5.2",
+        "gpt-5.2-2025-12-11",
+        "gpt-5.2-chat-latest",
+        "gpt-5.2-codex",
+        "gpt-5.2-pro",
+        "gpt-5.2-pro-2025-12-11",
+        "gpt-5.3-chat-latest",
+        "gpt-5.3-codex",
+        "gpt-5.4",
+        "gpt-5.4-2026-03-05",
+        "gpt-5.4-mini",
+        "gpt-5.4-mini-2026-03-17",
+        "gpt-5.4-nano",
+        "gpt-5.4-nano-2026-03-17",
+        "gpt-5.4-pro",
+        "gpt-5.4-pro-2026-03-05",
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.5-pro",
+        "gpt-5.5-pro-2026-04-23",
+        "gpt-audio",
+        "gpt-audio-1.5",
+        "gpt-audio-2025-08-28",
+        "gpt-audio-mini",
+        "gpt-audio-mini-2025-10-06",
+        "gpt-audio-mini-2025-12-15",
+        "gpt-image-1",
+        "gpt-image-1-mini",
+        "gpt-image-1.5",
+        "gpt-image-2",
+        "gpt-image-2-2026-04-21",
+        "gpt-realtime",
+        "gpt-realtime-1.5",
+        "gpt-realtime-2",
+        "gpt-realtime-2025-08-28",
+        "gpt-realtime-mini",
+        "gpt-realtime-mini-2025-10-06",
+        "gpt-realtime-mini-2025-12-15",
+        "gpt-realtime-translate",
+        "gpt-realtime-whisper"
       ]
     },
     "closeout_low": {
@@ -577,10 +906,10 @@
       "default": {
         "model_id": "gpt-4o-mini",
         "provider": "openai",
-        "score": 0.7419,
+        "score": 0.8219,
         "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.8,
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.95,
@@ -589,55 +918,52 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
         "model_id": "gemini-2.5-flash",
         "provider": "gemini",
-        "score": 0.7209,
+        "score": 0.8134,
         "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.8,
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.85,
           "cost_fit": 0.9844,
-          "stability_fit": 0.75,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-6",
-        "provider": "anthropic",
-        "score": 0.625,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.0,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-8",
+        "provider": "anthropic",
+        "score": 0.7433,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.5833,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
           "no_local_data_yet"
         ]
       },
       "fast": {
         "model_id": "gpt-4o-mini",
         "provider": "openai",
-        "score": 0.7419,
+        "score": 0.8219,
         "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.8,
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.95,
@@ -646,30 +972,30 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fallback": {
-        "model_id": "glm-4.5-air",
-        "provider": "z_ai",
-        "score": 0.7417,
+        "model_id": "gemini-2.5-flash",
+        "provider": "gemini",
+        "score": 0.8134,
         "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.8,
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9667,
+          "speed_fit": 0.85,
+          "cost_fit": 0.9844,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
-      "do_not_use": []
+      "do_not_use": [
+        "claude-haiku-4-5"
+      ]
     },
     "ideation_medium": {
       "task_profile": {
@@ -682,105 +1008,173 @@
         "use_context": "interactive"
       },
       "default": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.734,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
-        "model_id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-        "provider": "together",
-        "score": 0.7206,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.956,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-6",
-        "provider": "anthropic",
-        "score": 0.625,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.0,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gemini-2.5-pro",
+        "model_id": "gemini-2.5-flash",
         "provider": "gemini",
-        "score": 0.7269,
+        "score": 0.8141,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.85,
-          "cost_fit": 0.8438,
-          "stability_fit": 0.75,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "glm-5",
-        "provider": "z_ai",
-        "score": 0.732,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.92,
+          "cost_fit": 0.9906,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-8",
+        "provider": "anthropic",
+        "score": 0.76,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.75,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "fast": {
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8231,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "fallback": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "gemini",
+        "score": 0.8141,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.9,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.85,
+          "cost_fit": 0.9906,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
           "no_local_data_yet"
         ]
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "gemini-2.5-flash",
+        "claude-haiku-4-5-20251001",
         "glm-4.5-air",
-        "gpt-4o-mini"
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-instruct",
+        "gpt-3.5-turbo-instruct-0914",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-4-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4.1",
+        "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-mini-2025-04-14",
+        "gpt-4.1-nano",
+        "gpt-4.1-nano-2025-04-14",
+        "gpt-5",
+        "gpt-5-2025-08-07",
+        "gpt-5-chat-latest",
+        "gpt-5-codex",
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
+        "gpt-5-search-api",
+        "gpt-5-search-api-2025-10-14",
+        "gpt-5.1",
+        "gpt-5.1-2025-11-13",
+        "gpt-5.1-chat-latest",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex-mini",
+        "gpt-5.2",
+        "gpt-5.2-2025-12-11",
+        "gpt-5.2-chat-latest",
+        "gpt-5.2-codex",
+        "gpt-5.2-pro",
+        "gpt-5.2-pro-2025-12-11",
+        "gpt-5.3-chat-latest",
+        "gpt-5.3-codex",
+        "gpt-5.4",
+        "gpt-5.4-2026-03-05",
+        "gpt-5.4-mini",
+        "gpt-5.4-mini-2026-03-17",
+        "gpt-5.4-nano",
+        "gpt-5.4-nano-2026-03-17",
+        "gpt-5.4-pro",
+        "gpt-5.4-pro-2026-03-05",
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.5-pro",
+        "gpt-5.5-pro-2026-04-23",
+        "gpt-audio",
+        "gpt-audio-1.5",
+        "gpt-audio-2025-08-28",
+        "gpt-audio-mini",
+        "gpt-audio-mini-2025-10-06",
+        "gpt-audio-mini-2025-12-15",
+        "gpt-image-1",
+        "gpt-image-1-mini",
+        "gpt-image-1.5",
+        "gpt-image-2",
+        "gpt-image-2-2026-04-21",
+        "gpt-realtime",
+        "gpt-realtime-1.5",
+        "gpt-realtime-2",
+        "gpt-realtime-2025-08-28",
+        "gpt-realtime-mini",
+        "gpt-realtime-mini-2025-10-06",
+        "gpt-realtime-mini-2025-12-15",
+        "gpt-realtime-translate",
+        "gpt-realtime-whisper"
       ]
     },
     "agentic_high": {
@@ -796,9 +1190,9 @@
       "default": {
         "model_id": "claude-sonnet-4-6",
         "provider": "anthropic",
-        "score": 0.759,
+        "score": 0.819,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 1.0,
           "local_success_fit": 0.59,
           "rework_risk": 0.5,
@@ -807,35 +1201,32 @@
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
-        "warnings": [
-          "entitlements_unknown_no_api_key"
-        ]
+        "warnings": []
       },
       "cost_optimized": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.7188,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.7921,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.96,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9875,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "high_confidence": {
         "model_id": "claude-sonnet-4-6",
         "provider": "anthropic",
-        "score": 0.759,
+        "score": 0.819,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 1.0,
           "local_success_fit": 0.59,
           "rework_risk": 0.5,
@@ -844,54 +1235,153 @@
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
-        "warnings": [
-          "entitlements_unknown_no_api_key"
-        ]
+        "warnings": []
       },
       "fast": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.7188,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.7921,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.9,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.96,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9875,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fallback": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.7188,
+        "model_id": "o3-mini",
+        "provider": "openai",
+        "score": 0.8175,
         "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.9,
+          "access_fit": 1.0,
+          "capability_fit": 1.0,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.96,
+          "speed_fit": 0.95,
+          "cost_fit": 0.8333,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-haiku-4-5-20251001",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-001",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash-lite-001",
+        "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash",
+        "gemini-2.5-flash-image",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-3.5-flash",
+        "gemini-embedding-001",
+        "gemini-embedding-2",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview",
         "glm-4.5-air",
-        "gpt-4o-mini",
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-instruct",
+        "gpt-3.5-turbo-instruct-0914",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-4-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4.1",
+        "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-mini-2025-04-14",
+        "gpt-4.1-nano",
+        "gpt-4.1-nano-2025-04-14",
+        "gpt-5",
+        "gpt-5-2025-08-07",
+        "gpt-5-chat-latest",
+        "gpt-5-codex",
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
+        "gpt-5-search-api",
+        "gpt-5-search-api-2025-10-14",
+        "gpt-5.1",
+        "gpt-5.1-2025-11-13",
+        "gpt-5.1-chat-latest",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex-mini",
+        "gpt-5.2",
+        "gpt-5.2-2025-12-11",
+        "gpt-5.2-chat-latest",
+        "gpt-5.2-codex",
+        "gpt-5.2-pro",
+        "gpt-5.2-pro-2025-12-11",
+        "gpt-5.3-chat-latest",
+        "gpt-5.3-codex",
+        "gpt-5.4",
+        "gpt-5.4-2026-03-05",
+        "gpt-5.4-mini",
+        "gpt-5.4-mini-2026-03-17",
+        "gpt-5.4-nano",
+        "gpt-5.4-nano-2026-03-17",
+        "gpt-5.4-pro",
+        "gpt-5.4-pro-2026-03-05",
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.5-pro",
+        "gpt-5.5-pro-2026-04-23",
+        "gpt-audio",
+        "gpt-audio-1.5",
+        "gpt-audio-2025-08-28",
+        "gpt-audio-mini",
+        "gpt-audio-mini-2025-10-06",
+        "gpt-audio-mini-2025-12-15",
+        "gpt-image-1",
+        "gpt-image-1-mini",
+        "gpt-image-1.5",
+        "gpt-image-2",
+        "gpt-image-2-2026-04-21",
+        "gpt-realtime",
+        "gpt-realtime-1.5",
+        "gpt-realtime-2",
+        "gpt-realtime-2025-08-28",
+        "gpt-realtime-mini",
+        "gpt-realtime-mini-2025-10-06",
+        "gpt-realtime-mini-2025-12-15",
+        "gpt-realtime-translate",
+        "gpt-realtime-whisper",
         "meta-llama/Llama-3.3-70B-Instruct-Turbo"
       ]
     },
@@ -908,9 +1398,9 @@
       "default": {
         "model_id": "gpt-4o-mini",
         "provider": "openai",
-        "score": 0.8147,
+        "score": 0.8597,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
@@ -920,54 +1410,51 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
         "model_id": "gemini-2.5-flash",
         "provider": "gemini",
-        "score": 0.7911,
+        "score": 0.8436,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.85,
           "cost_fit": 0.9844,
-          "stability_fit": 0.75,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "entitlements_unknown_no_api_key",
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-6",
-        "provider": "anthropic",
-        "score": 0.4925,
-        "dimension_scores": {
-          "access_fit": 0.7,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.0,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
+          "no_local_data_yet"
+        ]
+      },
+      "high_confidence": {
+        "model_id": "claude-opus-4-8",
+        "provider": "anthropic",
+        "score": 0.6833,
+        "dimension_scores": {
+          "access_fit": 1.0,
+          "capability_fit": 0.85,
+          "local_success_fit": 0.5,
+          "rework_risk": 0.5,
+          "speed_fit": 0.55,
+          "cost_fit": 0.5833,
+          "stability_fit": 1.0,
+          "freshness_risk": 1.0
+        },
+        "warnings": [
           "no_local_data_yet"
         ]
       },
       "fast": {
         "model_id": "gpt-4o-mini",
         "provider": "openai",
-        "score": 0.8147,
+        "score": 0.8597,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
@@ -977,16 +1464,15 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fallback": {
         "model_id": "glm-4.5-air",
         "provider": "z_ai",
-        "score": 0.8142,
+        "score": 0.8592,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
@@ -996,11 +1482,12 @@
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
-      "do_not_use": []
+      "do_not_use": [
+        "claude-haiku-4-5"
+      ]
     },
     "api_generate_medium": {
       "task_profile": {
@@ -1013,105 +1500,173 @@
         "budget_posture": "normal"
       },
       "default": {
-        "model_id": "glm-4.5",
-        "provider": "z_ai",
-        "score": 0.7575,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8628,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.94,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "cost_optimized": {
-        "model_id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-        "provider": "together",
-        "score": 0.7315,
+        "model_id": "gemini-2.5-flash",
+        "provider": "gemini",
+        "score": 0.8452,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.956,
+          "speed_fit": 0.85,
+          "cost_fit": 0.9906,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "high_confidence": {
-        "model_id": "claude-opus-4-6",
+        "model_id": "claude-opus-4-8",
         "provider": "anthropic",
-        "score": 0.4925,
+        "score": 0.725,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.55,
-          "cost_fit": 0.0,
+          "cost_fit": 0.75,
           "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fast": {
-        "model_id": "gemini-2.5-pro",
-        "provider": "gemini",
-        "score": 0.756,
+        "model_id": "gpt-4o-mini",
+        "provider": "openai",
+        "score": 0.8628,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.8438,
-          "stability_fit": 0.75,
+          "speed_fit": 0.95,
+          "cost_fit": 0.9812,
+          "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "fallback": {
-        "model_id": "gemini-2.5-pro",
+        "model_id": "gemini-2.5-flash",
         "provider": "gemini",
-        "score": 0.756,
+        "score": 0.8452,
         "dimension_scores": {
-          "access_fit": 0.7,
+          "access_fit": 1.0,
           "capability_fit": 0.85,
           "local_success_fit": 0.5,
           "rework_risk": 0.5,
           "speed_fit": 0.85,
-          "cost_fit": 0.8438,
-          "stability_fit": 0.75,
+          "cost_fit": 0.9906,
+          "stability_fit": 1.0,
           "freshness_risk": 1.0
         },
         "warnings": [
-          "entitlements_unknown_no_api_key",
           "no_local_data_yet"
         ]
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "gemini-2.5-flash",
+        "claude-haiku-4-5-20251001",
         "glm-4.5-air",
-        "gpt-4o-mini"
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-instruct",
+        "gpt-3.5-turbo-instruct-0914",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-4-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4.1",
+        "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-mini-2025-04-14",
+        "gpt-4.1-nano",
+        "gpt-4.1-nano-2025-04-14",
+        "gpt-5",
+        "gpt-5-2025-08-07",
+        "gpt-5-chat-latest",
+        "gpt-5-codex",
+        "gpt-5-mini",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
+        "gpt-5-search-api",
+        "gpt-5-search-api-2025-10-14",
+        "gpt-5.1",
+        "gpt-5.1-2025-11-13",
+        "gpt-5.1-chat-latest",
+        "gpt-5.1-codex",
+        "gpt-5.1-codex-max",
+        "gpt-5.1-codex-mini",
+        "gpt-5.2",
+        "gpt-5.2-2025-12-11",
+        "gpt-5.2-chat-latest",
+        "gpt-5.2-codex",
+        "gpt-5.2-pro",
+        "gpt-5.2-pro-2025-12-11",
+        "gpt-5.3-chat-latest",
+        "gpt-5.3-codex",
+        "gpt-5.4",
+        "gpt-5.4-2026-03-05",
+        "gpt-5.4-mini",
+        "gpt-5.4-mini-2026-03-17",
+        "gpt-5.4-nano",
+        "gpt-5.4-nano-2026-03-17",
+        "gpt-5.4-pro",
+        "gpt-5.4-pro-2026-03-05",
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.5-pro",
+        "gpt-5.5-pro-2026-04-23",
+        "gpt-audio",
+        "gpt-audio-1.5",
+        "gpt-audio-2025-08-28",
+        "gpt-audio-mini",
+        "gpt-audio-mini-2025-10-06",
+        "gpt-audio-mini-2025-12-15",
+        "gpt-image-1",
+        "gpt-image-1-mini",
+        "gpt-image-1.5",
+        "gpt-image-2",
+        "gpt-image-2-2026-04-21",
+        "gpt-realtime",
+        "gpt-realtime-1.5",
+        "gpt-realtime-2",
+        "gpt-realtime-2025-08-28",
+        "gpt-realtime-mini",
+        "gpt-realtime-mini-2025-10-06",
+        "gpt-realtime-mini-2025-12-15",
+        "gpt-realtime-translate",
+        "gpt-realtime-whisper"
       ]
     }
   }
