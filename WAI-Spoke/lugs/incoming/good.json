@@ -1,0 +1,21 @@
+{
+  "id": "good-hot-patch",
+  "title": "Good",
+  "priority": "P1",
+  "adopt_asap": true,
+  "verification_steps": [
+    {
+      "id": "v1",
+      "description": "d",
+      "check": "true",
+      "pass_criteria": "exit 0"
+    }
+  ],
+  "apply_steps": [
+    {
+      "id": "a1",
+      "description": "d",
+      "action": "echo x"
+    }
+  ]
+}
