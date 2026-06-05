@@ -9,3 +9,5 @@
 {"ts": "2026-06-05T09:06:10.350247Z", "op_type": "lug_complete", "lug_id": "coverage-eval-20260605-090316", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-05T09:06:12.679158Z", "op_type": "lug_pickup", "lug_id": "coverage-eval-20260605-090612", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-05T09:07:31.579937Z", "op_type": "lug_complete", "lug_id": "coverage-eval-20260605-090612", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-05T09:07:31.860421Z", "op_type": "lug_pickup", "lug_id": "coverage-eval-20260605-090731", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-05T09:09:43.699154Z", "op_type": "lug_complete", "lug_id": "coverage-eval-20260605-090731", "outcome": "success", "delta": "", "teaching_candidate": false}
