@@ -21,3 +21,5 @@
 {"ts": "2026-06-05T09:16:59.846669Z", "op_type": "lug_complete", "lug_id": "coverage-eval-20260605-091507", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-05T09:17:00.396515Z", "op_type": "lug_pickup", "lug_id": "coverage-eval-20260605-091700", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-05T09:19:53.993848Z", "op_type": "lug_complete", "lug_id": "coverage-eval-20260605-091700", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-05T09:19:54.289516Z", "op_type": "lug_pickup", "lug_id": "coverage-eval-20260605-091954", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-05T09:22:00.954770Z", "op_type": "lug_complete", "lug_id": "coverage-eval-20260605-091954", "outcome": "success", "delta": "", "teaching_candidate": false}
