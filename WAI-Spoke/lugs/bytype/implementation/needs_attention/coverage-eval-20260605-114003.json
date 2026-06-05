@@ -2,7 +2,7 @@
   "id": "coverage-eval-20260605-114003",
   "type": "implementation",
   "title": "Coverage eval \u2014 determine advisor needs from goals + recent concerns",
-  "status": "open",
+  "status": "needs_attention",
   "routed_to": "LOCAL",
   "model_fit": "haiku",
   "execution_mode": "auto",
@@ -23,8 +23,8 @@
     "6. Do NOT provision advisors here. Recommendations become user-review lugs on the next scouting pass."
   ],
   "verify": "team_coverage.last_coverage_eval_at updated to today; gaps_detected[] reflects the current roster-vs-goals analysis with a justification per gap; no advisor directories were created.",
-  "s": "open",
-  "updated_at": "2026-06-05T11:40:19.951809+00:00",
+  "s": "needs_attention",
+  "updated_at": "2026-06-05T18:12:56.272173+00:00",
   "workflow": {
     "current_owner": "ozi-autopilot",
     "assigned_at": "2026-06-05T11:40:12.585705+00:00",
@@ -32,6 +32,8 @@
     "dispatch_method": "autopilot-subprocess",
     "autopilot_failures": 2,
     "last_autopilot_error": "dispatch_error",
-    "last_autopilot_error_at": "2026-06-05T11:40:19.950231+00:00"
+    "last_autopilot_error_at": "2026-06-05T11:40:19.950231+00:00",
+    "needs_attention_reason": "stalled: 2 autopilot failures with no resolution",
+    "needs_attention_at": "2026-06-05T18:12:56.271505+00:00"
   }
 }

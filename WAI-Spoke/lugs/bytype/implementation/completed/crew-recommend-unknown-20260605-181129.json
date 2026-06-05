@@ -1,0 +1,47 @@
+{
+  "id": "crew-recommend-unknown-20260605-181129",
+  "type": "implementation",
+  "title": "Advisor recommendation \u2014 recruit unknown advisor (template=quality-advisor)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "manual",
+  "urgency": 6,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-05T18:11:29.977576Z",
+  "crew_provision": true,
+  "domain": "unknown",
+  "template_id": "quality-advisor",
+  "justification": "Multiple open signals about git hooks, bash automation, and deployment infrastructure require monitoring for reliability and best practices",
+  "perceive": "RECOMMENDATION (user approval required): recruit a 'unknown' advisor seeded from the hub 'quality-advisor' template. Justification: Multiple open signals about git hooks, bash automation, and deployment infrastructure require monitoring for reliability and best practices APPROVE by setting execution_mode=auto on this lug; DEFER/REJECT by moving it out of open/. Hub templates: {hub_path}/WAI-Hub/advisor-templates/. Roster: WAI-Spoke/advisors/registry.json. Pattern: WAI-Spoke/advisors/archie/context_prompt.md.",
+  "execute": [
+    "0. GATE: only proceed if the user approved (execution_mode=auto). Otherwise stop.",
+    "1. Read {hub_path}/WAI-Hub/advisor-templates/quality-advisor/charter.md and source-guidance.md.",
+    "2. Read WAI-Spoke/advisors/registry.json. Reuse a fitting 'new'/'stub' advisor_id in department_id=quality, else use a fresh advisor_id (the domain name, e.g. 'unknown').",
+    "3. Create WAI-Spoke/advisors/<advisor_id>/ if not present.",
+    "4. Write WAI-Spoke/advisors/<advisor_id>/context_prompt.md adapting the quality-advisor charter for domain=unknown (advisor_id, domain, mission, responsibilities, escalation-to-Ozi). Pattern: WAI-Spoke/advisors/archie/context_prompt.md.",
+    "5. Write WAI-Spoke/advisors/<advisor_id>/scan_state.json: {\"advisor_id\": \"<advisor_id>\", \"domain\": \"unknown\", \"status\": \"stub\", \"last_run_at\": null, \"initialized_at\": \"2026-06-05T18:11:29.977546Z\"}",
+    "6. Update WAI-Spoke/advisors/registry.json: advisor entry status=stub, department_id=quality, domain=unknown, initialized_from_template=quality-advisor. Preserve other entries.",
+    "7. Update WAI-Spoke/advisors/schedule-index.json: if advisor_id absent, append {\"advisor_id\": \"<advisor_id>\", \"run_cadence\": \"weekly\", \"event_triggers\": [], \"last_run_at\": null, \"next_recommended_run\": null}.",
+    "8. Update WAI-Spoke/advisors/ozi/scan_state.json: set team_coverage.gaps_detected[domain=unknown].proposal_status=provisioned and the matching recommendations_pending entry to provisioned."
+  ],
+  "verify": "WAI-Spoke/advisors/<advisor_id>/context_prompt.md exists with domain=unknown; scan_state.json initialized; registry.json entry status=stub; schedule-index.json has weekly entry; Ozi scan_state gap[domain=unknown].proposal_status == 'provisioned'.",
+  "acceptance_criteria": [
+    "WAI-Spoke/advisors/<advisor_id>/context_prompt.md exists with domain=unknown",
+    "registry.json entry has status=stub",
+    "schedule-index.json has weekly entry for advisor",
+    "Ozi scan_state team_coverage.gaps_detected[domain=unknown].proposal_status == 'provisioned'"
+  ],
+  "s": "completed",
+  "updated_at": "2026-06-05T18:12:56.270990+00:00",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-05T18:11:29.979086+00:00",
+    "updated_at": "2026-06-05T18:11:29.979093+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-05T18:12:56.270014+00:00"
+  }
+}
