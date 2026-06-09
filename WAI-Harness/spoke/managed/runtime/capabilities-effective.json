@@ -1,0 +1,233 @@
+{
+  "entries": [
+    {
+      "id": "cap-closeout-ceremony",
+      "name": "Closeout ceremony",
+      "kind": "skill",
+      "tier": "mandated",
+      "situation": "A session ends; work must be reconciled, routed, committed+pushed, and a handoff left at the resume-contract bar.",
+      "solution": "Run /wai-closeout (templates/commands/wai-closeout.md) \u2014 reconcile lugs, route outputs, commit+push, leave a resume-contract handoff.",
+      "owner_advisor": "ozi",
+      "file_paths": [
+        "templates/commands/wai-closeout.md"
+      ],
+      "symbol_refs": [],
+      "verification_ref": "tests/test_savepoint_resume_contract.py",
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    },
+    {
+      "id": "cap-track-per-turn",
+      "name": "Per-turn track entry",
+      "kind": "behavior",
+      "tier": "mandated",
+      "situation": "Every Claude-response turn must leave one durable JSONL track entry so no turn is lost.",
+      "solution": "Write WAI-Spoke/runtime/track-buffer.json each turn; Stop hook flushes to track.jsonl; synthesize_turn.py is the safety-net floor.",
+      "owner_advisor": "historian",
+      "file_paths": [
+        "templates/commands/wai-track.md",
+        ".claude/hooks/synthesize_turn.py"
+      ],
+      "symbol_refs": [],
+      "verification_ref": "tests/test_synthesize_turn.py",
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    },
+    {
+      "id": "cap-test-at-birth-gate",
+      "name": "Test-at-birth promotion gate",
+      "kind": "gate",
+      "tier": "mandated",
+      "situation": "No lug may move draft->open without a runnable verification_test covering every acceptance criterion.",
+      "solution": "lug-reviewer + tools/validate_lug_v4.py enforce a non-empty verification_test with AC<->test traceability.",
+      "owner_advisor": "jordy",
+      "file_paths": [
+        "tools/validate_lug_v4.py"
+      ],
+      "symbol_refs": [
+        "validate_lug_v4"
+      ],
+      "verification_ref": "tests/test_lug_schema_v4.py",
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    },
+    {
+      "id": "cap-inbox-review-first",
+      "name": "Inbox review first",
+      "kind": "behavior",
+      "tier": "mandated",
+      "situation": "Every session must read incoming/ lugs before acting on its own goal \u2014 actioning can defer, reading cannot.",
+      "solution": "Wakeup (/wai) step 1 scans WAI-Spoke/lugs/incoming/ and surfaces items before goal work.",
+      "owner_advisor": "ozi",
+      "file_paths": [
+        "templates/commands/wai.md"
+      ],
+      "symbol_refs": [],
+      "verification_ref": "attested:wakeup-inbox-step",
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    },
+    {
+      "id": "cap-savepoint-resume-contract",
+      "name": "Savepoint resume contract",
+      "kind": "skill",
+      "tier": "mandated",
+      "situation": "A paused session must leave a savepoint a fresh agent can resume from with zero hand-feeding (P12).",
+      "solution": "/wai-savepoint composes the resume contract; tools/validate_savepoint.py is the hard gate that refuses a thin savepoint.",
+      "owner_advisor": "ozi",
+      "file_paths": [
+        "templates/commands/wai-savepoint.md",
+        "tools/validate_savepoint.py"
+      ],
+      "symbol_refs": [
+        "validate_resume_contract"
+      ],
+      "verification_ref": "tests/test_savepoint_resume_contract.py",
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    },
+    {
+      "id": "cap-manifest-integrity",
+      "name": "Manifest MD5 integrity",
+      "kind": "command",
+      "tier": "mandated",
+      "situation": "A spoke's managed/ files must be verifiable against the master MANIFEST so unauthorized edits are flagged.",
+      "solution": "tools/manifest_build.py --verify computes MD5 per managed file and reports mismatches vs MANIFEST.json.",
+      "owner_advisor": "basher",
+      "file_paths": [
+        "tools/manifest_build.py"
+      ],
+      "symbol_refs": [],
+      "verification_ref": "tests/test_v4_skeleton.py",
+      "command": "python3 tools/manifest_build.py --verify",
+      "run": {
+        "trigger": "on-entry",
+        "auto": true
+      },
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    },
+    {
+      "id": "cap-tool-advisor-audit",
+      "name": "Tool Advisor cross-tool audit",
+      "kind": "skill",
+      "tier": "recommended",
+      "situation": "Cross-tool config can drift; a periodic audit surfaces optimization proposals.",
+      "solution": "Ozi/Tool Advisor runs /wai-tool-advisor on drift or stale setup.",
+      "owner_advisor": "ozi",
+      "file_paths": [
+        "templates/commands/wai-tool-advisor.md"
+      ],
+      "symbol_refs": [],
+      "verification_ref": null,
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    },
+    {
+      "id": "cap-savepoint-on-context-red",
+      "name": "Savepoint at context RED",
+      "kind": "behavior",
+      "tier": "recommended",
+      "situation": "When context budget hits RED, work should be preserved before compaction risk.",
+      "solution": "Context guard prompts a /wai-savepoint at RED so nothing is lost to compaction.",
+      "owner_advisor": "ozi",
+      "file_paths": [
+        "templates/commands/wai-context-guard.md"
+      ],
+      "symbol_refs": [],
+      "verification_ref": null,
+      "requires_tools": [],
+      "source": "hub",
+      "status": "present",
+      "introduced_at": "2026-06-09",
+      "updated_at": "2026-06-09",
+      "inheritance_trace": [
+        {
+          "layer": "hub",
+          "axis": "behavior",
+          "action": "introduced",
+          "from_source": "hub"
+        }
+      ]
+    }
+  ],
+  "decisions": [],
+  "resolved_count": 8
+}

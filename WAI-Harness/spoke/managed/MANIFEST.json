@@ -1,0 +1,722 @@
+{
+  "harness_version": "4.0.0-pre",
+  "is_master": true,
+  "generated_at": "2026-06-09T21:10:00Z",
+  "files": {
+    ".claude/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    ".claude/agents/code-simplifier.md": {
+      "version": "4.0.0-pre",
+      "md5": "3557c483fad84a7cf14eeb348faca365",
+      "owner": "basher"
+    },
+    ".claude/agents/lug-reviewer.md": {
+      "version": "4.0.0-pre",
+      "md5": "827cc6114b9752cd0ee9308c85ba7aa1",
+      "owner": "basher"
+    },
+    ".claude/agents/ozi-nightly.md": {
+      "version": "4.0.0-pre",
+      "md5": "3759adba8565561a2a1205a612dc53db",
+      "owner": "basher"
+    },
+    ".claude/agents/pattern-gate.md": {
+      "version": "4.0.0-pre",
+      "md5": "b59fbd0abae59fcc10db9e6d82ecfd3f",
+      "owner": "framework"
+    },
+    ".claude/commands/SKILL-EXAMPLES.md": {
+      "version": "4.0.0-pre",
+      "md5": "4e6ffe000987d6854b3184d3006380f9",
+      "owner": "basher"
+    },
+    ".claude/commands/chat-to-track.md": {
+      "version": "4.0.0-pre",
+      "md5": "6f001cb7acf640a2ab675074cc1e16a5",
+      "owner": "basher"
+    },
+    ".claude/commands/generate-teaching.md": {
+      "version": "4.0.0-pre",
+      "md5": "b048213ef6153944b4487d9afeac1cfb",
+      "owner": "basher"
+    },
+    ".claude/commands/spoke-telemetry-closeout.md": {
+      "version": "4.0.0-pre",
+      "md5": "c3d188c705c1eb28102eda7c58de362a",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-advisor-schema-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "3fdd6592f63cdc8f280396bdd0d26840",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-advisor-schema.md": {
+      "version": "4.0.0-pre",
+      "md5": "481ec60060a2657f9b85ff9dfc142d23",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-apply-all.md": {
+      "version": "4.0.0-pre",
+      "md5": "165b07c3952b3cdc2648ae85b24ed248",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-auto-off.md": {
+      "version": "4.0.0-pre",
+      "md5": "e8929759bbe68d1b7582163e60599c9d",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-auto-on.md": {
+      "version": "4.0.0-pre",
+      "md5": "f03cde4565e729184f1fe8c748223ff3",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-auto-parallel.md": {
+      "version": "4.0.0-pre",
+      "md5": "17af40aadd4983bf44437369c152c1b4",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-auto-status.md": {
+      "version": "4.0.0-pre",
+      "md5": "1af6714e79315906c710881da9e523bf",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-benchmark.md": {
+      "version": "4.0.0-pre",
+      "md5": "5d3fae9ef0d622e85002ef03480b3fc7",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-brief-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "43278a59cd93cdbd15eec86d13f21924",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-brief.md": {
+      "version": "4.0.0-pre",
+      "md5": "cc08fe24e0caa0f9413829098bea0c53",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-chain-load.md": {
+      "version": "4.0.0-pre",
+      "md5": "98bc533dfabf2733b421e9543dc20007",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-chat-to-track.md": {
+      "version": "4.0.0-pre",
+      "md5": "a80ccca522229c9b90ad4443d7e7a485",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-claude-maximizer-reference-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "d764d2c4d6c5e1f7ad14779bf1b85fd1",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-claude-maximizer-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "ca642f8c18177745e8bcc8fa8c0b2514",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-claude-maximizer.md": {
+      "version": "4.0.0-pre",
+      "md5": "b4f85d04edc63a5c5be1fb857c7e5192",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-closeout-feedback-v2-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "5485e43b375bf8b0a10bb4f6057137e6",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-closeout-feedback-v2.md": {
+      "version": "4.0.0-pre",
+      "md5": "1aa275cb8284233b99febce18ea1ca81",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-closeout-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "8182aa15522d644b7cd09529fc8564f0",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-closeout-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "7fb6dfaa8ce392eaf44641814ae53ea2",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-closeout.md": {
+      "version": "4.0.0-pre",
+      "md5": "0303255b20fab49472a573f4b84d66cc",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-compact-resume.md": {
+      "version": "4.0.0-pre",
+      "md5": "67409b85755bc605acda79ec507fa897",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-complexity-gate-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "8c25327c523e0cad0d5f521305fe3f3d",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-complexity-gate.md": {
+      "version": "4.0.0-pre",
+      "md5": "3dbdaed2e4a353f5d6bb8245ef961394",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-context-guard.md": {
+      "version": "4.0.0-pre",
+      "md5": "33a8e609d9ba8f14f9602518cf5b3e14",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-contribute.md": {
+      "version": "4.0.0-pre",
+      "md5": "fef4c9a1a06c7a3e93d95bded9d6de1a",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-corpus-tests-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "7b5ff61160781b55651bcfe69499b4d4",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-corpus-tests.md": {
+      "version": "4.0.0-pre",
+      "md5": "700a3ccbf00dc6a3caf2ec0343d83395",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-crew-convention-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "7f1cfac50c1fac93eab6fb70749995ff",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-crew-convention.md": {
+      "version": "4.0.0-pre",
+      "md5": "9ece1d1d802b445fc076f0ba7c0fb16e",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-crew-honesty.md": {
+      "version": "4.0.0-pre",
+      "md5": "721a4ba2ef095104e8536b61849d64ec",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-crew-track-schema.md": {
+      "version": "4.0.0-pre",
+      "md5": "42f92d586d815242f66d615e7c7c710b",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-dogfood.md": {
+      "version": "4.0.0-pre",
+      "md5": "257436c397a6c6dc7ec3ba8c522ad9e0",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-foundation-gate.md": {
+      "version": "4.0.0-pre",
+      "md5": "1ea096a4c9cfc6ed19867c00594191a4",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-foundation-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "c74174b532f25657cc3610ca65328b0e",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-foundation.md": {
+      "version": "4.0.0-pre",
+      "md5": "9beb71cc3d1f415673fec2e23157378a",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-full-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "de4b15838728dfd97b3d741bc785b436",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-full.md": {
+      "version": "4.0.0-pre",
+      "md5": "71963795e58d2614bab87ee0955a42ed",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-harness-adopt.md": {
+      "version": "4.0.0-pre",
+      "md5": "54f31ac09fc827a89407fa30109e83b2",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-health.md": {
+      "version": "4.0.0-pre",
+      "md5": "21be8ac5bac2c92eecf3cf91d72ac2ba",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ide-setup-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "faee5579ffaa0634055af545748eeb07",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ide-setup.md": {
+      "version": "4.0.0-pre",
+      "md5": "4af70dd4a0003acc8775f4cdd28143c6",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-improve-reference-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "86d023f0937d89f747b7926944533f95",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-improve-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "72f1b46a8a315dd3baee67c491ec9b72",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-improve-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "56c7100635db0ce24b17bc5edece3e3b",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-improve.md": {
+      "version": "4.0.0-pre",
+      "md5": "dabb59351056664b278e884fb96c0860",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-init-v2.md": {
+      "version": "4.0.0-pre",
+      "md5": "0fee9ab62b3c4acc431ecf38e3bce3a6",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-initiative.md": {
+      "version": "4.0.0-pre",
+      "md5": "c645ab337116ce9b91589d5f0f6ec766",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-knowme.md": {
+      "version": "4.0.0-pre",
+      "md5": "1a220ef61932e7cb6a102115308f1773",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-lug-compat-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "c73b43287a44116b0d6897d308f7bee2",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-lug-compat.md": {
+      "version": "4.0.0-pre",
+      "md5": "d5f67e8b3fda0b3326ff806d717cfcad",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-lug-schema-reference-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "b37c81b18ee2b0334247a9dd5bc9103e",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-lug-schema-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "3f7a96ead846b7351ee4d2c5c0c410dc",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-lug-schema-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "bdc83815fe333dfd94904f25253f49d6",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-lug-schema.md": {
+      "version": "4.0.0-pre",
+      "md5": "5b0b7f2c8611ef7a4da4d15db19f4810",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-mode.md": {
+      "version": "4.0.0-pre",
+      "md5": "ca6380ae665a687f4886e3a20876d1a7",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-next.md": {
+      "version": "4.0.0-pre",
+      "md5": "0a90dfff881fbcffd4e0e022f3fc88c2",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-advisor-init.md": {
+      "version": "4.0.0-pre",
+      "md5": "eef5d235b8372596203ab835b9d1c039",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-autopilot-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "0ed006748aef8c971e618a5011720899",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-autopilot.md": {
+      "version": "4.0.0-pre",
+      "md5": "7cedfcdec849b37c377812cd8564b4ea",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-headless.md": {
+      "version": "4.0.0-pre",
+      "md5": "448b8d0bf9c55b4808f2facdd5f89c8e",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-review.md": {
+      "version": "4.0.0-pre",
+      "md5": "8f7dd4291238b17c94c749e812af0413",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-work-queue-monitor-reference-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "8c552a84e02b74371d3848e91ce76fb3",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-work-queue-monitor-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "6317578c08eb900e15afd8ce35d96138",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-work-queue-monitor-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "4d0484e36ee182e856e97873a4143a54",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-ozi-work-queue-monitor.md": {
+      "version": "4.0.0-pre",
+      "md5": "72cfdfd40a5d13cba5a3b82293360bc8",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-pattern.md": {
+      "version": "4.0.0-pre",
+      "md5": "4440c85755fdba99601edc1732b0df41",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-plan-validation.md": {
+      "version": "4.0.0-pre",
+      "md5": "29ea443b145bdccabd953afe96ac3bc3",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-principles-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "f0d6aa1547ef50d62f9f62a786b50e1f",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-principles.md": {
+      "version": "4.0.0-pre",
+      "md5": "eb163b76f9836876af36f087b7183253",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-reference-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "35c1b17de805c5d3d7f2034b4cb59e03",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "0e969692cd7c38f717b6afd6b5b1c8cf",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-rules.md": {
+      "version": "4.0.0-pre",
+      "md5": "85e9acdef5467bf9ad62e2430e8d2796",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-savepoint.md": {
+      "version": "4.0.0-pre",
+      "md5": "1b73b98571eda3a465ed5b504f5b3903",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-signal-capture.md": {
+      "version": "4.0.0-pre",
+      "md5": "d4708e861d431140066c3438ae80eb46",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "9bd0940fafc353b2e97206042c90152f",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-status.md": {
+      "version": "4.0.0-pre",
+      "md5": "0a576eb3fc81193059444ad9f8ad4f4a",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-stewardship-framework.md": {
+      "version": "4.0.0-pre",
+      "md5": "f67a5a36aa66292d0d36dd6190c26124",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-stewardship-guard.md": {
+      "version": "4.0.0-pre",
+      "md5": "23f3c496b9c97c02c74dd35d0fbca55e",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-strategic-debt-log.md": {
+      "version": "4.0.0-pre",
+      "md5": "3237c39ee14bf9e4ecba9e20b21e4b1e",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-sync-v2.md": {
+      "version": "4.0.0-pre",
+      "md5": "ed9740c126591f707edacd2a2a453ea9",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-task-complete.md": {
+      "version": "4.0.0-pre",
+      "md5": "7e977c8e462a656d13522fda794aa7ee",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-tastegraph-export.md": {
+      "version": "4.0.0-pre",
+      "md5": "339da8dc4551cc525e7fc9f9b65bde52",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-test.md": {
+      "version": "4.0.0-pre",
+      "md5": "3e483e697585267189b3ae88b79d34d2",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-time.md": {
+      "version": "4.0.0-pre",
+      "md5": "a8e377c6f7b057fb6412b2c4b5bf2ba4",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-tool-advisor-reference-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "e78500406273a47428b8574cae5bc3b5",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-tool-advisor-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "7a76a7a65b487d021b16f096e68e74d5",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-tool-advisor.md": {
+      "version": "4.0.0-pre",
+      "md5": "11ff78c6511518c2e8c868bd49a9c46c",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-tool-maximizer-gemini-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "ffc735ec474553567d7d70fa95ccdd8a",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-tool-maximizer-gemini.md": {
+      "version": "4.0.0-pre",
+      "md5": "1c1af2fd69378a0056a9b430db2dbab5",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-track-generate-reference.md": {
+      "version": "4.0.0-pre",
+      "md5": "e08a3bb059b829cf357919f6fcc5e1ed",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-track-generate.md": {
+      "version": "4.0.0-pre",
+      "md5": "48414469e22b1963f26233e12ed83498",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-track-rebuild-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "54b4580e7fec1bb4b9c02e39c3e1b3eb",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-track-rebuild.md": {
+      "version": "4.0.0-pre",
+      "md5": "b4037d848f4ce5b5159d900a5559005d",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-track-review-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "705c37d475868a27b8bf8b33bf7ee992",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-track-review.md": {
+      "version": "4.0.0-pre",
+      "md5": "4bd7756489f658736220d974cec3879f",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-track.md": {
+      "version": "4.0.0-pre",
+      "md5": "9e91bb2e1002933951b4ed4b4ec642a1",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-upgrade-report-intake.md": {
+      "version": "4.0.0-pre",
+      "md5": "2c2dd20d20e48c599ca89f5536119325",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-wayfinder-slim.md": {
+      "version": "4.0.0-pre",
+      "md5": "6aa798ad5853558ab1736f02020614ca",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-wayfinder.md": {
+      "version": "4.0.0-pre",
+      "md5": "093637a1a40ac218982dd249dd45de6b",
+      "owner": "basher"
+    },
+    ".claude/commands/wai.md": {
+      "version": "4.0.0-pre",
+      "md5": "a317c7852fc41f2899527b010ab278be",
+      "owner": "basher"
+    },
+    ".claude/hooks/flush_buffer.py": {
+      "version": "4.0.0-pre",
+      "md5": "58508569906f803f9aefdafd701b4e79",
+      "owner": "basher"
+    },
+    ".claude/hooks/harness_mode.sh": {
+      "version": "4.0.0-pre",
+      "md5": "770797d094958763c9d7d76142dc54e9",
+      "owner": "basher"
+    },
+    ".claude/hooks/post-tool-use.sh": {
+      "version": "4.0.0-pre",
+      "md5": "a4011ab51bfdd51233bf18b8729e5c0f",
+      "owner": "basher"
+    },
+    ".claude/hooks/pre-compact.sh": {
+      "version": "4.0.0-pre",
+      "md5": "3d65f7e79f9b2ed59992ed7f7e8c7a5d",
+      "owner": "basher"
+    },
+    ".claude/hooks/pre-tool-guard.sh": {
+      "version": "4.0.0-pre",
+      "md5": "38c581e77dfda2eb0b75b058f4233caa",
+      "owner": "basher"
+    },
+    ".claude/hooks/session-start.sh": {
+      "version": "4.0.0-pre",
+      "md5": "c0c610a638114f8980edf73bdf187620",
+      "owner": "basher"
+    },
+    ".claude/hooks/stop-test-runner.sh": {
+      "version": "4.0.0-pre",
+      "md5": "abcdb4f22593c9e83bf6df7314aba5a5",
+      "owner": "basher"
+    },
+    ".claude/hooks/stop-track-flush.sh": {
+      "version": "4.0.0-pre",
+      "md5": "522dfad8b15bf5969e60cf96db95e79e",
+      "owner": "basher"
+    },
+    ".claude/hooks/synthesize_turn.py": {
+      "version": "4.0.0-pre",
+      "md5": "63a1a2b637a098bbf111175fa2aefd9e",
+      "owner": "basher"
+    },
+    ".claude/hooks/user-prompt-submit.sh": {
+      "version": "4.0.0-pre",
+      "md5": "dbd426c9e481ddf838fb298d939c9e27",
+      "owner": "basher"
+    },
+    ".claude/settings.json": {
+      "version": "4.0.0-pre",
+      "md5": "227b6d04dfcca7417b2fd5fb5b8f6c01",
+      "owner": "basher"
+    },
+    "advisors-meta/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "config/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "corpus-tests/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "docs/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "health/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "indexes/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "patterns/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "reference/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "runtime/capabilities-effective.json": {
+      "version": "4.0.0-pre",
+      "md5": "34c909c3fb0f2a7ce2013e6b3fbcb5f1",
+      "owner": "framework"
+    },
+    "schemas/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "scouts/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "skills/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "templates/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "tools/.gitkeep": {
+      "version": "4.0.0-pre",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "basher"
+    },
+    "tools/compute_coverage.py": {
+      "version": "4.0.0-pre",
+      "md5": "79fd554712307495d44be91d81ecce41",
+      "owner": "framework"
+    },
+    "tools/event_bus.py": {
+      "version": "4.0.0-pre",
+      "md5": "82d59445a4e052565835ed02c6d20f5c",
+      "owner": "framework"
+    },
+    "tools/harness_status.py": {
+      "version": "4.0.0-pre",
+      "md5": "5412ac3b455ce35ab5a5489ec54dbe06",
+      "owner": "basher"
+    },
+    "tools/harness_upgrade.py": {
+      "version": "4.0.0-pre",
+      "md5": "a699acbc2a85e28e79671a16c209f3a5",
+      "owner": "framework"
+    },
+    "tools/observability_dashboard.py": {
+      "version": "4.0.0-pre",
+      "md5": "1fc3197478e472be0beeb2a14edef3dc",
+      "owner": "framework"
+    },
+    "tools/qa_suite_health.py": {
+      "version": "4.0.0-pre",
+      "md5": "8b99e8da1fc85740a3f5f19084221a5c",
+      "owner": "framework"
+    },
+    "tools/reconcile_epic_acs.py": {
+      "version": "4.0.0-pre",
+      "md5": "1f2a25712041d8dba97f2d236d22e969",
+      "owner": "framework"
+    },
+    "tools/test_harness_status.py": {
+      "version": "4.0.0-pre",
+      "md5": "1c4103142d89b0d735b0b8d4b5893eae",
+      "owner": "basher"
+    },
+    "tools/test_harness_upgrade.py": {
+      "version": "4.0.0-pre",
+      "md5": "21ab0fb673e0cb40d79c3dffb61bc686",
+      "owner": "framework"
+    }
+  }
+}

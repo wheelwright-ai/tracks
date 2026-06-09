@@ -1,0 +1,24 @@
+# WAI-Harness — always-clean invariant
+#
+# The tree is clean BY CONSTRUCTION:
+#   managed/  — tracked + MANIFEST-verified; changes ONLY via a verified upgrade.
+#   */local/  — every runtime-writable artifact the harness produces (sessions,
+#               runtime state, buffers, db, savepoints, bolts, kpi, …). Gitignored
+#               so no operation can ever dirty the tracked tree. Skeleton dirs are
+#               kept (.gitkeep) so the structure exists on a fresh checkout.
+#
+# If a future write lands OUTSIDE local/ and dirties the tree, that is a bug in the
+# writer (it should target local/), not a reason to widen this ignore.
+
+spoke/local/**
+hub/local/**
+!spoke/local/**/
+!hub/local/**/
+!**/.gitkeep
+
+# build / runtime artifacts (never source, non-deterministic)
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.pytest_cache/
+**/.DS_Store
