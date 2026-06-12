@@ -1,11 +1,11 @@
 {
-  "cached_at": "2026-06-05T09:37:12.696752+00:00",
+  "cached_at": "2026-06-12T09:37:27.377267+00:00",
   "ttl_hours": 24,
   "catalog": null,
   "fleet_chart": {
-    "generated_at": "2026-06-05T09:37:12.587927+00:00",
-    "spoke_count": 19,
-    "total_sessions": 91,
+    "generated_at": "2026-06-12T09:37:27.260013+00:00",
+    "spoke_count": 20,
+    "total_sessions": 92,
     "observations": [
       {
         "model_id": "claude-sonnet-4-6",
@@ -24,12 +24,12 @@
         "provider": "anthropic",
         "work_type": "analysis",
         "complexity_band": null,
-        "sample_count": 20,
+        "sample_count": 21,
         "avg_quality_score": null,
         "avg_rework_rate": null,
         "avg_tokens_in": null,
         "avg_tokens_out": null,
-        "last_observed_at": "2026-05-24T18:02:33.196274+00:00"
+        "last_observed_at": "2026-06-06T23:22:02.867292+00:00"
       },
       {
         "model_id": "claude-sonnet-4-6",
@@ -66,6 +66,18 @@
         "avg_tokens_in": null,
         "avg_tokens_out": null,
         "last_observed_at": "2026-05-23T22:33:51.448879+00:00"
+      },
+      {
+        "model_id": "claude-opus-4-8",
+        "provider": "anthropic",
+        "work_type": "coding",
+        "complexity_band": null,
+        "sample_count": 2,
+        "avg_quality_score": null,
+        "avg_rework_rate": null,
+        "avg_tokens_in": null,
+        "avg_tokens_out": null,
+        "last_observed_at": "2026-06-09T06:14:53.310407+00:00"
       },
       {
         "model_id": "claude-sonnet-4-6",
@@ -152,18 +164,6 @@
         "last_observed_at": "2026-05-21T16:50:21.473691+00:00"
       },
       {
-        "model_id": "unknown",
-        "provider": "unknown",
-        "work_type": "analysis",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-06-01T07:07:52.899755+00:00"
-      },
-      {
         "model_id": "claude-sonnet-4-6",
         "provider": "anthropic",
         "work_type": "framework_maintenance",
@@ -174,18 +174,6 @@
         "avg_tokens_in": null,
         "avg_tokens_out": null,
         "last_observed_at": "2026-05-04T20:40:37.860503+00:00"
-      },
-      {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "work_type": "coding",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-06-03T08:59:53.838932+00:00"
       },
       {
         "model_id": "claude-sonnet-4-6",
@@ -201,6 +189,6 @@
       }
     ]
   },
-  "recommendations_pulled_at": "2026-06-05T09:37:12.696752+00:00",
-  "recommendations_valid_through": "2026-06-06T09:37:12.638583+00:00"
+  "recommendations_pulled_at": "2026-06-12T09:37:27.377267+00:00",
+  "recommendations_valid_through": "2026-06-13T09:37:27.313466+00:00"
 }

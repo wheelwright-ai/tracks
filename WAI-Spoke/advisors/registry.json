@@ -1,5 +1,12 @@
 [
   {
+    "advisor_id": "framework_development",
+    "status": "stub",
+    "department_id": "engineering",
+    "domain": "framework_development",
+    "initialized_from_template": "engineering-advisor"
+  },
+  {
     "advisor_id": "sage",
     "title": "Sage - Spec Lug Curator",
     "version": "0.1.0",

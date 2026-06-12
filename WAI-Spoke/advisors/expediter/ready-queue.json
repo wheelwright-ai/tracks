@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "spoke_id": "tracks",
+  "generated_at": "2026-06-12T11:40:05.662695+00:00",
+  "priority_sequence": [
+    "teachings",
+    "work(initiative-scoped first)",
+    "scouting",
+    "refinement",
+    "triage"
+  ],
+  "priority_source": "WAI-Spoke/tastegraph.json engagement-inbox-first",
+  "columns": {
+    "autonomous": [
+      {
+        "id": "crew-recommend-documentation-20260605-181445",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260605-181822",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260605-181822",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260605-181445",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      }
+    ],
+    "needs_you": [
+      {
+        "id": "lug-station-orchestrator-v1",
+        "type": "task",
+        "type_row": "work",
+        "column": "needs-you",
+        "route": "tender",
+        "score": 16.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "unknown",
+        "type": "unknown",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "tender",
+        "score": 18.0,
+        "initiative_scoped": false
+      }
+    ]
+  },
+  "display_labels": {
+    "autonomous": "no-user-needed",
+    "needs_you": "user-needed"
+  },
+  "counts": {
+    "total": 6,
+    "autonomous": 4,
+    "needs_you": 2
+  }
+}

@@ -1,0 +1,145 @@
+---
+id: autopilot-stall-loop-fix-v1
+title: Autopilot stall loop fix — failures counter + stall gate + estimated_seconds
+type: Behavioral Fix
+safe_to_auto_adopt: true
+version: 1
+created_at: 2026-06-08T00:00:00Z
+created_by: claude-sonnet-4-6 (session-20260608)
+fw_ver: ">=3.1.0"
+---
+
+## What This Teaches
+
+Autopilot had a stall loop bug: when a dispatched lug timed out, it was rolled back
+to `open/` with no failure record. On the next run autopilot would re-dispatch it,
+time out again, roll it back — consuming budget indefinitely without progress.
+
+The fix introduces four interlocking elements now live in `ozi_autopilot.py`.
+
+---
+
+## The Four Fix Elements
+
+### 1. `workflow.autopilot_failures` counter
+
+Each lug has an optional `workflow` block. When a dispatch fails or times out,
+autopilot increments `workflow.autopilot_failures`:
+
+```json
+{
+  "id": "my-lug",
+  "workflow": {
+    "autopilot_failures": 1
+  }
+}
+```
+
+### 2. Stall gate (skip after N failures)
+
+Before dispatching any lug, autopilot checks the failure counter against
+`AUTOPILOT_STALL_THRESHOLD = 2`. If the lug has failed 2+ times:
+
+- It is **skipped** (does not count against token budget)
+- Its status is set to `needs_attention`
+- `needs_attention_reason` is set to `"stalled: {N} autopilot failures with no resolution"`
+- It is added to the stalled bucket in the session briefing
+
+```python
+lug_failures = (lug.get("workflow") or {}).get("autopilot_failures", 0)
+if lug_failures >= AUTOPILOT_STALL_THRESHOLD:
+    update_lug_status(lug_id, "needs_attention", {
+        "needs_attention_reason": f"stalled: {lug_failures} autopilot failures with no resolution"
+    })
+```
+
+### 3. `estimated_seconds` per-lug timeout override
+
+Set `estimated_seconds` on any lug that is expected to take longer than the
+default 900s timeout. Autopilot uses it directly as the subprocess timeout:
+
+```json
+{
+  "id": "my-long-lug",
+  "estimated_seconds": 1800
+}
+```
+
+Without `estimated_seconds`, autopilot uses the default 900s. When a timeout
+occurs without the field set, autopilot prints an advisory suggesting the
+appropriate value based on the effort/model advisory table:
+
+| model_fit | effort 1 | effort 2 | effort 3 | effort 4 | effort 5 |
+|-----------|----------|----------|----------|----------|----------|
+| haiku     | 120s     | 240s     | 480s     | 900s     | 1800s    |
+| sonnet    | 300s     | 600s     | 1200s    | 2400s    | 3600s    |
+| opus      | 600s     | 1200s    | 2400s    | 4800s    | 7200s    |
+
+### 4. Stalled bucket in session output
+
+`score_backlog.py` now includes a `stalled` bucket listing lugs in
+`needs_attention` with a stall reason. These surface in the wakeup briefing
+under Needs You rather than agent-actionable.
+
+---
+
+## How to Un-stall a Lug
+
+Clear the failures counter — either set it to 0 or remove the field:
+
+```bash
+# Option A: set to 0
+python3 -c "
+import json
+from pathlib import Path
+p = Path('WAI-Spoke/lugs/bytype/task/open/my-lug.json')
+d = json.loads(p.read_text())
+d.setdefault('workflow', {})['autopilot_failures'] = 0
+p.write_text(json.dumps(d, indent=2))
+"
+
+# Option B: remove needs_attention status (set back to open)
+# Edit the lug file: remove needs_attention_reason, set status back to open
+```
+
+After clearing, also investigate why it stalled: check the last session log,
+confirm the lug's PEV is complete, and add `estimated_seconds` if it timed out.
+
+---
+
+## What Lug Authors Should Do
+
+Add `estimated_seconds` to any lug with `effort_score >= 3` or any lug
+involving external API calls, multi-file edits, or test runs:
+
+```json
+{
+  "id": "impl-my-feature-v1",
+  "model_fit": "sonnet",
+  "effort_score": 4,
+  "estimated_seconds": 2400
+}
+```
+
+---
+
+## Verify
+
+```bash
+# Stall gate present in ozi_autopilot.py
+grep -c "AUTOPILOT_STALL_THRESHOLD" tools/ozi_autopilot.py
+# Expected: >= 1
+
+# estimated_seconds handled
+grep -c "estimated_seconds" tools/ozi_autopilot.py
+# Expected: >= 1
+```
+
+---
+
+## Why
+
+Without the stall gate, a lug that consistently times out (misconfigured,
+too complex, broken environment) silently consumes the full autopilot budget
+every run. With it, two failures surface the lug to the human for diagnosis
+and the budget is protected.

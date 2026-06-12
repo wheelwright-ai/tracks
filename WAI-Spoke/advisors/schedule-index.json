@@ -1,0 +1,9 @@
+[
+  {
+    "advisor_id": "framework_development",
+    "run_cadence": "weekly",
+    "event_triggers": [],
+    "last_run_at": null,
+    "next_recommended_run": null
+  }
+]

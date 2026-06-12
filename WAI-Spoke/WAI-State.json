@@ -56,7 +56,7 @@
         "Authentication, database, any runtime dependencies"
       ],
       "constraints": [
-        "Pure documentation — no package.json, no node_modules, no build step",
+        "Pure documentation \u2014 no package.json, no node_modules, no build step",
         "All wheelwright.ai and framework repo links must be present",
         "Prompts must be self-contained (raw URL usable as LLM instruction)",
         "Samples must be realistic enough to demonstrate portability"
@@ -238,7 +238,7 @@
         }
       }
     },
-    "hub_path": "/home/mario/projects/wheelwright/hub",
+    "hub_path": "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub",
     "framework_version": "2.0.39",
     "node_type": "spoke",
     "spoke_id": "tracks",
@@ -320,140 +320,141 @@
       "threshold": 8,
       "instruction": "Append to WAI-Signals.jsonl if decision impact >= 8"
     },
-  "ai_context": {
-    "conversation_tracking": true,
-    "capacity_monitoring": true,
-    "alert_threshold": "80%",
-    "wai_commands": {
-      "time": "Intelligent token usage estimate with capacity warnings",
-      "rules": "List active rules and behavioral guidelines",
-      "closeout": "Provide updated WAI-State files for session end"
-    }
-  },
-  "environments": {
-    "_note": "Registry of environments that have worked on this project. Auto-populated by closeout."
-  },
-  "meta": {
-    "total_sessions": 0,
-    "total_turns": 0,
-    "last_closeout": null
-  },
-  "model_log": {
-    "_note": "Track model switches within and across sessions. Enables retrospective analysis of model-task fit.",
-    "entries": []
-  },
-  "characteristics": {
-    "type": "documentation_and_prompt_library"
-  },
-  "_work_queue": {
-    "enabled": true,
-    "items": [
-      {
-        "id": "lug-station-orchestrator-v1",
-        "roi": 6.0,
-        "type": "task",
-        "status": "gated",
-        "readiness": "blocked",
-        "title": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "lug-station-schema-v1",
-        "roi": 6.0,
-        "type": "task",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Station Schema \u2014 lines, lineEvents, extend sessions + trackArtifacts",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-advisor-architecture-v2-reference-v1",
-        "roi": 5.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Reference: Advisor system v2 \u2014 9 spoke advisors + 5 hub advisors, hierarchy and ",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-false-blocker-verification-protocol-v1",
-        "roi": 4.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Anti-pattern: blocked_by refs not verified \u2014 check dependency exists before trea",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-inline-python-extraction-pattern-v1",
-        "roi": 4.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Refactor pattern: extract repeated inline python3 -c blocks to a standalone CLI ",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-realizer-gap-skill-routing-v1",
-        "roi": 4.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Realizer gap-to-skill routing: readiness gaps should map to specific WAI skills",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-subagent-parallelism-advisor-pattern-v1",
-        "roi": 4.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Validated: parallel subagent dispatch saves ~55% tokens vs single context for mu",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-track-integrity-closeout-event-check-v1",
-        "roi": 4.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Track integrity false-positive: wakeup check must accept event=closeout OR compl",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "signal-wakeup-brief-smart-staleness-v1",
-        "roi": 4.0,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Wakeup brief smart staleness: STALE only if relevant files changed, not any comm",
-        "phase": null,
-        "tagged_next": false
-      },
-      {
-        "id": "spoke-session-placement-guard-v1",
-        "roi": 3.5,
-        "type": "signal",
-        "status": "ready",
-        "readiness": "needs_refinement",
-        "title": "Wakeup Step 3b: detect and auto-fix misplaced session-* dirs in WAI-Spoke/",
-        "phase": null,
-        "tagged_next": false
+    "ai_context": {
+      "conversation_tracking": true,
+      "capacity_monitoring": true,
+      "alert_threshold": "80%",
+      "wai_commands": {
+        "time": "Intelligent token usage estimate with capacity warnings",
+        "rules": "List active rules and behavioral guidelines",
+        "closeout": "Provide updated WAI-State files for session end"
       }
-    ],
-    "queue_state": {
-      "ready_count": 0,
-      "needs_refinement_count": 9,
-      "blocked_count": 1
     },
-    "last_scored_at": "2026-04-08T10:46:17.722714+00:00"
+    "environments": {
+      "_note": "Registry of environments that have worked on this project. Auto-populated by closeout."
+    },
+    "meta": {
+      "total_sessions": 0,
+      "total_turns": 0,
+      "last_closeout": null
+    },
+    "model_log": {
+      "_note": "Track model switches within and across sessions. Enables retrospective analysis of model-task fit.",
+      "entries": []
+    },
+    "characteristics": {
+      "type": "documentation_and_prompt_library"
+    },
+    "_work_queue": {
+      "enabled": true,
+      "items": [
+        {
+          "id": "lug-station-orchestrator-v1",
+          "roi": 6.0,
+          "type": "task",
+          "status": "gated",
+          "readiness": "blocked",
+          "title": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "lug-station-schema-v1",
+          "roi": 6.0,
+          "type": "task",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Station Schema \u2014 lines, lineEvents, extend sessions + trackArtifacts",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "signal-advisor-architecture-v2-reference-v1",
+          "roi": 5.0,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Reference: Advisor system v2 \u2014 9 spoke advisors + 5 hub advisors, hierarchy and ",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "signal-false-blocker-verification-protocol-v1",
+          "roi": 4.0,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Anti-pattern: blocked_by refs not verified \u2014 check dependency exists before trea",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "signal-inline-python-extraction-pattern-v1",
+          "roi": 4.0,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Refactor pattern: extract repeated inline python3 -c blocks to a standalone CLI ",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "signal-realizer-gap-skill-routing-v1",
+          "roi": 4.0,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Realizer gap-to-skill routing: readiness gaps should map to specific WAI skills",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "signal-subagent-parallelism-advisor-pattern-v1",
+          "roi": 4.0,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Validated: parallel subagent dispatch saves ~55% tokens vs single context for mu",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "signal-track-integrity-closeout-event-check-v1",
+          "roi": 4.0,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Track integrity false-positive: wakeup check must accept event=closeout OR compl",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "signal-wakeup-brief-smart-staleness-v1",
+          "roi": 4.0,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Wakeup brief smart staleness: STALE only if relevant files changed, not any comm",
+          "phase": null,
+          "tagged_next": false
+        },
+        {
+          "id": "spoke-session-placement-guard-v1",
+          "roi": 3.5,
+          "type": "signal",
+          "status": "ready",
+          "readiness": "needs_refinement",
+          "title": "Wakeup Step 3b: detect and auto-fix misplaced session-* dirs in WAI-Spoke/",
+          "phase": null,
+          "tagged_next": false
+        }
+      ],
+      "queue_state": {
+        "ready_count": 0,
+        "needs_refinement_count": 9,
+        "blocked_count": 1
+      },
+      "last_scored_at": "2026-04-08T10:46:17.722714+00:00"
+    }
   }
 }

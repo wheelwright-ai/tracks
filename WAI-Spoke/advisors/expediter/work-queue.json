@@ -1,0 +1,94 @@
+{
+  "schema_version": "2.0",
+  "spoke_id": "tracks",
+  "generated_at": "2026-06-12T11:40:05.682338+00:00",
+  "priority_sequence": [
+    "teachings",
+    "refinement",
+    "work",
+    "scouting"
+  ],
+  "matrix": {
+    "teachings": {
+      "autonomous": [],
+      "attended": [
+        {
+          "id": "unknown",
+          "type": "unknown",
+          "model_fit": "unset",
+          "score": 18.0,
+          "wave": ""
+        },
+        {
+          "id": "lug-station-orchestrator-v1",
+          "type": "task",
+          "model_fit": "unset",
+          "score": 16.0,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260605-181445",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260605-181822",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260605-181822",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260605-181445",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        }
+      ]
+    },
+    "refinement": {
+      "autonomous": [],
+      "attended": []
+    },
+    "work": {
+      "autonomous": [],
+      "attended": []
+    },
+    "scouting": {
+      "autonomous": [],
+      "attended": []
+    }
+  },
+  "counts": {
+    "teachings": {
+      "autonomous": 0,
+      "attended": 6
+    },
+    "refinement": {
+      "autonomous": 0,
+      "attended": 0
+    },
+    "work": {
+      "autonomous": 0,
+      "attended": 0
+    },
+    "scouting": {
+      "autonomous": 0,
+      "attended": 0
+    }
+  },
+  "totals": {
+    "autonomous": 0,
+    "attended": 6
+  }
+}

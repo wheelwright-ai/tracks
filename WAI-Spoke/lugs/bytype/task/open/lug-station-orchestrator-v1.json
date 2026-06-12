@@ -39,5 +39,8 @@
     "what_this_is_NOT": "An instruction to execute automatically. Only file that touches DB directly; all business logic lives in the modules it calls.",
     "processing_agent": "developer implements src/lib/station/index.ts",
     "expected_outcome": "Single ingest() function that accepts raw payload and returns a typed StationReceipt"
-  }
+  },
+  "execution_mode": "tender",
+  "execution_substrate": null,
+  "gt_convoy_hint": "requires review: quality=0"
 }

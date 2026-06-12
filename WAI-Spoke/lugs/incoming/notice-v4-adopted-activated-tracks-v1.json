@@ -1,0 +1,23 @@
+{
+  "id": "notice-v4-adopted-activated-tracks-v1",
+  "type": "notice",
+  "status": "open",
+  "priority": "P1",
+  "routed_to": "tracks",
+  "scope": "cross-spoke",
+  "created_at": "2026-06-10T09:45:00Z",
+  "resolve_attribution": {
+    "actor": "session-20260609-2113.framework",
+    "kind": "agent"
+  },
+  "title": "REMOTE CHANGE: warmed to v4 master parity + root hook v4-wired + ACTIVATED (fleet complete-adoption)",
+  "what_changed": "harness_upgrade pull -> master parity; v4-wired root .claude/hooks/session-start.sh + harness_mode.sh; ACTIVATE + harness_activate (non-destructive, v3 copied to v4 local, v3 preserved). pull=upgraded activate=migrate+mark-activated status=activated.",
+  "why_done_remotely": "User directive: drive complete fleet adoption + activation (incl. basher+ezorg). master=mywheel.",
+  "what_you_must_own": [
+    "Next session self-pulls + runs activate-check (idempotent).",
+    "Running v4; v3 WAI-Spoke preserved as fallback. Verify wakeup; prior hook in git.",
+    "Repoint hub_path to the new hub when it serves (Basher lug)."
+  ],
+  "reversible": "remove WAI-Harness/spoke/local/.activated to revert to dormant; managed/ regenerable; hook prior version in git.",
+  "human_gate": false
+}

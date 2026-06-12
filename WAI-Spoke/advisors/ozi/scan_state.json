@@ -57,7 +57,7 @@
       "proposed_template": "engineering-advisor",
       "priority": "high",
       "justification": "Project contains WAI framework protocols and teaching infrastructure; requires dedicated oversight of architecture, history/evolution, and expedition/timeline management",
-      "proposal_status": "pending"
+      "proposal_status": "provisioned"
     },
     {
       "scope": "documentation",

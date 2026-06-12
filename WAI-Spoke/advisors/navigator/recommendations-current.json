@@ -1,9 +1,20 @@
 {
-  "schema_version": "1.1",
-  "generated_at": "2026-06-05T09:37:12.638583+00:00",
-  "valid_through": "2026-06-06T09:37:12.638583+00:00",
+  "schema_version": "1.4",
+  "generated_at": "2026-06-12T09:37:27.313466+00:00",
+  "valid_through": "2026-06-13T09:37:27.313466+00:00",
+  "excluded_providers": [
+    "deepseek",
+    "kimi",
+    "openai",
+    "together",
+    "z_ai"
+  ],
+  "account_types": {
+    "subscription": "Claude Max / CC app \u2014 flat-rate Anthropic, 3 slots: quality | balanced | fast",
+    "api": "Pay-per-token integrations \u2014 cross-provider, 3 slots: quality | balanced | economy"
+  },
   "assay_sessions_incorporated": 21,
-  "fleet_chart_sessions": 91,
+  "fleet_chart_sessions": 92,
   "profiles": {
     "coding_high": {
       "task_profile": {
@@ -15,99 +26,128 @@
         "budget_posture": "normal",
         "use_context": "interactive"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.81,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.81,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.795,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.8225,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.78,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.8075,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.805,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "o3-mini",
-        "provider": "openai",
-        "score": 0.82,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "claude-haiku-4-5-20251001",
         "gemini-2.0-flash",
         "gemini-2.0-flash-001",
         "gemini-2.0-flash-lite",
@@ -138,83 +178,7 @@
         "gemini-flash-lite-latest",
         "gemini-pro-latest",
         "gemini-robotics-er-1.5-preview",
-        "gemini-robotics-er-1.6-preview",
-        "glm-4.5-air",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-instruct",
-        "gpt-3.5-turbo-instruct-0914",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-4-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4.1",
-        "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini",
-        "gpt-4.1-mini-2025-04-14",
-        "gpt-4.1-nano",
-        "gpt-4.1-nano-2025-04-14",
-        "gpt-5",
-        "gpt-5-2025-08-07",
-        "gpt-5-chat-latest",
-        "gpt-5-codex",
-        "gpt-5-mini",
-        "gpt-5-mini-2025-08-07",
-        "gpt-5-nano",
-        "gpt-5-nano-2025-08-07",
-        "gpt-5-pro",
-        "gpt-5-pro-2025-10-06",
-        "gpt-5-search-api",
-        "gpt-5-search-api-2025-10-14",
-        "gpt-5.1",
-        "gpt-5.1-2025-11-13",
-        "gpt-5.1-chat-latest",
-        "gpt-5.1-codex",
-        "gpt-5.1-codex-max",
-        "gpt-5.1-codex-mini",
-        "gpt-5.2",
-        "gpt-5.2-2025-12-11",
-        "gpt-5.2-chat-latest",
-        "gpt-5.2-codex",
-        "gpt-5.2-pro",
-        "gpt-5.2-pro-2025-12-11",
-        "gpt-5.3-chat-latest",
-        "gpt-5.3-codex",
-        "gpt-5.4",
-        "gpt-5.4-2026-03-05",
-        "gpt-5.4-mini",
-        "gpt-5.4-mini-2026-03-17",
-        "gpt-5.4-nano",
-        "gpt-5.4-nano-2026-03-17",
-        "gpt-5.4-pro",
-        "gpt-5.4-pro-2026-03-05",
-        "gpt-5.5",
-        "gpt-5.5-2026-04-23",
-        "gpt-5.5-pro",
-        "gpt-5.5-pro-2026-04-23",
-        "gpt-audio",
-        "gpt-audio-1.5",
-        "gpt-audio-2025-08-28",
-        "gpt-audio-mini",
-        "gpt-audio-mini-2025-10-06",
-        "gpt-audio-mini-2025-12-15",
-        "gpt-image-1",
-        "gpt-image-1-mini",
-        "gpt-image-1.5",
-        "gpt-image-2",
-        "gpt-image-2-2026-04-21",
-        "gpt-realtime",
-        "gpt-realtime-1.5",
-        "gpt-realtime-2",
-        "gpt-realtime-2025-08-28",
-        "gpt-realtime-mini",
-        "gpt-realtime-mini-2025-10-06",
-        "gpt-realtime-mini-2025-12-15",
-        "gpt-realtime-translate",
-        "gpt-realtime-whisper",
-        "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "coding_low": {
@@ -227,98 +191,146 @@
         "budget_posture": "cost-sensitive",
         "use_context": "interactive"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8219,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9688,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7525,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7915,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8425,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8219,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9688,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7567,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.5833,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.7433,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.5833,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8161,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.7,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8219,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9688,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8913,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.7,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "glm-4.5-air",
-        "provider": "z_ai",
-        "score": 0.8217,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9667,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
-        "claude-haiku-4-5"
+        "claude-haiku-4-5",
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "planning_high": {
@@ -331,174 +343,146 @@
         "budget_posture": "normal",
         "use_context": "interactive"
       },
-      "default": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8341,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.81,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.81,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.795,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8341,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.8225,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.78,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8447,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.9,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.72,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8892,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.9,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.72,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "claude-haiku-4-5-20251001",
-        "glm-4.5-air",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-instruct",
-        "gpt-3.5-turbo-instruct-0914",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-4-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4.1",
-        "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini",
-        "gpt-4.1-mini-2025-04-14",
-        "gpt-4.1-nano",
-        "gpt-4.1-nano-2025-04-14",
-        "gpt-5",
-        "gpt-5-2025-08-07",
-        "gpt-5-chat-latest",
-        "gpt-5-codex",
-        "gpt-5-mini",
-        "gpt-5-mini-2025-08-07",
-        "gpt-5-nano",
-        "gpt-5-nano-2025-08-07",
-        "gpt-5-pro",
-        "gpt-5-pro-2025-10-06",
-        "gpt-5-search-api",
-        "gpt-5-search-api-2025-10-14",
-        "gpt-5.1",
-        "gpt-5.1-2025-11-13",
-        "gpt-5.1-chat-latest",
-        "gpt-5.1-codex",
-        "gpt-5.1-codex-max",
-        "gpt-5.1-codex-mini",
-        "gpt-5.2",
-        "gpt-5.2-2025-12-11",
-        "gpt-5.2-chat-latest",
-        "gpt-5.2-codex",
-        "gpt-5.2-pro",
-        "gpt-5.2-pro-2025-12-11",
-        "gpt-5.3-chat-latest",
-        "gpt-5.3-codex",
-        "gpt-5.4",
-        "gpt-5.4-2026-03-05",
-        "gpt-5.4-mini",
-        "gpt-5.4-mini-2026-03-17",
-        "gpt-5.4-nano",
-        "gpt-5.4-nano-2026-03-17",
-        "gpt-5.4-pro",
-        "gpt-5.4-pro-2026-03-05",
-        "gpt-5.5",
-        "gpt-5.5-2026-04-23",
-        "gpt-5.5-pro",
-        "gpt-5.5-pro-2026-04-23",
-        "gpt-audio",
-        "gpt-audio-1.5",
-        "gpt-audio-2025-08-28",
-        "gpt-audio-mini",
-        "gpt-audio-mini-2025-10-06",
-        "gpt-audio-mini-2025-12-15",
-        "gpt-image-1",
-        "gpt-image-1-mini",
-        "gpt-image-1.5",
-        "gpt-image-2",
-        "gpt-image-2-2026-04-21",
-        "gpt-realtime",
-        "gpt-realtime-1.5",
-        "gpt-realtime-2",
-        "gpt-realtime-2025-08-28",
-        "gpt-realtime-mini",
-        "gpt-realtime-mini-2025-10-06",
-        "gpt-realtime-mini-2025-12-15",
-        "gpt-realtime-translate",
-        "gpt-realtime-whisper"
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "debugging_medium": {
@@ -511,99 +495,128 @@
         "budget_posture": "normal",
         "use_context": "interactive"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.7925,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.95,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.796,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.95,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8425,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.805,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.95,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.76,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.795,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.95,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8125,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "gpt-4o-mini-2024-07-18",
-        "provider": "openai",
-        "score": 0.8,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "claude-haiku-4-5-20251001",
         "gemini-2.0-flash",
         "gemini-2.0-flash-001",
         "gemini-2.0-flash-lite",
@@ -634,83 +647,7 @@
         "gemini-flash-lite-latest",
         "gemini-pro-latest",
         "gemini-robotics-er-1.5-preview",
-        "gemini-robotics-er-1.6-preview",
-        "glm-4.5-air",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-instruct",
-        "gpt-3.5-turbo-instruct-0914",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-4-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4.1",
-        "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini",
-        "gpt-4.1-mini-2025-04-14",
-        "gpt-4.1-nano",
-        "gpt-4.1-nano-2025-04-14",
-        "gpt-5",
-        "gpt-5-2025-08-07",
-        "gpt-5-chat-latest",
-        "gpt-5-codex",
-        "gpt-5-mini",
-        "gpt-5-mini-2025-08-07",
-        "gpt-5-nano",
-        "gpt-5-nano-2025-08-07",
-        "gpt-5-pro",
-        "gpt-5-pro-2025-10-06",
-        "gpt-5-search-api",
-        "gpt-5-search-api-2025-10-14",
-        "gpt-5.1",
-        "gpt-5.1-2025-11-13",
-        "gpt-5.1-chat-latest",
-        "gpt-5.1-codex",
-        "gpt-5.1-codex-max",
-        "gpt-5.1-codex-mini",
-        "gpt-5.2",
-        "gpt-5.2-2025-12-11",
-        "gpt-5.2-chat-latest",
-        "gpt-5.2-codex",
-        "gpt-5.2-pro",
-        "gpt-5.2-pro-2025-12-11",
-        "gpt-5.3-chat-latest",
-        "gpt-5.3-codex",
-        "gpt-5.4",
-        "gpt-5.4-2026-03-05",
-        "gpt-5.4-mini",
-        "gpt-5.4-mini-2026-03-17",
-        "gpt-5.4-nano",
-        "gpt-5.4-nano-2026-03-17",
-        "gpt-5.4-pro",
-        "gpt-5.4-pro-2026-03-05",
-        "gpt-5.5",
-        "gpt-5.5-2026-04-23",
-        "gpt-5.5-pro",
-        "gpt-5.5-pro-2026-04-23",
-        "gpt-audio",
-        "gpt-audio-1.5",
-        "gpt-audio-2025-08-28",
-        "gpt-audio-mini",
-        "gpt-audio-mini-2025-10-06",
-        "gpt-audio-mini-2025-12-15",
-        "gpt-image-1",
-        "gpt-image-1-mini",
-        "gpt-image-1.5",
-        "gpt-image-2",
-        "gpt-image-2-2026-04-21",
-        "gpt-realtime",
-        "gpt-realtime-1.5",
-        "gpt-realtime-2",
-        "gpt-realtime-2025-08-28",
-        "gpt-realtime-mini",
-        "gpt-realtime-mini-2025-10-06",
-        "gpt-realtime-mini-2025-12-15",
-        "gpt-realtime-translate",
-        "gpt-realtime-whisper",
-        "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "review_low": {
@@ -723,174 +660,146 @@
         "budget_posture": "normal",
         "use_context": "interactive"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7525,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7915,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8425,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8141,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.777,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.76,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8427,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.9087,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8141,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "claude-haiku-4-5-20251001",
-        "glm-4.5-air",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-instruct",
-        "gpt-3.5-turbo-instruct-0914",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-4-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4.1",
-        "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini",
-        "gpt-4.1-mini-2025-04-14",
-        "gpt-4.1-nano",
-        "gpt-4.1-nano-2025-04-14",
-        "gpt-5",
-        "gpt-5-2025-08-07",
-        "gpt-5-chat-latest",
-        "gpt-5-codex",
-        "gpt-5-mini",
-        "gpt-5-mini-2025-08-07",
-        "gpt-5-nano",
-        "gpt-5-nano-2025-08-07",
-        "gpt-5-pro",
-        "gpt-5-pro-2025-10-06",
-        "gpt-5-search-api",
-        "gpt-5-search-api-2025-10-14",
-        "gpt-5.1",
-        "gpt-5.1-2025-11-13",
-        "gpt-5.1-chat-latest",
-        "gpt-5.1-codex",
-        "gpt-5.1-codex-max",
-        "gpt-5.1-codex-mini",
-        "gpt-5.2",
-        "gpt-5.2-2025-12-11",
-        "gpt-5.2-chat-latest",
-        "gpt-5.2-codex",
-        "gpt-5.2-pro",
-        "gpt-5.2-pro-2025-12-11",
-        "gpt-5.3-chat-latest",
-        "gpt-5.3-codex",
-        "gpt-5.4",
-        "gpt-5.4-2026-03-05",
-        "gpt-5.4-mini",
-        "gpt-5.4-mini-2026-03-17",
-        "gpt-5.4-nano",
-        "gpt-5.4-nano-2026-03-17",
-        "gpt-5.4-pro",
-        "gpt-5.4-pro-2026-03-05",
-        "gpt-5.5",
-        "gpt-5.5-2026-04-23",
-        "gpt-5.5-pro",
-        "gpt-5.5-pro-2026-04-23",
-        "gpt-audio",
-        "gpt-audio-1.5",
-        "gpt-audio-2025-08-28",
-        "gpt-audio-mini",
-        "gpt-audio-mini-2025-10-06",
-        "gpt-audio-mini-2025-12-15",
-        "gpt-image-1",
-        "gpt-image-1-mini",
-        "gpt-image-1.5",
-        "gpt-image-2",
-        "gpt-image-2-2026-04-21",
-        "gpt-realtime",
-        "gpt-realtime-1.5",
-        "gpt-realtime-2",
-        "gpt-realtime-2025-08-28",
-        "gpt-realtime-mini",
-        "gpt-realtime-mini-2025-10-06",
-        "gpt-realtime-mini-2025-12-15",
-        "gpt-realtime-translate",
-        "gpt-realtime-whisper"
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "closeout_low": {
@@ -903,98 +812,146 @@
         "budget_posture": "cost-sensitive",
         "use_context": "interactive"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8219,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9688,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7525,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7915,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8425,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8134,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9844,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.7767,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.7433,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.5833,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8411,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8219,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9688,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.9063,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8134,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9844,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
-        "claude-haiku-4-5"
+        "claude-haiku-4-5",
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "ideation_medium": {
@@ -1007,174 +964,146 @@
         "budget_posture": "normal",
         "use_context": "interactive"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.7925,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.95,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.796,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.95,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8425,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8141,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.805,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.95,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.76,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8427,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8231,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.9087,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.8,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8141,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "claude-haiku-4-5-20251001",
-        "glm-4.5-air",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-instruct",
-        "gpt-3.5-turbo-instruct-0914",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-4-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4.1",
-        "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini",
-        "gpt-4.1-mini-2025-04-14",
-        "gpt-4.1-nano",
-        "gpt-4.1-nano-2025-04-14",
-        "gpt-5",
-        "gpt-5-2025-08-07",
-        "gpt-5-chat-latest",
-        "gpt-5-codex",
-        "gpt-5-mini",
-        "gpt-5-mini-2025-08-07",
-        "gpt-5-nano",
-        "gpt-5-nano-2025-08-07",
-        "gpt-5-pro",
-        "gpt-5-pro-2025-10-06",
-        "gpt-5-search-api",
-        "gpt-5-search-api-2025-10-14",
-        "gpt-5.1",
-        "gpt-5.1-2025-11-13",
-        "gpt-5.1-chat-latest",
-        "gpt-5.1-codex",
-        "gpt-5.1-codex-max",
-        "gpt-5.1-codex-mini",
-        "gpt-5.2",
-        "gpt-5.2-2025-12-11",
-        "gpt-5.2-chat-latest",
-        "gpt-5.2-codex",
-        "gpt-5.2-pro",
-        "gpt-5.2-pro-2025-12-11",
-        "gpt-5.3-chat-latest",
-        "gpt-5.3-codex",
-        "gpt-5.4",
-        "gpt-5.4-2026-03-05",
-        "gpt-5.4-mini",
-        "gpt-5.4-mini-2026-03-17",
-        "gpt-5.4-nano",
-        "gpt-5.4-nano-2026-03-17",
-        "gpt-5.4-pro",
-        "gpt-5.4-pro-2026-03-05",
-        "gpt-5.5",
-        "gpt-5.5-2026-04-23",
-        "gpt-5.5-pro",
-        "gpt-5.5-pro-2026-04-23",
-        "gpt-audio",
-        "gpt-audio-1.5",
-        "gpt-audio-2025-08-28",
-        "gpt-audio-mini",
-        "gpt-audio-mini-2025-10-06",
-        "gpt-audio-mini-2025-12-15",
-        "gpt-image-1",
-        "gpt-image-1-mini",
-        "gpt-image-1.5",
-        "gpt-image-2",
-        "gpt-image-2-2026-04-21",
-        "gpt-realtime",
-        "gpt-realtime-1.5",
-        "gpt-realtime-2",
-        "gpt-realtime-2025-08-28",
-        "gpt-realtime-mini",
-        "gpt-realtime-mini-2025-10-06",
-        "gpt-realtime-mini-2025-12-15",
-        "gpt-realtime-translate",
-        "gpt-realtime-whisper"
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "agentic_high": {
@@ -1187,95 +1116,120 @@
         "requires_image": false,
         "budget_posture": "quality-first"
       },
-      "default": {
-        "model_id": "claude-sonnet-4-6",
-        "provider": "anthropic",
-        "score": 0.819,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.59,
-          "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.7,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-sonnet-4-6",
+          "provider": "anthropic",
+          "score": 0.828,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.59,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": []
         },
-        "warnings": []
+        "balanced": {
+          "model_id": "claude-sonnet-4-6",
+          "provider": "anthropic",
+          "score": 0.828,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.59,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": []
+        },
+        "fast": {
+          "model_id": "claude-sonnet-4-6",
+          "provider": "anthropic",
+          "score": 0.804,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.59,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": []
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.7921,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9875,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "claude-sonnet-4-6",
+          "provider": "anthropic",
+          "score": 0.8335,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.59,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.7,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [],
+          "cost_input_1m_usd": 3.0,
+          "cost_output_1m_usd": 15.0
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-sonnet-4-6",
-        "provider": "anthropic",
-        "score": 0.819,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.59,
-          "rework_risk": 0.5,
-          "speed_fit": 0.7,
-          "cost_fit": 0.7,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.8283,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.8333,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": []
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.7921,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.9,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9875,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.8383,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 1.0,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.8333,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "o3-mini",
-        "provider": "openai",
-        "score": 0.8175,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 1.0,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.8333,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "claude-haiku-4-5-20251001",
         "gemini-2.0-flash",
         "gemini-2.0-flash-001",
         "gemini-2.0-flash-lite",
@@ -1306,83 +1260,7 @@
         "gemini-flash-lite-latest",
         "gemini-pro-latest",
         "gemini-robotics-er-1.5-preview",
-        "gemini-robotics-er-1.6-preview",
-        "glm-4.5-air",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-instruct",
-        "gpt-3.5-turbo-instruct-0914",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-4-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4.1",
-        "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini",
-        "gpt-4.1-mini-2025-04-14",
-        "gpt-4.1-nano",
-        "gpt-4.1-nano-2025-04-14",
-        "gpt-5",
-        "gpt-5-2025-08-07",
-        "gpt-5-chat-latest",
-        "gpt-5-codex",
-        "gpt-5-mini",
-        "gpt-5-mini-2025-08-07",
-        "gpt-5-nano",
-        "gpt-5-nano-2025-08-07",
-        "gpt-5-pro",
-        "gpt-5-pro-2025-10-06",
-        "gpt-5-search-api",
-        "gpt-5-search-api-2025-10-14",
-        "gpt-5.1",
-        "gpt-5.1-2025-11-13",
-        "gpt-5.1-chat-latest",
-        "gpt-5.1-codex",
-        "gpt-5.1-codex-max",
-        "gpt-5.1-codex-mini",
-        "gpt-5.2",
-        "gpt-5.2-2025-12-11",
-        "gpt-5.2-chat-latest",
-        "gpt-5.2-codex",
-        "gpt-5.2-pro",
-        "gpt-5.2-pro-2025-12-11",
-        "gpt-5.3-chat-latest",
-        "gpt-5.3-codex",
-        "gpt-5.4",
-        "gpt-5.4-2026-03-05",
-        "gpt-5.4-mini",
-        "gpt-5.4-mini-2026-03-17",
-        "gpt-5.4-nano",
-        "gpt-5.4-nano-2026-03-17",
-        "gpt-5.4-pro",
-        "gpt-5.4-pro-2026-03-05",
-        "gpt-5.5",
-        "gpt-5.5-2026-04-23",
-        "gpt-5.5-pro",
-        "gpt-5.5-pro-2026-04-23",
-        "gpt-audio",
-        "gpt-audio-1.5",
-        "gpt-audio-2025-08-28",
-        "gpt-audio-mini",
-        "gpt-audio-mini-2025-10-06",
-        "gpt-audio-mini-2025-12-15",
-        "gpt-image-1",
-        "gpt-image-1-mini",
-        "gpt-image-1.5",
-        "gpt-image-2",
-        "gpt-image-2-2026-04-21",
-        "gpt-realtime",
-        "gpt-realtime-1.5",
-        "gpt-realtime-2",
-        "gpt-realtime-2025-08-28",
-        "gpt-realtime-mini",
-        "gpt-realtime-mini-2025-10-06",
-        "gpt-realtime-mini-2025-12-15",
-        "gpt-realtime-translate",
-        "gpt-realtime-whisper",
-        "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "api_extract_low": {
@@ -1395,98 +1273,146 @@
         "requires_image": false,
         "budget_posture": "cost-sensitive"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8597,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9688,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.735,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7775,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8325,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8436,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9844,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.7592,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.6833,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.5833,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8286,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8597,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9688,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8988,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9844,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "glm-4.5-air",
-        "provider": "z_ai",
-        "score": 0.8592,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9667,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
-        "claude-haiku-4-5"
+        "claude-haiku-4-5",
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview"
       ]
     },
     "api_generate_medium": {
@@ -1499,175 +1425,399 @@
         "requires_image": false,
         "budget_posture": "normal"
       },
-      "default": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8628,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "subscription": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.775,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.9,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "balanced": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.782,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.9,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "fast": {
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8325,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 1.0,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ]
+        },
+        "_note": "Flat-rate (Claude Max). Use 'quality' for best output, 'fast' when latency matters."
       },
-      "cost_optimized": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8452,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+      "api": {
+        "quality": {
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.7875,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.9,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "high_confidence": {
-        "model_id": "claude-opus-4-8",
-        "provider": "anthropic",
-        "score": 0.725,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.55,
-          "cost_fit": 0.75,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "balanced": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.8302,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fast": {
-        "model_id": "gpt-4o-mini",
-        "provider": "openai",
-        "score": 0.8628,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.95,
-          "cost_fit": 0.9812,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
+        "economy": {
+          "model_id": "gemini-2.5-flash",
+          "provider": "gemini",
+          "score": 0.9012,
+          "dimension_scores": {
+            "access_fit": 1.0,
+            "capability_fit": 0.75,
+            "local_success_fit": 0.5,
+            "rework_risk": 0.5,
+            "speed_fit": 0.95,
+            "cost_fit": 0.9906,
+            "stability_fit": 1.0,
+            "freshness_risk": 1.0
+          },
+          "warnings": [
+            "no_local_data_yet"
+          ],
+          "cost_input_1m_usd": 0.075,
+          "cost_output_1m_usd": 0.3
         },
-        "warnings": [
-          "no_local_data_yet"
-        ]
-      },
-      "fallback": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "gemini",
-        "score": 0.8452,
-        "dimension_scores": {
-          "access_fit": 1.0,
-          "capability_fit": 0.85,
-          "local_success_fit": 0.5,
-          "rework_risk": 0.5,
-          "speed_fit": 0.85,
-          "cost_fit": 0.9906,
-          "stability_fit": 1.0,
-          "freshness_risk": 1.0
-        },
-        "warnings": [
-          "no_local_data_yet"
-        ]
+        "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
       "do_not_use": [
         "claude-haiku-4-5",
-        "claude-haiku-4-5-20251001",
-        "glm-4.5-air",
-        "gpt-3.5-turbo",
-        "gpt-3.5-turbo-0125",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-instruct",
-        "gpt-3.5-turbo-instruct-0914",
-        "gpt-4",
-        "gpt-4-0613",
-        "gpt-4-turbo",
-        "gpt-4-turbo-2024-04-09",
-        "gpt-4.1",
-        "gpt-4.1-2025-04-14",
-        "gpt-4.1-mini",
-        "gpt-4.1-mini-2025-04-14",
-        "gpt-4.1-nano",
-        "gpt-4.1-nano-2025-04-14",
-        "gpt-5",
-        "gpt-5-2025-08-07",
-        "gpt-5-chat-latest",
-        "gpt-5-codex",
-        "gpt-5-mini",
-        "gpt-5-mini-2025-08-07",
-        "gpt-5-nano",
-        "gpt-5-nano-2025-08-07",
-        "gpt-5-pro",
-        "gpt-5-pro-2025-10-06",
-        "gpt-5-search-api",
-        "gpt-5-search-api-2025-10-14",
-        "gpt-5.1",
-        "gpt-5.1-2025-11-13",
-        "gpt-5.1-chat-latest",
-        "gpt-5.1-codex",
-        "gpt-5.1-codex-max",
-        "gpt-5.1-codex-mini",
-        "gpt-5.2",
-        "gpt-5.2-2025-12-11",
-        "gpt-5.2-chat-latest",
-        "gpt-5.2-codex",
-        "gpt-5.2-pro",
-        "gpt-5.2-pro-2025-12-11",
-        "gpt-5.3-chat-latest",
-        "gpt-5.3-codex",
-        "gpt-5.4",
-        "gpt-5.4-2026-03-05",
-        "gpt-5.4-mini",
-        "gpt-5.4-mini-2026-03-17",
-        "gpt-5.4-nano",
-        "gpt-5.4-nano-2026-03-17",
-        "gpt-5.4-pro",
-        "gpt-5.4-pro-2026-03-05",
-        "gpt-5.5",
-        "gpt-5.5-2026-04-23",
-        "gpt-5.5-pro",
-        "gpt-5.5-pro-2026-04-23",
-        "gpt-audio",
-        "gpt-audio-1.5",
-        "gpt-audio-2025-08-28",
-        "gpt-audio-mini",
-        "gpt-audio-mini-2025-10-06",
-        "gpt-audio-mini-2025-12-15",
-        "gpt-image-1",
-        "gpt-image-1-mini",
-        "gpt-image-1.5",
-        "gpt-image-2",
-        "gpt-image-2-2026-04-21",
-        "gpt-realtime",
-        "gpt-realtime-1.5",
-        "gpt-realtime-2",
-        "gpt-realtime-2025-08-28",
-        "gpt-realtime-mini",
-        "gpt-realtime-mini-2025-10-06",
-        "gpt-realtime-mini-2025-12-15",
-        "gpt-realtime-translate",
-        "gpt-realtime-whisper"
+        "gemini-2.5-computer-use-preview-10-2025",
+        "gemini-2.5-flash-preview-tts",
+        "gemini-2.5-pro-preview-tts",
+        "gemini-3-flash-preview",
+        "gemini-3-pro-image",
+        "gemini-3-pro-image-preview",
+        "gemini-3-pro-preview",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.1-flash-tts-preview",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-pro-preview-customtools",
+        "gemini-embedding-2-preview",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+        "gemini-robotics-er-1.5-preview",
+        "gemini-robotics-er-1.6-preview"
       ]
     }
+  },
+  "per_provider": {
+    "coding_high": {
+      "anthropic": {
+        "model_id": "claude-fable-5",
+        "composite_score": 0.835,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "coding_low": {
+      "anthropic": {
+        "model_id": "claude-haiku-4-5-20251001",
+        "composite_score": 0.7775,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "gemini": {
+        "model_id": "gemini-2.5-flash",
+        "composite_score": 0.7417,
+        "qualify_score": 1.0,
+        "qualify_status": "tested",
+        "cost_input_1m_usd": 0.075,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "planning_high": {
+      "anthropic": {
+        "model_id": "claude-fable-5",
+        "composite_score": 0.835,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "gemini": {
+        "model_id": "gemini-2.5-flash",
+        "composite_score": 0.8005,
+        "qualify_score": 1.0,
+        "qualify_status": "tested",
+        "cost_input_1m_usd": 0.075,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "debugging_medium": {
+      "anthropic": {
+        "model_id": "claude-fable-5",
+        "composite_score": 0.8175,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "review_low": {
+      "anthropic": {
+        "model_id": "claude-haiku-4-5-20251001",
+        "composite_score": 0.7775,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "gemini": {
+        "model_id": "gemini-2.5-flash",
+        "composite_score": 0.777,
+        "qualify_score": 1.0,
+        "qualify_status": "tested",
+        "cost_input_1m_usd": 0.075,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "closeout_low": {
+      "anthropic": {
+        "model_id": "claude-haiku-4-5-20251001",
+        "composite_score": 0.7775,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "gemini": {
+        "model_id": "gemini-2.5-flash",
+        "composite_score": 0.7767,
+        "qualify_score": 1.0,
+        "qualify_status": "tested",
+        "cost_input_1m_usd": 0.075,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "ideation_medium": {
+      "anthropic": {
+        "model_id": "claude-fable-5",
+        "composite_score": 0.8175,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "gemini": {
+        "model_id": "gemini-2.5-flash",
+        "composite_score": 0.777,
+        "qualify_score": 1.0,
+        "qualify_status": "tested",
+        "cost_input_1m_usd": 0.075,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "agentic_high": {
+      "anthropic": {
+        "model_id": "claude-sonnet-4-6",
+        "composite_score": 0.828,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": 3.0,
+        "warnings": []
+      }
+    },
+    "api_extract_low": {
+      "anthropic": {
+        "model_id": "claude-haiku-4-5-20251001",
+        "composite_score": 0.76,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "gemini": {
+        "model_id": "gemini-2.5-flash",
+        "composite_score": 0.7592,
+        "qualify_score": 1.0,
+        "qualify_status": "tested",
+        "cost_input_1m_usd": 0.075,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    },
+    "api_generate_medium": {
+      "anthropic": {
+        "model_id": "claude-fable-5",
+        "composite_score": 0.8,
+        "qualify_score": null,
+        "qualify_status": "pending",
+        "cost_input_1m_usd": null,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      },
+      "gemini": {
+        "model_id": "gemini-2.5-flash",
+        "composite_score": 0.7595,
+        "qualify_score": 1.0,
+        "qualify_status": "tested",
+        "cost_input_1m_usd": 0.075,
+        "warnings": [
+          "no_local_data_yet"
+        ]
+      }
+    }
+  },
+  "rate_ranking": {
+    "haiku": [
+      {
+        "provider": "gemini",
+        "model_id": "gemini-2.5-flash-lite",
+        "cost_input_1m_usd": 0.1,
+        "qualify_score": 1.0,
+        "ready": true,
+        "available": true,
+        "status": "active"
+      },
+      {
+        "provider": "anthropic",
+        "model_id": "claude-haiku-4-5-20251001",
+        "cost_input_1m_usd": 0.8,
+        "qualify_score": null,
+        "ready": false,
+        "available": true,
+        "status": "active"
+      }
+    ],
+    "sonnet": [
+      {
+        "provider": "gemini",
+        "model_id": "gemini-2.5-flash",
+        "cost_input_1m_usd": 0.15,
+        "qualify_score": 1.0,
+        "ready": true,
+        "available": true,
+        "status": "active"
+      },
+      {
+        "provider": "anthropic",
+        "model_id": "claude-sonnet-4-6",
+        "cost_input_1m_usd": 3.0,
+        "qualify_score": null,
+        "ready": false,
+        "available": true,
+        "status": "active"
+      }
+    ],
+    "opus": [
+      {
+        "provider": "gemini",
+        "model_id": "gemini-2.5-pro",
+        "cost_input_1m_usd": 1.25,
+        "qualify_score": 1.0,
+        "ready": true,
+        "available": true,
+        "status": "active"
+      },
+      {
+        "provider": "anthropic",
+        "model_id": "claude-opus-4-8",
+        "cost_input_1m_usd": 15.0,
+        "qualify_score": null,
+        "ready": false,
+        "available": true,
+        "status": "active"
+      }
+    ]
   }
 }

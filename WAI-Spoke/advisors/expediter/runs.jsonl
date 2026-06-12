@@ -1,0 +1,1 @@
+{"ts": "2026-06-12T11:40:05.607107+00:00", "scout": "expedition", "trigger": "forced (--hygiene/--all)", "findings": 2, "auto_groomable": 0, "needs_judgment": 2, "verification_debt": {"deployed_unverified": 0, "spec_drift": 0, "abandoned": 0}, "findings_by_producer": {"unknown": 2}, "report_id": "scout-report-20260612T114005", "refine_id": null}
