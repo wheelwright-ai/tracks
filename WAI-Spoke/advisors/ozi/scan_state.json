@@ -1,91 +1,57 @@
 {
-  "last_coverage_eval_at": "2026-06-04T11:40:05.521553Z",
-  "active_scopes": [
-    {
-      "scope_trigger": "framework_development",
-      "status": "detected",
-      "detection_keywords": [
-        "teaching",
-        "protocol",
-        "skill",
-        "wai",
-        "framework",
-        "lug schema",
-        "signal",
-        "spoke"
-      ]
-    },
-    {
-      "scope_trigger": "documentation",
-      "status": "detected",
-      "detection_keywords": [
-        "docs",
-        "documentation",
-        "readme",
-        "content",
-        "writing"
-      ]
-    },
-    {
-      "scope_trigger": "deployment_automation",
-      "status": "detected",
-      "detection_keywords": [
-        "deploy",
-        "hook",
-        "bash",
-        "automation"
-      ]
-    },
-    {
-      "scope_trigger": "architecture_oversight",
-      "status": "detected",
-      "detection_keywords": [
-        "schema",
-        "protocol",
-        "architecture"
-      ]
-    }
-  ],
-  "gaps_detected": [
-    {
-      "scope": "framework_development",
-      "missing_advisors": [
-        "archie",
-        "historian",
-        "expediter"
-      ],
-      "proposed_template": "engineering-advisor",
-      "priority": "high",
-      "justification": "Project contains WAI framework protocols and teaching infrastructure; requires dedicated oversight of architecture, history/evolution, and expedition/timeline management",
-      "proposal_status": "provisioned"
-    },
-    {
-      "scope": "documentation",
-      "missing_advisors": [
-        "clara"
-      ],
-      "proposed_template": "quality-advisor",
-      "priority": "low",
-      "justification": "Project identity is documentation and prompt library; benefits from dedicated writing and content quality review",
-      "proposal_status": "pending"
-    },
-    {
-      "scope": "deployment_automation",
-      "missing_advisors": [
-        "will"
-      ],
-      "proposed_template": "engineering-advisor",
-      "priority": "medium",
-      "justification": "Multiple open signals about git hooks, bash automation, and deployment infrastructure require monitoring for reliability and best practices",
-      "proposal_status": "pending"
-    }
-  ],
-  "roster_summary": {
-    "active_advisors_count": 1,
-    "active_advisors": [
-      "sage"
+  "team_coverage": {
+    "last_coverage_eval_at": "2026-06-12T11:49:02Z",
+    "active_scopes": [
+      "framework_development",
+      "deployment_automation",
+      "documentation",
+      "architecture_oversight",
+      "testing_infrastructure",
+      "security_sensitive"
     ],
-    "total_advisor_slots_needed": 4,
-    "coverage_percent": 25
+    "gaps_detected": [
+      {
+        "domain": "framework_development",
+        "suggested_template": "engineering-advisor",
+        "priority": 3,
+        "justification": "WAI framework protocols and teaching infrastructure require dedicated advisors for architecture (archie), history/evolution tracking (historian), and timeline/expedition management (expediter)",
+        "proposal_status": "pending"
+      },
+      {
+        "domain": "deployment_automation",
+        "suggested_template": "engineering-advisor",
+        "priority": 2,
+        "justification": "Multiple open signals about git hooks, bash automation, wheel-tender pipeline, and deployment infrastructure require dedicated monitoring (will)",
+        "proposal_status": "pending"
+      },
+      {
+        "domain": "documentation",
+        "suggested_template": "quality-advisor",
+        "priority": 1,
+        "justification": "Project identity is documentation and prompt library; requires dedicated writing and content quality review (clara)",
+        "proposal_status": "provisioned"
+      },
+      {
+        "domain": "architecture_oversight",
+        "suggested_template": "engineering-advisor",
+        "priority": 3,
+        "justification": "Station Master architecture, schema evolution, and protocol decisions require dedicated architecture oversight (archie)",
+        "proposal_status": "pending"
+      },
+      {
+        "domain": "testing_infrastructure",
+        "suggested_template": "quality-advisor",
+        "priority": 2,
+        "justification": "GitHub Actions integration failures, browser-surface smoke coverage, and lug status validation require dedicated quality monitoring (jordy)",
+        "proposal_status": "pending"
+      },
+      {
+        "domain": "security_sensitive",
+        "suggested_template": "engineering-advisor",
+        "priority": 3,
+        "justification": "Auth-related concerns (NEXTAUTH_URL), secrets management, and compliance-related issues in open signals require dedicated security review",
+        "proposal_status": "pending"
+      }
+    ]
   }
 }

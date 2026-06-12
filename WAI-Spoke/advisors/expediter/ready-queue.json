@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-12T11:40:05.662695+00:00",
+  "generated_at": "2026-06-12T11:49:01.802952+00:00",
   "priority_sequence": [
     "teachings",
     "work(initiative-scoped first)",
@@ -23,6 +23,24 @@
       },
       {
         "id": "crew-recommend-documentation-20260605-181822",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260612-114005",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260612-114005",
         "type": "implementation",
         "type_row": "scouting",
         "column": "autonomous",
@@ -75,8 +93,8 @@
     "needs_you": "user-needed"
   },
   "counts": {
-    "total": 6,
-    "autonomous": 4,
+    "total": 8,
+    "autonomous": 6,
     "needs_you": 2
   }
 }

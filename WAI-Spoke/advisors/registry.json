@@ -23,5 +23,12 @@
     "relevance_conditions": [],
     "last_run_at": null,
     "self_reported_relevance": null
+  },
+  {
+    "advisor_id": "documentation",
+    "status": "stub",
+    "department_id": "knowledge",
+    "domain": "documentation",
+    "initialized_from_template": "knowledge-advisor"
   }
 ]

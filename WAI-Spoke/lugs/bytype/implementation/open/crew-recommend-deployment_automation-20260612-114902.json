@@ -1,17 +1,17 @@
 {
-  "id": "crew-recommend-deployment_automation-20260612-114005",
+  "id": "crew-recommend-deployment_automation-20260612-114902",
   "type": "implementation",
   "title": "Advisor recommendation \u2014 recruit deployment_automation advisor (template=engineering-advisor)",
   "status": "needs_review",
   "routed_to": "LOCAL",
   "model_fit": "haiku",
-  "execution_mode": "gastown",
+  "execution_mode": "manual",
   "urgency": 6,
   "effort_score": 2,
   "quality_score": 8,
   "initiative": "crew-maintenance",
   "authored_by": "ozi-autopilot-scouting",
-  "created_at": "2026-06-12T11:40:05.889475Z",
+  "created_at": "2026-06-12T11:49:02.074139Z",
   "crew_provision": true,
   "domain": "deployment_automation",
   "template_id": "engineering-advisor",
@@ -23,7 +23,7 @@
     "2. Read WAI-Spoke/advisors/registry.json. Reuse a fitting 'new'/'stub' advisor_id in department_id=engineering, else use a fresh advisor_id (the domain name, e.g. 'deployment_automation').",
     "3. Create WAI-Spoke/advisors/<advisor_id>/ if not present.",
     "4. Write WAI-Spoke/advisors/<advisor_id>/context_prompt.md adapting the engineering-advisor charter for domain=deployment_automation (advisor_id, domain, mission, responsibilities, escalation-to-Ozi). Pattern: WAI-Spoke/advisors/archie/context_prompt.md.",
-    "5. Write WAI-Spoke/advisors/<advisor_id>/scan_state.json: {\"advisor_id\": \"<advisor_id>\", \"domain\": \"deployment_automation\", \"status\": \"stub\", \"last_run_at\": null, \"initialized_at\": \"2026-06-12T11:40:05.889442Z\"}",
+    "5. Write WAI-Spoke/advisors/<advisor_id>/scan_state.json: {\"advisor_id\": \"<advisor_id>\", \"domain\": \"deployment_automation\", \"status\": \"stub\", \"last_run_at\": null, \"initialized_at\": \"2026-06-12T11:49:02.074123Z\"}",
     "6. Update WAI-Spoke/advisors/registry.json: advisor entry status=stub, department_id=engineering, domain=deployment_automation, initialized_from_template=engineering-advisor. Preserve other entries.",
     "7. Update WAI-Spoke/advisors/schedule-index.json: if advisor_id absent, append {\"advisor_id\": \"<advisor_id>\", \"run_cadence\": \"weekly\", \"event_triggers\": [], \"last_run_at\": null, \"next_recommended_run\": null}.",
     "8. Update WAI-Spoke/advisors/ozi/scan_state.json: set team_coverage.gaps_detected[domain=deployment_automation].proposal_status=provisioned and the matching recommendations_pending entry to provisioned."
@@ -35,6 +35,5 @@
     "registry.json entry advisor_id=deployment_automation has status=stub",
     "schedule-index.json has weekly entry for deployment_automation",
     "ozi scan_state team_coverage gap[domain=deployment_automation].proposal_status == 'provisioned'"
-  ],
-  "execution_substrate": "gastown"
+  ]
 }

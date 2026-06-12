@@ -1,0 +1,30 @@
+{
+  "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
+  "type": "implementation",
+  "title": "Document advisor_scout schema extension in canonical lug spec",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 4,
+  "effort_score": 2,
+  "quality_score": 6,
+  "initiative": "crew-maintenance",
+  "authored_by": "advisor-scout-framework_development",
+  "created_at": "2026-06-12T11:49:02.073477Z",
+  "advisor_scout": false,
+  "domain": "schema-evolution",
+  "perceive": "The lug schema has evolved to support advisor lifecycle management with new fields (advisor_scout, advisor_id, scout_reason), but this extension is not yet documented in the canonical lug spec. Active advisor-scout lugs use these fields correctly, but future implementations lack formal reference.",
+  "execute": [
+    "1. Create canonical lug spec for advisor_scout pattern. Define required fields: advisor_scout (boolean), advisor_id (string), scout_reason (string).",
+    "2. Document the advisor warming lifecycle: stub → scheduled → run → last_run_at updated.",
+    "3. Create spec as type:spec lug in lugs/bytype/spec/open/. Add entry to WAI-SpecIndex.jsonl with subject_id='lug-schema-advisor-scout'.",
+    "4. Link from CLAUDE.md Man Lug System section as reference for future advisor implementations."
+  ],
+  "verify": "Spec lug exists at lugs/bytype/spec/open/ with complete field definitions. WAI-SpecIndex.jsonl includes entry. New advisor-scout lugs validate against spec without warnings.",
+  "acceptance_criteria": [
+    "Canonical spec exists with all advisor_scout fields documented",
+    "Spec indexed in WAI-SpecIndex.jsonl for grep-ability",
+    "Schema validation enforces advisor_scout fields on affected lug types"
+  ]
+}

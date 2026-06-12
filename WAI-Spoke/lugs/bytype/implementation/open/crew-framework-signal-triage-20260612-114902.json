@@ -1,0 +1,30 @@
+{
+  "id": "crew-framework-signal-triage-20260612-114902",
+  "type": "implementation",
+  "title": "Triage framework-layer signals backlog (42 undelivered items)",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "advisor-scout-framework_development",
+  "created_at": "2026-06-12T11:49:02.073477Z",
+  "advisor_scout": false,
+  "domain": "signal-processing",
+  "perceive": "Framework signal queue has 42 undelivered items with backlog stretching to 2026-04-05. Signals affecting taught patterns (wakeup, closeout, tender) and advisor lifecycle (realizer, gardener) are blocked pending review and routing decisions.",
+  "execute": [
+    "1. List all undelivered signals in lugs/bytype/signal/open/. Categorize by topic: wakeup/closeout (taught patterns), realizer/gardener (advisor lifecycle), tender (automation), other.",
+    "2. For each category, assess: does signal propose change to cross-spoke contract? Does it affect teaching? Does it conflict with recent deliveries?",
+    "3. For each signal: decide (DELIVER, HOLD-PENDING, SUPERSEDE, CLOSE) and record decision in signal file as decision_at + decision_reason.",
+    "4. Deliver all DECIDE-DELIVER signals to hub WAI-Spoke/lugs/incoming/ for coordinated release."
+  ],
+  "verify": "All 42 signals in open/ have a recorded decision. Delivered signals appear in hub/WAI-Spoke/lugs/incoming/. Decisions are documented with reasoning.",
+  "acceptance_criteria": [
+    "All 42 undelivered signals have explicit decision recorded",
+    "Taught-pattern signals (wakeup, closeout, tender) are prioritized for delivery",
+    "Advisor lifecycle signals (realizer, gardener) assessed for cross-spoke impact"
+  ]
+}
