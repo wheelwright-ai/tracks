@@ -1,0 +1,32 @@
+{
+  "id": "scout-refine-20260614T114456",
+  "type": "implementation",
+  "status": "open",
+  "title": "Auto-refinement from scout-report-20260614T114456: satisfy 4 declared expectations",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 5,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "expediter-ready-queue",
+  "authored_by": "session-20260601-0236.expediter-scout",
+  "authored_kind": "agent",
+  "created_at": "2026-06-14T11:44:56.455424+00:00",
+  "scout_refinement": true,
+  "report_ref": "scout-report-20260614T114456",
+  "perceive": "Scout expedition scout-report-20260614T114456 found 6 artifacts whose OWN declared expectation is unmet. Refine the 4 auto-groomable ones so each satisfies what it already declares (do not invent new scope). 2 need human judgment \u2014 surface those, do not guess.",
+  "execute": [
+    "1. Read WAI-Spoke/advisors/expediter/expeditions/scout-report-20260614T114456.json \u2014 the findings list.",
+    "2. For each finding with auto_groomable=true: open the target lug and complete the fields named in its evidence (perceive/execute/verify/acceptance_criteria) by making explicit what the lug already implies \u2014 chase the expected path, add no new scope.",
+    "3. Re-run `python3 tools/spoke_expediter.py --spoke-path .` and confirm each refined target now passes the quality threshold.",
+    "4. For findings under needs_user_judgment: write ONE concise needs-you note lug summarizing what decision is required (only if the list is non-empty). Do not fabricate a resolution. Include the report's findings_by_producer \u2014 if one job produced many incomplete artifacts, name it so the producing job can be improved at the source.",
+    "5. Mark this lug complete with outcome_verification recording which targets were satisfied and which were escalated."
+  ],
+  "verify": "Each auto_groomable target in scout-report-20260614T114456 now passes score_lug_quality above threshold; any judgment items produced a single needs-you note; no scope was invented.",
+  "acceptance_criteria": [
+    "Every auto-groomable finding's declared expectation is now satisfied",
+    "Judgment-required findings are surfaced to the user, not guessed",
+    "outcome_verification records satisfied vs escalated targets"
+  ]
+}

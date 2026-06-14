@@ -1,0 +1,27 @@
+{
+  "id": "impl-missing-git-checks-20260614",
+  "type": "implementation",
+  "title": "Add git availability checks to session-start.sh and user-prompt-submit.sh",
+  "description": "Add `command -v git` checks before invoking git in hooks. Currently missing checks allow silent failures if git is unavailable, breaking hook execution and session initialization.",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "effort_score": 2,
+  "quality_score": 8,
+  "urgency": 6,
+  "initiative": "crew-maintenance",
+  "source_advisor": "deployment_automation",
+  "source_finding": "deployment_automation-003",
+  "related_files": [
+    "tracks/.claude/hooks/session-start.sh",
+    "tracks/.claude/hooks/user-prompt-submit.sh"
+  ],
+  "acceptance_criteria": [
+    "session-start.sh checks git availability before line 20-28 git operations",
+    "user-prompt-submit.sh (Python section) validates git exists before subprocess calls",
+    "Fallback behavior defined: skip operation or log warning if git unavailable",
+    "Tested with git removed from PATH (PATH=/usr/bin test acceptable)"
+  ],
+  "created_at": "2026-06-14T11:44:56.482409Z",
+  "authored_by": "advisor-deployment_automation-scout"
+}

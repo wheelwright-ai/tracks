@@ -1,0 +1,25 @@
+{
+  "id": "impl-session-start-hardcoded-path-20260614",
+  "type": "implementation",
+  "title": "Fix hardcoded path in session-start.sh",
+  "description": "Replace hardcoded `/home/mario/projects/wheelwright/mywheel/WAI-Harness` path in session-start.sh:18 with portable reference using environment variables or configuration lookup.",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "effort_score": 2,
+  "quality_score": 7,
+  "urgency": 6,
+  "initiative": "crew-maintenance",
+  "source_advisor": "deployment_automation",
+  "source_finding": "deployment_automation-001",
+  "related_files": [
+    "tracks/.claude/hooks/session-start.sh"
+  ],
+  "acceptance_criteria": [
+    "session-start.sh no longer contains hardcoded /home/mario path",
+    "Path resolution uses CLAUDE_PROJECT_DIR or environment detection",
+    "Tested on a different system directory structure (dry-run acceptable)"
+  ],
+  "created_at": "2026-06-14T11:44:56.482409Z",
+  "authored_by": "advisor-deployment_automation-scout"
+}

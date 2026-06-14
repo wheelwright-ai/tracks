@@ -54,3 +54,15 @@
 {"ts": "2026-06-14T11:42:46.608195Z", "op_type": "lug_complete", "lug_id": "advisor-scout-documentation-20260614-114004", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-14T11:42:46.657821Z", "op_type": "lug_pickup", "lug_id": "crew-recommend-framework_development-20260614-114004", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-14T11:44:55.991156Z", "op_type": "lug_complete", "lug_id": "crew-recommend-framework_development-20260614-114004", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:44:56.484197Z", "op_type": "lug_pickup", "lug_id": "advisor-scout-deployment_automation-20260614-114456", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:46:37.828666Z", "op_type": "lug_complete", "lug_id": "advisor-scout-deployment_automation-20260614-114456", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:46:37.829598Z", "op_type": "lug_pickup", "lug_id": "crew-recommend-architecture_oversight-20260614-114456", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:48:15.540919Z", "op_type": "lug_complete", "lug_id": "crew-recommend-architecture_oversight-20260614-114456", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:48:15.542155Z", "op_type": "lug_pickup", "lug_id": "doc-add-terminology-glossary-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:49:24.329746Z", "op_type": "lug_complete", "lug_id": "doc-add-terminology-glossary-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:49:24.330723Z", "op_type": "lug_pickup", "lug_id": "doc-create-agents-bootstrap-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:51:27.973514Z", "op_type": "lug_complete", "lug_id": "doc-create-agents-bootstrap-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:51:27.974557Z", "op_type": "lug_pickup", "lug_id": "doc-create-architecture-guide-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:54:35.594337Z", "op_type": "lug_complete", "lug_id": "doc-create-architecture-guide-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:54:35.596323Z", "op_type": "lug_pickup", "lug_id": "doc-create-feeds-yaml-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:56:00.507556Z", "op_type": "lug_complete", "lug_id": "doc-create-feeds-yaml-20260614-114040", "outcome": "success", "delta": "", "teaching_candidate": false}

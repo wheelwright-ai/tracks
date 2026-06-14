@@ -1,7 +1,7 @@
 {
   "advisor_id": "deployment_automation",
   "domain": "deployment_automation",
-  "status": "stub",
-  "last_run_at": null,
+  "status": "active",
+  "last_run_at": "2026-06-14T11:44:56.482386Z",
   "initialized_at": "2026-06-14T11:40:04.263806Z"
 }

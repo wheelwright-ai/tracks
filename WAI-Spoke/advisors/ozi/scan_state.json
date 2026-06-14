@@ -36,7 +36,7 @@
         "suggested_template": "engineering-advisor",
         "priority": 3,
         "justification": "Station Master architecture, schema evolution, and protocol decisions require dedicated architecture oversight (archie)",
-        "proposal_status": "pending"
+        "proposal_status": "provisioned"
       },
       {
         "domain": "testing_infrastructure",

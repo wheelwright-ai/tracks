@@ -1,5 +1,12 @@
 [
   {
+    "advisor_id": "architecture_oversight",
+    "status": "stub",
+    "department_id": "engineering",
+    "domain": "architecture_oversight",
+    "initialized_from_template": "engineering-advisor"
+  },
+  {
     "advisor_id": "framework_development",
     "status": "stub",
     "department_id": "engineering",

@@ -1,0 +1,82 @@
+refresh_interval_days: 7
+keep_snapshots: 3
+
+scan_scope:
+  file_types:
+    - "*.md"
+    - "*.mdx"
+  max_file_size_mb: 10
+  encoding: utf-8
+
+data_sources:
+  - path: "."
+    description: "Root documentation (README, ARCHITECTURE, AGENTS, CLAUDE)"
+    include_patterns:
+      - "*.md"
+    exclude_patterns:
+      - ".git"
+      - "node_modules"
+      - ".claude"
+
+  - path: "prompts/"
+    description: "Prompt library"
+    include_patterns:
+      - "*.md"
+      - "*.txt"
+    exclude_patterns: []
+
+  - path: "Skills/"
+    description: "Skills directory and skill documentation"
+    include_patterns:
+      - "*.md"
+    exclude_patterns:
+      - "node_modules"
+      - ".git"
+
+  - path: "WAI-Spoke/"
+    description: "WAI framework documentation and configuration"
+    include_patterns:
+      - "*.md"
+    exclude_patterns:
+      - ".git"
+      - "node_modules"
+      - ".claude"
+
+  - path: "plans/"
+    description: "Project plans and design documents"
+    include_patterns:
+      - "*.md"
+    exclude_patterns: []
+
+output_preferences:
+  impact_threshold: 3
+  min_gap_severity: "medium"
+  tag_classifications:
+    - "completeness-gap"
+    - "stale-content"
+    - "writing-quality"
+    - "broken-reference"
+    - "coverage-gap"
+  include_coverage_summary: true
+  max_findings_per_scan: 25
+
+exclusions:
+  paths:
+    - ".git/"
+    - ".github/"
+    - "node_modules/"
+    - ".claude/worktrees/"
+    - ".claude/hooks/"
+    - "samples/"
+    - "__pycache__/"
+    - ".pytest_cache/"
+  patterns:
+    - "*.pyc"
+    - "*.log"
+    - ".DS_Store"
+
+quality_checks:
+  validate_links: true
+  check_formatting: true
+  check_terminology_consistency: true
+  cross_reference_resolution: true

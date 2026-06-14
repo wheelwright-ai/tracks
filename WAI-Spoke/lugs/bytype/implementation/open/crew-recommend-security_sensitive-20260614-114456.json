@@ -1,17 +1,17 @@
 {
-  "id": "crew-recommend-security_sensitive-20260614-114004",
+  "id": "crew-recommend-security_sensitive-20260614-114456",
   "type": "implementation",
   "title": "Advisor recommendation \u2014 recruit security_sensitive advisor (template=quality-advisor)",
   "status": "needs_review",
   "routed_to": "LOCAL",
   "model_fit": "haiku",
-  "execution_mode": "gastown",
+  "execution_mode": "manual",
   "urgency": 6,
   "effort_score": 2,
   "quality_score": 8,
   "initiative": "crew-maintenance",
   "authored_by": "ozi-autopilot-scouting",
-  "created_at": "2026-06-14T11:40:04.150804Z",
+  "created_at": "2026-06-14T11:44:56.482946Z",
   "crew_provision": true,
   "domain": "security_sensitive",
   "template_id": "quality-advisor",
@@ -23,7 +23,7 @@
     "2. Read WAI-Spoke/advisors/registry.json. Reuse a fitting 'new'/'stub' advisor_id in department_id=quality, else use a fresh advisor_id (the domain name, e.g. 'security_sensitive').",
     "3. Create WAI-Spoke/advisors/<advisor_id>/ if not present.",
     "4. Write WAI-Spoke/advisors/<advisor_id>/context_prompt.md adapting the quality-advisor charter for domain=security_sensitive (advisor_id, domain, mission, responsibilities, escalation-to-Ozi). Pattern: WAI-Spoke/advisors/archie/context_prompt.md.",
-    "5. Write WAI-Spoke/advisors/<advisor_id>/scan_state.json: {\"advisor_id\": \"<advisor_id>\", \"domain\": \"security_sensitive\", \"status\": \"stub\", \"last_run_at\": null, \"initialized_at\": \"2026-06-14T11:40:04.150793Z\"}",
+    "5. Write WAI-Spoke/advisors/<advisor_id>/scan_state.json: {\"advisor_id\": \"<advisor_id>\", \"domain\": \"security_sensitive\", \"status\": \"stub\", \"last_run_at\": null, \"initialized_at\": \"2026-06-14T11:44:56.482935Z\"}",
     "6. Update WAI-Spoke/advisors/registry.json: advisor entry status=stub, department_id=quality, domain=security_sensitive, initialized_from_template=quality-advisor. Preserve other entries.",
     "7. Update WAI-Spoke/advisors/schedule-index.json: if advisor_id absent, append {\"advisor_id\": \"<advisor_id>\", \"run_cadence\": \"weekly\", \"event_triggers\": [], \"last_run_at\": null, \"next_recommended_run\": null}.",
     "8. Update WAI-Spoke/advisors/ozi/scan_state.json: set team_coverage.gaps_detected[domain=security_sensitive].proposal_status=provisioned and the matching recommendations_pending entry to provisioned."
@@ -35,6 +35,5 @@
     "registry.json entry advisor_id=security_sensitive has status=stub",
     "schedule-index.json has weekly entry for security_sensitive",
     "ozi scan_state team_coverage gap[domain=security_sensitive].proposal_status == 'provisioned'"
-  ],
-  "execution_substrate": "gastown"
+  ]
 }

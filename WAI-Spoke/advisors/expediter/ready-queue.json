@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-14T11:40:04.083944+00:00",
+  "generated_at": "2026-06-14T11:44:56.456945+00:00",
   "priority_sequence": [
     "teachings",
     "work(initiative-scoped first)",
@@ -12,6 +12,42 @@
   "priority_source": "WAI-Spoke/tastegraph.json engagement-inbox-first",
   "columns": {
     "autonomous": [
+      {
+        "id": "doc-create-feeds-yaml-20260614-114040",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 15.0,
+        "initiative_scoped": true
+      },
+      {
+        "id": "doc-add-terminology-glossary-20260614-114040",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 15.0,
+        "initiative_scoped": true
+      },
+      {
+        "id": "doc-create-agents-bootstrap-20260614-114040",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 7.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "doc-create-architecture-guide-20260614-114040",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 5.0,
+        "initiative_scoped": true
+      },
       {
         "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
         "type": "implementation",
@@ -49,6 +85,15 @@
         "initiative_scoped": true
       },
       {
+        "id": "crew-recommend-architecture_oversight-20260614-114004",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
         "id": "crew-recommend-deployment_automation-20260612-114902",
         "type": "implementation",
         "type_row": "scouting",
@@ -76,6 +121,15 @@
         "initiative_scoped": true
       },
       {
+        "id": "crew-recommend-testing_infrastructure-20260614-114004",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
         "id": "crew-recommend-deployment_automation-20260612-114005",
         "type": "implementation",
         "type_row": "scouting",
@@ -95,6 +149,15 @@
       },
       {
         "id": "crew-recommend-architecture_oversight-20260614-080043",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-security_sensitive-20260614-114004",
         "type": "implementation",
         "type_row": "scouting",
         "column": "autonomous",
@@ -156,8 +219,8 @@
     "needs_you": "user-needed"
   },
   "counts": {
-    "total": 15,
-    "autonomous": 13,
+    "total": 22,
+    "autonomous": 20,
     "needs_you": 2
   }
 }

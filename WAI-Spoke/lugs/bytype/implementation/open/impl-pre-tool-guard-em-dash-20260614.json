@@ -1,0 +1,25 @@
+{
+  "id": "impl-pre-tool-guard-em-dash-20260614",
+  "type": "implementation",
+  "title": "Replace em-dashes with hyphens in pre-tool-guard.sh error messages",
+  "description": "Replace em-dash (—) characters with regular hyphens or double-hyphens in error messages of pre-tool-guard.sh. Aligns with CLAUDE.md anti-patterns guidance.",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "effort_score": 1,
+  "quality_score": 8,
+  "urgency": 4,
+  "initiative": "crew-maintenance",
+  "source_advisor": "deployment_automation",
+  "source_finding": "deployment_automation-002",
+  "related_files": [
+    "tracks/.claude/hooks/pre-tool-guard.sh"
+  ],
+  "acceptance_criteria": [
+    "All em-dash (—) characters replaced with -- or - in error messages",
+    "No em-dashes appear in lines 22, 27, 33, 39, 51, 63",
+    "Error message clarity preserved after replacement"
+  ],
+  "created_at": "2026-06-14T11:44:56.482409Z",
+  "authored_by": "advisor-deployment_automation-scout"
+}

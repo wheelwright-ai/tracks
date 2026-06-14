@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-14T11:40:04.085768+00:00",
+  "generated_at": "2026-06-14T11:44:56.457625+00:00",
   "priority_sequence": [
     "teachings",
     "refinement",
@@ -27,6 +27,34 @@
           "wave": ""
         },
         {
+          "id": "doc-create-feeds-yaml-20260614-114040",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "doc-add-terminology-glossary-20260614-114040",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "doc-create-agents-bootstrap-20260614-114040",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 7.5,
+          "wave": ""
+        },
+        {
+          "id": "doc-create-architecture-guide-20260614-114040",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 5.0,
+          "wave": ""
+        },
+        {
           "id": "crew-recommend-deployment_automation-20260614-080043",
           "type": "implementation",
           "model_fit": "haiku",
@@ -35,6 +63,13 @@
         },
         {
           "id": "crew-recommend-security_sensitive-20260614-080043",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-architecture_oversight-20260614-114004",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 2.5,
@@ -62,6 +97,13 @@
           "wave": ""
         },
         {
+          "id": "crew-recommend-testing_infrastructure-20260614-114004",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
           "id": "crew-recommend-deployment_automation-20260612-114005",
           "type": "implementation",
           "model_fit": "haiku",
@@ -77,6 +119,13 @@
         },
         {
           "id": "crew-recommend-architecture_oversight-20260614-080043",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-security_sensitive-20260614-114004",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 2.5,
@@ -135,7 +184,7 @@
   "counts": {
     "teachings": {
       "autonomous": 0,
-      "attended": 15
+      "attended": 22
     },
     "refinement": {
       "autonomous": 0,
@@ -152,6 +201,6 @@
   },
   "totals": {
     "autonomous": 0,
-    "attended": 15
+    "attended": 22
   }
 }

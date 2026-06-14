@@ -1,0 +1,69 @@
+{
+  "id": "crew-recommend-architecture_oversight-20260614-114456",
+  "type": "implementation",
+  "title": "Provision architecture_oversight advisor (template=engineering-advisor)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "sonnet",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-14T11:44:56.482667Z",
+  "crew_provision": true,
+  "domain": "architecture_oversight",
+  "template_id": "engineering-advisor",
+  "justification": "Station Master architecture, schema evolution, and protocol decisions require dedicated architecture oversight (archie)",
+  "perceive": "Provision a new 'architecture_oversight' advisor for this spoke. Ozi team-coverage eval identified this as the highest-priority gap. Justification: Station Master architecture, schema evolution, and protocol decisions require dedicated architecture oversight (archie) Hub templates: /home/mario/projects/wheelwright/hub/WAI-Hub/advisor-templates/. Roster: WAI-Spoke/advisors/registry.json. Pattern to follow: WAI-Spoke/advisors/archie/context_prompt.md.",
+  "execute": [
+    "1. Read /home/mario/projects/wheelwright/hub/WAI-Hub/advisor-templates/engineering-advisor/charter.md. This is the template you will adapt.",
+    "2. Set advisor_id='architecture_oversight' (use the domain name exactly \u2014 do not reuse or rename existing advisor entries).",
+    "3. Create directory WAI-Spoke/advisors/architecture_oversight/ if it does not exist.",
+    "4. Write WAI-Spoke/advisors/architecture_oversight/context_prompt.md \u2014 adapt the engineering-advisor charter: set advisor_id=architecture_oversight, domain=architecture_oversight, mission statement (2 sentences), responsibilities (3-5 bullet points specific to this spoke), escalation-to-Ozi rule. Do NOT copy boilerplate verbatim \u2014 tailor to this spoke's goals.",
+    "5. STOP AND VERIFY: confirm WAI-Spoke/advisors/architecture_oversight/context_prompt.md now exists and is non-empty. If it does not exist, stop \u2014 do not proceed.",
+    "6. Write WAI-Spoke/advisors/architecture_oversight/scan_state.json: {\"advisor_id\": \"architecture_oversight\", \"domain\": \"architecture_oversight\", \"status\": \"stub\", \"last_run_at\": null, \"initialized_at\": \"2026-06-14T11:44:56.482654Z\"}",
+    "7. Update WAI-Spoke/advisors/registry.json: add entry advisor_id=architecture_oversight, status=stub, department_id=engineering, domain=architecture_oversight, initialized_from_template=engineering-advisor. If entry exists, update it. Preserve all other entries.",
+    "8. Update WAI-Spoke/advisors/schedule-index.json: if advisor_id absent, append {\"advisor_id\": \"architecture_oversight\", \"run_cadence\": \"weekly\", \"event_triggers\": [], \"last_run_at\": null, \"next_recommended_run\": null}.",
+    "9. Update WAI-Spoke/advisors/ozi/scan_state.json: in team_coverage.gaps_detected, set the entry with domain=architecture_oversight to proposal_status=provisioned. If team_coverage key is absent, create it."
+  ],
+  "verify": "WAI-Spoke/advisors/architecture_oversight/context_prompt.md exists and is non-empty; WAI-Spoke/advisors/architecture_oversight/scan_state.json exists with status=stub; registry.json has entry advisor_id=architecture_oversight status=stub; schedule-index.json has weekly entry for architecture_oversight; ozi/scan_state.json team_coverage.gaps_detected[domain=architecture_oversight].proposal_status == 'provisioned'.",
+  "acceptance_criteria": [
+    "WAI-Spoke/advisors/architecture_oversight/context_prompt.md exists and is non-empty",
+    "WAI-Spoke/advisors/architecture_oversight/scan_state.json exists with status=stub",
+    "registry.json entry advisor_id=architecture_oversight has status=stub",
+    "schedule-index.json has weekly entry for architecture_oversight",
+    "ozi scan_state team_coverage gap[domain=architecture_oversight].proposal_status == 'provisioned'"
+  ],
+  "s": "completed",
+  "updated_at": "2026-06-14T11:48:15.541871+00:00",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-14T11:46:37.829591+00:00",
+    "updated_at": "2026-06-14T11:46:37.829596+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-14T11:48:15.541101+00:00"
+  },
+  "completion_notes": {
+    "completed_at": "2026-06-14T11:44:56.482654Z",
+    "completed_by": "builder-subagent",
+    "steps_completed": [
+      "Read engineering-advisor charter.md template",
+      "Created tracks/WAI-Spoke/advisors/architecture_oversight/ directory",
+      "Wrote context_prompt.md tailored to schema evolution, protocol decisions, and cross-spoke sovereignty",
+      "Verified context_prompt.md exists and is non-empty",
+      "Wrote scan_state.json with status=stub",
+      "Added architecture_oversight entry to registry.json (status=stub, department_id=engineering)",
+      "Appended weekly entry to schedule-index.json",
+      "Updated ozi/scan_state.json: architecture_oversight proposal_status set to provisioned"
+    ],
+    "artifacts": [
+      "tracks/WAI-Spoke/advisors/architecture_oversight/context_prompt.md",
+      "tracks/WAI-Spoke/advisors/architecture_oversight/scan_state.json",
+      "tracks/WAI-Spoke/advisors/registry.json",
+      "tracks/WAI-Spoke/advisors/schedule-index.json",
+      "tracks/WAI-Spoke/advisors/ozi/scan_state.json"
+    ]
+  }
+}

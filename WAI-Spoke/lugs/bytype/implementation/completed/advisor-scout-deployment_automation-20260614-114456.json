@@ -1,0 +1,38 @@
+{
+  "id": "advisor-scout-deployment_automation-20260614-114456",
+  "type": "implementation",
+  "title": "Advisor scout-run \u2014 warm up 'deployment_automation' (never run)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-14T11:44:56.482409Z",
+  "advisor_scout": true,
+  "advisor_id": "deployment_automation",
+  "scout_reason": "never run",
+  "completion_notes": "Scan completed. Findings: 5 total (3 actionable, 2 informational). Created task lugs for 3 high-priority findings: hardcoded path, em-dash pattern, missing git checks. scan_state.json and schedule-index.json both updated with last_run_at=2026-06-14T11:44:56.482386Z.",
+  "perceive": "Keep advisor 'deployment_automation' warm and current \u2014 advisors are Ozi's special attention on a specialty. Reason due: never run. Advisor home: WAI-Spoke/advisors/deployment_automation/. Run its specialty scan and record the run so last_run_at reflects today.",
+  "execute": [
+    "1. Read WAI-Spoke/advisors/deployment_automation/context_prompt.md and feeds.yaml to load deployment_automation's charter, scan scope, and inputs.",
+    "2. Perform deployment_automation's specialty scan as described in its context_prompt; produce concrete, impact-ranked findings.",
+    "3. Append findings to WAI-Spoke/advisors/deployment_automation/findings-log.jsonl (one JSON object per finding).",
+    "4. For any actionable finding, write a haiku task lug to WAI-Spoke/lugs/bytype/implementation/open/ (model_fit=haiku, initiative=crew-maintenance).",
+    "5. Set last_run_at=2026-06-14T11:44:56.482386Z in WAI-Spoke/advisors/schedule-index.json (entry advisor_id=deployment_automation) AND WAI-Spoke/advisors/deployment_automation/scan_state.json."
+  ],
+  "verify": "schedule-index.json and WAI-Spoke/advisors/deployment_automation/scan_state.json both show last_run_at=today for 'deployment_automation'; any findings were appended to findings-log.jsonl.",
+  "s": "completed",
+  "updated_at": "2026-06-14T11:46:37.829360+00:00",
+  "completed_at": "2026-06-14T11:44:56.482386Z",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-14T11:44:56.484190+00:00",
+    "updated_at": "2026-06-14T11:44:56.484195+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-14T11:46:37.828799+00:00"
+  }
+}
