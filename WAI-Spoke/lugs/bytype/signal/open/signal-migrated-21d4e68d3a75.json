@@ -12,5 +12,8 @@
   "by": "claude-sonnet-4-6",
   "description": "Station Master architecture adopted: headless lib/station/ handler between /api/tracks and DB. Handles v0.18 HSP + WAI Claude normalization, automatic fork detection (codename + Turn 1 user.raw divergence), Line assignment, and deliberate merge promotion. Lines = topical continuity rails (DB rows) grouping Tracks. Wheel \u2192 Line \u2192 Track = Library \u2192 Book \u2192 Chapter.",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Category: other. Impact: 9/10. Defer until higher-priority signals processed.",
+  "triage_decision": "HOLD-PENDING"
 }

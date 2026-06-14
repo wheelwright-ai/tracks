@@ -13,5 +13,8 @@
   "target": "spokes",
   "status": "superseded",
   "updated_at": "2026-06-03T09:04:36.712696+00:00",
-  "audit_note": "Processed via hub WAI-Hub/signals/processed/ (pre-lug signal system) \u2014 closed by audit task-track-rebuild-audit-20260527"
+  "audit_note": "Processed via hub WAI-Hub/signals/processed/ (pre-lug signal system) \u2014 closed by audit task-track-rebuild-audit-20260527",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Already marked superseded. Audit note: Processed via hub WAI-Hub/signals/processed/ (pre-lug signal system) \u2014 closed by",
+  "triage_decision": "CLOSE"
 }

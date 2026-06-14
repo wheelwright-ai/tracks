@@ -10,7 +10,10 @@
   "routed_to": "FRAMEWORK",
   "summary": "Wakeup Step 3b checks for completed==true or event==\"closeout\" to detect a clean session. Closeout Step 6 never wrote those fields, so every session showed INTERRUPTED regardless of actual outcome. Fix: Step 6 must write a terminal entry with both event:closeout and completed:true.",
   "decision": "Closeout Step 6 terminal entry format is now: {\"event\": \"closeout\", \"completed\": true, \"session_id\": \"...\", \"ts\": \"...\", \"phase\": \"review\", \"session_number\": N}",
-  "evidence": "Observed in session-20260405-0012 (Minder s64) — previous session had complete gardener work but wakeup reported INTERRUPTED because terminal track entry was missing.",
+  "evidence": "Observed in session-20260405-0012 (Minder s64) \u2014 previous session had complete gardener work but wakeup reported INTERRUPTED because terminal track entry was missing.",
   "fix_applied_to": ".claude/commands/wai-closeout.md (Step 6)",
-  "hub_teaching": "signal-20260405-0012-from-minder.md.teaching"
+  "hub_teaching": "signal-20260405-0012-from-minder.md.teaching",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "High-impact taught pattern (wakeup/closeout/track integrity). Prioritized for delivery.",
+  "triage_decision": "DELIVER"
 }

@@ -8,5 +8,8 @@
   "rationale": "This bug has been silently limiting the entire fleet tender to 1 spoke per night. With 17 spokes, 16 were never receiving teaching distribution or work execution from the Gardener. Fix is one line.",
   "routed_to": "FRAMEWORK",
   "created_at": "2026-04-02T11:36:00Z",
-  "by": "claude-sonnet-4-6"
+  "by": "claude-sonnet-4-6",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Critical automation bug affecting all spokes (stdin-drain in tender Pass 2).",
+  "triage_decision": "DELIVER"
 }

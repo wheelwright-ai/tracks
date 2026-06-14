@@ -12,5 +12,8 @@
   "by": "claude-sonnet-4-6",
   "description": "v0.18 HSP Track Prompt spec ingested and mapped. Canonical payload schema: session_header (codename, line_id, station_id, governance_mode), exchange (id={codename}-t{N}, user.raw, assistant.raw, events[], artifacts_referenced[]), state_snapshot (every 10 turns). Export order: FILENAME line \u2192 session_header \u2192 artifact_manifest \u2192 provenance_manifest \u2192 line/station_manifest \u2192 state_snapshot \u2192 exchanges. Ingest sources: live_session | pasted_track | uploaded_file.",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "High-impact taught pattern (wakeup/closeout/track integrity). Prioritized for delivery.",
+  "triage_decision": "DELIVER"
 }

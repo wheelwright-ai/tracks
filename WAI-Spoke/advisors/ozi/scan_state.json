@@ -15,14 +15,14 @@
         "suggested_template": "engineering-advisor",
         "priority": 3,
         "justification": "WAI framework protocols and teaching infrastructure require dedicated advisors for architecture (archie), history/evolution tracking (historian), and timeline/expedition management (expediter)",
-        "proposal_status": "pending"
+        "proposal_status": "provisioned"
       },
       {
         "domain": "deployment_automation",
         "suggested_template": "engineering-advisor",
         "priority": 2,
         "justification": "Multiple open signals about git hooks, bash automation, wheel-tender pipeline, and deployment infrastructure require dedicated monitoring (will)",
-        "proposal_status": "pending"
+        "proposal_status": "provisioned"
       },
       {
         "domain": "documentation",

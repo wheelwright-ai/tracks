@@ -13,5 +13,8 @@
   "routed_to": "SIGNAL",
   "_behavior_directive": {
     "action": "track_only"
-  }
+  },
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Category: track-lug. Impact: 9/10. Defer until higher-priority signals processed.",
+  "triage_decision": "HOLD-PENDING"
 }

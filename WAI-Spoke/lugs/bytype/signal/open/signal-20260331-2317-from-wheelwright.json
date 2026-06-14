@@ -10,5 +10,8 @@
   "delivered_from": "minder",
   "execution_mode": "tender",
   "execution_substrate": null,
-  "gt_convoy_hint": "requires review: quality=0"
+  "gt_convoy_hint": "requires review: quality=0",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Category: other. Impact: 9/10. Defer until higher-priority signals processed.",
+  "triage_decision": "HOLD-PENDING"
 }

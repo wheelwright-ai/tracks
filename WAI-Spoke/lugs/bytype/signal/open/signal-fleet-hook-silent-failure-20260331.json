@@ -9,5 +9,8 @@
   "impact": 9,
   "rationale": "Silent failures across entire fleet. Health check was lying. Assertion-based verification pattern established.",
   "by": "claude-opus-4-6",
-  "target": "all-spokes"
+  "target": "all-spokes",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Fleet-wide pattern (9/10 impact). Needs fleet coordination.",
+  "triage_decision": "DELIVER"
 }

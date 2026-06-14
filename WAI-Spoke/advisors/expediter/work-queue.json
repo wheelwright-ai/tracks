@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-12T11:49:01.804929+00:00",
+  "generated_at": "2026-06-14T11:40:04.085768+00:00",
   "priority_sequence": [
     "teachings",
     "refinement",
@@ -24,6 +24,27 @@
           "type": "task",
           "model_fit": "unset",
           "score": 16.0,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260614-080043",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-security_sensitive-20260614-080043",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260612-114902",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
           "wave": ""
         },
         {
@@ -55,7 +76,28 @@
           "wave": ""
         },
         {
+          "id": "crew-recommend-architecture_oversight-20260614-080043",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-testing_infrastructure-20260614-080043",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
           "id": "crew-recommend-deployment_automation-20260605-181822",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 2.5,
@@ -66,6 +108,13 @@
           "type": "implementation",
           "model_fit": "haiku",
           "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-optimize-teaching-batch-verify-20260612-114902",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 1.67,
           "wave": ""
         }
       ]
@@ -86,7 +135,7 @@
   "counts": {
     "teachings": {
       "autonomous": 0,
-      "attended": 8
+      "attended": 15
     },
     "refinement": {
       "autonomous": 0,
@@ -103,6 +152,6 @@
   },
   "totals": {
     "autonomous": 0,
-    "attended": 8
+    "attended": 15
   }
 }

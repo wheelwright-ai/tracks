@@ -12,5 +12,8 @@
   "by": "Framework spoke (routed from inbox)",
   "description": "Anti-Hallucination Specification Pattern: Universal pattern for preventing AI interpretation drift. 7 required elements: exact file paths, exact function signatures, exact error behaviors, exact field lists, exact step order, validation questions, forbidden phrases. 4-layer validation framework: spec checksums, implementation tests, compliance report, cross-agent validation.",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Category: other. Impact: 10/10. Defer until higher-priority signals processed.",
+  "triage_decision": "HOLD-PENDING"
 }

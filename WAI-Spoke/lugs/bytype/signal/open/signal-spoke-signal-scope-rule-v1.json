@@ -11,5 +11,8 @@
   "rule": "Signal = cross-spoke generalization. Local pattern = local record only.",
   "why_it_matters": "Spoke-local signals pollute the hub signal queue and waste reviewer time. 4 such signals were cleaned up in S77 after being mis-emitted across S72-S76.",
   "updated_at": "2026-06-03T09:04:36.712696+00:00",
-  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527"
+  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Already marked delivered. Audit note: Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by a",
+  "triage_decision": "CLOSE"
 }

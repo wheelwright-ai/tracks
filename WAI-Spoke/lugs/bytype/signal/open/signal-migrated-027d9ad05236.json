@@ -12,5 +12,8 @@
   "by": "Codex (GPT-5)",
   "description": "Browser-surface smoke coverage must follow the actual clicked user path, auth redirects, and session state, not just build success or route availability. A newly added Login/Dashboard CTA passed build-level checks but failed immediately in real use because the redirect target and auth flow were wrong. Smoke coverage should assert the rendered CTA target, follow redirects, tolerate stale-session cookies, and exercise the sign-in path that a user actually clicks.",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Category: other. Impact: 8/10. Defer until higher-priority signals processed.",
+  "triage_decision": "HOLD-PENDING"
 }

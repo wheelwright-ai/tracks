@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-12T11:49:01.802952+00:00",
+  "generated_at": "2026-06-14T11:40:04.083944+00:00",
   "priority_sequence": [
     "teachings",
     "work(initiative-scoped first)",
@@ -12,6 +12,51 @@
   "priority_source": "WAI-Spoke/tastegraph.json engagement-inbox-first",
   "columns": {
     "autonomous": [
+      {
+        "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-optimize-teaching-batch-verify-20260612-114902",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 1.67,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260614-080043",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-security_sensitive-20260614-080043",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260612-114902",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
       {
         "id": "crew-recommend-documentation-20260605-181445",
         "type": "implementation",
@@ -41,6 +86,24 @@
       },
       {
         "id": "crew-recommend-documentation-20260612-114005",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-architecture_oversight-20260614-080043",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-testing_infrastructure-20260614-080043",
         "type": "implementation",
         "type_row": "scouting",
         "column": "autonomous",
@@ -93,8 +156,8 @@
     "needs_you": "user-needed"
   },
   "counts": {
-    "total": 8,
-    "autonomous": 6,
+    "total": 15,
+    "autonomous": 13,
     "needs_you": 2
   }
 }

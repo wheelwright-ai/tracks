@@ -12,5 +12,8 @@
   "_behavior_directive": {
     "action": "track_only"
   },
-  "target": "spokes"
+  "target": "spokes",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Fleet-wide pattern (8/10 impact). Needs fleet coordination.",
+  "triage_decision": "DELIVER"
 }

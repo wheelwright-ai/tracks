@@ -43,3 +43,14 @@
 {"ts": "2026-06-12T11:53:25.814008Z", "op_type": "lug_complete", "lug_id": "advisor-scout-framework_development-20260612-114902", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-12T11:53:25.815071Z", "op_type": "lug_pickup", "lug_id": "crew-recommend-documentation-20260612-114902", "outcome": "success", "delta": "", "teaching_candidate": false}
 {"ts": "2026-06-12T11:55:32.605751Z", "op_type": "lug_complete", "lug_id": "crew-recommend-documentation-20260612-114902", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T08:00:43.927983Z", "op_type": "lug_pickup", "lug_id": "advisor-scout-documentation-20260614-080043", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T08:02:05.035168Z", "op_type": "lug_complete", "lug_id": "advisor-scout-documentation-20260614-080043", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T08:02:05.177344Z", "op_type": "lug_pickup", "lug_id": "crew-recommend-framework_development-20260614-080043", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T08:03:19.903334Z", "op_type": "lug_complete", "lug_id": "crew-recommend-framework_development-20260614-080043", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T08:03:19.941707Z", "op_type": "lug_pickup", "lug_id": "crew-framework-signal-triage-20260612-114902", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T08:05:52.256879Z", "op_type": "lug_complete", "lug_id": "crew-framework-signal-triage-20260612-114902", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T08:05:52.262278Z", "op_type": "lug_pickup", "lug_id": "crew-optimize-teaching-batch-verify-20260612-114902", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:40:04.158120Z", "op_type": "lug_pickup", "lug_id": "advisor-scout-documentation-20260614-114004", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:42:46.608195Z", "op_type": "lug_complete", "lug_id": "advisor-scout-documentation-20260614-114004", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:42:46.657821Z", "op_type": "lug_pickup", "lug_id": "crew-recommend-framework_development-20260614-114004", "outcome": "success", "delta": "", "teaching_candidate": false}
+{"ts": "2026-06-14T11:44:55.991156Z", "op_type": "lug_complete", "lug_id": "crew-recommend-framework_development-20260614-114004", "outcome": "success", "delta": "", "teaching_candidate": false}

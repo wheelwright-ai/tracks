@@ -30,5 +30,12 @@
     "department_id": "knowledge",
     "domain": "documentation",
     "initialized_from_template": "knowledge-advisor"
+  },
+  {
+    "advisor_id": "deployment_automation",
+    "status": "stub",
+    "department_id": "engineering",
+    "domain": "deployment_automation",
+    "initialized_from_template": "engineering-advisor"
   }
 ]

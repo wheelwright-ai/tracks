@@ -1,0 +1,31 @@
+{
+  "id": "doc-add-terminology-glossary-20260614-114040",
+  "type": "implementation",
+  "title": "Add terminology glossary to documentation for Wheelwright framework terms",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 5,
+  "effort_score": 1,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "advisor-scout-documentation",
+  "created_at": "2026-06-14T11:40:04.220000Z",
+  "finding_ref": "documentation_finding_20260614_004",
+  "perceive": "External documentation (README) uses 'Track' clearly but internal docs (KnowMe, CLAUDE) introduce undefined terms (lug, spoke, wheel, teaching, signal, epic) without glossary. New users bounce between frameworks without vocabulary bridge.",
+  "execute": [
+    "1. Add 'Terminology' or 'Glossary' section to README.md after 'Why This Matters' section.",
+    "2. Include one-sentence definitions for core Wheelwright terms visible in Tracks documentation:",
+    "   - Track: (already clear, but confirm definition)",
+    "   - Lug: Work unit describing a task, feature, bug, or signal within the framework",
+    "   - Spoke: A project or service within the Wheelwright fleet with autonomous advisory system",
+    "   - Wheel: A spoke instance with its own WAI-Spoke directory and state",
+    "   - Signal: Cross-spoke notification of patterns, patterns, or framework-level observations",
+    "   - Teaching: Packaged framework update distributed from hub to all wheels",
+    "3. Add pointer to AGENTS.md or CLAUDE.md for deeper technical explanation.",
+    "4. Keep glossary concise (100-150 words total) for readability."
+  ],
+  "verify": "Glossary section appears in README between 'Why This Matters' and 'Three Ways', all 6+ terms defined clearly, no cross-reference errors.",
+  "acceptance_criteria": "Glossary added to README, all key terms from KnowMe/CLAUDE defined, links to detailed docs present."
+}

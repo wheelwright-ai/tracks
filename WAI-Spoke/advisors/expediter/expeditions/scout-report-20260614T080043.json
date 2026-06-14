@@ -1,0 +1,50 @@
+{
+  "id": "scout-report-20260614T080043",
+  "type": "scout_report",
+  "status": "open",
+  "title": "Scout expedition report (2 unmet expectations; trigger: forced (--hygiene/--all))",
+  "routed_to": "LOCAL",
+  "authored_by": "session-20260601-0236-6a774c94.expediter-scout",
+  "authored_kind": "agent",
+  "created_at": "2026-06-14T08:00:43.465638+00:00",
+  "scout_report": true,
+  "trigger": "forced (--hygiene/--all)",
+  "scanned": {
+    "open_lugs": 12,
+    "findings": 2
+  },
+  "principle": "Chase each artifact's declared expectation and verify it is satisfied. No invented work.",
+  "findings": [
+    {
+      "target": "unknown",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify, acceptance_criteria",
+      "auto_groomable": false,
+      "produced_by": "unknown",
+      "source_spoke": null,
+      "target_created_at": null
+    },
+    {
+      "target": "lug-station-orchestrator-v1",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify, acceptance_criteria",
+      "auto_groomable": false,
+      "produced_by": "unknown",
+      "source_spoke": null,
+      "target_created_at": null
+    }
+  ],
+  "findings_by_producer": {
+    "unknown": 2
+  },
+  "verification_debt_reported": {
+    "deployed_unverified": 0,
+    "spec_drift": 0,
+    "abandoned": 0
+  },
+  "auto_refinement_lug": null,
+  "needs_user_judgment": [
+    "unknown",
+    "lug-station-orchestrator-v1"
+  ]
+}

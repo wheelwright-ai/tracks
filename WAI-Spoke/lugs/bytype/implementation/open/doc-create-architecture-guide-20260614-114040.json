@@ -1,0 +1,31 @@
+{
+  "id": "doc-create-architecture-guide-20260614-114040",
+  "type": "implementation",
+  "title": "Create architecture documentation for Tracks spoke engineering onboarding",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 6,
+  "effort_score": 3,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "advisor-scout-documentation",
+  "created_at": "2026-06-14T11:40:04.230000Z",
+  "finding_ref": "documentation_finding_20260614_006",
+  "perceive": "Spoke has excellent external documentation (README, prompts, samples) but internal architecture documentation is minimal. A new engineer joining this spoke lacks onboarding docs for lug schema, advisor roles, and framework integration.",
+  "execute": [
+    "1. Create ARCHITECTURE.md (or expand AGENTS.md) with sections:",
+    "   - Spoke Identity: What Tracks is, what it is not, deliverables, non-deliverables",
+    "   - Directory Structure: Explain prompts/, spec/, samples/, WAI-Spoke/, Skills/, .claude/ and purpose of each",
+    "   - Lug Schema: Explain lug fields used in this spoke (type, status, routed_to, initiative values specific to Tracks)",
+    "   - Advisor System: Explain each advisor (documentation, framework_development) and their roles",
+    "   - Signal Routing: How signals are processed, routed to hub, integration points",
+    "   - Teaching Adoption: How teachings flow from hub, adoption workflow, wai-context.md updates",
+    "   - Work Lifecycle: Diagram of lug state (open → in_progress → completed), signal delivery",
+    "2. Include diagrams (ASCII or link to visual) showing spoke lifecycle.",
+    "3. Link to KnowMe.md and CLAUDE.md as reference points."
+  ],
+  "verify": "ARCHITECTURE.md exists, covers all sections above, is internally consistent, links to other docs work, suitable for engineer onboarding.",
+  "acceptance_criteria": "File created, comprehensive for new engineer, 300-500 word range, no broken references, linked from README."
+}

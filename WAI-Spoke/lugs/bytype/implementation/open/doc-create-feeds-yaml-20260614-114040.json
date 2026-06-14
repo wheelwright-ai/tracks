@@ -1,0 +1,28 @@
+{
+  "id": "doc-create-feeds-yaml-20260614-114040",
+  "type": "implementation",
+  "title": "Create feeds.yaml for documentation advisor scan configuration",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 4,
+  "effort_score": 1,
+  "quality_score": 7,
+  "initiative": "crew-maintenance",
+  "authored_by": "advisor-scout-documentation",
+  "created_at": "2026-06-14T11:40:04.210000Z",
+  "finding_ref": "documentation_finding_20260614_002",
+  "perceive": "Documentation advisor's context_prompt declares feeds.yaml as input source. File does not exist. Scan should declare its scope and data sources formally.",
+  "execute": [
+    "1. Create WAI-Spoke/advisors/documentation/feeds.yaml with YAML structure documenting:",
+    "   - scan_scope: which directories and file types to scan (e.g., *.md files, WAI-Spoke docs, root docs)",
+    "   - data_sources: explicit list of directories to include in scan (prompts/, spec/, WAI-Spoke/, etc.)",
+    "   - output_preferences: e.g., impact threshold for creating lugs, tag classifications",
+    "   - exclusions: paths/patterns to skip (e.g., .git/, node_modules/, samples/)",
+    "2. Structure should be compatible with how other advisors use feeds.yaml (check framework_development or expediter for pattern).",
+    "3. Verify it can be read by next advisory scan run without errors."
+  ],
+  "verify": "feeds.yaml exists, contains scan_scope and data_sources sections, is valid YAML, can be read during next documentation advisor scan.",
+  "acceptance_criteria": "File created with proper YAML structure, documented, no parse errors."
+}

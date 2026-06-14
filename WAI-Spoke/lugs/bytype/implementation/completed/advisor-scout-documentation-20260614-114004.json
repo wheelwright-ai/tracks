@@ -1,0 +1,37 @@
+{
+  "id": "advisor-scout-documentation-20260614-114004",
+  "type": "implementation",
+  "title": "Advisor scout-run \u2014 warm up 'documentation' (never run)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-14T11:40:04.149900Z",
+  "advisor_scout": true,
+  "advisor_id": "documentation",
+  "scout_reason": "never run",
+  "perceive": "Keep advisor 'documentation' warm and current \u2014 advisors are Ozi's special attention on a specialty. Reason due: never run. Advisor home: WAI-Spoke/advisors/documentation/. Run its specialty scan and record the run so last_run_at reflects today.",
+  "execute": [
+    "1. Read WAI-Spoke/advisors/documentation/context_prompt.md and feeds.yaml to load documentation's charter, scan scope, and inputs.",
+    "2. Perform documentation's specialty scan as described in its context_prompt; produce concrete, impact-ranked findings.",
+    "3. Append findings to WAI-Spoke/advisors/documentation/findings-log.jsonl (one JSON object per finding).",
+    "4. For any actionable finding, write a haiku task lug to WAI-Spoke/lugs/bytype/implementation/open/ (model_fit=haiku, initiative=crew-maintenance).",
+    "5. Set last_run_at=2026-06-14T11:40:04.149892Z in WAI-Spoke/advisors/schedule-index.json (entry advisor_id=documentation) AND WAI-Spoke/advisors/documentation/scan_state.json."
+  ],
+  "verify": "schedule-index.json and WAI-Spoke/advisors/documentation/scan_state.json both show last_run_at=today for 'documentation'; any findings were appended to findings-log.jsonl.",
+  "completion_notes": "Scan executed successfully. Performed documentation advisor's specialty scan according to context_prompt charter: scanned documentation completeness, writing quality, freshness, coverage mapping, and cross-reference integrity. Produced 6 findings (4 actionable, 2 informational). Created 4 haiku task lugs for actionable findings: AGENTS.md creation, feeds.yaml creation, terminology glossary, and architecture guide. Updated scan_state.json and schedule-index.json with last_run_at timestamp for documentation advisor. All PEV contract steps completed.",
+  "s": "completed",
+  "updated_at": "2026-06-14T11:42:46.639769+00:00",
+  "workflow": {
+    "current_owner": "builder-subprocess-haiku",
+    "assigned_at": "2026-06-14T11:40:04.158111+00:00",
+    "updated_at": "2026-06-14T11:40:04.300000+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-14T11:42:46.630936+00:00"
+  }
+}

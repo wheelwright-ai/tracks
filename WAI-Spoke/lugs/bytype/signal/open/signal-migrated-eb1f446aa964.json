@@ -12,5 +12,8 @@
   "by": "Claude Code (claude-sonnet-4-6)",
   "description": "Use printf (not echo) when piping secrets to vercel CLI \u2014 echo appends a newline that gets stored as part of the secret value, causing silent auth failures downstream",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Category: other. Impact: 8/10. Defer until higher-priority signals processed.",
+  "triage_decision": "HOLD-PENDING"
 }

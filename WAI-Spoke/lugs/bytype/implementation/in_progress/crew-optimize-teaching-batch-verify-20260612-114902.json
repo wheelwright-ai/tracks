@@ -2,10 +2,10 @@
   "id": "crew-optimize-teaching-batch-verify-20260612-114902",
   "type": "implementation",
   "title": "Optimize teaching adoption batch verification pipeline",
-  "status": "open",
+  "status": "in_progress",
   "routed_to": "LOCAL",
   "model_fit": "haiku",
-  "execution_mode": "auto",
+  "execution_mode": "gastown",
   "urgency": 6,
   "effort_score": 3,
   "quality_score": 7,
@@ -26,5 +26,14 @@
     "Batch verification reduces per-teaching adoption time by >40%",
     "Teaching queue drains to acceptable backlog (<50 items)",
     "All teachings in processed/ successfully adopt with correct fingerprints"
-  ]
+  ],
+  "execution_substrate": "gastown",
+  "s": "in_progress",
+  "updated_at": "2026-06-14T08:05:52.266240+00:00",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-14T08:05:52.262263+00:00",
+    "updated_at": "2026-06-14T08:05:52.262273+00:00",
+    "dispatch_method": "autopilot-subprocess"
+  }
 }

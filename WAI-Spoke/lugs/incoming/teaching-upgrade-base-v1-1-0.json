@@ -4,27 +4,27 @@
   "base_version": "1.1.0",
   "priority": "P2",
   "adopt_asap": false,
-  "created_at": "2026-06-05T02:29:48.719959+00:00",
+  "created_at": "2026-06-12T12:35:40.216231+00:00",
   "consolidates": [
-    "theta"
+    "teaching-test-lug-verify-v1"
   ],
   "teachings": [
     {
-      "id": "theta",
-      "title": "Teaching theta",
+      "id": "teaching-test-lug-verify-v1",
+      "title": "Test teaching for lug verification",
       "apply_steps": [
         {
           "id": "a1",
-          "description": "apply",
-          "action": "echo applied"
+          "description": "Write test flag",
+          "action": "echo applied > /tmp/test-flag"
         }
       ],
       "verification_steps": [
         {
           "id": "v1",
-          "description": "check",
-          "check": "true",
-          "pass_criteria": "exit 0"
+          "description": "Check test flag",
+          "check": "cat /tmp/test-flag",
+          "pass_criteria": "file exists with 'applied'"
         }
       ]
     }

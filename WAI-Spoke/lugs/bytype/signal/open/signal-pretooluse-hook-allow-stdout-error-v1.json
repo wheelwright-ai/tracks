@@ -15,5 +15,8 @@
   },
   "target": "spokes",
   "updated_at": "2026-06-03T09:04:36.712696+00:00",
-  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527"
+  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527",
+  "decision_at": "2026-06-14T08:04:40.110680Z",
+  "decision_reason": "Already marked delivered. Audit note: Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by a",
+  "triage_decision": "CLOSE"
 }

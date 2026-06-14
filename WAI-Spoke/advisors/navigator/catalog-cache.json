@@ -1,11 +1,11 @@
 {
-  "cached_at": "2026-06-12T11:52:31.222234+00:00",
+  "cached_at": "2026-06-14T09:37:16.267049+00:00",
   "ttl_hours": 24,
   "catalog": null,
   "fleet_chart": {
-    "generated_at": "2026-06-12T09:37:27.260013+00:00",
-    "spoke_count": 20,
-    "total_sessions": 92,
+    "generated_at": "2026-06-14T09:37:16.147139+00:00",
+    "spoke_count": 19,
+    "total_sessions": 91,
     "observations": [
       {
         "model_id": "claude-sonnet-4-6",
@@ -36,7 +36,7 @@
         "provider": "anthropic",
         "work_type": "planning",
         "complexity_band": null,
-        "sample_count": 10,
+        "sample_count": 9,
         "avg_quality_score": null,
         "avg_rework_rate": null,
         "avg_tokens_in": null,
@@ -189,8 +189,8 @@
       }
     ]
   },
-  "recommendations_pulled_at": "2026-06-12T11:52:31.222234+00:00",
-  "recommendations_valid_through": "2026-06-13T09:37:27.313466+00:00",
+  "recommendations_pulled_at": "2026-06-14T09:37:16.267049+00:00",
+  "recommendations_valid_through": "2026-06-15T09:37:16.201729+00:00",
   "usage_summary": {
     "limits_available": false,
     "entries": []
