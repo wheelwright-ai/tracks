@@ -1,0 +1,36 @@
+{
+  "id": "haiku-arch-findings-log-initialization-20260615",
+  "type": "implementation",
+  "title": "Ensure all advisors have initialized findings-log.jsonl files",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "gastown",
+  "urgency": 4,
+  "effort_score": 1,
+  "quality_score": 7,
+  "initiative": "crew-maintenance",
+  "authored_by": "architecture_oversight",
+  "created_at": "2026-06-15T11:40:04.025581Z",
+  "source_finding": "arch-1",
+  "source_finding_run": "advisor-scout-architecture_oversight-20260615-114004",
+  "perceive": "Architecture_oversight advisor lacks a findings-log.jsonl file. This file is critical for recording and tracking historical architecture scan results. Without it, findings are ephemeral.",
+  "execute": [
+    "1. Create findings-log.jsonl template in reference/ directory documenting the schema for advisor findings.",
+    "2. Audit all advisor directories to ensure findings-log.jsonl exists.",
+    "3. Add findings-log.jsonl initialization to the engineering-advisor template so new advisors have it by default."
+  ],
+  "verify": "All advisors in WAI-Spoke/advisors/ have a findings-log.jsonl file. Engineering-advisor template includes findings-log.jsonl initialization.",
+  "acceptance_criteria": [
+    "findings-log.jsonl exists in all advisor directories",
+    "Schema template documented in reference/",
+    "Engineering-advisor template auto-initializes findings-log.jsonl"
+  ],
+  "blocked_by": [],
+  "tags": [
+    "architecture",
+    "advisor-system",
+    "findings-tracking"
+  ],
+  "execution_substrate": "gastown"
+}

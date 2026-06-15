@@ -43,7 +43,7 @@
         "suggested_template": "quality-advisor",
         "priority": 2,
         "justification": "GitHub Actions integration failures, browser-surface smoke coverage, and lug status validation require dedicated quality monitoring (jordy)",
-        "proposal_status": "pending"
+        "proposal_status": "provisioned"
       },
       {
         "domain": "security_sensitive",

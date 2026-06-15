@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-14T11:44:56.457625+00:00",
+  "generated_at": "2026-06-15T11:44:50.101366+00:00",
   "priority_sequence": [
     "teachings",
     "refinement",
@@ -13,10 +13,31 @@
       "autonomous": [],
       "attended": [
         {
+          "id": "impl-pre-tool-guard-em-dash-20260614",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 35.0,
+          "wave": ""
+        },
+        {
           "id": "unknown",
           "type": "unknown",
           "model_fit": "unset",
           "score": 18.0,
+          "wave": ""
+        },
+        {
+          "id": "impl-missing-git-checks-20260614",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 17.5,
+          "wave": ""
+        },
+        {
+          "id": "impl-session-start-hardcoded-path-20260614",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 17.5,
           "wave": ""
         },
         {
@@ -27,28 +48,14 @@
           "wave": ""
         },
         {
-          "id": "doc-create-feeds-yaml-20260614-114040",
+          "id": "haiku-arch-advisor-activation-status-tracking-20260615",
           "type": "implementation",
           "model_fit": "haiku",
-          "score": 15.0,
+          "score": 5.0,
           "wave": ""
         },
         {
-          "id": "doc-add-terminology-glossary-20260614-114040",
-          "type": "implementation",
-          "model_fit": "haiku",
-          "score": 15.0,
-          "wave": ""
-        },
-        {
-          "id": "doc-create-agents-bootstrap-20260614-114040",
-          "type": "implementation",
-          "model_fit": "haiku",
-          "score": 7.5,
-          "wave": ""
-        },
-        {
-          "id": "doc-create-architecture-guide-20260614-114040",
+          "id": "haiku-arch-findings-log-initialization-20260615",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 5.0,
@@ -77,6 +84,13 @@
         },
         {
           "id": "crew-recommend-deployment_automation-20260612-114902",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-security_sensitive-20260614-114456",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 2.5,
@@ -146,6 +160,20 @@
           "wave": ""
         },
         {
+          "id": "crew-recommend-testing_infrastructure-20260614-114456",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-security_sensitive-20260615-114004",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
           "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
           "type": "implementation",
           "model_fit": "haiku",
@@ -154,6 +182,13 @@
         },
         {
           "id": "crew-recommend-deployment_automation-20260605-181445",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "scout-refine-20260614T114456",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 2.5,
@@ -184,7 +219,7 @@
   "counts": {
     "teachings": {
       "autonomous": 0,
-      "attended": 22
+      "attended": 27
     },
     "refinement": {
       "autonomous": 0,
@@ -201,6 +236,6 @@
   },
   "totals": {
     "autonomous": 0,
-    "attended": 22
+    "attended": 27
   }
 }

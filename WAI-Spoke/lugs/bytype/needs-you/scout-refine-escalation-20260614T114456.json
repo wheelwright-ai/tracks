@@ -1,0 +1,42 @@
+{
+  "id": "scout-refine-escalation-20260614T114456",
+  "type": "needs-you",
+  "status": "open",
+  "title": "Escalation: 2 artifacts require human judgment (unknown + lug-station-orchestrator-v1)",
+  "routed_to": "LOCAL",
+  "authored_by": "builder-scout-refine",
+  "authored_kind": "agent",
+  "created_at": "2026-06-15T11:45:00.000000+00:00",
+  "parent_lug": "scout-refine-20260614T114456",
+  "report_ref": "scout-report-20260614T114456",
+  "escalation_reason": "Two artifacts have unmet declared expectations that require human judgment. Scout report identified them as auto-ungromable=false.",
+  "findings": [
+    {
+      "target": "unknown",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify, acceptance_criteria",
+      "produced_by": "unknown",
+      "note": "Artifact identity is unknown. Cannot locate or assess without artifact reference."
+    },
+    {
+      "target": "lug-station-orchestrator-v1",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify, acceptance_criteria",
+      "produced_by": "unknown",
+      "note": "Lug exists but lacks core PEV fields. Requires human judgment to determine intent and completion path."
+    }
+  ],
+  "decision_required": [
+    "For 'unknown': Locate or identify the artifact, or mark as obsolete",
+    "For 'lug-station-orchestrator-v1': Determine whether this lug should be completed, abandoned, or split into smaller work units"
+  ],
+  "findings_by_producer": {
+    "unknown": 2,
+    "total_escalated": 2
+  },
+  "auto_refinement_summary": {
+    "total_findings_in_report": 6,
+    "auto_groomable_satisfied": 4,
+    "requires_judgment": 2
+  }
+}

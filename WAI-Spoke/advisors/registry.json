@@ -44,5 +44,12 @@
     "department_id": "engineering",
     "domain": "deployment_automation",
     "initialized_from_template": "engineering-advisor"
+  },
+  {
+    "advisor_id": "testing_infrastructure",
+    "status": "stub",
+    "department_id": "quality",
+    "domain": "testing_infrastructure",
+    "initialized_from_template": "quality-advisor"
   }
 ]

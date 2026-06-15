@@ -1,0 +1,36 @@
+{
+  "id": "haiku-arch-advisor-activation-status-tracking-20260615",
+  "type": "implementation",
+  "title": "Document advisor lifecycle status tracking in registry.json",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "gastown",
+  "urgency": 5,
+  "effort_score": 1,
+  "quality_score": 7,
+  "initiative": "crew-maintenance",
+  "authored_by": "architecture_oversight",
+  "created_at": "2026-06-15T11:40:04.025581Z",
+  "source_finding": "arch-2",
+  "source_finding_run": "advisor-scout-architecture_oversight-20260615-114004",
+  "perceive": "The advisor registry tracks advisor status as 'stub' but lacks explicit documentation of activation states (development vs. production). This creates ambiguity about whether stub status is permanent or a pre-activation state.",
+  "execute": [
+    "1. Update WAI-Spoke/advisors/registry.json schema documentation to define status values: stub (pre-activation), active (production), deprecated (retired).",
+    "2. Add activation_date field to the registry.json schema to track when advisors transition to active status.",
+    "3. Document the advisory lifecycle state machine in WAI-Spoke/reference/ for future reference."
+  ],
+  "verify": "WAI-Spoke/advisors/registry.json schema documentation exists and clearly defines advisor lifecycle states and activation path.",
+  "acceptance_criteria": [
+    "registry.json has documented schema with status enum values",
+    "activation_date field is present in registry entries",
+    "Lifecycle state machine documented in reference/"
+  ],
+  "blocked_by": [],
+  "tags": [
+    "architecture",
+    "advisor-system",
+    "schema-documentation"
+  ],
+  "execution_substrate": "gastown"
+}

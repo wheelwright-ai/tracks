@@ -5,7 +5,7 @@
   "status": "needs_review",
   "routed_to": "LOCAL",
   "model_fit": "haiku",
-  "execution_mode": "manual",
+  "execution_mode": "gastown",
   "urgency": 6,
   "effort_score": 2,
   "quality_score": 8,
@@ -35,5 +35,6 @@
     "registry.json entry advisor_id=testing_infrastructure has status=stub",
     "schedule-index.json has weekly entry for testing_infrastructure",
     "ozi scan_state team_coverage gap[domain=testing_infrastructure].proposal_status == 'provisioned'"
-  ]
+  ],
+  "execution_substrate": "gastown"
 }

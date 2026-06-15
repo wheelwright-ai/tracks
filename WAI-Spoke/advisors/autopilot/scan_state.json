@@ -2,13 +2,13 @@
   "advisor_id": "ozi-autopilot",
   "advisor_name": "Ozi Autopilot",
   "version": "1.0.0",
-  "last_run_at": "2026-06-14T11:56:00.509024+00:00",
+  "last_run_at": "2026-06-15T11:45:48.191303+00:00",
   "last_run_summary": {
-    "lugs_completed": 6,
+    "lugs_completed": 3,
     "teachings_adopted": 0,
     "signals_cleared": 0,
     "advisors_run": [],
-    "tokens_used": 51898,
+    "tokens_used": 26471,
     "gastown_pending": true,
     "errors": [],
     "advisor_casing_norm": {
@@ -21,10 +21,10 @@
   "gastown_queue": [],
   "next_run_recommendation": "24h",
   "stats": {
-    "total_runs": 837,
-    "total_lugs_completed": 27,
+    "total_runs": 838,
+    "total_lugs_completed": 30,
     "total_teachings_adopted": 0,
-    "total_tokens_used": 244210
+    "total_tokens_used": 270681
   },
-  "impl_completions_since_last_scout": 5
+  "impl_completions_since_last_scout": 2
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-14T11:44:56.456945+00:00",
+  "generated_at": "2026-06-15T11:44:50.097573+00:00",
   "priority_sequence": [
     "teachings",
     "work(initiative-scoped first)",
@@ -13,34 +13,16 @@
   "columns": {
     "autonomous": [
       {
-        "id": "doc-create-feeds-yaml-20260614-114040",
+        "id": "haiku-arch-advisor-activation-status-tracking-20260615",
         "type": "implementation",
         "type_row": "work",
         "column": "autonomous",
         "route": "gastown",
-        "score": 15.0,
+        "score": 5.0,
         "initiative_scoped": true
       },
       {
-        "id": "doc-add-terminology-glossary-20260614-114040",
-        "type": "implementation",
-        "type_row": "work",
-        "column": "autonomous",
-        "route": "gastown",
-        "score": 15.0,
-        "initiative_scoped": true
-      },
-      {
-        "id": "doc-create-agents-bootstrap-20260614-114040",
-        "type": "implementation",
-        "type_row": "work",
-        "column": "autonomous",
-        "route": "gastown",
-        "score": 7.5,
-        "initiative_scoped": true
-      },
-      {
-        "id": "doc-create-architecture-guide-20260614-114040",
+        "id": "haiku-arch-findings-log-initialization-20260615",
         "type": "implementation",
         "type_row": "work",
         "column": "autonomous",
@@ -50,6 +32,15 @@
       },
       {
         "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "scout-refine-20260614T114456",
         "type": "implementation",
         "type_row": "work",
         "column": "autonomous",
@@ -95,6 +86,15 @@
       },
       {
         "id": "crew-recommend-deployment_automation-20260612-114902",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-security_sensitive-20260614-114456",
         "type": "implementation",
         "type_row": "scouting",
         "column": "autonomous",
@@ -184,6 +184,24 @@
         "initiative_scoped": true
       },
       {
+        "id": "crew-recommend-testing_infrastructure-20260614-114456",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-security_sensitive-20260615-114004",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
         "id": "crew-recommend-deployment_automation-20260605-181445",
         "type": "implementation",
         "type_row": "scouting",
@@ -194,6 +212,33 @@
       }
     ],
     "needs_you": [
+      {
+        "id": "impl-pre-tool-guard-em-dash-20260614",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "needs-you",
+        "route": "tender",
+        "score": 35.0,
+        "initiative_scoped": true
+      },
+      {
+        "id": "impl-missing-git-checks-20260614",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "needs-you",
+        "route": "tender",
+        "score": 17.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "impl-session-start-hardcoded-path-20260614",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "needs-you",
+        "route": "tender",
+        "score": 17.5,
+        "initiative_scoped": true
+      },
       {
         "id": "lug-station-orchestrator-v1",
         "type": "task",
@@ -219,8 +264,8 @@
     "needs_you": "user-needed"
   },
   "counts": {
-    "total": 22,
-    "autonomous": 20,
-    "needs_you": 2
+    "total": 27,
+    "autonomous": 22,
+    "needs_you": 5
   }
 }

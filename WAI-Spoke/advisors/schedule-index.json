@@ -24,6 +24,13 @@
     "advisor_id": "architecture_oversight",
     "run_cadence": "weekly",
     "event_triggers": [],
+    "last_run_at": "2026-06-15T11:41:53.212939Z",
+    "next_recommended_run": "2026-06-22T11:40:04.025581Z"
+  },
+  {
+    "advisor_id": "testing_infrastructure",
+    "run_cadence": "weekly",
+    "event_triggers": [],
     "last_run_at": null,
     "next_recommended_run": null
   }

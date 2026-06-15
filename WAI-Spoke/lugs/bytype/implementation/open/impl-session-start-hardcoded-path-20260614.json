@@ -21,5 +21,8 @@
     "Tested on a different system directory structure (dry-run acceptable)"
   ],
   "created_at": "2026-06-14T11:44:56.482409Z",
-  "authored_by": "advisor-deployment_automation-scout"
+  "authored_by": "advisor-deployment_automation-scout",
+  "execution_mode": "tender",
+  "execution_substrate": null,
+  "gt_convoy_hint": "requires review: quality=3"
 }
