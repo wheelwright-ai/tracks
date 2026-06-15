@@ -50,7 +50,7 @@
         "suggested_template": "engineering-advisor",
         "priority": 3,
         "justification": "Auth-related concerns (NEXTAUTH_URL), secrets management, and compliance-related issues in open signals require dedicated security review",
-        "proposal_status": "pending"
+        "proposal_status": "provisioned"
       }
     ]
   }

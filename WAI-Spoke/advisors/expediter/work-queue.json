@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-15T11:44:50.101366+00:00",
+  "generated_at": "2026-06-15T11:45:48.403601+00:00",
   "priority_sequence": [
     "teachings",
     "refinement",
@@ -11,7 +11,14 @@
   "matrix": {
     "teachings": {
       "autonomous": [],
-      "attended": [
+      "attended": []
+    },
+    "refinement": {
+      "autonomous": [],
+      "attended": []
+    },
+    "work": {
+      "autonomous": [
         {
           "id": "impl-pre-tool-guard-em-dash-20260614",
           "type": "implementation",
@@ -61,6 +68,25 @@
           "score": 5.0,
           "wave": ""
         },
+        {
+          "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-optimize-teaching-batch-verify-20260612-114902",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 1.67,
+          "wave": ""
+        }
+      ],
+      "attended": []
+    },
+    "scouting": {
+      "autonomous": [
         {
           "id": "crew-recommend-deployment_automation-20260614-080043",
           "type": "implementation",
@@ -174,68 +200,36 @@
           "wave": ""
         },
         {
-          "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
-          "type": "implementation",
-          "model_fit": "haiku",
-          "score": 2.5,
-          "wave": ""
-        },
-        {
           "id": "crew-recommend-deployment_automation-20260605-181445",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 2.5,
           "wave": ""
-        },
-        {
-          "id": "scout-refine-20260614T114456",
-          "type": "implementation",
-          "model_fit": "haiku",
-          "score": 2.5,
-          "wave": ""
-        },
-        {
-          "id": "crew-optimize-teaching-batch-verify-20260612-114902",
-          "type": "implementation",
-          "model_fit": "haiku",
-          "score": 1.67,
-          "wave": ""
         }
-      ]
-    },
-    "refinement": {
-      "autonomous": [],
-      "attended": []
-    },
-    "work": {
-      "autonomous": [],
-      "attended": []
-    },
-    "scouting": {
-      "autonomous": [],
+      ],
       "attended": []
     }
   },
   "counts": {
     "teachings": {
       "autonomous": 0,
-      "attended": 27
+      "attended": 0
     },
     "refinement": {
       "autonomous": 0,
       "attended": 0
     },
     "work": {
-      "autonomous": 0,
+      "autonomous": 9,
       "attended": 0
     },
     "scouting": {
-      "autonomous": 0,
+      "autonomous": 17,
       "attended": 0
     }
   },
   "totals": {
-    "autonomous": 0,
-    "attended": 27
+    "autonomous": 26,
+    "attended": 0
   }
 }

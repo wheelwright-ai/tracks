@@ -1,13 +1,13 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-15T11:44:50.097147+00:00",
+  "generated_at": "2026-06-15T11:45:48.402402+00:00",
   "has_work": true,
   "work_summary": {
     "teachings_pending": 0,
     "initiatives_active": 0,
-    "lugs_dispatchable": 25,
-    "lugs_open_total": 27,
+    "lugs_dispatchable": 24,
+    "lugs_open_total": 26,
     "lugs_needs_refinement": 5,
     "scout_jobs_pending": 17,
     "signals_undelivered": 0
@@ -36,7 +36,6 @@
     "crew-recommend-security_sensitive-20260615-114004",
     "crew-spec-lug-advisor-scout-schema-20260612-114902",
     "crew-recommend-deployment_automation-20260605-181445",
-    "scout-refine-20260614T114456",
     "crew-optimize-teaching-batch-verify-20260612-114902"
   ],
   "skip_recommendation": false,

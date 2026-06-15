@@ -51,5 +51,12 @@
     "department_id": "quality",
     "domain": "testing_infrastructure",
     "initialized_from_template": "quality-advisor"
+  },
+  {
+    "advisor_id": "security_sensitive",
+    "status": "stub",
+    "department_id": "quality",
+    "domain": "security_sensitive",
+    "initialized_from_template": "quality-advisor"
   }
 ]

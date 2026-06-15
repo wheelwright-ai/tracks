@@ -5,6 +5,18 @@
       "model_fit": "haiku",
       "title": "Document advisor_scout schema extension in canonical lug spec",
       "queued_at": "2026-06-14T11:44:55.994556+00:00"
+    },
+    {
+      "id": "haiku-arch-advisor-activation-status-tracking-20260615",
+      "model_fit": "haiku",
+      "title": "Document advisor lifecycle status tracking in registry.json",
+      "queued_at": "2026-06-15T11:50:46.533744+00:00"
+    },
+    {
+      "id": "haiku-arch-findings-log-initialization-20260615",
+      "model_fit": "haiku",
+      "title": "Ensure all advisors have initialized findings-log.jsonl files",
+      "queued_at": "2026-06-15T11:50:46.533749+00:00"
     }
   ]
 }

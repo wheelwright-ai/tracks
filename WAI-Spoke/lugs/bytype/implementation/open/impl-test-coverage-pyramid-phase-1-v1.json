@@ -1,0 +1,47 @@
+{
+  "id": "impl-test-coverage-pyramid-phase-1-v1",
+  "type": "implementation",
+  "title": "Execute Phase 1 (Quick Wins) of test coverage remediation plan",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 8,
+  "effort_score": 5,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "author": "testing_infrastructure-advisor",
+  "created_at": "2026-06-15T11:45:48Z",
+  "summary": "Framework has only 5% test coverage (11/14 E2E tests passing, 0 unit tests, 0 integration tests). Current testing pyramid is inverted. TEST-COVERAGE-REPORT.md (March 18) identifies 42 needed unit tests and 21 integration tests. Phase 1 (Quick Wins) targets: establish pytest infrastructure, fix 3 failing tests, add 5 critical unit tests.",
+  "perceive": "Root causes: (1) Framework is template-based with minimal Python code to test; (2) Test infrastructure incomplete (no tests/unit/, empty tests/integration/); (3) Three test failures not yet resolved (wai.md sections, inbox routing rules, unspecified E2E failure). Testing pyramid is backwards — all E2E, no unit/integration.",
+  "execute": [
+    "1. Create tests/unit/ directory and pytest fixture infrastructure",
+    "2. Fix wai.md section mismatch: align test expectations with current wai.md structure",
+    "3. Document inbox routing rules (delivery_confirmation, phone-home) in skill file",
+    "4. Investigate and fix unspecified E2E test failure",
+    "5. Implement 5 critical unit tests: (a) Lug schema validation (basic), (b) Skill registry validation (basic), (c) WAI-State.json schema, (d) spoke_id generation, (e) File index load policy",
+    "6. Run pytest; expect 5 new passing unit tests and all 3 previously-failing E2E tests now passing"
+  ],
+  "acceptance_criteria": [
+    "tests/unit/ directory exists with 5 passing unit test files",
+    "All 3 previously-failing E2E tests now pass (11/14 → 14/14)",
+    "pytest can run on both unit and integration tests",
+    "Test coverage report updated with new baseline metrics",
+    "Inbox routing rules documented in wai-commands.md or skills reference"
+  ],
+  "blocked_by": [],
+  "files": [
+    "framework/tests/",
+    "framework/.github/workflows/integration-tests.yml",
+    "templates/commands/wai.md",
+    "templates/commands/"
+  ],
+  "findings_related": ["ti-test-coverage-crisis-20260615", "ti-e2e-test-failures-20260615", "ti-stale-test-coverage-report-20260615"],
+  "effort_estimate_hours": 10,
+  "workflow": {
+    "current_owner": null,
+    "assigned_at": null
+  },
+  "updated_at": "2026-06-15T11:45:48Z",
+  "s": "open"
+}

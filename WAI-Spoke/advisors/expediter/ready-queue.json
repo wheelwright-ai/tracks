@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-15T11:44:50.097573+00:00",
+  "generated_at": "2026-06-15T11:45:48.402813+00:00",
   "priority_sequence": [
     "teachings",
     "work(initiative-scoped first)",
@@ -32,15 +32,6 @@
       },
       {
         "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
-        "type": "implementation",
-        "type_row": "work",
-        "column": "autonomous",
-        "route": "gastown",
-        "score": 2.5,
-        "initiative_scoped": true
-      },
-      {
-        "id": "scout-refine-20260614T114456",
         "type": "implementation",
         "type_row": "work",
         "column": "autonomous",
@@ -264,8 +255,8 @@
     "needs_you": "user-needed"
   },
   "counts": {
-    "total": 27,
-    "autonomous": 22,
+    "total": 26,
+    "autonomous": 21,
     "needs_you": 5
   }
 }

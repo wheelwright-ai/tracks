@@ -1,0 +1,47 @@
+{
+  "id": "impl-refresh-test-coverage-report-v1",
+  "type": "implementation",
+  "title": "Refresh TEST-COVERAGE-REPORT.md — 3 months stale (last updated March 18)",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 6,
+  "effort_score": 3,
+  "quality_score": 7,
+  "initiative": "crew-maintenance",
+  "author": "testing_infrastructure-advisor",
+  "created_at": "2026-06-15T11:45:48Z",
+  "summary": "TEST-COVERAGE-REPORT.md in framework/tests/ was last updated on 2026-03-18 and is now 88 days stale. The report documented comprehensive test infrastructure gaps but has not been updated or acted upon. This report should be refreshed to reflect current state: new tests added since March, current pass rates, and updated remediation roadmap.",
+  "perceive": "Root causes: (1) Report is documentation-only; no mechanism to auto-update; (2) Report was created as a discovery artifact but not integrated into CI/metrics pipeline; (3) Three months of drift makes recommendations obsolete. Refresh should include: current test counts, updated pass rates, progress on Phase 1 (if any), revised timeline, and integration into CI metrics.",
+  "execute": [
+    "1. Re-scan framework/tests/ for current test inventory: count unit tests, integration tests, E2E tests",
+    "2. Run pytest to capture current pass/fail metrics and coverage percentages",
+    "3. Update Executive Summary with new baseline (as of 2026-06-15)",
+    "4. Review test failures: are the 3 documented failures still relevant? (Resolve or update)",
+    "5. Update remediation roadmap (Phase 1-3) with revised effort estimates and timeline",
+    "6. Add section: 'Progress Since Last Report (2026-03-18)' documenting any test infrastructure improvements",
+    "7. Update verification commands to reflect current pytest structure",
+    "8. Commit updated report with note: 'Advisor testing_infrastructure run 20260615 — refresh stale report'"
+  ],
+  "acceptance_criteria": [
+    "TEST-COVERAGE-REPORT.md header updated with current date (2026-06-15)",
+    "Executive Summary reflects current test counts and pass rates (verified by running tests)",
+    "All stale recommendations removed or marked as archival",
+    "Progress section added showing work completed since March 18",
+    "Report is discoverable and linked from framework README or CI documentation"
+  ],
+  "blocked_by": ["impl-e2e-test-failures-investigation-v1"],
+  "files": [
+    "framework/tests/TEST-COVERAGE-REPORT.md",
+    "framework/tests/"
+  ],
+  "findings_related": ["ti-stale-test-coverage-report-20260615"],
+  "effort_estimate_hours": 3,
+  "workflow": {
+    "current_owner": null,
+    "assigned_at": null
+  },
+  "updated_at": "2026-06-15T11:45:48Z",
+  "s": "open"
+}

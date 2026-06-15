@@ -1,0 +1,42 @@
+{
+  "id": "advisor-scout-testing_infrastructure-20260615-114548",
+  "type": "implementation",
+  "title": "Advisor scout-run \u2014 warm up 'testing_infrastructure' (never run)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-15T11:45:48.430393Z",
+  "advisor_scout": true,
+  "advisor_id": "testing_infrastructure",
+  "scout_reason": "never run",
+  "perceive": "Keep advisor 'testing_infrastructure' warm and current \u2014 advisors are Ozi's special attention on a specialty. Reason due: never run. Advisor home: WAI-Spoke/advisors/testing_infrastructure/. Run its specialty scan and record the run so last_run_at reflects today.",
+  "execute": [
+    "1. Read WAI-Spoke/advisors/testing_infrastructure/context_prompt.md and feeds.yaml to load testing_infrastructure's charter, scan scope, and inputs.",
+    "2. Perform testing_infrastructure's specialty scan as described in its context_prompt; produce concrete, impact-ranked findings.",
+    "3. Append findings to WAI-Spoke/advisors/testing_infrastructure/findings-log.jsonl (one JSON object per finding).",
+    "4. For any actionable finding, write a haiku task lug to WAI-Spoke/lugs/bytype/implementation/open/ (model_fit=haiku, initiative=crew-maintenance).",
+    "5. Set last_run_at=2026-06-15T11:45:48.430386Z in WAI-Spoke/advisors/schedule-index.json (entry advisor_id=testing_infrastructure) AND WAI-Spoke/advisors/testing_infrastructure/scan_state.json."
+  ],
+  "verify": "schedule-index.json and WAI-Spoke/advisors/testing_infrastructure/scan_state.json both show last_run_at=today for 'testing_infrastructure'; any findings were appended to findings-log.jsonl.",
+  "s": "completed",
+  "updated_at": "2026-06-15T11:48:24.975797+00:00",
+  "completed_at": "2026-06-15T11:45:48.430386Z",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-15T11:45:48.431748+00:00",
+    "updated_at": "2026-06-15T11:45:48.431753+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-15T11:48:24.975091+00:00"
+  },
+  "findings": {
+    "total": 4,
+    "summary": "advisor testing_infrastructure's first run detected 67 lug status inconsistencies (high), test coverage crisis with inverted pyramid (high), 3 E2E test failures (medium), and stale test coverage report (medium). Four actionable implementation lugs created for remediation."
+  },
+  "resolution_notes": "\u2705 COMPLETED: Scan completed successfully. All 4 findings appended to findings-log.jsonl. Four implementation lugs created in bytype/implementation/open/: (1) impl-lug-status-consistency-audit-v1 (fix 67 inconsistent lugs), (2) impl-test-coverage-pyramid-phase-1-v1 (remediate test coverage crisis), (3) impl-e2e-test-failures-investigation-v1 (fix 3 failing tests), (4) impl-refresh-test-coverage-report-v1 (refresh stale report). Schedule index and scan_state.json updated with last_run_at=2026-06-15T11:45:48.430386Z."
+}
