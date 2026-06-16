@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-16T11:40:07.479161+00:00",
+  "generated_at": "2026-06-16T11:55:16.631551+00:00",
   "priority_sequence": [
     "teachings",
     "work(initiative-scoped first)",
@@ -31,7 +31,7 @@
         "initiative_scoped": true
       },
       {
-        "id": "impl-e2e-test-failures-investigation-v1",
+        "id": "impl-refresh-test-coverage-report-v1",
         "type": "implementation",
         "type_row": "work",
         "column": "autonomous",
@@ -40,21 +40,12 @@
         "initiative_scoped": true
       },
       {
-        "id": "impl-lug-status-consistency-audit-v1",
+        "id": "haiku-verify-nextauth-config-security_sensitive",
         "type": "implementation",
         "type_row": "work",
         "column": "autonomous",
         "route": "gastown",
-        "score": 3.75,
-        "initiative_scoped": true
-      },
-      {
-        "id": "impl-test-coverage-pyramid-phase-1-v1",
-        "type": "implementation",
-        "type_row": "work",
-        "column": "autonomous",
-        "route": "gastown",
-        "score": 3.0,
+        "score": 2.5,
         "initiative_scoped": true
       },
       {
@@ -258,15 +249,6 @@
         "initiative_scoped": true
       },
       {
-        "id": "impl-refresh-test-coverage-report-v1",
-        "type": "implementation",
-        "type_row": "work",
-        "column": "needs-you",
-        "route": "tender",
-        "score": 5.0,
-        "initiative_scoped": true
-      },
-      {
         "id": "lug-station-orchestrator-v1",
         "type": "task",
         "type_row": "work",
@@ -291,8 +273,8 @@
     "needs_you": "user-needed"
   },
   "counts": {
-    "total": 30,
-    "autonomous": 24,
-    "needs_you": 6
+    "total": 28,
+    "autonomous": 23,
+    "needs_you": 5
   }
 }

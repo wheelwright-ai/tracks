@@ -1,0 +1,91 @@
+{
+  "id": "scout-report-20260616T115516",
+  "type": "scout_report",
+  "status": "open",
+  "title": "Scout expedition report (6 unmet expectations; trigger: forced (--hygiene/--all))",
+  "routed_to": "LOCAL",
+  "authored_by": "session-20260601-0236.expediter-scout",
+  "authored_kind": "agent",
+  "created_at": "2026-06-16T11:55:16.629308+00:00",
+  "scout_report": true,
+  "trigger": "forced (--hygiene/--all)",
+  "scanned": {
+    "open_lugs": 28,
+    "findings": 6
+  },
+  "principle": "Chase each artifact's declared expectation and verify it is satisfied. No invented work.",
+  "findings": [
+    {
+      "target": "impl-pre-tool-guard-em-dash-20260614",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify",
+      "auto_groomable": false,
+      "produced_by": "advisor-deployment_automation-scout",
+      "source_spoke": null,
+      "target_created_at": "2026-06-14T11:44:56.482409Z"
+    },
+    {
+      "target": "unknown",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify, acceptance_criteria",
+      "auto_groomable": false,
+      "produced_by": "unknown",
+      "source_spoke": null,
+      "target_created_at": "2026-03-31T23:17:31Z"
+    },
+    {
+      "target": "impl-missing-git-checks-20260614",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify",
+      "auto_groomable": false,
+      "produced_by": "advisor-deployment_automation-scout",
+      "source_spoke": null,
+      "target_created_at": "2026-06-14T11:44:56.482409Z"
+    },
+    {
+      "target": "impl-session-start-hardcoded-path-20260614",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify",
+      "auto_groomable": false,
+      "produced_by": "advisor-deployment_automation-scout",
+      "source_spoke": null,
+      "target_created_at": "2026-06-14T11:44:56.482409Z"
+    },
+    {
+      "target": "lug-station-orchestrator-v1",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: execute, perceive, verify, acceptance_criteria",
+      "auto_groomable": false,
+      "produced_by": "unknown",
+      "source_spoke": null,
+      "target_created_at": null
+    },
+    {
+      "target": "impl-refresh-test-coverage-report-v1",
+      "expectation": "declares a complete, verifiable definition (perceive/execute/verify + acceptance_criteria)",
+      "evidence": "missing: verify",
+      "auto_groomable": false,
+      "produced_by": "unknown",
+      "source_spoke": null,
+      "target_created_at": "2026-06-15T11:45:48Z"
+    }
+  ],
+  "findings_by_producer": {
+    "advisor-deployment_automation-scout": 3,
+    "unknown": 3
+  },
+  "verification_debt_reported": {
+    "deployed_unverified": 0,
+    "spec_drift": 0,
+    "abandoned": 0
+  },
+  "auto_refinement_lug": null,
+  "needs_user_judgment": [
+    "impl-pre-tool-guard-em-dash-20260614",
+    "unknown",
+    "impl-missing-git-checks-20260614",
+    "impl-session-start-hardcoded-path-20260614",
+    "lug-station-orchestrator-v1",
+    "impl-refresh-test-coverage-report-v1"
+  ]
+}

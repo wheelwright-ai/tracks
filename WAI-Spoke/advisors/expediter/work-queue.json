@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-16T11:40:07.483119+00:00",
+  "generated_at": "2026-06-16T11:55:16.632674+00:00",
   "priority_sequence": [
     "teachings",
     "refinement",
@@ -69,24 +69,17 @@
           "wave": ""
         },
         {
-          "id": "impl-e2e-test-failures-investigation-v1",
+          "id": "impl-refresh-test-coverage-report-v1",
           "type": "implementation",
           "model_fit": "haiku",
           "score": 5.0,
           "wave": ""
         },
         {
-          "id": "impl-lug-status-consistency-audit-v1",
+          "id": "haiku-verify-nextauth-config-security_sensitive",
           "type": "implementation",
           "model_fit": "haiku",
-          "score": 3.75,
-          "wave": ""
-        },
-        {
-          "id": "impl-test-coverage-pyramid-phase-1-v1",
-          "type": "implementation",
-          "model_fit": "haiku",
-          "score": 3.0,
+          "score": 2.5,
           "wave": ""
         },
         {
@@ -104,15 +97,7 @@
           "wave": ""
         }
       ],
-      "attended": [
-        {
-          "id": "impl-refresh-test-coverage-report-v1",
-          "type": "implementation",
-          "model_fit": "haiku",
-          "score": 5.0,
-          "wave": ""
-        }
-      ]
+      "attended": []
     },
     "scouting": {
       "autonomous": [
@@ -249,8 +234,8 @@
       "attended": 0
     },
     "work": {
-      "autonomous": 12,
-      "attended": 1
+      "autonomous": 11,
+      "attended": 0
     },
     "scouting": {
       "autonomous": 17,
@@ -258,7 +243,7 @@
     }
   },
   "totals": {
-    "autonomous": 29,
-    "attended": 1
+    "autonomous": 28,
+    "attended": 0
   }
 }
