@@ -32,5 +32,6 @@
     "advisor-system",
     "findings-tracking"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "updated_at": "2026-06-15T11:40:04.025581Z"
 }

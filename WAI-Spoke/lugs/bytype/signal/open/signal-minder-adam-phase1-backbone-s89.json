@@ -11,5 +11,6 @@
   "rationale": "Establishes the first working pattern for AI agent session supervision in the Wheelwright fleet. The OpenCode ACP adapter contract and async watcher pattern are reusable for other tool integrations.",
   "decision_at": "2026-06-14T08:04:40.110680Z",
   "decision_reason": "Category: other. Impact: 8/10. Defer until higher-priority signals processed.",
-  "triage_decision": "HOLD-PENDING"
+  "triage_decision": "HOLD-PENDING",
+  "updated_at": "2026-04-03T19:49:00Z"
 }

@@ -11,5 +11,6 @@
   "by": "claude-sonnet-4-6",
   "decision_at": "2026-06-14T08:04:40.110680Z",
   "decision_reason": "Critical automation bug affecting all spokes (stdin-drain in tender Pass 2).",
-  "triage_decision": "DELIVER"
+  "triage_decision": "DELIVER",
+  "updated_at": "2026-04-02T11:36:00Z"
 }

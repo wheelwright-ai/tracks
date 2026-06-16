@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-06-15T11:45:48.403601+00:00",
+  "generated_at": "2026-06-16T11:40:07.483119+00:00",
   "priority_sequence": [
     "teachings",
     "refinement",
@@ -69,6 +69,27 @@
           "wave": ""
         },
         {
+          "id": "impl-e2e-test-failures-investigation-v1",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 5.0,
+          "wave": ""
+        },
+        {
+          "id": "impl-lug-status-consistency-audit-v1",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 3.75,
+          "wave": ""
+        },
+        {
+          "id": "impl-test-coverage-pyramid-phase-1-v1",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 3.0,
+          "wave": ""
+        },
+        {
           "id": "crew-spec-lug-advisor-scout-schema-20260612-114902",
           "type": "implementation",
           "model_fit": "haiku",
@@ -83,7 +104,15 @@
           "wave": ""
         }
       ],
-      "attended": []
+      "attended": [
+        {
+          "id": "impl-refresh-test-coverage-report-v1",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 5.0,
+          "wave": ""
+        }
+      ]
     },
     "scouting": {
       "autonomous": [
@@ -220,8 +249,8 @@
       "attended": 0
     },
     "work": {
-      "autonomous": 9,
-      "attended": 0
+      "autonomous": 12,
+      "attended": 1
     },
     "scouting": {
       "autonomous": 17,
@@ -229,7 +258,7 @@
     }
   },
   "totals": {
-    "autonomous": 26,
-    "attended": 0
+    "autonomous": 29,
+    "attended": 1
   }
 }

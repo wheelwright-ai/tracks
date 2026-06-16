@@ -4,16 +4,16 @@
   "version": "1.0.0",
   "initialized_at": "2026-03-31T16:16:04.681198+00:00",
   "stats": {
-    "lugs_scored": 160,
-    "runs": 18,
-    "last_quality_avg": 7.6,
+    "lugs_scored": 190,
+    "runs": 19,
+    "last_quality_avg": 7.5,
     "last_needs_refinement": 5,
     "signals_triaged": 51,
     "teaching_candidates_found": 0
   },
-  "last_run_at": "2026-06-15T11:45:48.401871+00:00",
+  "last_run_at": "2026-06-16T11:40:07.474911+00:00",
   "refinement_queue_size": 5,
   "initiatives_fingerprint": "",
-  "last_hygiene_at": "2026-06-15T11:45:48.401899+00:00",
+  "last_hygiene_at": "2026-06-16T11:40:07.474986+00:00",
   "last_hygiene_reason": "forced (--hygiene/--all)"
 }

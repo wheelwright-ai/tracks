@@ -47,5 +47,6 @@
     "what_this_is_NOT": "An instruction to execute immediately or automatically. Do not start building without explicit session focus. Work child tasks in seq order.",
     "processing_agent": "wakeup briefing surfaces this as active epic; user selects child task to begin",
     "expected_outcome": "Station Master live in lib/station/, /api/tracks delegates to it, Lines CRUD available at /api/lines"
-  }
+  },
+  "updated_at": "2026-03-25T09:31:01Z"
 }

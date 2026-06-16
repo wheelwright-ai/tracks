@@ -36,5 +36,6 @@
     "schedule-index.json has weekly entry for security_sensitive",
     "ozi scan_state team_coverage gap[domain=security_sensitive].proposal_status == 'provisioned'"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "updated_at": "2026-06-14T11:44:56.482946Z"
 }

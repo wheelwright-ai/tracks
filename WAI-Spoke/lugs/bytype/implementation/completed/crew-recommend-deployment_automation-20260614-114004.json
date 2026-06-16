@@ -1,7 +1,7 @@
 {
   "id": "crew-recommend-deployment_automation-20260614-114004",
   "type": "implementation",
-  "title": "Advisor recommendation — recruit deployment_automation advisor (template=engineering-advisor)",
+  "title": "Advisor recommendation \u2014 recruit deployment_automation advisor (template=engineering-advisor)",
   "status": "ready_for_recheck",
   "routed_to": "LOCAL",
   "model_fit": "haiku",
@@ -37,5 +37,6 @@
     "schedule-index.json has weekly entry for deployment_automation",
     "ozi scan_state team_coverage gap[domain=deployment_automation].proposal_status == 'provisioned'"
   ],
-  "completion_notes": "All acceptance criteria verified. Advisor provisioned: context_prompt.md written with tailored mission/responsibilities for bash/automation oversight; scan_state.json status=stub; registry.json and schedule-index.json updated; ozi gap proposal_status set to provisioned."
+  "completion_notes": "All acceptance criteria verified. Advisor provisioned: context_prompt.md written with tailored mission/responsibilities for bash/automation oversight; scan_state.json status=stub; registry.json and schedule-index.json updated; ozi gap proposal_status set to provisioned.",
+  "updated_at": "2026-06-14T11:40:04.150405Z"
 }

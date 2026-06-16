@@ -14,5 +14,6 @@
   "note_on_quality": "local_success_fit=0.5 on all profiles until Historian backfills quality scores. Recommendations are catalog-driven for now. Will improve as fleet observations accumulate and Historian scores them.",
   "decision_at": "2026-06-14T08:04:40.110680Z",
   "decision_reason": "Advisor lifecycle pattern. Navigator nightly chain operational.",
-  "triage_decision": "DELIVER"
+  "triage_decision": "DELIVER",
+  "updated_at": "2026-05-06T05:35:00Z"
 }

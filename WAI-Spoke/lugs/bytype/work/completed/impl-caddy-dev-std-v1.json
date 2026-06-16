@@ -5,7 +5,7 @@
   "work": {
     "kind": "implementation"
   },
-  "s": "in_progress",
+  "s": "ready_for_recheck",
   "ca": "2026-05-13T20:58:26Z",
   "gb": "claude-sonnet-4-6",
   "fw_ver": "3.1.31",
@@ -58,26 +58,26 @@
   },
   "completion_notes": {
     "perceive": {
-      "hub_registry": "✓ Confirmed primary_port=4020, hostname='tracks.local' in hub-registry.json",
-      "env_dev_file": "✓ .env.dev exists",
-      "dev_server": "✓ Located at serve.py (Python HTTP server for static site)",
-      "port_binding": "✓ Reads PORT from .env.dev via load_env_file() function",
-      "startup_log": "✓ Prints 'http://tracks.local  (localhost:4020)' on startup",
-      "dev_config": "✓ WAI-Spoke/dev-config.json already exists with correct values"
+      "hub_registry": "\u2713 Confirmed primary_port=4020, hostname='tracks.local' in hub-registry.json",
+      "env_dev_file": "\u2713 .env.dev exists",
+      "dev_server": "\u2713 Located at serve.py (Python HTTP server for static site)",
+      "port_binding": "\u2713 Reads PORT from .env.dev via load_env_file() function",
+      "startup_log": "\u2713 Prints 'http://tracks.local  (localhost:4020)' on startup",
+      "dev_config": "\u2713 WAI-Spoke/dev-config.json already exists with correct values"
     },
     "execute": [
-      "✓ Added PORT=4020 to .env.dev",
-      "✓ Created serve.py: Python HTTP server that reads PORT from .env.dev, serves viewer/ directory, logs startup URL",
-      "✓ Created dev shell script: wrapper to run serve.py (equivalent to 'bun dev' for this static site)",
-      "✓ serve.py logs exactly 'http://tracks.local  (localhost:4020)' on startup",
-      "✓ dev-config.json confirmed to have primary_port=4020 and hostname='tracks.local'"
+      "\u2713 Added PORT=4020 to .env.dev",
+      "\u2713 Created serve.py: Python HTTP server that reads PORT from .env.dev, serves viewer/ directory, logs startup URL",
+      "\u2713 Created dev shell script: wrapper to run serve.py (equivalent to 'bun dev' for this static site)",
+      "\u2713 serve.py logs exactly 'http://tracks.local  (localhost:4020)' on startup",
+      "\u2713 dev-config.json confirmed to have primary_port=4020 and hostname='tracks.local'"
     ],
     "verify": [
-      "✓ Server starts on port 4020 with no bind error",
-      "✓ Startup log prints http://tracks.local",
-      "✓ .env.dev contains PORT=4020",
-      "✓ Server successfully serves index.html and other static files from viewer/",
-      "✓ Tested: curl http://localhost:4020/index.html returns HTML content"
+      "\u2713 Server starts on port 4020 with no bind error",
+      "\u2713 Startup log prints http://tracks.local",
+      "\u2713 .env.dev contains PORT=4020",
+      "\u2713 Server successfully serves index.html and other static files from viewer/",
+      "\u2713 Tested: curl http://localhost:4020/index.html returns HTML content"
     ],
     "notes": "Tracks is a static HTML/JS/CSS viewer site (not a Node.js/Bun project). Implemented with Python HTTP server (Python 3.x built-in). Entry points: 'python3 serve.py' or './dev' script. Both require Caddy reverse proxy running for http://tracks.local to work.",
     "entry_points": [

@@ -1,0 +1,37 @@
+{
+  "id": "advisor-scout-security_sensitive-20260616-114007",
+  "type": "implementation",
+  "title": "Advisor scout-run \u2014 warm up 'security_sensitive' (never run)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-16T11:40:07.808324Z",
+  "advisor_scout": true,
+  "advisor_id": "security_sensitive",
+  "scout_reason": "never run",
+  "perceive": "Keep advisor 'security_sensitive' warm and current \u2014 advisors are Ozi's special attention on a specialty. Reason due: never run. Advisor home: WAI-Spoke/advisors/security_sensitive/. Run its specialty scan and record the run so last_run_at reflects today.",
+  "execute": [
+    "1. Read WAI-Spoke/advisors/security_sensitive/context_prompt.md and feeds.yaml to load security_sensitive's charter, scan scope, and inputs.",
+    "2. Perform security_sensitive's specialty scan as described in its context_prompt; produce concrete, impact-ranked findings.",
+    "3. Append findings to WAI-Spoke/advisors/security_sensitive/findings-log.jsonl (one JSON object per finding).",
+    "4. For any actionable finding, write a haiku task lug to WAI-Spoke/lugs/bytype/implementation/open/ (model_fit=haiku, initiative=crew-maintenance).",
+    "5. Set last_run_at=2026-06-16T11:40:07.808314Z in WAI-Spoke/advisors/schedule-index.json (entry advisor_id=security_sensitive) AND WAI-Spoke/advisors/security_sensitive/scan_state.json."
+  ],
+  "verify": "schedule-index.json and WAI-Spoke/advisors/security_sensitive/scan_state.json both show last_run_at=today for 'security_sensitive'; any findings were appended to findings-log.jsonl.",
+  "s": "completed",
+  "updated_at": "2026-06-16T11:42:56.855511+00:00",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-16T11:40:07.811103+00:00",
+    "updated_at": "2026-06-16T11:40:07.811110+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-16T11:42:56.821317+00:00"
+  },
+  "completion_notes": "security_sensitive advisor scan completed. Findings recorded: 4 findings in findings-log.jsonl (1 actionable: NEXTAUTH_URL misconfiguration signal pending verification). Created haiku task lug haiku-verify-nextauth-config-security_sensitive for verification and documentation. Updated schedule-index.json with last_run_at=2026-06-16T11:40:07.808314Z and next_recommended_run=2026-06-23T11:40:07.808314Z. Updated scan_state.json status to active. Advisor is now warm and current."
+}

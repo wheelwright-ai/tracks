@@ -36,5 +36,6 @@
     "schedule-index.json has weekly entry for architecture_oversight",
     "ozi scan_state team_coverage gap[domain=architecture_oversight].proposal_status == 'provisioned'"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "updated_at": "2026-06-14T08:00:43.921503Z"
 }

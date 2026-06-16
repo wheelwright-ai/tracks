@@ -10,5 +10,6 @@
   "session_id": "session-20260405-184822",
   "decision_at": "2026-06-14T08:04:40.110680Z",
   "decision_reason": "Category: other. Impact: 8/10. Defer until higher-priority signals processed.",
-  "triage_decision": "HOLD-PENDING"
+  "triage_decision": "HOLD-PENDING",
+  "updated_at": "2026-04-05T18:48:22Z"
 }

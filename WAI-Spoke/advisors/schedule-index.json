@@ -38,7 +38,7 @@
     "advisor_id": "security_sensitive",
     "run_cadence": "weekly",
     "event_triggers": [],
-    "last_run_at": null,
-    "next_recommended_run": null
+    "last_run_at": "2026-06-16T11:42:56.879332Z",
+    "next_recommended_run": "2026-06-23T11:40:07.808314Z"
   }
 ]

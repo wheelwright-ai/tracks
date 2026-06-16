@@ -15,5 +15,7 @@
   "rescued_at": "2026-03-26T03:10:12Z",
   "decision_at": "2026-06-14T08:04:40.110680Z",
   "decision_reason": "Fleet-wide pattern (9/10 impact). Needs fleet coordination.",
-  "triage_decision": "DELIVER"
+  "triage_decision": "DELIVER",
+  "created_at": "2026-04-05T03:10:05.212731+00:00",
+  "updated_at": "2026-04-05T03:10:05.212731+00:00"
 }

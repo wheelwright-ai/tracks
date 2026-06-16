@@ -35,5 +35,6 @@
     "schedule-index.json has weekly entry for advisor",
     "Ozi scan_state team_coverage.gaps_detected[domain=documentation].proposal_status == 'provisioned'"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "updated_at": "2026-06-05T18:18:22.056208Z"
 }

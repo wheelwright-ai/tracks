@@ -12,5 +12,6 @@
   "target": "spokes",
   "decision_at": "2026-06-14T08:04:40.110680Z",
   "decision_reason": "Fleet-wide pattern (8/10 impact). Needs fleet coordination.",
-  "triage_decision": "DELIVER"
+  "triage_decision": "DELIVER",
+  "updated_at": "2026-04-05T08:10:40.459028+00:00"
 }

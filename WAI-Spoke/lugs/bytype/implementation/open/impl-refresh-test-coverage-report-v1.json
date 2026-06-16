@@ -1,11 +1,11 @@
 {
   "id": "impl-refresh-test-coverage-report-v1",
   "type": "implementation",
-  "title": "Refresh TEST-COVERAGE-REPORT.md — 3 months stale (last updated March 18)",
+  "title": "Refresh TEST-COVERAGE-REPORT.md \u2014 3 months stale (last updated March 18)",
   "status": "open",
   "routed_to": "LOCAL",
   "model_fit": "haiku",
-  "execution_mode": "auto",
+  "execution_mode": "tender",
   "urgency": 6,
   "effort_score": 3,
   "quality_score": 7,
@@ -22,7 +22,7 @@
     "5. Update remediation roadmap (Phase 1-3) with revised effort estimates and timeline",
     "6. Add section: 'Progress Since Last Report (2026-03-18)' documenting any test infrastructure improvements",
     "7. Update verification commands to reflect current pytest structure",
-    "8. Commit updated report with note: 'Advisor testing_infrastructure run 20260615 — refresh stale report'"
+    "8. Commit updated report with note: 'Advisor testing_infrastructure run 20260615 \u2014 refresh stale report'"
   ],
   "acceptance_criteria": [
     "TEST-COVERAGE-REPORT.md header updated with current date (2026-06-15)",
@@ -31,17 +31,23 @@
     "Progress section added showing work completed since March 18",
     "Report is discoverable and linked from framework README or CI documentation"
   ],
-  "blocked_by": ["impl-e2e-test-failures-investigation-v1"],
+  "blocked_by": [
+    "impl-e2e-test-failures-investigation-v1"
+  ],
   "files": [
     "framework/tests/TEST-COVERAGE-REPORT.md",
     "framework/tests/"
   ],
-  "findings_related": ["ti-stale-test-coverage-report-20260615"],
+  "findings_related": [
+    "ti-stale-test-coverage-report-20260615"
+  ],
   "effort_estimate_hours": 3,
   "workflow": {
     "current_owner": null,
     "assigned_at": null
   },
   "updated_at": "2026-06-15T11:45:48Z",
-  "s": "open"
+  "s": "open",
+  "execution_substrate": null,
+  "gt_convoy_hint": "blocked: impl-e2e-test-failures-investigation-v1"
 }

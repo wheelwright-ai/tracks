@@ -49,5 +49,6 @@
   "_behavior_directive": {
     "what_this_is": "A fill-in task for the spoke agent to populate its own basher.json by reading its own filesystem",
     "what_this_is_NOT": "A request to change code, create new scripts, or modify anything outside basher.json"
-  }
+  },
+  "updated_at": "2026-05-30T03:53:17Z"
 }

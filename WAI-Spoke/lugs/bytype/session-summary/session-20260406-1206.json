@@ -1,7 +1,7 @@
 {
   "id": "session-20260406-1206",
   "type": "session-summary",
-  "title": "Session 2 — Teaching adoption + prompt variants v0.24",
+  "title": "Session 2 \u2014 Teaching adoption + prompt variants v0.24",
   "status": "completed",
   "created_at": "2026-04-06T12:15:00Z",
   "created_by": "claude-sonnet-4-6",
@@ -31,7 +31,7 @@
   "decisions": [
     "post-compaction hardening: apply to this spoke (hooks exist, pattern directly applicable)",
     "hook env var teaching: no action needed (spoke already uses absolute paths)",
-    "Minder signals (tender run order, toggle chips, realizer dispatch): route as informational signals — no Tracks surface to apply",
+    "Minder signals (tender run order, toggle chips, realizer dispatch): route as informational signals \u2014 no Tracks surface to apply",
     "prompt variants: mechanical adaptation only from v0.24 bigdog (acknowledged as improvement opportunity for next session)"
   ],
   "incomplete_work": {
@@ -42,5 +42,6 @@
       "Deliver 3 pending signals to hub (step 9c)"
     ]
   },
-  "autosaves_reconciled": []
+  "autosaves_reconciled": [],
+  "updated_at": "2026-04-06T12:15:00Z"
 }

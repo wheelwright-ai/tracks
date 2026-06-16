@@ -1,7 +1,7 @@
 {
   "schema_version": "1.4",
-  "generated_at": "2026-06-15T09:37:21.120671+00:00",
-  "valid_through": "2026-06-16T09:37:21.120671+00:00",
+  "generated_at": "2026-06-16T09:37:21.584360+00:00",
+  "valid_through": "2026-06-17T09:37:21.584360+00:00",
   "excluded_providers": [
     "deepseek",
     "kimi",
@@ -14,7 +14,7 @@
     "api": "Pay-per-token integrations \u2014 cross-provider, 3 slots: quality | balanced | economy"
   },
   "assay_sessions_incorporated": 21,
-  "fleet_chart_sessions": 72,
+  "fleet_chart_sessions": 16,
   "profiles": {
     "coding_high": {
       "task_profile": {
@@ -148,6 +148,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.0-flash",
         "gemini-2.0-flash-001",
         "gemini-2.0-flash-lite",
@@ -313,6 +315,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",
@@ -465,6 +469,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",
@@ -617,6 +623,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.0-flash",
         "gemini-2.0-flash-001",
         "gemini-2.0-flash-lite",
@@ -782,6 +790,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",
@@ -934,6 +944,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",
@@ -1086,6 +1098,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",
@@ -1230,6 +1244,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.0-flash",
         "gemini-2.0-flash-001",
         "gemini-2.0-flash-lite",
@@ -1395,6 +1411,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",
@@ -1547,6 +1565,8 @@
       },
       "do_not_use": [
         "claude-haiku-4-5",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "gemini-2.5-computer-use-preview-10-2025",
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",

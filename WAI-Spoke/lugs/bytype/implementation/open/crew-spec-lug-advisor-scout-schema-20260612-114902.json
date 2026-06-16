@@ -27,5 +27,6 @@
     "Spec indexed in WAI-SpecIndex.jsonl for grep-ability",
     "Schema validation enforces advisor_scout fields on affected lug types"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "updated_at": "2026-06-12T11:49:02.073477Z"
 }

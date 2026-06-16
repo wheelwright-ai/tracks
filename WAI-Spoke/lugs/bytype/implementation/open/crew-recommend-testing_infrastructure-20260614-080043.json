@@ -36,5 +36,6 @@
     "schedule-index.json has weekly entry for testing_infrastructure",
     "ozi scan_state team_coverage gap[domain=testing_infrastructure].proposal_status == 'provisioned'"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "updated_at": "2026-06-14T08:00:43.921740Z"
 }

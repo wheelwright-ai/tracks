@@ -42,5 +42,6 @@
     "what_this_is_NOT": "An instruction to execute automatically. Do not run migrations without user confirmation. Check existing schema before adding columns.",
     "processing_agent": "developer runs db:push after schema file is updated",
     "expected_outcome": "lines and lineEvents tables exist in Supabase; sessions and trackArtifacts have new columns"
-  }
+  },
+  "updated_at": "2026-03-25T09:31:01Z"
 }

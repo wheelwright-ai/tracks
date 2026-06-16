@@ -1,18 +1,18 @@
 {
-  "cached_at": "2026-06-15T09:37:21.199690+00:00",
+  "cached_at": "2026-06-16T09:37:21.681514+00:00",
   "ttl_hours": 24,
   "catalog": null,
   "fleet_chart": {
-    "generated_at": "2026-06-15T09:37:21.054204+00:00",
-    "spoke_count": 12,
-    "total_sessions": 72,
+    "generated_at": "2026-06-16T09:37:21.498763+00:00",
+    "spoke_count": 5,
+    "total_sessions": 16,
     "observations": [
       {
         "model_id": "claude-sonnet-4-6",
         "provider": "anthropic",
         "work_type": "coding",
         "complexity_band": null,
-        "sample_count": 35,
+        "sample_count": 9,
         "avg_quality_score": null,
         "avg_rework_rate": null,
         "avg_tokens_in": null,
@@ -24,108 +24,12 @@
         "provider": "anthropic",
         "work_type": "analysis",
         "complexity_band": null,
-        "sample_count": 18,
+        "sample_count": 5,
         "avg_quality_score": null,
         "avg_rework_rate": null,
         "avg_tokens_in": null,
         "avg_tokens_out": null,
-        "last_observed_at": "2026-06-06T23:22:02.867292+00:00"
-      },
-      {
-        "model_id": "claude-sonnet-4-6",
-        "provider": "anthropic",
-        "work_type": "planning",
-        "complexity_band": null,
-        "sample_count": 9,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-05-25T01:22:19.973772+00:00"
-      },
-      {
-        "model_id": "claude-sonnet-4-6",
-        "provider": "anthropic",
-        "work_type": "coding",
-        "complexity_band": "medium",
-        "sample_count": 2,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-04-17T03:39:05.070546+00:00"
-      },
-      {
-        "model_id": "gpt-5.4",
-        "provider": "openai",
-        "work_type": "maintenance",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-04-17T07:51:17.903288Z"
-      },
-      {
-        "model_id": "claude-sonnet-4-6",
-        "provider": "anthropic",
-        "work_type": "coding",
-        "complexity_band": "high",
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-04-30T00:31:04.392701+00:00"
-      },
-      {
-        "model_id": "claude-opus-4-7",
-        "provider": "anthropic",
-        "work_type": "refactoring",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-05-20T16:19:38.388738+00:00"
-      },
-      {
-        "model_id": "claude-opus-4-7",
-        "provider": "anthropic",
-        "work_type": "coding",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-05-20T22:20:56.357464+00:00"
-      },
-      {
-        "model_id": "claude-opus-4-7",
-        "provider": "anthropic",
-        "work_type": "planning",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-05-21T05:19:52.778342+00:00"
-      },
-      {
-        "model_id": "claude-opus-4-7",
-        "provider": "anthropic",
-        "work_type": "writing",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-05-21T16:50:21.473691+00:00"
+        "last_observed_at": "2026-05-24T18:02:33.196274+00:00"
       },
       {
         "model_id": "claude-sonnet-4-6",
@@ -153,8 +57,8 @@
       }
     ]
   },
-  "recommendations_pulled_at": "2026-06-15T09:37:21.199690+00:00",
-  "recommendations_valid_through": "2026-06-16T09:37:21.120671+00:00",
+  "recommendations_pulled_at": "2026-06-16T09:37:21.681514+00:00",
+  "recommendations_valid_through": "2026-06-17T09:37:21.584360+00:00",
   "usage_summary": {
     "limits_available": false,
     "entries": []

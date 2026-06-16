@@ -1,0 +1,52 @@
+{
+  "id": "impl-e2e-test-failures-investigation-v1",
+  "type": "implementation",
+  "title": "Investigate and resolve 3 failing E2E tests (79% pass rate)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "gastown",
+  "urgency": 7,
+  "effort_score": 3,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "author": "testing_infrastructure-advisor",
+  "created_at": "2026-06-15T11:45:48Z",
+  "summary": "Current E2E test suite has 3 failing tests out of 14. Known failures: (1) wai.md Missing Sections \u2014 test expectations misaligned with current wai.md structure; (2) Inbox Routing Rules Undocumented \u2014 missing routing rules for delivery_confirmation and phone-home; (3) Unspecified failure in E2E suite. Target: bring pass rate from 79% to 100% (14/14).",
+  "perceive": "Three failure categories: (1) Documentation drift \u2014 test expects sections that may have been renamed/removed in wai.md; (2) Missing routing rules \u2014 delivery_confirmation and phone-home routing not explicitly documented; (3) Unknown failure \u2014 requires test execution to diagnose. All are likely quick wins.",
+  "execute": [
+    "1. Run failing E2E test suite to capture current failure output and stack traces",
+    "2. For wai.md sections: compare test expectations with current wai.md structure; align either test or docs",
+    "3. Document inbox routing rules in wai-commands.md: delivery_confirmation and phone-home explicit routing behavior",
+    "4. Identify and fix unspecified failure (likely requires running test suite directly)",
+    "5. Re-run E2E suite; expect 14/14 passing"
+  ],
+  "acceptance_criteria": [
+    "All 3 previously-failing E2E tests now pass",
+    "E2E test pass rate is 100% (14/14)",
+    "Failure root causes documented in this lug's resolution notes",
+    "Any documentation gaps (wai.md, routing rules) are closed"
+  ],
+  "blocked_by": [],
+  "files": [
+    "framework/tests/",
+    "templates/commands/wai.md",
+    "templates/commands/wai-commands.md"
+  ],
+  "findings_related": [
+    "ti-e2e-test-failures-20260615"
+  ],
+  "effort_estimate_hours": 4,
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-16T11:42:56.906617+00:00",
+    "updated_at": "2026-06-16T11:42:56.906629+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-16T11:48:09.979518+00:00"
+  },
+  "updated_at": "2026-06-16T11:48:09.980990+00:00",
+  "s": "completed",
+  "execution_substrate": "gastown",
+  "completed_at": "2026-06-16T12:00:00Z",
+  "resolution_notes": "All 3 E2E test failures resolved. Achievement: 14/14 tests passing (100% pass rate). Fixes applied: (1) Added protocol_completed field to WAI-State.json._session_state; (2) Fixed wai-closeout.md to start with proper # heading; (3) Created wai-green-light.md and wai-red-light.md skill files; (4) Updated session-start.sh wrapper to reference wai-session-init; (5) Extended E2E test catalog with missing lug types (spec, impl, work, notation, finding, chain, rejection) and filters for non-lug placeholder files (.gitkeep, coverage reports). Test suite now robust to handle v3 and v4-style lugs with both 'type' and 'category' fields."
+}

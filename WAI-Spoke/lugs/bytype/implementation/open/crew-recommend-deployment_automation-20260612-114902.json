@@ -36,5 +36,6 @@
     "schedule-index.json has weekly entry for deployment_automation",
     "ozi scan_state team_coverage gap[domain=deployment_automation].proposal_status == 'provisioned'"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "updated_at": "2026-06-12T11:49:02.074139Z"
 }
