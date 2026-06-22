@@ -1,0 +1,48 @@
+{
+  "id": "task-historian-initial-sweep-tracks-v1",
+  "type": "task",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "from_spoke": "framework",
+  "originated_session": "session-20260525-2235",
+  "created_at": "2026-05-26T07:38:40.318605+00:00",
+  "completed_at": "2026-05-27T00:00:00Z",
+  "title": "Historian Initial Sweep \u2014 tracks",
+  "one_liner": "Run the Historian advisor's initial_sweep mode to build baseline theme coverage and pattern index for this spoke.",
+  "why_this_matters": "The initiative-theme tracking system requires each spoke's Historian to have a baseline sweep before theme imbalance patterns can fire accurately.",
+  "effort": "S",
+  "model_fit": "HAIKU",
+  "themes": [
+    "awareness"
+  ],
+  "perceive": {
+    "current_state": "Historian advisor exists but has not run initial_sweep mode. Theme coverage patterns (theme_coverage_gap, theme_imbalance_detected) are installed but have no baseline data.",
+    "gap": "Patterns will fire false positives until a sweep establishes baseline coverage."
+  },
+  "execute": {
+    "steps": [
+      "1. Confirm WAI-Spoke/advisors/historian/v1.0.0.yaml exists and contains theme_coverage_gap and theme_imbalance_detected patterns. If missing, copy from framework spoke or note the gap.",
+      "2. Scan WAI-Spoke/lugs/bytype/epic/ recursively \u2014 collect all epic JSON files. For each: extract id, title, status, themes[] array.",
+      "3. Build theme coverage map for the 7 themes (quality, growth, impact, enablement, performance, awareness, satisfaction): list active (open/in_progress) epic IDs per theme. Flag themes with 0 active epics as neglected.",
+      "4. Write WAI-Spoke/advisors/historian/initial-sweep-results.json with structure: { swept_at, spoke, total_epics_scanned, active_epics, theme_coverage: { <theme>: { active_epics: [...], count: N, neglected: bool } }, neglected_themes: [...], epics_missing_themes: [...], baseline_established: true }",
+      "5. Validate the JSON is parseable with: python3 -c \"import json; json.load(open('WAI-Spoke/advisors/historian/initial-sweep-results.json'))\"",
+      "6. Move this lug file to WAI-Spoke/lugs/bytype/task/completed/task-historian-initial-sweep-tracks-v1.json with status: completed and completed_at timestamp.",
+      "7. Commit: git add WAI-Spoke/advisors/historian/initial-sweep-results.json WAI-Spoke/lugs/bytype/task/ && git commit -m 'chore(historian): initial theme sweep results'"
+    ]
+  },
+  "verify": {
+    "done_when": [
+      "WAI-Spoke/advisors/historian/initial-sweep-results.json exists and is valid JSON",
+      "All 7 themes are represented in theme_coverage",
+      "baseline_established is true",
+      "Lug moved to bytype/task/completed/"
+    ]
+  },
+  "acceptance_criteria": [
+    "initial-sweep-results.json written with theme coverage map",
+    "No false-positive theme_imbalance findings after sweep"
+  ],
+  "target_files": [
+    "WAI-Spoke/advisors/historian/initial-sweep-results.json -- NEW"
+  ]
+}

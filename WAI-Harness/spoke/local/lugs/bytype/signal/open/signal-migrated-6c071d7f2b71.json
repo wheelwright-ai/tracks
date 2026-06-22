@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-6c071d7f2b71",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Provider-specific database clients should not sit behind a generic `DATABASE_URL",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.213166+00:00",
+  "timestamp": "2026-03-23T08:25:08Z",
+  "session_id": "session-20260322-2149",
+  "impact": 8,
+  "rationale": "This is a reusable backend integration pattern: if the product promises provider-agnostic Postgres via env configuration, the runtime DB client must also be provider-agnostic. Otherwise auth and ingestion failures appear as misleading connection errors.",
+  "by": "Codex (GPT-5)",
+  "description": "Provider-specific database clients should not sit behind a generic `DATABASE_URL` contract. The app was using Neon HTTP for all runtime databases, which broke Supabase with malformed URL translation. The runtime path now uses the standard `pg` driver through Drizzle, so Supabase, local Postgres, and plain Postgres URLs all follow the same code path.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

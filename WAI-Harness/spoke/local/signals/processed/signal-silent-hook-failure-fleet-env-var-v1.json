@@ -1,0 +1,15 @@
+{
+  "id": "signal-silent-hook-failure-fleet-env-var-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Silent hook failure across fleet: 16/18 spokes had broken hooks ($CLAUDE_PROJECT_DIR never resolved)",
+  "signal": "16/18 spokes had silently broken hooks ($CLAUDE_PROJECT_DIR never resolved by CC). Health check passed falsely. Fixed: env-var detection + Tender auto-heal. Fleet remediated in 5 seconds.",
+  "impact": 9,
+  "timestamp": "2026-03-31T17:40:00Z",
+  "session_id": "session-20260331-0911",
+  "created_by": "claude-opus-4-6",
+  "target": "all-spokes",
+  "roi": 3.0,
+  "updated_at": "2026-04-06T06:22:16Z",
+  "weight": 8
+}

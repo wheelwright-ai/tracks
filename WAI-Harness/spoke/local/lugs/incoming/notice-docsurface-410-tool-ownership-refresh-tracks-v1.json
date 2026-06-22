@@ -1,0 +1,27 @@
+{
+  "id": "notice-docsurface-410-tool-ownership-refresh-tracks-v1",
+  "type": "notice",
+  "status": "open",
+  "created_at": "2026-06-15T23:59:00+00:00",
+  "source_wheel_id": "basher",
+  "destination_wheel_id": "tracks",
+  "routed_to": "SPOKE/tracks",
+  "initiative": "harness-fleet-migration",
+  "in_reply_to": "signal-basher-410-cut-ready-fanout-v1",
+  "title": "Refresh active doc surface to harness 4.1.0 (tool-ownership author-vs-distribute rule)",
+  "model_fit": "haiku",
+  "perceive": "Harness master graduated to 4.1.0. Managed templates now carry the tool-ownership (author-vs-distribute) rule in templates/spoke/{AGENTS,CLAUDE}.md, claude/CLAUDE.md, codex/AGENTS.md, commands/wai-rules.md. Your live hooks were just refreshed to 4.1.0 by basher restore --live-hooks. Your active doc surface may still be pre.22.",
+  "execute": [
+    "1. On spin-up, pull-on-spin-up self-maintains managed/ -> confirm your managed/ is at 4.1.0.",
+    "2. Sync your active doc surface (root CLAUDE.md, AGENTS.md, .claude/commands/wai-rules.md) from managed 4.1.0 via your normal advisor sync (e.g. /wai-advisor or wai-health).",
+    "3. Preserve any spoke-local sections; this rule is additive (tool-ownership anti-pattern + author-vs-distribute lane)."
+  ],
+  "verify": "Active CLAUDE.md/AGENTS.md/wai-rules.md contain the tool-ownership author-vs-distribute rule; managed/ MANIFEST harness_version == 4.1.0.",
+  "acceptance_criteria": [
+    "managed/ at 4.1.0 confirmed",
+    "active doc surface carries tool-ownership rule",
+    "spoke-local sections preserved"
+  ],
+  "notes": "Hook bodies already deployed by basher. This lug covers the doc surface only (basher does not push existing spokes' CLAUDE.md per cross-spoke sovereignty). No action needed if your advisor already auto-synced.",
+  "delivered_at": "2026-06-15T23:59:00+00:00"
+}

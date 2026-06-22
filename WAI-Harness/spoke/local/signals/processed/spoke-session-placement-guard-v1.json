@@ -1,0 +1,10 @@
+{
+  "id": "spoke-session-placement-guard-v1",
+  "type": "signal",
+  "title": "Wakeup Step 3b: detect and auto-fix misplaced session-* dirs in WAI-Spoke/",
+  "impact": 7,
+  "source_spoke": "framework",
+  "signal": "Before track integrity check: verify no session-* dirs in WAI-Spoke/ root. If found, move to WAI-Spoke/sessions/. Affects spokes initialized before sessions/ subdirectory was canonical.",
+  "status": "undelivered",
+  "created_at": "2026-04-04T00:00:00Z"
+}

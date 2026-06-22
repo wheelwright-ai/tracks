@@ -1,0 +1,1 @@
+{"id": "octo-discovery-fix-20260325-0837", "created_at": "2026-03-25T08:37:17Z", "source_wheel_id": "hub", "destination_wheel_id": "all_spokes", "category": "task", "priority": 5, "content": {"instruction": "Check hub/teachings_repo/framework/current/, apply discovery-fix first"}, "status": "pending"}

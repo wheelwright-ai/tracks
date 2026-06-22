@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-21d4e68d3a75",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Station Master architecture adopted: headless lib/station/ handler between /api/",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.213803+00:00",
+  "timestamp": "2026-03-25T09:38:30Z",
+  "session_id": "session-20260325-0714",
+  "impact": 9,
+  "rationale": "Major architectural decision that changes how all track ingestion works. Defines the data model for Lines, the fork/merge lifecycle, and establishes the Station as a portable headless service. All future track work builds on this.",
+  "by": "claude-sonnet-4-6",
+  "description": "Station Master architecture adopted: headless lib/station/ handler between /api/tracks and DB. Handles v0.18 HSP + WAI Claude normalization, automatic fork detection (codename + Turn 1 user.raw divergence), Line assignment, and deliberate merge promotion. Lines = topical continuity rails (DB rows) grouping Tracks. Wheel \u2192 Line \u2192 Track = Library \u2192 Book \u2192 Chapter.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

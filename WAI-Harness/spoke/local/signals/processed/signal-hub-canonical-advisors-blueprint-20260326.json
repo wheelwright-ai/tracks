@@ -1,0 +1,43 @@
+{
+  "id": "signal-hub-canonical-advisors-blueprint-20260326",
+  "type": "signal",
+  "title": "Hub canonical advisors blueprint: Librarian + Gardener",
+  "description": "Every new hub should ship with two built-in advisors. LIBRARIAN (Step 1.5, hub-only): Runs after state load whenever WAI-Hub/Signals/incoming/ has signal files. Abstracts each signal into a reusable KB pattern \u2014 strips project-specific context, assigns category (architecture|testing|performance|security|workflow|tools|reference), stores at learnings/{category}/{pattern_id}.jsonl, maintains audit trail in learnings/audit.jsonl. Idempotent: duplicate signals merge source_signals list. GARDENER (Step 5.5, hub-only): Runs after briefing display. Scores all registered spokes 0-100 across 4 dimensions: registry completeness (35pts), session freshness (35pts), adoption rate (20pts), framework version (10pts). Step numbering convention: .5 suffix inserts hub-only steps without renumbering existing steps. All .5 steps gate on wheel.node_type == hub \u2014 skip silently on spoke nodes.",
+  "impact": 9,
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-03-27T19:26:00Z",
+  "session_id": "session-20260326-1926",
+  "rationale": "The hub is the only node that can evolve itself, but the framework needs blueprints so new hubs start with the same DNA. Built and validated in session 74 with 54 patterns across 16 wheels.",
+  "advisors": {
+    "Librarian": {
+      "step": "1.5",
+      "node_type": "hub",
+      "trigger": "WAI-Hub/Signals/incoming/ non-empty",
+      "output_path": "learnings/{category}/{pattern_id}.jsonl",
+      "state_path": "WAI-Spoke/advisors/Librarian/state.json",
+      "categories": [
+        "architecture",
+        "testing",
+        "performance",
+        "security",
+        "workflow",
+        "tools",
+        "reference"
+      ]
+    },
+    "Gardener": {
+      "step": "5.5",
+      "node_type": "hub",
+      "trigger": "every wakeup",
+      "output_path": "WAI-Spoke/advisors/Gardener/reports/health-{YYYYMMDD}.md",
+      "state_path": "WAI-Spoke/advisors/Gardener/state.json",
+      "scoring": {
+        "registry_completeness": 35,
+        "session_freshness": 35,
+        "adoption_rate": 20,
+        "framework_version": 10
+      }
+    }
+  },
+  "status": "delivered"
+}

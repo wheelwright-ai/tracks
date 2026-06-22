@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-8c26a4859490",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Anti-Hallucination Specification Pattern: Universal pattern for preventing AI in",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.212268+00:00",
+  "timestamp": "2026-02-21T00:00:00Z",
+  "session_id": "inbox-routing",
+  "impact": 10,
+  "rationale": "AI agents hallucinate implementation details when specifications are vague. This pattern eliminates drift by requiring explicit specification of everything.",
+  "by": "Framework spoke (routed from inbox)",
+  "description": "Anti-Hallucination Specification Pattern: Universal pattern for preventing AI interpretation drift. 7 required elements: exact file paths, exact function signatures, exact error behaviors, exact field lists, exact step order, validation questions, forbidden phrases. 4-layer validation framework: spec checksums, implementation tests, compliance report, cross-agent validation.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

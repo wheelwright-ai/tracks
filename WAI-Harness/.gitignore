@@ -1,24 +1,59 @@
-# WAI-Harness — always-clean invariant
+# WAI-Harness — v4 restore-safe tracking model (redressed S134)
 #
-# The tree is clean BY CONSTRUCTION:
-#   managed/  — tracked + MANIFEST-verified; changes ONLY via a verified upgrade.
-#   */local/  — every runtime-writable artifact the harness produces (sessions,
-#               runtime state, buffers, db, savepoints, bolts, kpi, …). Gitignored
-#               so no operation can ever dirty the tracked tree. Skeleton dirs are
-#               kept (.gitkeep) so the structure exists on a fresh checkout.
+# RESTORE-COMPLETENESS INVARIANT: a spoke MUST be fully reconstructible from
+# (git remote) + (basher managed restore) alone. Therefore every NON-regenerable
+# artifact lives in git: WAI-State.json, lugs/, WAI-LugIndex.jsonl, initiatives/
+# (incl. savepoints), signals/, pathgraph/, teachings/.
+# Only DERIVED / regenerable runtime is ignored (a tool re-creates it; never source).
+# managed/ stays tracked + MANIFEST-verified (integrity checks are managed-scoped,
+# so tracking local/ does not affect harness integrity/parity/upgrade verification).
 #
-# If a future write lands OUTSIDE local/ and dirties the tree, that is a bug in the
-# writer (it should target local/), not a reason to widen this ignore.
+# SUPERSEDES the prior blanket `spoke/local/** + hub/local/**` ignore, which made the
+# spoke's work-state unrestorable (empty brain after clone + basher restore).
 
-spoke/local/**
-hub/local/**
-!spoke/local/**/
-!hub/local/**/
-!**/.gitkeep
+# --- regenerable runtime (re-created by a tool; never source of truth) ---
+**/runtime/
+**/.autosave/
+**/*-brief.json
+**/.activated
+# session track history is telemetry (harvested by track-collector), not operational
+# state needed to restore-and-run; WAI-State.json holds the live session pointer.
+**/spoke/local/sessions/
+**/hub/local/sessions/
 
-# build / runtime artifacts (never source, non-deterministic)
+# advisor-derived scans / reports / queues (regenerated every run)
+**/advisors/*/scan_state.json
+**/advisors/*/scan_history.jsonl
+**/advisors/*/passes.jsonl
+**/advisors/*/vectors.jsonl
+**/advisors/*/findings-log.jsonl
+**/advisors/*/reports/
+**/advisors/octo/council_directives.json
+**/advisors/octo/hub_work_queue.json
+**/advisors/quartermaster/inventory.json
+**/octo/job-queue.jsonl
+**/octo/spoke-summaries/
+**/autopilot/wheel-activity.html
+**/autopilot/runs.jsonl
+# regenerable queues / indexes (rebuilt from lugs + initiatives)
+**/findings-log.jsonl
+**/schedule-index.json
+**/ready-queue.json
+# NOTE: advisor CONFIG is durable + tracked (feeds.yaml, context_prompt.md, definitions);
+# only the per-advisor scan_state/passes/vectors/findings/reports caches are ignored.
+
+# --- build / OS / secrets (never source) ---
 **/__pycache__/
-**/*.pyc
-**/*.pyo
+**/*.py[cod]
+**/*$py.class
 **/.pytest_cache/
+**/.ruff_cache/
 **/.DS_Store
+.venv/
+venv/
+ENV/
+env/
+**/.env.local
+**/.env.*.local
+**/.claude/settings.local.json
+**/.claude/.provider

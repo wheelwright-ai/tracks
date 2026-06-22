@@ -1,0 +1,15 @@
+{
+  "id": "signal-navigator-nightly-chain-operational-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "created_at": "2026-05-06T05:35:00Z",
+  "impact": 8,
+  "target": "spokes",
+  "title": "Navigator nightly chain operational — WAI-Spoke/advisors/navigator/ now populated on all active spokes",
+  "summary": "The hub now runs a 4-step Navigator nightly chain at 02:37 (after minder tender): catalog_refresh → cartographer_aggregate → recommendations_publish → spoke_sync. Every active spoke receives a fresh recommendations-current.json and catalog-cache.json (24h TTL) in WAI-Spoke/advisors/navigator/. Wakeup skills should read this file to surface the recommended model for the session's work type.",
+  "what_changed": "tools/navigator_nightly.sh wired to cron. First run: 5 providers (fallback), 13 models, fleet-chart 36 sessions, 7 recommendation profiles built, 13 spokes synced.",
+  "behavioral_implication": "Spokes can now read WAI-Spoke/advisors/navigator/recommendations-current.json at wakeup to get a Navigator-backed model recommendation. File is valid for 24h (check recommendations_valid_through in catalog-cache.json). If file is absent or stale, treat as silent — no error.",
+  "action_for_spokes": "Update wakeup skill to read recommendations-current.json and surface one line: Navigator: {model_id} for {profile} (score=X). See task-navigator-wakeup-integration-v1 delivered to framework for the spec.",
+  "data_location": "WAI-Spoke/advisors/navigator/recommendations-current.json (local copy, hub-synced nightly)",
+  "note_on_quality": "local_success_fit=0.5 on all profiles until Historian backfills quality scores. Recommendations are catalog-driven for now. Will improve as fleet observations accumulate and Historian scores them."
+}

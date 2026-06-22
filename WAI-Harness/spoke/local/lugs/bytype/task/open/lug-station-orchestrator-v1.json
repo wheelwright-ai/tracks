@@ -1,0 +1,43 @@
+{
+  "i": "lug-station-orchestrator-v1",
+  "t": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
+  "ty": "task",
+  "s": "o",
+  "ca": "2026-03-25T09:31:01Z",
+  "gb": "claude-sonnet-4-6",
+  "parent": "epic-station-master-lines-v1",
+  "seq": 6,
+  "impact": 8,
+  "tags": [
+    "station",
+    "orchestrator",
+    "ingest"
+  ],
+  "blocked_by": [
+    "lug-station-schema-v1",
+    "lug-station-normalize-v1",
+    "lug-station-fork-detector-v1",
+    "lug-station-line-manager-v1",
+    "lug-station-merge-handler-v1"
+  ],
+  "content": {
+    "file": "src/lib/station/index.ts",
+    "signature": "ingest(rawPayload: string | object, source: IngestSource, userId: string): Promise<StationReceipt>",
+    "flow": [
+      "1. normalize(rawPayload, source) \u2192 StationRecord[]",
+      "2. Extract session_header",
+      "3. fork-detector(codename, turn1Record) \u2192 forkResult",
+      "4. line-manager(header, forkResult) \u2192 lineId",
+      "5. Write session + records to DB",
+      "6. merge-handler(records, session) \u2192 mergeCandidates",
+      "7. Return StationReceipt"
+    ],
+    "receipt": "{ sessionId, lineId, forkId?, recordsStored, mergeCandidates[], ingestSource }"
+  },
+  "_behavior_directive": {
+    "what_this_is": "The orchestrator work item \u2014 wires all station modules together. TRACK in task graph, execute after all module tasks are complete.",
+    "what_this_is_NOT": "An instruction to execute automatically. Only file that touches DB directly; all business logic lives in the modules it calls.",
+    "processing_agent": "developer implements src/lib/station/index.ts",
+    "expected_outcome": "Single ingest() function that accepts raw payload and returns a typed StationReceipt"
+  }
+}

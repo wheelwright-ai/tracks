@@ -1,0 +1,21 @@
+{
+  "id": "refine-tracks-char-type",
+  "type": "task",
+  "title": "Add missing characteristic: type",
+  "status": "open",
+  "created_at": "2026-04-11T02:01:45.953458+00:00",
+  "updated_at": "2026-04-11T02:01:45.953458+00:00",
+  "source": "minder-gardener-characteristics-audit",
+  "urgency": "low",
+  "why_this_matters_now": "Spoke 'tracks' is missing the required characteristic 'type'. Gardener health score deducts points for each missing characteristic.",
+  "acceptance_criteria": [
+    "WAI-Spoke/WAI-State.json contains characteristics.type with a non-null value"
+  ],
+  "context": {
+    "spoke_type": "Hub Dashboard",
+    "required_for_type": [
+      "type",
+      "primary_language"
+    ]
+  }
+}

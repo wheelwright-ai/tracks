@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-5816b4888504",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Supabase direct DB host resolves IPv6 only \u2014 WSL2 cannot reach it. Always use th",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.213476+00:00",
+  "timestamp": "2026-03-24T05:00:00Z",
+  "session_id": "session-20260323-deploy-auth",
+  "impact": 8,
+  "rationale": "Direct connection silently hangs rather than failing fast. Pooler URL resolves IPv4 and works from WSL2. This applies to any Supabase project.",
+  "by": "Claude Code (claude-sonnet-4-6)",
+  "description": "Supabase direct DB host resolves IPv6 only \u2014 WSL2 cannot reach it. Always use the Session Pooler URL (aws-0-region.pooler.supabase.com:5432) for local dev on WSL2",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

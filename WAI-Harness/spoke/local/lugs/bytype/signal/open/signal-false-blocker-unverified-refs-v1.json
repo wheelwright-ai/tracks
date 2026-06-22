@@ -1,0 +1,13 @@
+{
+  "id": "signal-false-blocker-unverified-refs-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "False blocker pattern: blocked_by refs not verified at lug creation",
+  "signal": "False blocker pattern: impl lugs listed impl-lathe-spoke-scoring-v1 as blocked_by, but Lathe was already built (lathe_score.py existed, spoke_lathe.json populated). Blocked_by references are not verified at lug creation. Before treating a blocker as a gate, verify the blocking lug actually exists and is unresolved.",
+  "impact": 8,
+  "rationale": "Would have blocked Phase 2 compass/gardener work indefinitely if not caught during wakeup analysis.",
+  "source_session": "session-20260330-1255",
+  "by": "claude-sonnet-4-6",
+  "created_at": "2026-03-30T20:36:00Z",
+  "routed_to": "FRAMEWORK"
+}

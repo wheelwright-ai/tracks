@@ -1,0 +1,16 @@
+{
+  "id": "signal-db-keepalive-sidecar-v1",
+  "type": "signal",
+  "title": "Local-first spokes can offload Appwrite keepalive to a tiny Vercel sidecar",
+  "status": "undelivered",
+  "impact": 7,
+  "routed_to": "SIGNAL",
+  "created_at": "2026-04-09T00:00:00Z",
+  "created_by": "codex-gpt-5",
+  "context": "A spoke needed Appwrite database keepalive but the main app had to remain local for spoke-to-spoke lug delivery. Deploying the entire site to Vercel would have mixed operations concerns and exposed an unnecessary surface area.",
+  "symptom": "Need reliable internet-side keepalive for Appwrite or similar hosted databases, while the main application stays local-only.",
+  "fix": "Create a tiny standalone Vercel cron worker in a subdirectory. The worker pings Appwrite directly with an API key and CRON_SECRET, leaving the main app undeployed.",
+  "code": "tools/vercel-db-keepalive/api/keepalive.js + tools/vercel-db-keepalive/vercel.json",
+  "note": "This pattern generalizes to Supabase or other hosted databases: use a narrow sidecar deployment instead of promoting the full local-first app.",
+  "spoke": "nurturator"
+}

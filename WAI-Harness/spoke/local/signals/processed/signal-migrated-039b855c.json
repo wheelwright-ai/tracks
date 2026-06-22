@@ -1,0 +1,15 @@
+{
+  "id": "signal-migrated-039b855c",
+  "type": "signal",
+  "title": "GitHub Actions integration failures diagnosed: 126 lug status validation errors ",
+  "status": "delivered",
+  "created_at": "2026-03-18T11:38:00Z",
+  "created_by": "Claude Sonnet 4.5",
+  "impact": 8,
+  "rationale": "First comprehensive diagnosis of CI/CD failures affecting all pushes to main. Identifies schema drift between implementation and validation. Resolution unblocks green builds and establishes pattern for keeping tests in sync with schema evolution.",
+  "routed_to": "SIGNAL",
+  "_behavior_directive": {
+    "action": "track_only"
+  },
+  "migrated_from": "WAI-Signals.jsonl"
+}

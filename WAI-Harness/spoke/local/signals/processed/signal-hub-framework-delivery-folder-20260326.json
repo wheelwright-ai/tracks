@@ -1,0 +1,16 @@
+{
+  "id": "signal-hub-framework-delivery-folder-20260326",
+  "type": "signal",
+  "title": "Hub framework delivery folder: spokes deliver teachings via framework/teachings/",
+  "description": "Spokes can drop teachings for the framework into framework/teachings/ at the hub root. Hub wakeup should scan this folder and route findings: (1) surface new .teaching files in briefing as 'Framework-bound teachings from spokes', (2) move to teachings_repo/framework/current/ for inclusion in next framework distribution cycle, (3) update teachings_repo/framework/index.json with from_spoke + routed_at metadata, (4) archive original to framework/teachings/processed/. First instance: Basher spoke delivered BASHER_PLAIN TTY detection teaching via this path. This completes the upward teaching path: spoke \u2192 hub \u2192 framework (vs downward path: framework \u2192 hub \u2192 spokes).",
+  "impact": 8,
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-03-27T19:26:00Z",
+  "session_id": "session-20260326-1926",
+  "rationale": "The hub sits between spokes and the framework. Spokes should be able to contribute learnings upward to the framework. Without canonical handling, these files accumulate untracked and never reach the framework.",
+  "delivery_path": "framework/teachings/*.teaching",
+  "destination": "teachings_repo/framework/current/",
+  "index_to_update": "teachings_repo/framework/index.json",
+  "archive_path": "framework/teachings/processed/",
+  "status": "delivered"
+}

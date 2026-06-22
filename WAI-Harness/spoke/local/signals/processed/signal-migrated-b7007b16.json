@@ -1,0 +1,15 @@
+{
+  "id": "signal-migrated-b7007b16",
+  "type": "signal",
+  "title": "Teaching reconciliation protocol: Step 3a wakeup now auto-detects already-implem",
+  "status": "delivered",
+  "created_at": "2026-03-18T10:44:09.006577+00:00",
+  "created_by": "Claude Sonnet 4.5",
+  "impact": 8,
+  "rationale": "Solves fundamental usability issue affecting all spokes: hub teachings are immutable (can't be moved), so filename-based detection was insufficient. This protocol enables copy-on-reconcile pattern that works with canonical hub structure. Affects all future wakeups across all spokes.",
+  "routed_to": "SIGNAL",
+  "_behavior_directive": {
+    "action": "track_only"
+  },
+  "migrated_from": "WAI-Signals.jsonl"
+}

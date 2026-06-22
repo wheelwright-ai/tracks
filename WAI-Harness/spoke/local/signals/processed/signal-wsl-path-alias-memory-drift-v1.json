@@ -1,0 +1,15 @@
+{
+  "id": "signal-wsl-path-alias-memory-drift-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "WSL path alias /mnt/c/code/ creates silent duplicate AI memory contexts",
+  "summary": "When a project is opened via /mnt/c/code/ (Windows-side WSL mount) instead of /home/mario/projects/, Claude Code creates a separate project memory context keyed to the wrong path. The two contexts diverge silently — the /mnt/c/code/ copy accumulates stale state while the canonical /home/mario/projects/ copy receives updates. This has been observed across minder, basher, wheelwright-framework, and wheelwright-hub.",
+  "impact": 8,
+  "pattern": "WSL projects should always be opened via /home/mario/projects/ paths, never via /mnt/c/code/. All AI tools (Claude Code, Codex config.toml trust entries, any path-keyed memory) are affected.",
+  "fix_applied": "Replaced stale /mnt/c/code/ MEMORY.md files with redirect stubs pointing to canonical paths. Created feedback_canonical_paths.md memory entry to prevent recurrence.",
+  "recommendation": "Each spoke should audit ~/.claude/projects/ for -mnt-c-code-* directories and replace their MEMORY.md with redirect stubs. basher doctor global scope should flag /mnt/c/code/ entries in ~/.codex/config.toml trust list.",
+  "affects_spokes": ["minder", "basher", "wheelwright-framework", "wheelwright-hub", "pathfinder"],
+  "source_spoke": "minder",
+  "created_at": "2026-04-09T09:15:00Z",
+  "session": "S81"
+}

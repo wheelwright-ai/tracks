@@ -1,0 +1,15 @@
+{
+  "id": "signal-p11-lug-first-memory-20260322",
+  "type": "signal",
+  "title": "P11 Lug-First Memory: if work state is not in a lug, the next agent starts blind",
+  "description": "TaskCreate calls, scratch md files, and in-head state do not survive session ends. Only WAI-Lugs.jsonl is read on wakeup. All work state, subagent prompts, and handoff context must be in lugs.",
+  "impact": 9,
+  "created_by": "claude-sonnet-4-6",
+  "created_at": "2026-03-22T00:00:00Z",
+  "session_id": "YOUR-CURRENT-SESSION-ID",
+  "rationale": "Discovered when recovering an interrupted session \u2014 the only recoverable state was what had been put in lugs. TaskCreate entries and scratch files were gone. The principle was dogfooded via cold-start sub-agent before adoption.",
+  "routed_to": "SIGNAL",
+  "_behavior_directive": {
+    "action": "track_only"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "signal-glm-write-file-empty-args-v1",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "GLM generates empty write_file calls on complex content — loop guard added",
+  "body": "When GLM-4.5 or GLM-4.5-air is asked to write a file with complex content (large template files, multi-paragraph text with special characters), it frequently produces write_file tool calls with missing or empty arguments ({} instead of {path, content}). This causes the tool to return ERROR: 'path', and the model retries the same malformed call 20-50+ times per spoke, burning turns and budget without progress. Observed in S83 and S84 tender runs across framework, minder, basher, nurturator spokes. Root cause: GLM fails to encode complex strings into tool call JSON arguments. Mitigation added: tender.py now tracks consecutive write_file failures and injects a CORRECTION message after 3 consecutive misses, resetting the counter. This breaks the loop and prompts the model to try a different approach.",
+  "impact": 7,
+  "source_session": "session-20260409-S84",
+  "created_at": "2026-04-09T00:00:00Z",
+  "tags": ["glm", "tender", "model-quality", "tool-call-bug"]
+}

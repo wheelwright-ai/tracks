@@ -1,0 +1,46 @@
+{
+  "i": "lug-station-schema-v1",
+  "t": "Station Schema \u2014 lines, lineEvents, extend sessions + trackArtifacts",
+  "ty": "task",
+  "s": "o",
+  "ca": "2026-03-25T09:31:01Z",
+  "gb": "claude-sonnet-4-6",
+  "parent": "epic-station-master-lines-v1",
+  "seq": 1,
+  "impact": 8,
+  "tags": [
+    "station",
+    "schema",
+    "db"
+  ],
+  "blocks": [
+    "lug-station-normalize-v1",
+    "lug-station-fork-detector-v1",
+    "lug-station-line-manager-v1",
+    "lug-station-merge-handler-v1",
+    "lug-station-orchestrator-v1",
+    "lug-station-api-tracks-v1",
+    "lug-station-api-lines-v1"
+  ],
+  "blocked_by": [],
+  "content": {
+    "files": [
+      "src/lib/db/schema/index.ts",
+      "drizzle migration"
+    ],
+    "adds": {
+      "lines": "id(uuid), wheelId(text), label(text), status(active/archived/merged), createdAt, updatedAt",
+      "lineEvents": "id(uuid), lineId(FK), type(fork/merge/snapshot), forkId(uuid?), sourceSessionId, targetSessionId, payload(jsonb), createdAt"
+    },
+    "extends": {
+      "sessions": "lineId(FK\u2192lines), forkId(uuid?), codename(text), promptVersion(text), governanceMode(text?), ingestSource(live/pasted/uploaded)",
+      "trackArtifacts": "recordType(header/exchange/snapshot/manifest/provenance), artifactStatus(materialized/uploaded/referenced/described_only), artifactLifecycle(proposed/approved/blocked/deprecated)"
+    }
+  },
+  "_behavior_directive": {
+    "what_this_is": "A DB schema work item. TRACK and execute first \u2014 all other station tasks are blocked on this.",
+    "what_this_is_NOT": "An instruction to execute automatically. Do not run migrations without user confirmation. Check existing schema before adding columns.",
+    "processing_agent": "developer runs db:push after schema file is updated",
+    "expected_outcome": "lines and lineEvents tables exist in Supabase; sessions and trackArtifacts have new columns"
+  }
+}

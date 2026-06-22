@@ -1,0 +1,16 @@
+{
+  "id": "signal-migrated-027d9ad05236",
+  "type": "signal",
+  "status": "undelivered",
+  "title": "Browser-surface smoke coverage must follow the actual clicked user path, auth re",
+  "migrated_from_flat": true,
+  "migrated_at": "2026-04-05T03:10:05.212952+00:00",
+  "timestamp": "2026-03-23T02:33:44Z",
+  "session_id": "session-20260322-2149",
+  "impact": 8,
+  "rationale": "This is a reusable web-testing pattern. Build and route checks alone did not catch a user-visible auth/navigation failure; browser-surface smoke assertions materially improve reliability across web projects.",
+  "by": "Codex (GPT-5)",
+  "description": "Browser-surface smoke coverage must follow the actual clicked user path, auth redirects, and session state, not just build success or route availability. A newly added Login/Dashboard CTA passed build-level checks but failed immediately in real use because the redirect target and auth flow were wrong. Smoke coverage should assert the rendered CTA target, follow redirects, tolerate stale-session cookies, and exercise the sign-in path that a user actually clicks.",
+  "rescued_from_backup": true,
+  "rescued_at": "2026-03-26T03:10:12Z"
+}

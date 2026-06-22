@@ -1,0 +1,15 @@
+{
+  "id": "signal-lug-model-decomposition-haiku-default-v1",
+  "type": "signal",
+  "title": "Implementation lugs must declare model level; default Haiku; decompose until Haiku-executable",
+  "summary": "Task/bug/feature lugs must include a 'model' field (haiku | sonnet | opus). Default is haiku. Escalation to sonnet/opus requires explicit model_rationale. Before dispatch, lugs go through an improve pass at the same model level — not a higher one. A lug is Haiku-executable when: scope is 1-2 files, perceive steps are read-specific-paths, execute steps are change-specific-functions, and verify is a deterministic command. The improve step must validate this before the sub-agent is launched.",
+  "impact": 9,
+  "status": "undelivered",
+  "source_spoke": "minder",
+  "created_at": "2026-04-07T22:30:00Z",
+  "created_by": "session-79",
+  "rule": "Lugs declare model level. Haiku is default. Improve before dispatch. Test with same model.",
+  "why_it_matters": "Sub-agents inherited Sonnet by default because lugs had no model field. Mario's expectation is Haiku-first. This pattern applies to every spoke with sub-agent dispatch — it is a universal quality gate, not a per-spoke preference.",
+  "applies_to": "All spokes that dispatch implementation sub-agents",
+  "framework_lug": "task-fw-lug-haiku-decomposition-standard-v1 (in hub-outbox/FW-v2.0.130/)"
+}

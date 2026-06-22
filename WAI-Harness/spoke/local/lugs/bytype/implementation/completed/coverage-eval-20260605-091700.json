@@ -1,0 +1,35 @@
+{
+  "id": "coverage-eval-20260605-091700",
+  "type": "implementation",
+  "title": "Coverage eval \u2014 determine advisor needs from goals + recent concerns",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 8,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-05T09:17:00.395323Z",
+  "coverage_eval": true,
+  "perceive": "Re-determine what advisors this spoke has versus what its current goals and recent concerns require. Follow Ozi's Team Coverage Evaluation in WAI-Spoke/advisors/ozi/context_prompt.md. Roster: WAI-Spoke/advisors/registry.json. Hub scope patterns: {hub_path}/WAI-Hub/advisors/octo/advisor-recommendation-patterns.json.",
+  "execute": [
+    "1. Read WAI-Spoke/advisors/registry.json (roster + last_run_at) and WAI-Spoke/advisors/departments.json (active departments).",
+    "2. Read WAI-Spoke/WAI-State.json for project goals/identity and scan the last 30 open lugs' titles for recent concerns/keywords.",
+    "3. Read {hub_path}/WAI-Hub/advisors/octo/advisor-recommendation-patterns.json; match active scopes against each scope_trigger's detection_signals.",
+    "4. For each matched scope whose advisor_ids_to_check are absent from the roster, record a gap with domain + suggested template + priority + a one-line justification tied to the goal/concern that surfaced it.",
+    "5. Update WAI-Spoke/advisors/ozi/scan_state.json team_coverage: set last_coverage_eval_at=now (ISO8601), active_scopes, and gaps_detected[] (each gap proposal_status='pending', with a justification field).",
+    "6. Do NOT provision advisors here. Recommendations become user-review lugs on the next scouting pass."
+  ],
+  "verify": "team_coverage.last_coverage_eval_at updated to today; gaps_detected[] reflects the current roster-vs-goals analysis with a justification per gap; no advisor directories were created.",
+  "s": "completed",
+  "updated_at": "2026-06-05T09:19:53.995223+00:00",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-05T09:17:00.396504+00:00",
+    "updated_at": "2026-06-05T09:17:00.396512+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-05T09:19:53.994106+00:00"
+  }
+}
