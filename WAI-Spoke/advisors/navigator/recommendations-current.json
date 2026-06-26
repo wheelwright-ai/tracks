@@ -1,7 +1,7 @@
 {
   "schema_version": "1.4",
-  "generated_at": "2026-06-16T09:37:21.584360+00:00",
-  "valid_through": "2026-06-17T09:37:21.584360+00:00",
+  "generated_at": "2026-06-26T17:41:20.537435+00:00",
+  "valid_through": "2026-06-27T17:41:20.537435+00:00",
   "excluded_providers": [
     "deepseek",
     "kimi",
@@ -272,41 +272,42 @@
           "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8161,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7408,
           "dimension_scores": {
             "access_fit": 1.0,
-            "capability_fit": 0.7,
+            "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9844,
+            "cost_fit": 0.5833,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "economy": {
           "model_id": "gemini-2.5-flash",
           "provider": "gemini",
-          "score": 0.8913,
+          "score": 0.7713,
           "dimension_scores": {
-            "access_fit": 1.0,
+            "access_fit": 0.3,
             "capability_fit": 0.7,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
             "cost_fit": 0.9844,
-            "stability_fit": 1.0,
+            "stability_fit": 0.5,
             "freshness_risk": 1.0
           },
           "warnings": [
-            "no_local_data_yet"
+            "no_local_data_yet",
+            "provider_unreachable_last_scan"
           ],
           "cost_input_1m_usd": 0.075,
           "cost_output_1m_usd": 0.3
@@ -426,44 +427,44 @@
           "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8447,
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.8075,
           "dimension_scores": {
             "access_fit": 1.0,
-            "capability_fit": 0.9,
+            "capability_fit": 1.0,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
-            "speed_fit": 0.72,
-            "cost_fit": 0.9906,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "economy": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8892,
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.805,
           "dimension_scores": {
             "access_fit": 1.0,
-            "capability_fit": 0.9,
+            "capability_fit": 1.0,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
-            "speed_fit": 0.72,
-            "cost_fit": 0.9906,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
@@ -727,64 +728,64 @@
       },
       "api": {
         "quality": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.777,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.765,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9906,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8427,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7825,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9906,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "economy": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.9087,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8125,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9906,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
@@ -881,61 +882,62 @@
       },
       "api": {
         "quality": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.7767,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7567,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9844,
+            "cost_fit": 0.5833,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8411,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7408,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9844,
+            "cost_fit": 0.5833,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "economy": {
           "model_id": "gemini-2.5-flash",
           "provider": "gemini",
-          "score": 0.9063,
+          "score": 0.7863,
           "dimension_scores": {
-            "access_fit": 1.0,
+            "access_fit": 0.3,
             "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
             "cost_fit": 0.9844,
-            "stability_fit": 1.0,
+            "stability_fit": 0.5,
             "freshness_risk": 1.0
           },
           "warnings": [
-            "no_local_data_yet"
+            "no_local_data_yet",
+            "provider_unreachable_last_scan"
           ],
           "cost_input_1m_usd": 0.075,
           "cost_output_1m_usd": 0.3
@@ -1055,44 +1057,44 @@
           "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8427,
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.795,
           "dimension_scores": {
             "access_fit": 1.0,
-            "capability_fit": 0.8,
+            "capability_fit": 0.95,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
-            "speed_fit": 0.95,
-            "cost_fit": 0.9906,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "economy": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.9087,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.8125,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.8,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9906,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
@@ -1348,61 +1350,62 @@
       },
       "api": {
         "quality": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.7592,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7392,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.75,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9844,
+            "cost_fit": 0.5833,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8286,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.7283,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.75,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9844,
+            "cost_fit": 0.5833,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "economy": {
           "model_id": "gemini-2.5-flash",
           "provider": "gemini",
-          "score": 0.8988,
+          "score": 0.7788,
           "dimension_scores": {
-            "access_fit": 1.0,
+            "access_fit": 0.3,
             "capability_fit": 0.75,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
             "cost_fit": 0.9844,
-            "stability_fit": 1.0,
+            "stability_fit": 0.5,
             "freshness_risk": 1.0
           },
           "warnings": [
-            "no_local_data_yet"
+            "no_local_data_yet",
+            "provider_unreachable_last_scan"
           ],
           "cost_input_1m_usd": 0.075,
           "cost_output_1m_usd": 0.3
@@ -1522,44 +1525,44 @@
           "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.8302,
+          "model_id": "claude-fable-5",
+          "provider": "anthropic",
+          "score": 0.7825,
           "dimension_scores": {
             "access_fit": 1.0,
-            "capability_fit": 0.75,
+            "capability_fit": 0.9,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
-            "speed_fit": 0.95,
-            "cost_fit": 0.9906,
+            "speed_fit": 0.7,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "economy": {
-          "model_id": "gemini-2.5-flash",
-          "provider": "gemini",
-          "score": 0.9012,
+          "model_id": "claude-haiku-4-5-20251001",
+          "provider": "anthropic",
+          "score": 0.805,
           "dimension_scores": {
             "access_fit": 1.0,
             "capability_fit": 0.75,
             "local_success_fit": 0.5,
             "rework_risk": 0.5,
             "speed_fit": 0.95,
-            "cost_fit": 0.9906,
+            "cost_fit": 0.75,
             "stability_fit": 1.0,
             "freshness_risk": 1.0
           },
           "warnings": [
             "no_local_data_yet"
           ],
-          "cost_input_1m_usd": 0.075,
-          "cost_output_1m_usd": 0.3
+          "cost_input_1m_usd": null,
+          "cost_output_1m_usd": null
         },
         "_note": "Pay-per-token. 'quality'=best capability, 'balanced'=value pick, 'economy'=cheapest viable."
       },
@@ -1614,12 +1617,13 @@
       },
       "gemini": {
         "model_id": "gemini-2.5-flash",
-        "composite_score": 0.7417,
+        "composite_score": 0.5867,
         "qualify_score": 1.0,
         "qualify_status": "tested",
         "cost_input_1m_usd": 0.075,
         "warnings": [
-          "no_local_data_yet"
+          "no_local_data_yet",
+          "provider_unreachable_last_scan"
         ]
       }
     },
@@ -1636,12 +1640,13 @@
       },
       "gemini": {
         "model_id": "gemini-2.5-flash",
-        "composite_score": 0.8005,
+        "composite_score": 0.6455,
         "qualify_score": 1.0,
         "qualify_status": "tested",
         "cost_input_1m_usd": 0.075,
         "warnings": [
-          "no_local_data_yet"
+          "no_local_data_yet",
+          "provider_unreachable_last_scan"
         ]
       }
     },
@@ -1670,12 +1675,13 @@
       },
       "gemini": {
         "model_id": "gemini-2.5-flash",
-        "composite_score": 0.777,
+        "composite_score": 0.622,
         "qualify_score": 1.0,
         "qualify_status": "tested",
         "cost_input_1m_usd": 0.075,
         "warnings": [
-          "no_local_data_yet"
+          "no_local_data_yet",
+          "provider_unreachable_last_scan"
         ]
       }
     },
@@ -1692,12 +1698,13 @@
       },
       "gemini": {
         "model_id": "gemini-2.5-flash",
-        "composite_score": 0.7767,
+        "composite_score": 0.6217,
         "qualify_score": 1.0,
         "qualify_status": "tested",
         "cost_input_1m_usd": 0.075,
         "warnings": [
-          "no_local_data_yet"
+          "no_local_data_yet",
+          "provider_unreachable_last_scan"
         ]
       }
     },
@@ -1714,12 +1721,13 @@
       },
       "gemini": {
         "model_id": "gemini-2.5-flash",
-        "composite_score": 0.777,
+        "composite_score": 0.622,
         "qualify_score": 1.0,
         "qualify_status": "tested",
         "cost_input_1m_usd": 0.075,
         "warnings": [
-          "no_local_data_yet"
+          "no_local_data_yet",
+          "provider_unreachable_last_scan"
         ]
       }
     },
@@ -1746,12 +1754,13 @@
       },
       "gemini": {
         "model_id": "gemini-2.5-flash",
-        "composite_score": 0.7592,
+        "composite_score": 0.6042,
         "qualify_score": 1.0,
         "qualify_status": "tested",
         "cost_input_1m_usd": 0.075,
         "warnings": [
-          "no_local_data_yet"
+          "no_local_data_yet",
+          "provider_unreachable_last_scan"
         ]
       }
     },
@@ -1768,12 +1777,13 @@
       },
       "gemini": {
         "model_id": "gemini-2.5-flash",
-        "composite_score": 0.7595,
+        "composite_score": 0.6045,
         "qualify_score": 1.0,
         "qualify_status": "tested",
         "cost_input_1m_usd": 0.075,
         "warnings": [
-          "no_local_data_yet"
+          "no_local_data_yet",
+          "provider_unreachable_last_scan"
         ]
       }
     }
