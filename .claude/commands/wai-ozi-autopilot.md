@@ -1,4 +1,5 @@
 # WAI Ozi Autopilot — Spoke-Side Invocation Skill
+> Fast path: load `wai-ozi-autopilot-slim.md` first. Load this file only when deep protocol is needed.
 
 ## ENTRY
 
@@ -14,21 +15,30 @@ Use this skill when you want to run the Ozi Autopilot on a spoke manually, inspe
 
 ## STEP 1 — Invoke Autopilot
 
-**Preferred (via spoke wrapper):**
+**Canonical invocation (via Basher):**
 
 ```bash
-./tools/run_autopilot.sh
+basher autopilot
 ```
 
-`run_autopilot.sh` resolves the framework path from WAI-State.json and forwards all args to `ozi_autopilot.py`. Use this unless the wrapper is missing.
-
-**Direct (framework path required):**
+`basher autopilot` dispatches `scripts/autopilot.sh` from the basher area, which resolves
+`wheel.framework_path` (or derives it from `wheel.hub_path`) in `WAI-State.json`, then calls:
 
 ```bash
-python3 {framework_path}/tools/ozi_autopilot.py --spoke-path .
+PYTHONUNBUFFERED=1 python3 {fw}/tools/ozi_autopilot.py --spoke-path {spoke_root}
 ```
 
-Where `{framework_path}` is the value of `.wheel.framework_path` in `WAI-Spoke/WAI-State.json`.
+Live output is streamed directly — no capture, no wrappers. Basher handles all path resolution
+internally. **No per-spoke `run_autopilot.sh` wrapper exists or is needed** — that pattern was
+considered but never implemented. `basher autopilot` is the only supported invocation path.
+
+**Direct (when basher is unavailable):**
+
+```bash
+python3 {harness_path}/tools/ozi_autopilot.py --spoke-path .
+```
+
+Where `{harness_path}` is the value of `.wheel.harness_path` in `WAI-Spoke/WAI-State.json`.
 
 **Flags:**
 
@@ -46,16 +56,16 @@ Where `{framework_path}` is the value of `.wheel.framework_path` in `WAI-Spoke/W
 
 ```bash
 # Standard run — up to 3 lugs
-./tools/run_autopilot.sh
+basher autopilot
 
 # Dry run — see what would be dispatched without doing it
-./tools/run_autopilot.sh --dry-run
+basher autopilot --dry-run
 
 # Larger batch
-./tools/run_autopilot.sh --budget 6
+basher autopilot --budget 6
 
 # Check queue with scouting
-./tools/run_autopilot.sh --dry-run --advisor-scouting
+basher autopilot --dry-run --advisor-scouting
 ```
 
 ---
@@ -75,9 +85,13 @@ Autopilot emits a JSON summary to stdout. Key fields:
     "phase_0_assess": "ok: ready=N, ...",  // State assessment result
     "phase_1_teachings": "stub",           // Stub — teachings not yet wired
     "phase_2_signals": "ok: cleared=0",   // Signal triage result
-    "phase_3_execute": "ok: dispatched=N" // Lug execution result (or "error: ...")
+    "phase_3_execute": "ok: dispatched=N", // Lug execution result (or "error: ...")
+    "phase_4_commit": "stub",              // Stub — not yet implemented
+    "phase_5_closeout": "ok: sha=abc1234" // Activity log + scan_state + git commit
   },
-  "errors": []                             // Non-empty means something failed
+  "errors": [],                            // Non-empty means something failed
+  "generated_at": "2026-...",
+  "dry_run": false
 }
 ```
 
@@ -147,3 +161,23 @@ View last run summary:
 ```bash
 python3 -c "import json; d=json.load(open('WAI-Spoke/advisors/autopilot/scan_state.json')); print(json.dumps(d.get('last_run_summary'), indent=2))"
 ```
+
+---
+
+## Advisor Expedition Closeout Steps
+
+After each advisor expedition completes, the advisor must:
+
+1. **Write reflection_latest.json** — Summarize findings, scout performance, and observations from the expedition
+2. **Compute and write wilbur_kpi_report.json** — Using schema from spec-advisor-wilbur-kpi-rollup-v1, compute KPI metrics and set `meets_wilbur_expectations` based on thresholds. Store at `WAI-Spoke/advisors/{advisor_id}/wilbur_kpi_report.json`
+
+The wilbur_kpi_report fields:
+- `coverage_score` — from coverage_taxonomy.yaml overall_coverage_score
+- `findings_per_run` — count of findings filed this expedition
+- `false_positive_rate` — false_positives / total_findings
+- `p1_dimensions_at_target` — all P1 dimensions have coverage >= 0.75
+- `reflections_current` — reflection_latest.json is newer than expedition_log
+- `budget_efficiency` — findings / time_used_seconds * 60 (or null if no LLM cost)
+- `meets_wilbur_expectations` — true if all thresholds met: coverage_score >= 0.60, false_positive_rate <= 0.30, findings_per_run >= 1, reflections_current, p1_dimensions_at_target
+
+This report feeds Wilbur's nightly scan and surfaces advisor health in the fleet health dashboard.

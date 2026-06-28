@@ -1,87 +1,9 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/mario/projects/wheelwright/tracks/WAI-Spoke/_hooks/session-start.sh"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/user-prompt-submit.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/pre-tool-guard.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/stop-test-runner.sh"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/mario/projects/wheelwright/tracks/.claude/hooks/pre-compact.sh"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "deny": [
+      "Bash(rm -rf /)",
       "Bash(git push --force*)",
-      "Bash(git push -f*)",
-      "Bash(rm -rf /)"
-    ],
-    "allow": [
-      "Bash(*~/projects/*)",
-      "Bash(*~/.claude/*)",
-      "Bash(git *)",
-      "Bash(python3 *)",
-      "Bash(date *)",
-      "Bash(test *)",
-      "Bash(which *)",
-      "Bash(echo *)",
-      "Bash(pwd)",
-      "Bash(sleep *)",
-      "Bash(kill *)",
-      "Bash(crontab *)",
-      "Write(*)",
-      "Read(*)",
-      "Edit(*)",
-      "Glob(*)",
-      "Grep(*)",
-      "Skill(*)",
-      "Agent(*)"
+      "Bash(git push -f*)"
     ]
   },
   "statusLine": {

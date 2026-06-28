@@ -1,7 +1,9 @@
 # Claude Code Instructions
 
 **This project uses Wheelwright (WAI) for AI session continuity.**
-Read `AGENTS.md` for universal WAI instructions. This file covers Claude Code specifics.
+Read `AGENTS.md` for universal WAI instructions and key paths. This file covers Claude Code specifics.
+
+**Two-way reference:** AGENTS.md is the universal bootstrap; CLAUDE.md layers IDE-specific rules on top.
 
 ## Wakeup (MANDATORY — First Turn)
 

@@ -47,6 +47,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import wai_paths  # noqa: E402  harness-mode-aware path resolver
+
 DEFAULT_FRESHNESS_DAYS = 30
 
 _CHECKBOX = re.compile(r"^\s*\[([x~ ])\]\s*(AC\d+)?", re.IGNORECASE)
@@ -113,30 +116,46 @@ def _test_fresh(test, lug, now, freshness_days):
     return (now - ts) <= freshness_days * 86400
 
 
-def _closing_entries(ac_id, lugs):
+def _closing_entries(ac_id, lugs, epic_id=None):
     """All (lug, coverage, pending) where a COMPLETED lug closes ac_id via
-    closes_epic_acs (string entry = sugar for coverage:full)."""
+    closes_epic_acs (string entry = sugar for coverage:full).
+
+    EPIC-SCOPED (collision guard): AC ids are unique only WITHIN an epic — v3 and v4
+    both have an 'AC1'. A lug's entry credits epic_id ONLY if its scope matches:
+    entry['epic'] if the entry names one, else the lug's parent_epic. Without this,
+    a lug closing v4 AC1 would also credit v3 AC1 (observed S45). epic_id=None keeps
+    the legacy global match (back-compat for single-epic callers)."""
     out = []
     for lug in lugs:
         if lug.get("status") != "completed":
             continue
         for entry in lug.get("closes_epic_acs") or []:
             if isinstance(entry, str):
-                ac_field, cov, pending = entry, "full", None
+                ac_field, cov, pending, entry_epic = entry, "full", None, None
             elif isinstance(entry, dict):
                 ac_field = entry.get("ac", "")
                 cov = entry.get("coverage", "full")
                 pending = entry.get("pending")
+                entry_epic = entry.get("epic")
             else:
                 continue
-            if _ac_token(ac_field) == ac_id:
-                out.append((lug, cov, pending))
+            if _ac_token(ac_field) != ac_id:
+                continue
+            # Epic scope: exclude ONLY on a positive mismatch. A lug whose scope
+            # (entry.epic, else parent_epic) names a DIFFERENT epic does not credit
+            # this one (collision guard). A lug with no scope falls back to the
+            # legacy global token match (back-compat for single-epic callers/fixtures).
+            if epic_id is not None:
+                scope = entry_epic or lug.get("parent_epic") or lug.get("epic")
+                if scope is not None and scope != epic_id:
+                    continue
+            out.append((lug, cov, pending))
     return out
 
 
-def evidence_for(ac_id, lugs, now, freshness_days=DEFAULT_FRESHNESS_DAYS):
-    """Return (evidence_status, closing_lug_ids, pending[]) for one AC."""
-    closing = _closing_entries(ac_id, lugs)
+def evidence_for(ac_id, lugs, now, freshness_days=DEFAULT_FRESHNESS_DAYS, epic_id=None):
+    """Return (evidence_status, closing_lug_ids, pending[]) for one AC of epic_id."""
+    closing = _closing_entries(ac_id, lugs, epic_id)
     if not closing:
         return "none", [], []
     pendings = []
@@ -193,7 +212,8 @@ def reconcile_acs(epic, lugs, now=None, freshness_days=DEFAULT_FRESHNESS_DAYS):
                              "drift_kind": "unparsed", "closing_lugs": [],
                              "pending": [], "proposed_checkbox": None})
             continue
-        evidence, closing, pending = evidence_for(ac_id, lugs, now, freshness_days)
+        evidence, closing, pending = evidence_for(
+            ac_id, lugs, now, freshness_days, epic_id=epic.get("id"))
         kind = classify_drift(checkbox, evidence)
         proposed = {"full": "[x]", "partial": "[~]", "none": "[ ]"}[evidence]
         verdicts.append({
@@ -257,8 +277,15 @@ def apply_reconciliation(epic, verdicts, applied_by="unknown", now_iso=None):
 # --- spoke scans ------------------------------------------------------------
 
 def _spoke(spoke_path):
+    """Resolve the active working base by harness mode: v3 -> <root>/WAI-Spoke,
+    v4-only -> <root>/WAI-Harness/spoke/local. Hardcoding WAI-Spoke made this
+    silently scan a non-existent path (no drift found) on a v4-only spoke
+    post-v3-retirement (cutover-blocker I-5)."""
     p = Path(spoke_path)
-    return p if p.name == "WAI-Spoke" else (p / "WAI-Spoke")
+    if p.name == "WAI-Spoke":
+        return p
+    base, _ = wai_paths.resolve_wai_root(str(p))
+    return Path(base) if base else (p / "WAI-Spoke")
 
 
 def _load_all_lugs(spoke):

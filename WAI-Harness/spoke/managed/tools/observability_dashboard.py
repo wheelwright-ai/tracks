@@ -46,6 +46,35 @@ ATTENTION_WINDOW_SECONDS = 24 * 3600
 # severity weights feeding priority = severity * (1 + age_days)
 SEVERITY = {"escalation": 5, "rollback": 4, "stalled": 3, "sign_off": 3, "needs_you": 2}
 
+# the "what needs ME" lens: every attention item is classified human (only the user
+# can resolve it — a gate, sign-off, decision, escalation, cross-spoke coordination)
+# vs automatable (an agent can run it — a stalled lug with a model fit, a self-heal
+# rollback). The human bucket IS "what needs me"; the automatable bucket is pipeline
+# visibility, not the user's to-do.
+_HUMAN_SIGNALS = ("human", "mario", "cutover", "teardown", "sign-off", "sign off",
+                  "signoff", "activation", "activate", "decision", "approve",
+                  "your call", "human_gate", "needs_human")
+
+
+def classify_disposition(severity_key, reason="", lug=None):
+    """Return 'human' or 'automatable' for an attention item."""
+    text = str(reason or "").lower()
+    if severity_key in ("sign_off", "escalation", "needs_you"):
+        return "human"
+    if severity_key == "rollback":
+        return "automatable"            # auto-rollback is the system self-healing
+    if lug is not None:
+        if lug.get("human_gate") or lug.get("needs_human"):
+            return "human"
+        bb = " ".join(str(x) for x in (lug.get("blocked_by") or []))
+        if any(k in bb.lower() for k in _HUMAN_SIGNALS):
+            return "human"
+        if lug.get("model_fit") and lug.get("execution_mode"):
+            return "automatable"        # carries a model fit + run mode -> agent can do it
+    if any(k in text for k in _HUMAN_SIGNALS):
+        return "human"
+    return "automatable"
+
 # lifecycle event_types that warrant the user's attention, mapped to a severity key
 LIFECYCLE_ATTENTION = {
     "auto_rolled_back": "rollback",
@@ -57,8 +86,37 @@ LIFECYCLE_ATTENTION = {
 
 
 def _spoke(spoke_path):
+    """Resolve the spoke WORKING BASE, base-aware. On a v4 spoke this routes to
+    WAI-Harness/spoke/local instead of the nonexistent WAI-Spoke tree, so the
+    surfaces read live lugs/sessions/savepoints (impl-fix-p2-v3noop-sweep-v1)."""
     p = Path(spoke_path)
-    return p if p.name == "WAI-Spoke" else (p / "WAI-Spoke")
+    if p.name in ("WAI-Spoke", "local"):
+        return p
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import wai_paths
+        root, mode = wai_paths.resolve_wai_root(str(p))
+        if root and mode != "none":
+            return Path(root)
+    except Exception:
+        pass
+    return p / "WAI-Spoke"  # last-resort v3 fallback
+
+
+def _advisors_root(spoke):
+    """Advisors are the one category NOT under the working base. In v4 they live at
+    WAI-Harness/spoke/advisors (sibling of local); in v3 at WAI-Spoke/advisors."""
+    if spoke.name == "local" and spoke.parent.name == "spoke":
+        return spoke.parent / "advisors"
+    return spoke / "advisors"
+
+
+def _managed_root(spoke):
+    """managed/ (harness.db) is a sibling of the working base in v4
+    (WAI-Harness/spoke/managed); under WAI-Spoke in v3."""
+    if spoke.name == "local" and spoke.parent.name == "spoke":
+        return spoke.parent / "managed"
+    return spoke / "managed"
 
 
 def _parse_ts(s):
@@ -149,7 +207,7 @@ def build_now_surface(spoke, now_epoch):
                 lug_files.extend(fs)
 
     advisors = []
-    advisor_states = glob.glob(str(spoke / "advisors" / "*" / "scan_state.json"))
+    advisor_states = glob.glob(str(_advisors_root(spoke) / "*" / "scan_state.json"))
     for f in sorted(advisor_states):
         try:
             d = json.loads(Path(f).read_text())
@@ -206,7 +264,7 @@ def build_now_surface(spoke, now_epoch):
 
 # --- attention surface ------------------------------------------------------
 
-def _attention_item(source, subject_ref, severity_key, reason, item_ts, now_epoch):
+def _attention_item(source, subject_ref, severity_key, reason, item_ts, now_epoch, lug=None):
     severity = SEVERITY.get(severity_key, 1)
     age = max(0.0, now_epoch - item_ts) if item_ts is not None else 0.0
     age_days = age / 86400.0
@@ -218,6 +276,7 @@ def _attention_item(source, subject_ref, severity_key, reason, item_ts, now_epoc
         "reason": reason,
         "age_seconds": age,
         "priority": round(severity * (1 + age_days), 4),
+        "disposition": classify_disposition(severity_key, reason, lug),
         "_ts": item_ts,
     }
 
@@ -229,7 +288,7 @@ def build_attention_surface(spoke, now_epoch):
     # (a) advisor lifecycle: rollbacks / escalations / degradations, windowed to
     # the last 24h and deduped to the most-recent event per (advisor, type) so the
     # 400+-deep rollback history cannot flood "what needs me now".
-    lifecycle = spoke / "advisors" / "lifecycle.jsonl"
+    lifecycle = _advisors_root(spoke) / "lifecycle.jsonl"
     if lifecycle.exists():
         latest = {}
         try:
@@ -281,7 +340,7 @@ def build_attention_surface(spoke, now_epoch):
                 reason = (lug.get("needs_attention") if isinstance(lug.get("needs_attention"), str)
                           else f"autopilot stalled ({failures} failures)")
                 items.append(_attention_item(
-                    "lug", lug.get("id") or Path(f).stem, "stalled", reason, ts, now_epoch))
+                    "lug", lug.get("id") or Path(f).stem, "stalled", reason, ts, now_epoch, lug=lug))
 
     # (c) human-gate / sign-off items: active|pending savepoints with an unresolved
     # human gate, and any open lug flagged human_gate truthy
@@ -303,11 +362,47 @@ def build_attention_surface(spoke, now_epoch):
                     "savepoint", sp.get("id") or Path(f).stem, "sign_off",
                     g.get("gate") or "human sign-off required", ts, now_epoch))
 
+    # (d) human-action work: open/in_progress + incoming lugs explicitly flagged
+    # human (human_gate / needs_human / blocked-by-human/cutover/activation). These
+    # are work ONLY the user can resolve — they belong on "what needs me", not the
+    # automatable pipeline. Targeted (flagged-only) so it cannot flood.
+    seen_human = set()
+    human_globs = [str(spoke / "lugs" / "bytype" / t / s / "*.json")
+                   for t in LUG_TYPES for s in QUEUE_STATUSES]
+    human_globs.append(str(spoke / "lugs" / "incoming" / "*.json"))
+    for g in human_globs:
+        for f in glob.glob(g):
+            try:
+                lug = json.loads(Path(f).read_text())
+            except (OSError, json.JSONDecodeError):
+                continue
+            lid = lug.get("id") or Path(f).stem
+            if lid in seen_human:
+                continue
+            bb = " ".join(str(x) for x in (lug.get("blocked_by") or []))
+            human = (lug.get("human_gate") or lug.get("needs_human")
+                     or any(k in bb.lower() for k in _HUMAN_SIGNALS))
+            if not human:
+                continue
+            seen_human.add(lid)
+            ts = _parse_ts(lug.get("updated_at") or lug.get("created_at"))
+            if ts is not None and (source_ts is None or ts > source_ts):
+                source_ts = ts
+            items.append(_attention_item(
+                "lug", lid, "needs_you",
+                f"human action: {lug.get('title') or lid}", ts, now_epoch, lug=lug))
+
     items.sort(key=lambda i: i["priority"], reverse=True)
+    needs_you = [i for i in items if i["disposition"] == "human"]
+    automatable = [i for i in items if i["disposition"] == "automatable"]
     return {
         "items": items,
         "count": len(items),
-        "overloaded": len(items) > ATTENTION_MAX_DEPTH,
+        "needs_you": needs_you,           # the "what needs ME" bucket (human-only)
+        "automatable": automatable,       # pipeline visibility, not the user's to-do
+        "needs_you_count": len(needs_you),
+        "automatable_count": len(automatable),
+        "overloaded": len(needs_you) > ATTENTION_MAX_DEPTH,
         "max_depth": ATTENTION_MAX_DEPTH,
         "_source_ts": source_ts,
     }
@@ -321,7 +416,7 @@ def build_on_track_surface(spoke, now_epoch):
     - that is the honest signal, not a hidden gap."""
     tests = {"pass": 0, "fail": 0, "null": 0, "total": 0}
     source_ts = None
-    db = spoke / "managed" / "harness.db"
+    db = _managed_root(spoke) / "harness.db"
     if db.exists():
         try:
             import sqlite3
@@ -396,7 +491,8 @@ def build_dashboard(spoke_path=".", now_ts=None):
     questions = {
         "what_is_happening": {"surface": "now", "answerable": now_s["freshness"]["fresh"]},
         "is_it_on_track": {"surface": "on_track", "answerable": on_track["freshness"]["fresh"]},
-        "what_needs_me": {"surface": "attention", "answerable": attention["freshness"]["fresh"]},
+        "what_needs_me": {"surface": "attention", "bucket": "needs_you",
+                          "answerable": attention["freshness"]["fresh"]},
     }
     defects = [name for name, q in questions.items() if not q["answerable"]]
 
@@ -454,9 +550,14 @@ def render(dashboard):
     lines.append(f"  test pass_rate: {cert['pass_rate']}  (results={cert['test_results']['total']})  | completed_7d: {ot['completed_last_7d']}")
 
     att = dashboard["surfaces"]["attention"]
-    overload = "  *** ATTENTION OVERLOADED (P1) ***" if att["overloaded"] else ""
-    lines.append(f"\nWHAT NEEDS ME (attention): {att['count']} item(s){badge(att)}{overload}")
-    for it in att["items"][:10]:
+    overload = "  *** OVERLOADED (P1) ***" if att["overloaded"] else ""
+    lines.append(f"\nWHAT NEEDS ME — human-only ({att['needs_you_count']}){badge(att)}{overload}")
+    for it in att["needs_you"][:10]:
+        lines.append(f"  [{it['priority']:>6}] {it['source']}/{it['subject_ref']}: {it['reason']}")
+    if not att["needs_you"]:
+        lines.append("  (nothing requires you right now)")
+    lines.append(f"\nPIPELINE — automatable ({att['automatable_count']}, agent-handled, not your to-do)")
+    for it in att["automatable"][:5]:
         lines.append(f"  [{it['priority']:>6}] {it['source']}/{it['subject_ref']}: {it['reason']}")
 
     if dashboard["observability_defects"]:

@@ -1,8 +1,8 @@
-# WAI Track v0.39
+# WAI Track v1.0.2
 
 Session governance protocol — per-turn JSONL ledger, behavioral overlays, and export format.
 
-**Spec source:** `WAI-Spoke/reference/wai-track-v0.39.yaml`  
+**Spec source:** `WAI-Spoke/reference/wai-track-v1.0.2.yaml`  
 **TasteGraph override:** load `WAI-Spoke/tastegraph.json` — overrides embedded defaults
 
 ---
@@ -36,8 +36,8 @@ The Stop hook reads `track-buffer.json` after each tool use and appends its cont
 
 ## Per-Turn Append
 
-**When:** After completing the response — before starting new work.  
-**How:** Write the entry to `WAI-Spoke/runtime/track-buffer.json` as a single JSON object (not JSONL). The Stop hook (`stop-track-flush.sh`) auto-flushes the buffer to `track.jsonl` — no manual append to `track.jsonl` needed.  
+**When:** After completing the response — before the next user turn.  
+**How:** Write the entry to `WAI-Spoke/runtime/track-buffer.json` as a single JSON object (not JSONL).  
 **Skip condition:** Plan mode only — tool calls are blocked. Resume normal appends when plan mode exits.
 
 ### Schema
@@ -46,26 +46,51 @@ The Stop hook reads `track-buffer.json` after each tool use and appends its cont
 {
   "event": "turn",
   "turn": 9,
+  "source": "model",
   "ts": "2026-05-29T12:12:00Z",
   "phase": "orient",
   "focus": "what this turn was about",
+  "user_msg": "exact text of the user's message this turn",
+  "user_intent": "synthesized intent — what the user was trying to accomplish",
   "action": "what the agent did",
+  "outcome": "what changed or was produced (files written, decision reached, error resolved)",
   "thinking": "3-8 sentences explaining the reasoning process, constraints observed, and tradeoffs considered",
   "activity": ["Read wai-track.md", "Edit user-prompt-submit.sh"],
+  "files_in": ["files read this turn"],
+  "files_out": ["files written or modified this turn"],
   "decisions": ["targeted buffer write over direct append for reliability"],
   "insights": ["v0.34.1 hook text labeled fields Optional, causing them to be skipped"],
+  "pivotal_statements": ["user utterances that caused a direction change — quoted verbatim"],
+  "fossils": ["dead ends, rejected paths, failed attempts — what was tried and abandoned"],
   "open": ["verify Stop hook fires on buffer-only turns"],
-  "evolution": "understood the staging pattern already existed in the Stop hook"
+  "closed": ["item from a prior open list that was resolved or delivered this turn"],
+  "spokes_referenced": ["track-prompt-lab", "hub"],
+  "evolution": "understood the staging pattern already existed in the Stop hook",
+  "notes": "optional free-text observations about this turn",
+  "gold": "optional: a keeper insight worth propagating to future sessions"
 }
 ```
 
 **Field guidance:**
+- `source` — required. Always `"model"` for model-authored entries. The Stop hook uses this to distinguish rich entries from synthesized ones (`"transcript-synth"`).
+- `user_msg` — required. Copy the user's exact message verbatim. This is the primary input record for the turn.
+- `user_intent` — required. Synthesized: what the user was trying to accomplish (may differ from literal message).
+- `action` — required. What the agent did this turn (concrete and specific).
+- `outcome` — required. What changed or was produced as a result.
 - `thinking` — required. 3–8 sentences. Explain why, not what. Include uncertainty, tradeoffs, what was rejected.
 - `activity` — list every tool call made this turn (Read, Edit, Bash, Agent, etc.)
+- `files_in` — files read/consumed this turn
+- `files_out` — files written or modified this turn
 - `decisions` — concrete choices made and their rationale (not just actions taken)
 - `insights` — non-obvious observations, pattern recognitions, corrections to prior understanding
-- `open` — unresolved questions, deferred actions, detected risks not yet addressed
+- `pivotal_statements` — user utterances quoted verbatim that caused a direction change or reframe
+- `fossils` — dead ends, rejected approaches, failed attempts; preserves SI4 decision archaeology
+- `open` — unresolved commitments, pending deliverables, detected risks not yet addressed; these persist until explicitly closed
+- `closed` — items from a prior turn's `open` list that were resolved or delivered this turn. **This is how the track becomes a self-auditable todo ledger.** Post-compaction recovery: scan all `open` items; subtract any that appear in a later `closed` array. What remains is still owed.
+- `spokes_referenced` — **always include the home spoke** (e.g. `["track-prompt-lab"]`) plus any other spokes discussed this turn. Never empty. Enables cross-spoke turn identification in track exports.
 - `evolution` — how understanding changed from the start of this turn (leave empty string if nothing changed)
+- `notes` — optional free-text; any observations not captured elsewhere
+- `gold` — optional; a distilled keeper insight worth surfacing to future sessions
 
 **Omit a field only when truly not applicable** — not due to brevity or context pressure.
 
@@ -159,38 +184,8 @@ Non-turn entries written directly to `track.jsonl` (not via buffer):
 { "event": "session_start", "session_id": "...", "ts": "...", "model": "..." }
 { "event": "phase_transition", "from": "exploration", "to": "alignment", "turn": 3, "ts": "..." }
 { "event": "savepoint", "turn": 12, "ts": "...", "work_done": "..." }
-{ "event": "lug_completed", "lug_id": "impl-foo-v1", "ts": "...", "summary": "what was just done" }
-{ "event": "knowme_generated", "ts": "...", "lines": 412 }
 { "event": "closeout", "turn": 18, "ts": "...", "completed": true }
 ```
-
-The `lug_completed` event is the trigger for the **`wai-task-complete`** micro-protocol: when you finish a lug, write this event, then run `wai-task-complete.md` to capture the insight into a `partial` staging buffer and surface the next ROI-ranked work. Fields: `lug_id` (required), `summary` (one line), `ts`.
-
-### Goal Events
-
-Session-scoped goal tracking — used by `scan_session_goals()` in `generate_wakeup_brief.py` and by Ozi's abandoned-session recovery (Phase 0.5).
-
-```jsonl
-{ "event": "goal_set", "goal_id": "g1", "description": "Wire queue_query into Phase 0", "requires_user_input": false, "ts": "2026-06-02T18:00:00Z" }
-{ "event": "goal_completed", "goal_id": "g1", "outcome": "wired and verified — passes dry-run", "ts": "2026-06-02T19:00:00Z" }
-{ "event": "session_exit_with_goals", "outstanding": ["g1", "g2"], "ts": "2026-06-02T20:00:00Z" }
-```
-
-**Field reference:**
-
-| Event | Field | Type | Notes |
-|-------|-------|------|-------|
-| `goal_set` | `goal_id` | string | Slug, unique within session (e.g. "g1", "wire-phase0") |
-| | `description` | string | Human-readable goal summary |
-| | `requires_user_input` | bool | `false` = Ozi-eligible for headless completion |
-| | `ts` | ISO-8601 UTC | |
-| `goal_completed` | `goal_id` | string | Matches a prior `goal_set` |
-| | `outcome` | string | Optional. What was done / produced. |
-| | `ts` | ISO-8601 UTC | |
-| `session_exit_with_goals` | `outstanding` | list[str] | goal_ids with no matching `goal_completed` |
-| | `ts` | ISO-8601 UTC | |
-
-**Written by:** `goal_set` and `goal_completed` are written by the agent during the session. `session_exit_with_goals` is written by the closeout skill when any unfinished goals remain — it is the signal that makes this session Ozi-recoverable.
 
 ---
 

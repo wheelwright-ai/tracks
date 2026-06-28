@@ -32,14 +32,25 @@ elif [ "$HARNESS_V4" = 1 ]; then HARNESS_MODE="v4-only"
 elif [ "$HARNESS_V3" = 1 ]; then HARNESS_MODE="v3-only"
 else HARNESS_MODE="none"; fi
 
-# active: explicit override first, else prefer v4, else v3, else none
+# active: explicit override first, else OVERLAP-SAFE auto-resolution.
 case "${WAI_HARNESS_MODE:-}" in
   v4) [ "$HARNESS_V4" = 1 ] && HARNESS_ACTIVE="v4" || HARNESS_ACTIVE="" ;;
   v3) [ "$HARNESS_V3" = 1 ] && HARNESS_ACTIVE="v3" || HARNESS_ACTIVE="" ;;
   *)  HARNESS_ACTIVE="" ;;
 esac
 if [ -z "$HARNESS_ACTIVE" ]; then
-  if   [ "$HARNESS_V4" = 1 ]; then HARNESS_ACTIVE="v4"
+  if [ "$HARNESS_MODE" = "coexist" ]; then
+    # Overlap-safe default: a coexist spoke (both trees present) stays v3 UNTIL it is
+    # explicitly ACTIVATED (.activated marker or a migrated v4 local/WAI-State.json).
+    # This stops a coexist spoke from silently flipping to v4 mid-overlap, while
+    # already-cutover spokes (e.g. basher, which still has a lingering WAI-Spoke/ dir)
+    # correctly stay v4 via their activation marker.
+    if [ -e "$_hm_root/WAI-Harness/spoke/.activated" ] || [ -f "$_hm_root/WAI-Harness/spoke/local/WAI-State.json" ]; then
+      HARNESS_ACTIVE="v4"
+    else
+      HARNESS_ACTIVE="v3"
+    fi
+  elif [ "$HARNESS_V4" = 1 ]; then HARNESS_ACTIVE="v4"
   elif [ "$HARNESS_V3" = 1 ]; then HARNESS_ACTIVE="v3"
   else HARNESS_ACTIVE="none"; fi
 fi

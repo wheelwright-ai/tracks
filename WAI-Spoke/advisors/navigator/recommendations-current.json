@@ -1,7 +1,7 @@
 {
   "schema_version": "1.4",
-  "generated_at": "2026-06-27T09:37:13.724103+00:00",
-  "valid_through": "2026-06-28T09:37:13.724103+00:00",
+  "generated_at": "2026-06-28T09:37:14.987821+00:00",
+  "valid_through": "2026-06-29T09:37:14.987821+00:00",
   "excluded_providers": [
     "deepseek",
     "kimi",

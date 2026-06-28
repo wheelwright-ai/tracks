@@ -8,14 +8,28 @@
 
 ## Recovery Sequence
 
+### Resolve the active harness base FIRST (harness-mode-aware)
+
+Resolve these once; every path below is relative to them, so this works on v4-only
+(`WAI-Harness/spoke/local`), v3-only (`WAI-Spoke`), and coexist spokes alike.
+
+```bash
+BASE=$(python3 WAI-Harness/spoke/managed/tools/wai_paths.py --root . --json 2>/dev/null \
+  | python3 -c "import json,sys; print(json.load(sys.stdin).get('_base') or '')")
+[ -z "$BASE" ] && { [ -d WAI-Harness/spoke/local ] && BASE="WAI-Harness/spoke/local" || BASE="WAI-Spoke"; }
+TOOLS="WAI-Harness/spoke/managed/tools"; [ -d "$TOOLS" ] || TOOLS="tools"
+```
+
+Do NOT hardcode `WAI-Spoke/` — on a v4-only spoke it does not exist. Use `{BASE}/…` for data-tree paths and `{TOOLS}/…` for tools.
+
 **Step 1 — Read WAI-State.json (1 tool call):**
 
 ```
-Read: WAI-Spoke/WAI-State.json
+Read: {BASE}/WAI-State.json
 ```
 
 Extract:
-- `_session_state.track_path` — path to session track (e.g. `WAI-Spoke/sessions/session-XXXX/track.jsonl`)
+- `_session_state.track_path` — path to session track (e.g. `{BASE}/sessions/session-XXXX/track.jsonl`)
 - `_session_state.next_session_recommendation` — what was planned next
 - `_savepoint` — if `status == "pending"`, a savepoint is active; read `lug_id` + `resume_note`
 - `_session_state.last_session_id` — current session name
@@ -61,7 +75,7 @@ Re-invoke `/wai-closeout` — it's idempotent. The track shows the last complete
 | Component | Purpose | Compaction-specific? |
 |-----------|---------|----------------------|
 | `pre-compact.sh` | Writes `compacted.flag` + recovery hint to compaction summary | YES |
-| `compacted.flag` in `WAI-Spoke/runtime/` | Signals post-compaction to next turn's hook | YES |
+| `compacted.flag` in `{BASE}/runtime/` | Signals post-compaction to next turn's hook | YES |
 | `<wai-post-compact>` block in UserPromptSubmit | Re-orients Claude after compaction | YES |
 | CLAUDE.md Critical Rules "survive compaction" | Documents what survives | YES |
 | Session guard (`session-guard.json`) | General session hygiene (also helps post-compaction) | NO |

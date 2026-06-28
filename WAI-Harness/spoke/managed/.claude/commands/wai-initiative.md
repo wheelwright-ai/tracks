@@ -157,6 +157,42 @@ Display:
 - Whether the initiative is "complete" (all epics at `completed` status)
 - Any epics missing `themes` tags
 
+### `/wai-initiative {list|show|tree|new|pin|switch|adopt|sleep|wake|save|wake-check}` — Lifecycle Navigation
+
+Thin wrappers over the mywheel nav engine `initiative_nav.py` (`implement-initiative-nav-lifecycle-v1`,
+Phase 1). Do NOT re-implement transitions here — the engine owns `initiative_store.move_state`,
+`current_position`, `dormant_from`, `wake_on`, leasing, and the focus-lock file.
+
+**Engine path (RESOLVE, do not hardcode):** preflight tries `managed/tools/initiative_nav.py` (its
+distributed home) then `WAI-Harness/hub/local/scripts/initiative_nav.py` (the current build location).
+If neither exists, report "initiative engine not found" and stop. Never fake a transition. The engine
+resolves its store from `ROOT/WAI-Harness/spoke/managed/tools/initiative_store.py`, so its distributed
+home is `managed/tools/`. **Invoke with `WAI_ROOT=<spoke root>`** — the engine reads `WAI_ROOT` (default
+cwd) for all its paths; set it (or run from the spoke root) so the store/savepoints resolve.
+
+Verbs match the engine's actual argparse:
+
+| Verb | Effect |
+|------|--------|
+| `list` | List initiatives. Feeds `/wai` step 3b.1's continuation menu. |
+| `show <id>` | Print the initiative's cleaned JSON. |
+| `tree [id]` | Tree view (all, or rooted at `<id>`). |
+| `new <id> [--title --desc --state --rank]` | Create a `proposed` initiative (default state proposed, rank 50). |
+| `pin <id>` | Set the session focus lock to `<id>` (writes the focus-lock file). Mirror into `WAI-State.json._session_state.active_initiative_id`. This is what `/wai` 3b.1 calls on claim. |
+| `switch <id>` | Move the focus lock to `<id>`. |
+| `adopt <id>` | Adopt/approve a proposed initiative into the active set. |
+| `sleep <id> --until <iso\|event\|+Ncommits> [--reason "…"]` | `active → dormant`, capture `dormant_from`, set `wake_on`. |
+| `wake <id>` | `dormant → dormant_from`, stamp `woke_at`/`wake_reason`. |
+| `save <id> [--slug --note]` | Persist a savepoint/position (pairs with `/wai-savepoint`). |
+| `wake-check` | Steward sweep — wake dormant initiatives whose `wake_on` fired (nightly). |
+
+Output is **per-verb, not a uniform envelope**: `show`/`list`/`tree` print JSON; `pin` writes the focus-lock
+file and emits its record; mutators print the changed object. Wrappers print stdout verbatim + a one-line
+summary; non-zero exit = failure. If the engine CLI changes, update THIS file (Basher owns the command surface).
+
+> **Dispatch:** bare `/wai-initiative` (and `score`/`tag`/`group`) = the theme scorecard above; the lifecycle
+> verbs = nav. One command, by verb.
+
 ---
 
 ## Implementation Notes

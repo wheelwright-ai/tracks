@@ -145,6 +145,10 @@ def _make_master_tree(root, spoke_files, hub_files=None):
 
 def test_install_fresh_new_spoke(tmp_path):
     master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n", "skills/x.md": "s\n"})
+    # the master is itself a live spoke: its local/ holds the master's OWN work-state.
+    _write(master / "spoke" / "local" / "lugs" / "bytype" / "task" / "open" / "masters-lug.json", '{"id":"masters"}\n')
+    _write(master / "spoke" / "local" / "WAI-State.json", '{"owner":"master"}\n')
+    _write(master / "spoke" / "local" / "sessions" / "s-master" / "track.jsonl", '{"turn":1}\n')
     new_spoke = tmp_path / "new-spoke"
     new_spoke.mkdir()
     rep = hu.install(master, new_spoke, include_hub=False)
@@ -152,8 +156,14 @@ def test_install_fresh_new_spoke(tmp_path):
     assert rep["fresh"] is True
     assert rep["verify"]["ok"] is True
     assert (new_spoke / "WAI-Harness" / "spoke" / "managed" / "tools" / "a.py").read_text() == "v2\n"
-    # the empty local skeleton came along
-    assert (new_spoke / "WAI-Harness" / "spoke" / "local" / "sessions").exists()
+    # an EMPTY local skeleton is scaffolded (dirs + .gitkeep)
+    local = new_spoke / "WAI-Harness" / "spoke" / "local"
+    assert (local / "sessions").is_dir()
+    assert (local / "lugs" / "bytype" / "task" / "open").is_dir()
+    # CRITICAL: NONE of the master's local work-state may leak into the new spoke
+    assert not (local / "lugs" / "bytype" / "task" / "open" / "masters-lug.json").exists()
+    assert not (local / "WAI-State.json").exists()
+    assert not (local / "sessions" / "s-master").exists()
 
 
 def test_install_existing_spoke_is_non_destructive(tmp_path):
@@ -220,3 +230,67 @@ def test_idempotent_second_upgrade_is_all_unchanged(tmp_path):
     hm = hu.compute_home_map(master, target)
     assert hm["add"] == [] and hm["change"] == []
     assert "tools/a.py" in hm["unchanged"]
+
+
+# --- version gate (impl-harness-couple-version-cut-and-adoption-gate-v1) ----
+# The version analog of the corruption gate: a 'pull/upgrade vX' against a vY master
+# must ABORT (write nothing), not silently bring vY (the CSRP-4.2.0 desync class).
+
+def _set_version(managed, version):
+    mf = Path(managed) / hu.MANIFEST_NAME
+    m = json.loads(mf.read_text())
+    m["harness_version"] = version
+    mf.write_text(json.dumps(m, indent=2) + "\n")
+
+
+def test_version_gate_match_proceeds(tmp_path):
+    master = _make_master(tmp_path / "master", {"tools/a.py": "v2\n"})
+    _set_version(master, "4.2.0")
+    target = tmp_path / "target" / "managed"
+    _write(target / "tools/a.py", "v1\n")
+    rep = hu.upgrade(master, target, dry_run=False, expect_version="4.2.0")
+    assert rep["ok"] is True
+    assert rep["verify_version"]["ok"] is True
+    assert rep["applied"] >= 1
+    assert (target / "tools/a.py").read_text() == "v2\n"
+
+
+def test_version_gate_mismatch_aborts_nondestructively(tmp_path):
+    master = _make_master(tmp_path / "master", {"tools/a.py": "v2\n"})
+    _set_version(master, "4.1.0")                      # master is 4.1.0...
+    target = tmp_path / "target" / "managed"
+    _write(target / "tools/a.py", "v1\n")
+    before = (target / "tools/a.py").read_text()
+    rep = hu.upgrade(master, target, dry_run=False, expect_version="4.2.0")   # ...asked for 4.2.0
+    assert rep["ok"] is False
+    assert rep["verify_version"]["ok"] is False
+    assert rep["verify_version"] == {"ok": False, "expected": "4.2.0", "actual": "4.1.0"}
+    assert "version desync" in rep["aborted"]
+    assert rep["applied"] == 0
+    assert (target / "tools/a.py").read_text() == before   # nothing written
+
+
+def test_version_gate_dry_run_surfaces_mismatch(tmp_path):
+    master = _make_master(tmp_path / "master", {"tools/a.py": "v2\n"})
+    _set_version(master, "4.1.0")
+    target = tmp_path / "target" / "managed"
+    _write(target / "tools/a.py", "v1\n")
+    rep = hu.upgrade(master, target, dry_run=True, expect_version="4.2.0")
+    assert rep["ok"] is False                       # a preview reveals the desync
+    assert rep["verify_version"]["ok"] is False
+    assert "version desync" in rep["aborted"]
+
+
+def test_pull_version_desync_writes_nothing(tmp_path):
+    # full spoke layout: master at 4.1.0, a spoke asked to pull 4.2.0 must abort.
+    _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
+    _set_version(tmp_path / "master" / "spoke" / "managed", "4.1.0")
+    spoke = tmp_path / "spoke"
+    _write(spoke / "WAI-Harness" / "spoke" / "managed" / "tools/a.py", "v1\n")
+    before = (spoke / "WAI-Harness" / "spoke" / "managed" / "tools/a.py").read_text()
+    rep = hu.pull(str(spoke), master_root=str(tmp_path / "master" / "spoke"),
+                  expect_version="4.2.0")
+    assert rep["status"] == "version-desync"
+    assert rep["ok"] is False
+    assert rep["master_version"] == "4.1.0" and rep["expected"] == "4.2.0"
+    assert (spoke / "WAI-Harness" / "spoke" / "managed" / "tools/a.py").read_text() == before

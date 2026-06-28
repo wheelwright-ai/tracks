@@ -145,7 +145,7 @@ Write to `WAI-Spoke/lugs/outgoing/lug-review-{source_id}.jsonl`. Closeout Step 9
 {
   "type": "signal",
   "event": "WAI-Signals.jsonl retired — signals now stored as high-impact lugs",
-  "what_changed": "Before: signals written to WAI-Signals.jsonl (separate file). After: impact >= 8 lugs written to active lugs file only.",
+  "what_changed": "Before: signals written to WAI-Signals.jsonl (retired v3.0.0). After: impact >= 8 lugs written to bytype/signal/ only.",
   "why": "Reduces fragmentation — one storage location for all work state and learnings. Signals file was a second source of truth that diverged.",
   "impact": 9,
   "fw_ver": "3.0.0"
@@ -157,7 +157,7 @@ Write to `WAI-Spoke/lugs/outgoing/lug-review-{source_id}.jsonl`. Closeout Step 9
 ```json
 {
   "type": "signal",
-  "body": "Update your spoke. Stop using WAI-Signals.jsonl. Use the active lugs file instead for all signals going forward."
+  "body": "Update your spoke. Stop using WAI-Signals.jsonl (retired v3.0.0). Use bytype/signal/ lugs instead for all signals going forward."
 }
 ```
 

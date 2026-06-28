@@ -1,6 +1,6 @@
 # WAI Status
 
-Health check with hub connection, sync age, session health, recommendations.
+Health check with hub connection, session health, recommendations.
 
 ## What It Does
 
@@ -39,14 +39,12 @@ When Ozi auto mode is enabled for the current session, keep the output builder-f
 ### Step 2: System Health Check
 
 1. Check hub connection status from WAI-State.json
-2. Calculate sync age (now - last_sync)
-3. Check session metrics:
+2. Check session metrics:
    - Current turn count
    - Context usage percentage
    - Files modified in this session
-4. Generate recommendations based on thresholds:
+3. Generate recommendations based on thresholds:
    - context > 70% → recommend closeout
-   - hub_sync > 7 days → recommend teach
    - turn_count > 20 → recommend context check
 
 ## Example Output
@@ -111,7 +109,7 @@ Max parallel: 2
 Hub Connection:
   Status: ✅ Connected
   Last sync: 2 days ago
-  Hub path: /home/mario/projects/wheelwright/hub/
+  Hub path: {wheel.hub_path from WAI-State.json}
 
 Session Health:
   Turn count: 12

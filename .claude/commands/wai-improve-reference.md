@@ -1,4 +1,5 @@
 # WAI Improve — Reference
+> Fast path: load `wai-improve-reference-slim.md` first. Load this file only when deep protocol is needed.
 
 **Companion to `wai-improve.md`.** Contains templates, examples, and verbose specs. Load on-demand — not loaded at wakeup.
 
@@ -180,3 +181,93 @@ Current phase: {phase}
 **After reframe:** "If we add a lug-based receipt record when teachings are applied, agents will have durable proof of adoption across sessions." → `fit_classification: extends`, `related_lugs: ["wai.md Step 5"]`
 
 **Result:** `priority: P2` (Medium velocity, Low cost, Aligned fit).
+
+---
+
+## Foundation Completeness Check — Signal Table (Step 0b)
+
+| Signal | What It Means |
+|--------|--------------|
+| `identity.one_liner` is null or generic | Cannot evaluate fit or velocity — ask user |
+| `boundaries.in_scope` is empty | Cannot evaluate system fit |
+| `boundaries.constraints` is empty | Cannot evaluate cost or risk |
+| `context.current_phase` is null | Cannot weight urgency |
+| No foundation lug exists at all | **Stop. Run `/wai-foundation` first.** |
+
+---
+
+## Similarity Type Definitions (Step 2a)
+
+| Similarity Type | Definition | Action |
+|----------------|------------|--------|
+| **Exact** | Same challenge and same mechanism | Flag as duplicate — present existing lug, ask user to confirm merge or distinguish |
+| **Challenge overlap** | Same problem, different proposed solution | Flag as related — competing hypotheses for the same challenge |
+| **Hypothesis overlap** | Different framing, same mechanism | Flag — may indicate terminology mismatch or broader opportunity |
+| **Dependency** | Incoming idea requires this lug resolved first | Note as blocker |
+| **Conflict** | Incoming idea contradicts or replaces this lug | Flag — needs explicit decision before proceeding |
+
+---
+
+## Challenge Matching — Normalization Pipeline (Step 3b)
+
+**Normalization pipeline** (apply before comparison):
+1. Lowercase
+2. Strip punctuation
+3. Tokenize on whitespace
+4. Remove stopwords (same list as `historian.yaml` → `pattern_scan.algorithm`)
+5. Apply Porter stemming (`detect`, `detecting`, `detection` → `detect`)
+
+**Matching:** Jaccard similarity between normalized token sets:
+```
+similarity = |tokens(A) ∩ tokens(B)| / |tokens(A) ∪ tokens(B)|
+```
+Threshold: **0.5**
+
+**If match found (similarity >= 0.5):**
+> This challenge overlaps with `{i}`: "{statement}" (similarity: {score}). Same problem? [enter=yes / type correction]
+
+On confirmation: set `challenge_id` = existing challenge `i`. Append override entry to `WAI-Challenges.jsonl` adding this idea to `related_lugs`.
+
+**If no match:** Propose new challenge entry with slug (3-5 meaningful words, hyphens, lowercase). On accept: append to `WAI-Challenges.jsonl`, set `challenge_id`. After Step 5, update `first_seen_in`.
+
+**Slug example:** `"Recurring friction across sessions is invisible"` → `chal-recurring-friction-invisible`
+
+---
+
+## Priority Matrix (Step 4)
+
+| Velocity | Cost | Fit | Base Priority |
+|----------|------|-----|---------------|
+| High | Low | Aligned | **P0 — Do next** |
+| High | Low | Neutral/Tension | **P1 — Do soon, watch fit** |
+| High | Medium | Aligned | **P1 — Plan carefully** |
+| High | High | Aligned | **P2 — Epic needed** |
+| Medium | Low | Aligned | **P2 — Quick win** |
+| Medium | Medium | Any | **P3 — Backlog** |
+| Low | Any | Any | **P4 — Defer** |
+| Any | Any | Tension | **Flag: revisit design before starting** |
+
+### Phase Adjustment
+
+Adjust one tier based on `context.current_phase` (one adjustment only, no stacking):
+
+| Phase | Adjustment |
+|-------|------------|
+| `early-build` / `active-development` | +1 tier if `velocity: high` |
+| `stabilization` / `hardening` | -1 tier if `system_fit: neutral` or `tension` |
+| `scale-out` / `distribution` | +1 tier if `generality: all-spokes` or `hub` |
+| `maintenance` | -1 tier if `implementation_cost: high` |
+
+Show: `P{N} (base P{N}, adjusted for {phase})`.
+
+---
+
+## Status Lifecycle (Step 5)
+
+```
+raw → evaluating → proposed → approved → (epic created)
+                ↓                      ↘ deferred / discarded / merged / supersedes
+             reframed
+                ↓
+             proposed
+```

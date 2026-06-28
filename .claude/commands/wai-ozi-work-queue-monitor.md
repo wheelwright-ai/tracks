@@ -1,9 +1,10 @@
 # Skill: Ozi Work Queue Monitor
+> Fast path: load `wai-ozi-work-queue-monitor-slim.md` first. Load this file only when deep protocol is needed.
 
-**ID:** ozi-work-queue-monitor  
-**Type:** orchestrator-extension  
-**Lifecycle:** stable  
-**Safety Level:** 10  
+**ID:** ozi-work-queue-monitor
+**Type:** orchestrator-extension
+**Lifecycle:** stable
+**Safety Level:** 10
 **Enabled by default:** No
 
 ---
@@ -14,20 +15,18 @@ This skill enables Ozi (your Chief of Staff) to actively monitor work queues bet
 
 With this skill enabled, Ozi:
 - Watches for new lugs created
-- Detects status changes (published → ready → in_progress → complete)
+- Detects status changes (published -> ready -> in_progress -> complete)
 - Identifies stale work (>4hrs no activity)
 - Auto-dispatches only when the current session has auto mode enabled
 - Auto-triggers verification
 - Processes teachings as they arrive
 
-**When to enable:** You want autonomous work management with minimal oversight.  
+**When to enable:** You want autonomous work management with minimal oversight.
 **When to disable:** You prefer manual control over work assignment.
 
 ---
 
 ## When to Activate
-
-This skill activates in two scenarios:
 
 ### 1. On Every Wakeup/Status Check
 Even without daemon mode, this skill adds queue monitoring to:
@@ -38,10 +37,7 @@ Even without daemon mode, this skill adds queue monitoring to:
 Auto-dispatch is session-local. A planning/frontier session can stay observational while a separate builder session enables `/wai-auto-on`.
 
 ### 2. Continuous Monitoring (Future: Daemon Mode)
-For true "set it and forget it" operation:
-```bash
-$ wai ozi daemon start    # Future feature
-```
+Not yet implemented. See reference file for daemon mode vision.
 
 ---
 
@@ -49,311 +45,142 @@ $ wai ozi daemon start    # Future feature
 
 ### Step 1: Scan Work Queue
 
-On wakeup/status, check for work requiring action:
+On wakeup/status, scan for work needing action across these categories:
+- **ready_for_dispatch** — new work ready for assignment
+- **ready_for_verification** — completed work needing recheck
+- **ready_for_acceptance** — verified work needing user review
+- **needs_clarification** — blocked work needing user input
+- **stale_work** — in_progress >4hrs with no activity
+- **in_progress** — active work (monitoring only)
+- **new_teachings** — unprocessed hub teachings
 
-```python
-def scan_work_queue():
-    """Identify all work needing Ozi's attention"""
-    
-    queue = {
-        # New work ready for assignment
-        'ready_for_dispatch': get_lugs(status='ready'),
-        
-        # Work completed, needs verification
-        'ready_for_verification': get_lugs(status='ready_for_recheck'),
-        
-        # Work verified, needs user acceptance
-        'ready_for_acceptance': get_lugs(status='accepted', user_reviewed=False),
-        
-        # Work blocked, needs user input
-        'needs_clarification': get_lugs(status='needs_clarification'),
-        
-        # Work stale, needs reassignment
-        'stale_work': get_lugs(status='in_progress', 
-                                updated_before=now() - timedelta(hours=4)),
-        
-        # Active work (monitoring only)
-        'in_progress': get_lugs(status='in_progress', updated_recently=True),
-        
-        # New teachings to process
-        'new_teachings': scan_hub_teachings(processed=False)
-    }
-    
-    return queue
+See reference for full `scan_work_queue()` implementation.
+
+### Step 1b: ROI Score & Sort
+
+Before dispatching, score all scannable work by ROI with optional vibe tiebreaking:
+
+```bash
+# Run the backlog scorer — vibe from session state (or empty for pure ROI)
+python3 tools/score_backlog.py ${SESSION_VIBE:-}
 ```
+
+**ROI formula:** `(impact x leverage) / effort`
+- Signals capped at ROI 5.0 (routing, not implementation)
+- Vibe multiplier reshapes ordering when set (see `wai-lug-schema-reference.md`)
+- Dispatch and display follow ROI order, not FIFO
+
+### Step 1c: Advisor Synthesis Check
+
+For each department manager advisor (archie, expediter, clara), check if their synthesis output exists and is current. If `synthesis_prompt.md` exists for the manager:
+
+1. Check `WAI-Spoke/advisors/{manager_id}/synthesis_latest.json`
+   - If missing or older than 7 days: prompt `Manager {manager_id} synthesis stale — [R]un synthesis now / [S]kip`
+   - If **[R]**: execute `synthesis_prompt.md` as a sub-prompt; save structured JSON output to `synthesis_latest.json`
+   - If **[S]**: skip for this session
+
+2. If `synthesis_latest.json` exists and is current (≤7 days old):
+   - Read `graded_work_items` from the synthesis output
+   - Apply `roi_boost` to matching ready lugs before display:
+     - Grade A → +0.3 ROI boost
+     - Grade B → +0.1 ROI boost
+     - Grade C → no boost
+   - Match on `lug_id_hint` substring against work queue `id` fields
+
+**Effect:** High-priority findings from department managers surface ready lugs higher in the queue automatically, without Ozi having to re-read all lug files.
+
+## Routing Gate (before any dispatch)
+
+For each ready lug Ozi is about to dispatch:
+
+1. **Check `routed_to`**: must be one of `LOCAL`, `FRAMEWORK`, `SIGNAL`, or `SPOKE/{spoke_id}`.
+   - If missing or null: HOLD the lug, prompt operator: `Lug {id} has no routed_to. Set to [L]ocal / [F]ramework / [S]ignal / [O]ther? (write to the lug file)`. Do not dispatch.
+2. **Verify scope match**:
+   - `LOCAL`: proceed only if this spoke is the implementation target. Cross-check against `_project_foundation.identity.name` — if the lug's work targets a different project, flag as misrouted.
+   - `FRAMEWORK`: dispatch to framework implementation in this spoke only if this IS the framework spoke (check `wheel.node` contains `framework`). Otherwise HOLD with a warning: `Lug {id} is routed_to=FRAMEWORK but this spoke is {node}. Deliver to hub instead of dispatching.`
+   - `SIGNAL`: never dispatch — signals are delivered by closeout, not executed.
+   - `SPOKE/{target}`: never dispatch locally; deliver via hub signal inbox instead.
+3. **Announce on pass**: `Dispatching {id} → LOCAL (routed_to verified against {node})`.
+4. **Log hold reason** in advisor lifecycle if any lug is held, so repeat scans don't re-prompt.
 
 ### Step 2: Auto-Dispatch Ready Work
 
-For lugs with `status='ready'`, attempt auto-assignment:
+For lugs with `status='ready'`, attempt auto-assignment **in ROI-sorted order**:
+- Skip high-risk types: implementation, epic, review
+- Only dispatch when `session_auto_mode_enabled()`
+- Update lug status to in_progress with workflow metadata
+- Log the dispatch action
 
-```python
-def auto_dispatch_ready_work(ready_lugs):
-    """Assign ready work to available agents"""
-    
-    for lug in ready_lugs:
-        # Skip high-risk lug types
-        if lug['type'] in ['implementation', 'epic', 'review']:
-            continue
-        
-        # Find available builder
-        # (For now, we'll use sub-agents via Task tool)
-        
-        if session_auto_mode_enabled():
-            print(f"🚀 Ozi: Dispatching {lug['id']} to sub-agent...")
-            
-            # Create focused implementation prompt
-            prompt = create_implementation_prompt(lug)
-            
-            # Launch sub-agent
-            task_id = launch_subagent(prompt, lug['id'])
-            
-            # Update lug status
-            lug['status'] = 'in_progress'
-            lug['workflow'] = {
-                'current_owner': f"builder-subagent-{task_id[:8]}",
-                'assigned_at': now(),
-                'updated_at': now(),
-                'task_id': task_id
-            }
-            save_lug(lug)
-            
-            log_ozi_action({
-                'action': 'auto_dispatched',
-                'lug_id': lug['id'],
-                'assigned_to': lug['workflow']['current_owner']
-            })
-```
+See reference for full `auto_dispatch_ready_work()` implementation.
 
-### Step 3: Process Safe Teachings
+### Step 3: Chain Proposal
+
+This step is executed after a lug has been marked complete (e.g., during `wai closeout`) and before final commit, to propose the next ready work item or to manage the work queue flow.
+
+1. **Next Item Selection:** Read `_work_queue` from `WAI-State.json`, filter for items with `readiness='ready'`, and sort by ROI (descending). The top item is the next chain target.
+2. **UAT Capture:** A User Acceptance Test (UAT) track point is appended to `track.jsonl` for the completed lug.
+   **UAT Track Schema:**
+   ```json
+   {
+     "turn_type": "uat",
+     "lug_id": "string",
+     "acceptance": "accepted|deferred|rejected",
+     "notes": "string",
+     "auto_chained": "boolean",
+     "next_item_id": "string|null",
+     "timestamp": "ISO-8601"
+   }
+   ```
+3. **Chain Flow:**
+   - If `auto_chain` is `true` (a session-local conversational flag), the next ready item is loaded immediately with a minimal context — follow `wai-chain-load.md` protocol, do not run full wakeup.
+   - If `auto_chain` is `false`, the next ready item is displayed to the user with an option to `[W]ork it now / [S]kip`.
+   - If no ready items are found, the user is offered to `[R]eview refinements` or `[S]kip`.
+
+### Step 4: Process Safe Teachings
 
 For teachings with `safe_to_auto_adopt=true`:
+- Apply the teaching and move to processed
+- Log to changelog with `auto_adopted: True`
+- For unsafe teachings, create a review lug for the user
 
-```python
-def auto_process_teachings(teachings):
-    """Auto-adopt safe teachings"""
-    
-    for teaching in teachings:
-        if teaching.get('safe_to_auto_adopt') == True:
-            print(f"✅ Ozi: Auto-adopting {teaching['id']}...")
-            
-            # Apply teaching
-            apply_teaching(teaching)
-            
-            # Move to processed
-            move_to_processed(teaching)
-            
-            # Log to changelog
-            append_changelog({
-                'type': 'teaching_adopted',
-                'teaching_id': teaching['id'],
-                'auto_adopted': True,
-                'adopted_by': 'ozi'
-            })
-        else:
-            # Create review lug for user
-            create_review_lug(teaching)
-```
+See reference for full `auto_process_teachings()` implementation.
 
-### Step 4: Generate Briefing
+### Step 5: Generate Briefing
 
-Ozi presents queue status in briefing:
+Ozi presents queue status in briefing with sections for:
+- Completed work (since last session)
+- Items needing user attention (clarifications, reviews, acceptances)
+- In-progress work with health indicators
+- Ready work (dispatching now if auto-mode, or listing with tip to enable)
 
-```markdown
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👔 OZI'S BRIEFING
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-{greeting_based_on_time}! Here's your work queue:
-
-{if completed_work}
-🎉 COMPLETED (Since Last Session)
-  {list completed work with verification status}
-{/if}
-
-{if needs_attention}
-❓ NEEDS YOUR ATTENTION
-  {list clarifications, reviews, acceptances}
-{/if}
-
-{if in_progress}
-⚡ IN PROGRESS
-  {list active work with health indicators}
-{/if}
-
-{if ready_work and session_auto_mode_enabled}
-🚀 DISPATCHING NOW
-  {list work being auto-assigned}
-{/if}
-
-{if ready_work and not session_auto_mode_enabled}
-🆕 READY FOR WORK
-  {list available work}
-  💡 Tip: Enable builder mode with:
-     /wai-auto-on
-{/if}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
+See reference for full briefing template.
 
 ---
 
 ## Configuration
 
-### Enable/Disable
+- **Enable:** `wai skill enable ozi-work-queue-monitor`
+- **Disable:** `wai skill disable ozi-work-queue-monitor`
+- **Status:** `/wai-auto-status`
 
-```bash
-# Enable Ozi work queue monitoring
-$ wai skill enable ozi-work-queue-monitor
-
-✅ Ozi work queue monitoring ENABLED
-I'll now watch for new work and dispatch autonomously.
-
-# Disable (back to manual)
-$ wai skill disable ozi-work-queue-monitor
-
-Ozi work queue monitoring DISABLED.
-Work assignment is now manual.
-```
-
-### Check Status
-
-```bash
-$ wai-auto-status
-
-Ozi Work Queue Monitor:
-  Status: ENABLED
-  Auto mode: ACTIVE FOR THIS SESSION
-  
-  Current Queue:
-    Ready: 2 lugs
-    In Progress: 3 lugs
-    Ready for Verification: 1 lug
-    Ready for Acceptance: 2 lugs
-    Needs Clarification: 0 lugs
-```
+See reference for full CLI output examples.
 
 ---
 
 ## Integration with Wakeup Protocol
 
-This skill integrates into wakeup Step 1b:
-
-**Without this skill:**
-```
-Step 1: Load WAI-State.json
-Step 2: Check hub for teachings
-Step 3: Show briefing
-```
-
-**With this skill:**
-```
-Step 1: Load WAI-State.json
-Step 1b: 🆕 Ozi scans work queue
-         - Identifies ready work
-         - Auto-dispatches if this session enabled auto mode
-         - Processes safe teachings
-         - Generates queue briefing
-Step 2: Check hub for teachings (handled by Ozi)
-Step 3: Show Ozi's briefing
-```
-
----
-
-## Success Metrics
-
-Track Ozi's effectiveness:
-
-```bash
-$ wai ozi stats
-
-Ozi Work Queue Monitor Stats (Last 7 Days):
-  
-  Auto-dispatched: 23 lugs
-  Auto-adopted teachings: 5
-  Reassigned stale work: 2
-  Triggered verifications: 18
-  
-  Average time to assignment: 12 minutes
-  User intervention rate: 8%
-  
-  Efficiency: 92% autonomous
-```
-
----
-
-## Use Cases
-
-### Immediate: Canonical Evolution Backlog
-
-```
-Current state:
-- impl-idempotent-closeout-concurrency-v1 (ready, downscoped)
-- bug-validation-errors-14 (needs creation)
-- Plus epic backlog
-
-With Ozi enabled:
-$ wai wakeup
-
-Ozi: "Good morning! I see:
-      - 1 implementation lug ready (impl-idempotent-closeout)
-      - Canonical evolution backlog
-      
-      Want me to start working on these? [Y/n]"
-
-User: "Yes"
-
-Ozi: "🚀 Dispatching impl-idempotent-closeout to sub-agent...
-      I'll notify you when ready for verification."
-
-[3 hours later]
-
-Ozi: "✅ impl-idempotent-closeout completed!
-      Ready for your acceptance testing."
-```
-
----
-
-## Future Enhancements
-
-### Daemon Mode (Phase 2)
-Continuous background monitoring:
-```bash
-$ wai ozi daemon start
-```
-
-### Smart Scheduling (Phase 3)
-Ozi learns optimal dispatch times:
-- High-priority work during business hours
-- Long-running work overnight
-- Testing during low-activity periods
-
-### Multi-Project Coordination (Phase 4)
-Ozi manages work across all your spokes:
-```bash
-$ wai ozi --all-projects
-
-Ozi: "Scanning 5 projects...
-      - framework: 3 ready
-      - waiweb: 2 ready
-      - scribe: 1 ready
-      
-      Total: 6 items ready for dispatch"
-```
+This skill inserts between Step 1 and Step 2 of the wakeup protocol:
+- Step 1: Load WAI-State.json
+- **Step 1b (this skill):** Ozi scans queue, auto-dispatches, processes teachings, generates briefing
+- Step 2: Check hub for teachings (handled by Ozi)
+- Step 3: Show Ozi's briefing
 
 ---
 
 ## Relationship to Core Ozi
 
-**Ozi (Built-in):**
-- Always present as orchestrator identity
-- Coordinates guards
-- Generates briefings
-- Responds to commands
-
-**This Skill (Optional):**
-- Adds active queue monitoring
-- Enables autonomous dispatch
-- Processes work automatically
+- **Base Ozi (built-in):** Always present — coordinates guards, generates briefings, responds to commands
+- **This skill (optional):** Adds active queue monitoring, autonomous dispatch, automatic work processing
 
 Think of it as: "Base Ozi" vs "Ozi with work queue autopilot"
 
@@ -361,4 +188,4 @@ Think of it as: "Base Ozi" vs "Ozi with work queue autopilot"
 
 Use `/wai-auto-on`, `/wai-auto-off`, `/wai-auto-status`, and `/wai-auto-parallel <n>` to control session-local builder behavior.
 
-*"I'm watching the queue. I've got this handled." - Ozi*
+See `wai-ozi-work-queue-monitor-reference.md` for full implementations, CLI examples, use cases, success metrics, and future enhancements.

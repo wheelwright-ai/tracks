@@ -23,11 +23,41 @@ exactly against a real transcript; 94 non-typed entries were all noise).
 
 Best-effort: every failure is swallowed silently; track must never break a
 session. The only way a turn is lost is a hard crash of this script itself.
+
+Harness-mode-aware: the calling Stop hook (stop-track-flush.sh) resolves the active
+v3/v4 data tree via harness_mode.sh and exports WAI_TRACK_PATH / WAI_RUNTIME_DIR /
+WAI_BASE_DIR. The track, cursor, provider_usage, session-guard, and autosave all write
+under that resolved tree (WAI-Spoke/ in v3, WAI-Harness/spoke/local/ in v4). When the
+env is unset (direct invocation) every helper falls back to the legacy v3 layout.
 """
 import json
+import os
+import re
 import subprocess
 import sys
 from pathlib import Path
+
+
+def _runtime_dir(project_dir):
+    """Harness-resolved runtime/ dir (env) or legacy v3 WAI-Spoke/runtime.
+    Shared across lanes — provider_usage.jsonl (append-only telemetry) lives here."""
+    d = os.environ.get("WAI_RUNTIME_DIR", "")
+    return Path(d) if d else Path(project_dir) / "WAI-Spoke" / "runtime"
+
+
+def _lane_dir(project_dir):
+    """Per-session-lane private runtime (env WAI_LANE_DIR), set by the Stop hook
+    when session lanes are active. Holds this session's own cursor/guard/autosave so
+    concurrent sessions never share per-turn state. Falls back to the shared runtime
+    dir for single-session / direct-invocation."""
+    d = os.environ.get("WAI_LANE_DIR", "")
+    return Path(d) if d else _runtime_dir(project_dir)
+
+
+def _base_dir(project_dir):
+    """Harness-resolved data base (env) or legacy v3 WAI-Spoke."""
+    d = os.environ.get("WAI_BASE_DIR", "")
+    return Path(d) if d else Path(project_dir) / "WAI-Spoke"
 
 
 def _load_jsonl(path):
@@ -126,25 +156,34 @@ def _build_turn(rows, start_idx, end_idx, turn_no):
     }
 
 
-_CORRECTION_TRIGGERS = [
-    "no,", "no.", "don't", "stop ", "that's wrong", "thats wrong",
-    "revert", "actually,", "actually.", "instead,", "instead.",
-    "not like that", "you should not", "please don't", "never ",
-    "avoid ", "that's not", "incorrect", "wrong approach", "undo",
-]
+# Word-boundary patterns (NOT naive substrings). Substring matching caused phantom
+# corrections: a pasted prompt containing "incorrect_predictions" matched "incorrect",
+# "info." matched "no.", "whenever" matched "never". \b anchors fix all three classes.
+_CORRECTION_RE = re.compile(
+    r"(?<!\w)(?:"
+    r"no[,.]|don'?t|stop\b|that'?s wrong|thats wrong|revert\b|actually[,.]|"
+    r"instead[,.]|not like that|you should not|please don'?t|never\b|avoid\b|"
+    r"that'?s not|incorrect\b|wrong approach|undo\b"
+    r")",
+    re.I,
+)
+# Scan only the conversational LEAD, not the whole message: a user who pastes a code
+# block / prompt / doc after a benign request must not trip a correction on words buried
+# in the pasted bulk. ~400 chars covers a normal correction sentence.
+_CORRECTION_HEAD = 400
 
 
 def _detect_correction(user_text, prior_assistant_text):
     """Return a correction descriptor if this user turn corrects the prior response."""
     if not user_text or not prior_assistant_text:
         return None
-    lower = user_text.lower()
-    matched = [t for t in _CORRECTION_TRIGGERS if t in lower]
+    head = user_text[:_CORRECTION_HEAD]
+    matched = list(dict.fromkeys(m.strip() for m in _CORRECTION_RE.findall(head.lower())))
     if not matched:
         return None
     confidence = round(min(0.3 + 0.15 * len(matched), 0.85), 2)
     return {
-        "trigger": user_text[:300],
+        "trigger": head[:300],
         "prior_action": prior_assistant_text[:300],
         "keywords": matched[:5],
         "confidence": confidence,
@@ -154,7 +193,7 @@ def _detect_correction(user_text, prior_assistant_text):
 def _append_provider_usage(project_dir, entry):
     """Append a per-turn provider usage row for Navigator consumption."""
     try:
-        usage_path = Path(project_dir) / "WAI-Spoke" / "runtime" / "provider_usage.jsonl"
+        usage_path = _runtime_dir(project_dir) / "provider_usage.jsonl"
         row = {
             "session_id": entry.get("session_id", ""),
             "ts": entry.get("ts", ""),
@@ -219,7 +258,7 @@ def _get_head_sha(project_dir):
 def _write_autosave(project_dir, turn_no, ts, focus):
     """Write rolling autosave checkpoint; keep last 3."""
     try:
-        d = Path(project_dir) / "WAI-Spoke" / ".autosave"
+        d = _lane_dir(project_dir) / "autosave"
         d.mkdir(parents=True, exist_ok=True)
         (d / f"turn-{turn_no}.json").write_text(json.dumps({
             "turn": turn_no,
@@ -244,7 +283,7 @@ def _write_autosave(project_dir, turn_no, ts, focus):
 def _update_session_guard(project_dir, turn_no):
     """Write turn_count to session-guard.json."""
     try:
-        guard = Path(project_dir) / "WAI-Spoke" / "runtime" / "session-guard.json"
+        guard = _lane_dir(project_dir) / "session-guard.json"
         data = {}
         if guard.exists():
             try:
@@ -259,6 +298,12 @@ def _update_session_guard(project_dir, turn_no):
 
 
 def _track_path(state_path, project_dir):
+    # Harness-resolved track path (env, set by stop-track-flush.sh) wins.
+    env = os.environ.get("WAI_TRACK_PATH", "")
+    if env:
+        p = Path(env)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        return p
     state = json.loads(Path(state_path).read_text())
     rel = state.get("_session_state", {}).get("track_path", "")
     if not rel:
@@ -324,7 +369,7 @@ def live(state_path, transcript_path, project_dir, buffer_was_present):
     if not rows:
         return
 
-    cursor_path = Path(project_dir) / "WAI-Spoke" / "runtime" / "track-cursor.json"
+    cursor_path = _lane_dir(project_dir) / "track-cursor.json"
     last_uuid = ""
     last_sha = ""
     try:
@@ -397,40 +442,57 @@ def live(state_path, transcript_path, project_dir, buffer_was_present):
         _update_session_guard(project_dir, turn_no)
         return
 
-    # Boundary inside the window: last typed prompt -> end is "this turn".
-    typed_in_window = [i for i, e in enumerate(window) if _is_typed_user(e)]
-    if not typed_in_window:
+    # No buffer: synthesize EVERY genuine typed turn not already in the track (dedup by
+    # user_uuid) over the FULL transcript — not just the post-cursor window. Self-healing:
+    # a missed Stop fire (or a late first fire that skipped earlier turns) never permanently
+    # loses a turn; the next fire recovers the whole backlog. Idempotent via uuid dedup. The
+    # cursor above stays a cheap fast-path hint but is no longer the correctness guard — uuid
+    # dedup is. (bug-live-track-capture-nonfunctional-20260619: Layer-2 floor must never depend
+    # on the model writing a buffer, and must recover any turns a missed fire left behind.)
+    starts = [i for i, e in enumerate(rows) if _is_typed_user(e)]
+    if not starts:
         return
-    s = typed_in_window[-1]
-    turn_no = _existing_turn_count(track) + 1
-    entry = _build_turn(window, s, len(window), turn_no)
-    if not _has_meaning(entry):
-        return
-
-    # Enrich with git-objective fields.
-    git = _git_info(project_dir, last_sha)
-    entry["commits_since_last"] = git["commits_since_last"]
-    entry["files_changed"] = git["files_changed"]
-
-    # Correction detection: compare this user message against prior assistant response.
+    bounds = starts + [len(rows)]
+    seen = {r.get("user_uuid") for r in _load_jsonl(track) if r.get("user_uuid")}
+    turn_no = _existing_turn_count(track)
     prior_entries = _load_jsonl(track)
     prior_assistant = prior_entries[-1].get("assistant_text", "") if prior_entries else ""
-    correction = _detect_correction(entry.get("user_intent", ""), prior_assistant)
+    to_write = []
+    for ci, si in enumerate(starts):
+        if rows[si].get("uuid") in seen:
+            continue
+        turn_no += 1
+        entry = _build_turn(rows, bounds[ci], bounds[ci + 1], turn_no)
+        if not _has_meaning(entry):
+            turn_no -= 1
+            continue
+        correction = _detect_correction(entry.get("user_intent", ""), prior_assistant)
+        to_write.append((entry, correction))
+        prior_assistant = entry.get("assistant_text", "") or prior_assistant
+    if not to_write:
+        return
+
+    # Git enrichment only on the newest entry (bounded cost; older turns' spans are noise).
+    git = _git_info(project_dir, last_sha)
+    to_write[-1][0]["commits_since_last"] = git["commits_since_last"]
+    to_write[-1][0]["files_changed"] = git["files_changed"]
 
     with track.open("a") as f:
-        f.write(json.dumps(entry) + "\n")
-        if correction:
-            f.write(json.dumps({
-                "event": "correction",
-                "turn": turn_no,
-                "session_id": entry.get("session_id", ""),
-                "ts": entry.get("ts", ""),
-                **correction,
-            }) + "\n")
+        for entry, correction in to_write:
+            f.write(json.dumps(entry) + "\n")
+            if correction:
+                f.write(json.dumps({
+                    "event": "correction",
+                    "turn": entry["turn"],
+                    "session_id": entry.get("session_id", ""),
+                    "ts": entry.get("ts", ""),
+                    **correction,
+                }) + "\n")
 
-    _append_provider_usage(project_dir, entry)
-    _write_autosave(project_dir, turn_no, entry.get("ts", ""), entry.get("user_intent", ""))
-    _update_session_guard(project_dir, turn_no)
+    newest = to_write[-1][0]
+    _append_provider_usage(project_dir, newest)
+    _write_autosave(project_dir, newest["turn"], newest.get("ts", ""), newest.get("user_intent", ""))
+    _update_session_guard(project_dir, newest["turn"])
 
 
 def main():

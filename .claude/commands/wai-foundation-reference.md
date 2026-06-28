@@ -115,15 +115,16 @@
 
 ### Current State
 ```
-lugs where ty="foundation" | sort created_at desc | first
+ls WAI-Spoke/lugs/bytype/foundation/{open,in_progress,completed}/*.json | sort -t- -k4 | tail -1
 ```
 
 ### Evolution History
 ```
-lugs where ty="foundation" | sort created_at asc
+ls WAI-Spoke/lugs/bytype/foundation/completed/*.json | sort  # by filename/date asc
 ```
 
 ### Why Did Scope Change?
 ```
-lugs where ty="foundation" AND v > 1 | read rationale chain
+# Read each completed foundation lug and check v > 1 for rationale chain
+grep -l '"v": [2-9]' WAI-Spoke/lugs/bytype/foundation/completed/*.json
 ```

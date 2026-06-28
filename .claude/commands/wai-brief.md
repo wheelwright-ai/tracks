@@ -2,7 +2,19 @@
 
 **Generate a paste-able context block for an external AI session ("phone a friend").**
 
-Export project context — with or without a topic focus — so any external AI can pick up the conversation with full background, current state, options in play, and open questions.
+Reference: `wai-brief-reference.md` — output templates, search strategy details, examples.
+
+## Fuzzy Triggers
+
+Invoke this skill whenever the user's message matches any of these patterns (exact wording not required):
+
+- "phone a friend"
+- "get a second opinion" / "seek a second opinion" / "want another opinion"
+- "take this to another AI" / "paste this into [ChatGPT / Gemini / another session]"
+- "generate a brief for an external session"
+- "need context I can share" / "context block" / "paste-able summary"
+- "explain the situation to [someone / another model]"
+- "help me explain what we're working on"
 
 ---
 
@@ -10,23 +22,15 @@ Export project context — with or without a topic focus — so any external AI 
 
 - **Nodes:** spoke
 - **Exposure:** spoke.chat:local
-- **Paths Required:** WAI-State.json, lugs/active/WAI-Lugs-active.jsonl, sessions/
+- **Paths Required:** WAI-State.json, bytype/, sessions/
 
 ---
 
 ## Usage
 
 ```
-/wai-brief                    → full project synopsis
-/wai-brief [topic]            → topic-focused briefing
-```
-
-Examples:
-```
-/wai-brief
-/wai-brief spoke-id-system
-/wai-brief benchmark architecture
-/wai-brief Cluster 2 deferral
+/wai-brief                → full project synopsis
+/wai-brief [topic]        → topic-focused briefing
 ```
 
 ---
@@ -35,129 +39,44 @@ Examples:
 
 ### Step 1: Determine Mode
 
-- No argument → **Synopsis mode**
-- Argument provided → **Topic mode**
-
----
+- No argument → **Synopsis mode** (Step 2)
+- Argument provided → **Topic mode** (Step 3)
 
 ### Step 2 (Synopsis Mode): Build Full Project Brief
 
-Read from `WAI-State.json`:
-- `_project_foundation.identity` → name, one-liner
-- `_session_state.mode`, `wheel.version`
-- `_session_state.next_session_recommendation`
+Read from `WAI-State.json`: identity, mode, version, next_session_recommendation.
+Scan `bytype/*/open/` and `bytype/*/in_progress/` for active lugs.
+Scan last 3 session-summary lugs and any lugs with `impact >= 8` from the last 30 days.
+Read last session `track.jsonl` for `decisions[]`.
 
-Grep `lugs/active/WAI-Lugs-active.jsonl` for:
-- Lugs with `status: open | in_progress | ready` (active work)
-- Last 3 session-summary lugs (recent history)
-- Any lugs with `impact >= 8` from the last 30 days (high-impact decisions)
+Output using the **Synopsis template** from reference file.
 
-Read last session `track.jsonl`:
-- Extract `decisions[]` across all turns
-
-Output:
+**Code Structure (conditional):** If `StructureContext.md` exists in the project root, append this block at the end of the synopsis output:
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WAI PROJECT BRIEF — {name} v{version}
-Generated: {ISO date}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Code Structure
 
-## What This Project Is
-{one-liner}
+Structural context for this spoke is in `StructureContext.md` (repo root).
+Feed it alongside this brief when the external session needs to understand
+module boundaries, call chains, or blast radius before designing changes.
 
-## Current Phase
-{mode} | Session {session_count}
-
-## Recent High-Impact Decisions
-{bullet list from high-impact lugs and last session decisions}
-
-## Active Work
-{table: ID | Title | Status}
-
-## What I Need From You
-[user fills this in before pasting]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+If live MCP is available: `context`, `impact`, and `query` tools give
+real-time graph data beyond what the snapshot contains.
 ```
 
----
+If `StructureContext.md` does not exist, omit this section silently.
 
 ### Step 3 (Topic Mode): Build Topic-Focused Brief
 
-#### 3a. Gather Topic Evidence
+Search active lugs, current session track, and WAI-State.json for topic keywords.
+Extract options from `thinking`, `workflow`, `decisions[]`, `open[]` — never invent options.
+See reference file for full evidence-gathering procedure (3a, 3b).
 
-Search for topic across:
-
-1. **Active lugs file** (`lugs/active/WAI-Lugs-active.jsonl`) — grep for topic keywords in `title`, `description`, `tags`, `decisions[]`
-   - Collect: lug ID, title, status, relevant decisions, options captured in workflow fields
-2. **Current session track** — grep `focus`, `thinking`, `decisions[]`, `open[]` for topic keywords
-3. **WAI-State.json** — check `next_session_recommendation` for topic mentions
-
-Rank by relevance: exact ID match > title match > tag match > description match.
-
-Collect up to:
-- 5 most relevant lugs
-- All track points mentioning the topic
-- Any open threads from track `open[]` arrays
-
-#### 3b. Extract Options
-
-From gathered evidence, identify:
-- Paths that have been **explicitly considered** (in `thinking`, `workflow`, `decisions`)
-- Paths that are **currently open** (in `open[]` arrays)
-- Paths that were **rejected** (with reason, if captured)
-
-These become the "Options" section — not invented, only what exists in the record.
-
-#### 3c. Output Topic Brief
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WAI TOPIC BRIEF — {topic}
-Project: {name} v{version}
-Generated: {ISO date}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## Project (30 seconds)
-{one-liner}
-Framework for AI session continuity — local, hub-spoke, protocol-based.
-No cloud dependency. Language: Python + bash + git.
-
-## Topic Background
-{1-3 paragraph summary of what the project knows about this topic,
-drawn from lug descriptions and track thinking fields}
-
-## Current State
-{Where things stand right now — status of relevant lugs, last decision made}
-
-## Options on the Table
-{Each option on a separate line, with what's known about it:}
-
-Option A — {description}
-  Known: {what we know about this path}
-  Risk: {any captured risk or concern}
-  Status: {active / considered / rejected — and why if rejected}
-
-Option B — {description}
-  ...
-
-## Open Questions
-{Unresolved threads from track open[] and lug workflow fields}
-- {question 1}
-- {question 2}
-
-## What I Need From You
-[user fills this in — question, decision needed, or conversation goal]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
----
+Output using the **Topic template** from reference file.
 
 ### Step 4: Delivery
 
-Display the brief in full — formatted, ready to copy.
-
-Then confirm:
+Display the brief in full — formatted, ready to copy. Then:
 ```
 Brief ready. Copy the block above and paste it into your external session.
 Tip: fill in "What I Need From You" before pasting — it shapes the conversation from turn 1.
@@ -168,15 +87,7 @@ Tip: fill in "What I Need From You" before pasting — it shapes the conversatio
 ## Quality Rules
 
 - **Only surface what exists in the record.** Do not invent options, background, or decisions.
-- **Options come from `thinking`, `workflow`, `decisions[]`, and `open[]` fields** — not from general knowledge about the topic.
-- **Keep the brief paste-able** — no internal WAI formatting, no JSONL, no lug IDs in the prose (use them as footnotes only if needed for traceability).
-- **Topic brief must be self-contained** — the external AI should need nothing else to engage meaningfully.
-- **"What I Need From You" is always left blank** — user fills it in. Never pre-fill it.
-
----
-
-## Related Commands
-
-- `/wai` — Full wakeup briefing (internal use)
-- `/wai-status` — Quick health check (internal use)
-- `/wai-chat-to-track` — Bring external session results back in
+- **Options come from `thinking`, `workflow`, `decisions[]`, and `open[]` fields** — not general knowledge.
+- **Keep the brief paste-able** — no internal WAI formatting, no JSONL, no lug IDs in prose.
+- **Topic brief must be self-contained** — external AI needs nothing else to engage.
+- **"What I Need From You" is always left blank** — user fills it in.

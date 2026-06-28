@@ -1,3 +1,22 @@
+> Fast path: load `wai-closeout-slim.md` first. Load this file only when deep protocol is needed.
+
+### -1. Resolve the data-plane base (harness-mode-aware — DO THIS FIRST)
+
+`{BASE}` below is this spoke's active working base. Resolve it ONCE and substitute the
+value into every `{BASE}/...` path (prose, bash, and Python blocks) — exactly like the
+other `{placeholder}` fields in this file (`{session_id}`, `{id}`, ...):
+
+```bash
+BASE=$(python3 WAI-Harness/spoke/managed/tools/wai_paths.py --root . --json 2>/dev/null \
+  | python3 -c "import json,sys,os; b=json.load(sys.stdin).get('_base') or ''; print(os.path.relpath(b) if b else '')")
+[ -z "$BASE" ] && BASE="WAI-Spoke"   # fallback: no tree detected yet
+```
+
+`{BASE}` resolves to `WAI-Harness/spoke/local` on a v4-only spoke and `WAI-Spoke` on
+v3/coexist (relative to the spoke root, so it works in both `open('{BASE}/...')` and
+git-diff path-prefix checks). Cross-spoke delivery (Step 9) uses `{target_base}` — the
+TARGET spoke's base, resolved the same way with `--root {target_path}`. Never hardcode
+`WAI-Spoke/`.
 # WAI Closeout — Fast Path
 
 > Full protocol: load `wai-closeout.md` for delta ceremony detection, Wave 1/2 dispatch, teaching generation, telemetry, full step details.
@@ -23,7 +42,7 @@ If `STEP0_CODE` non-empty: run test suite (`pytest` / `bun test` / `npm test` / 
 
 ```bash
 # Check intent
-cat WAI-Spoke/runtime/session-intent.json 2>/dev/null || echo "no intent"
+cat {BASE}/runtime/session-intent.json 2>/dev/null || echo "no intent"
 ```
 
 | intent | ceremony |
@@ -50,7 +69,7 @@ Run the Step 2b delta detection from `wai-closeout.md` to populate `DELTA_CLASS`
 | `CONVERSATION_ONLY=true` | Skip Steps 3–10. Write terminal entry (Step 6) + minimal commit + staging write + Step 11.5 only. |
 | `MICRO=true` | Skip version bump, changelog, teachings, skill sync, telemetry, briefs, test gate. |
 
-**If `CONVERSATION_ONLY=true`:** go directly to Step 6 → minimal commit (`git add WAI-Spoke/sessions/ WAI-Spoke/WAI-State.json && git commit -m "chore: closeout session-{N} (conversation-only)"`) → Step 11 staging write → Step 11.5 ceremony bolt. Skip Steps 3–10.
+**If `CONVERSATION_ONLY=true`:** go directly to Step 6 → minimal commit (`git add {BASE}/sessions/ {BASE}/WAI-State.json && git commit -m "chore: closeout session-{N} (conversation-only)"`) → Step 11 staging write → Step 11.5 ceremony bolt. Skip Steps 3–10.
 
 ## Step 3. Incomplete Work Capture
 
@@ -82,7 +101,7 @@ Append final row to `wai_track_ledger.md`:
 
 ## Step 5e. Close Patterns + Emit Certification Bolts
 
-Closing a pattern (the contract — `wai-pattern.md`) emits a **bolt** certifying it non-hallucinated. Prefer the Basher verify engine + pattern-cert helper (`tools/`); else per active pattern this session advanced: run each item's verification by `verify.mode` (mechanical=run assertion · attested=named verifier signs · human=sign queue) → record per-item `{verified_by, verified_at, pass}` → write `WAI-Spoke/bolts/bytype/work/recorded/bolt-{session_id}-{pattern_id}.json` (fields per `schemas/bolt.schema.json`: `pattern_id`, `pattern_version`, `certification_status` certified|partial, `items[]`, `git_sha`=HEAD, `provenance`). All items pass → `certified`, pattern→`certified/`; else `partial` (lists remaining items for resume). Idempotent. Emit nothing if no pattern advanced AND zero commits. Legacy/no-pattern work → `freeform` bolt over completed lug ids. Completed savepoints are not the durable record — the bolt is.
+Closing a pattern (the contract — `wai-pattern.md`) emits a **bolt** certifying it non-hallucinated. Prefer the Basher verify engine + pattern-cert helper (`tools/`); else per active pattern this session advanced: run each item's verification by `verify.mode` (mechanical=run assertion · attested=named verifier signs · human=sign queue) → record per-item `{verified_by, verified_at, pass}` → write `{BASE}/bolts/bytype/work/recorded/bolt-{session_id}-{pattern_id}.json` (fields per `schemas/bolt.schema.json`: `pattern_id`, `pattern_version`, `certification_status` certified|partial, `items[]`, `git_sha`=HEAD, `provenance`). All items pass → `certified`, pattern→`certified/`; else `partial` (lists remaining items for resume). Idempotent. Emit nothing if no pattern advanced AND zero commits. Legacy/no-pattern work → `freeform` bolt over completed lug ids. Completed savepoints are not the durable record — the bolt is.
 
 ## Step 7. CHANGELOG.md
 
@@ -106,7 +125,7 @@ Skip if no impl/feature/task lugs completed. Option L (lug it) is always availab
 
 ## Step 9. Outgoing Delivery
 
-Scan `WAI-Spoke/lugs/outgoing/` for undelivered lugs. Pre-delivery quality check. Deliver to target spokes.
+Scan `{BASE}/lugs/outgoing/` for undelivered lugs. Pre-delivery quality check. Deliver to target spokes.
 
 ## Step 9b. Teaching Generation
 
@@ -126,12 +145,12 @@ Before committing, complete this session's savepoint (if one exists):
 python3 - <<'PYEOF'
 import json, glob, os, shutil, sys, datetime
 ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
-state_path = 'WAI-Spoke/WAI-State.json'
+state_path = '{BASE}/WAI-State.json'
 state = json.load(open(state_path))
 try:
-    current_session_id = json.load(open('WAI-Spoke/runtime/session-guard.json')).get('session_id','')
+    current_session_id = json.load(open('{BASE}/runtime/session-guard.json')).get('session_id','')
 except: current_session_id = ''
-sp_files = [f for f in sorted(glob.glob('WAI-Spoke/savepoints/*.json')) if '.gitkeep' not in f]
+sp_files = [f for f in sorted(glob.glob('{BASE}/savepoints/*.json')) if '.gitkeep' not in f]
 my_sp_path, my_sp = None, None
 for f in sp_files:
     try:
@@ -151,8 +170,8 @@ if my_sp:
                     print(f"CONFLICT HARD-STOP: {conflicts} held by active {other['id']}"); sys.exit(1)
         except: pass
     my_sp['status'] = 'completed'; my_sp['completed_at'] = ts
-    dest = 'WAI-Spoke/savepoints/completed/' + os.path.basename(my_sp_path)
-    os.makedirs('WAI-Spoke/savepoints/completed', exist_ok=True)
+    dest = '{BASE}/savepoints/completed/' + os.path.basename(my_sp_path)
+    os.makedirs('{BASE}/savepoints/completed', exist_ok=True)
     json.dump(my_sp, open(my_sp_path,'w'), indent=2)
     shutil.move(my_sp_path, dest)
     ids = [x for x in state.get('_savepoint',{}).get('active_ids',[]) if x != my_sp['id']]
@@ -172,13 +191,13 @@ PYEOF
 import json, glob, os, datetime, subprocess
 from pathlib import Path
 
-guard = json.load(open('WAI-Spoke/runtime/session-guard.json'))
+guard = json.load(open('{BASE}/runtime/session-guard.json'))
 session_id = guard.get('session_id', '')
-state = json.load(open('WAI-Spoke/WAI-State.json'))
+state = json.load(open('{BASE}/WAI-State.json'))
 next_rec = state.get('_session_state', {}).get('next_session_recommendation', '')
 
 # Only create if: next_rec is substantive AND no pending savepoint for this session
-existing = [f for f in glob.glob('WAI-Spoke/savepoints/*.json') if '.gitkeep' not in f]
+existing = [f for f in glob.glob('{BASE}/savepoints/*.json') if '.gitkeep' not in f]
 has_sp = any(
     json.load(open(f)).get('session_id') == session_id
     for f in existing
@@ -205,11 +224,11 @@ if next_rec and next_rec not in ('None', '', 'none') and not has_sp:
         'paper_trail': {'lugs_completed': [], 'lugs_opened': [], 'lugs_in_flight': [], 'topics': [], 'decisions': []},
         'lug_locks': [], 'conflicts': []
     }
-    Path('WAI-Spoke/savepoints').mkdir(exist_ok=True)
-    Path(f'WAI-Spoke/savepoints/{sp_id}.json').write_text(json.dumps(sp, indent=2) + '\n')
+    Path('{BASE}/savepoints').mkdir(exist_ok=True)
+    Path(f'{BASE}/savepoints/{sp_id}.json').write_text(json.dumps(sp, indent=2) + '\n')
     active_ids = state.get('_savepoint', {}).get('active_ids', []) + [sp_id]
     state['_savepoint'] = {'active_ids': active_ids, 'count': len(active_ids)}
-    json.dump(state, open('WAI-Spoke/WAI-State.json', 'w'), indent=2)
+    json.dump(state, open('{BASE}/WAI-State.json', 'w'), indent=2)
     print(f'Auto-savepoint created: {sp_id}')
 else:
     print(f'Auto-savepoint skipped (has_sp={has_sp}, next_rec={repr(next_rec[:40])})')
@@ -217,7 +236,7 @@ else:
 
 ## Step 10g. Partial-Staging Recovery Pre-Flight
 
-Check for `WAI-Spoke/runtime/closeout-staging.json` with `type=partial` (from an interrupted prior run). If found, harvest its draft state. Write `type=partial` now as an idempotent recovery marker; update to `type=closeout` after commit.
+Check for `{BASE}/runtime/closeout-staging.json` with `type=partial` (from an interrupted prior run). If found, harvest its draft state. Write `type=partial` now as an idempotent recovery marker; update to `type=closeout` after commit.
 
 ## Step 11. Commit + Staging Write
 
@@ -235,16 +254,16 @@ After commit, write the closeout staging file:
 ```python
 import json, datetime, subprocess, os, re
 from datetime import timezone
-session_id = json.load(open('WAI-Spoke/runtime/session-guard.json')).get('session_id', 'unknown')
+session_id = json.load(open('{BASE}/runtime/session-guard.json')).get('session_id', 'unknown')
 sha = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
-version_match = re.search(r'v(\d+\.\d+\.\d+)', open('WAI-Spoke/WAI-State.json').read()) if os.path.exists('WAI-Spoke/WAI-State.json') else None
+version_match = re.search(r'v(\d+\.\d+\.\d+)', open('{BASE}/WAI-State.json').read()) if os.path.exists('{BASE}/WAI-State.json') else None
 staging = {
     'type': 'closeout', 'session_id': session_id, 'committed_sha': sha,
     'version': version_match.group(0) if version_match else 'unknown',
     'committed_at': datetime.datetime.now(timezone.utc).isoformat(),
     'push_pending': True,
 }
-with open('WAI-Spoke/runtime/closeout-staging.json', 'w') as f:
+with open('{BASE}/runtime/closeout-staging.json', 'w') as f:
     json.dump(staging, f, indent=2)
 ```
 
@@ -253,7 +272,7 @@ with open('WAI-Spoke/runtime/closeout-staging.json', 'w') as f:
 Emit a `kind=ceremony` bolt certifying closeout completed. Skip if `tools/verify_engine.py` absent.
 
 ```bash
-SESSION_ID=$(python3 -c "import json; print(json.load(open('WAI-Spoke/runtime/session-guard.json')).get('session_id','unknown'))" 2>/dev/null || echo unknown)
+SESSION_ID=$(python3 -c "import json; print(json.load(open('{BASE}/runtime/session-guard.json')).get('session_id','unknown'))" 2>/dev/null || echo unknown)
 if [[ -f "tools/verify_engine.py" ]]; then
     python3 tools/verify_engine.py emit-ceremony \
         --session-id "$SESSION_ID" \

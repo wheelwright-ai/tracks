@@ -48,6 +48,36 @@ claim what is already yours.
 
 ---
 
+## Terminology
+
+**Track** — A JSONL record of an AI conversation: every decision, concept, and pivot from session start to end.
+
+**Lug** — A work unit within the Wheelwright framework capturing a task, feature, bug, or signal with full decision context.
+
+**Spoke** — A project or service within the Wheelwright fleet, equipped with an autonomous advisory system and persistent state.
+
+**Wheel** — An active spoke instance with its own `WAI-Spoke/` directory tree and session continuity.
+
+**Signal** — A cross-spoke notification of patterns, observations, or framework-level events requiring coordinated action.
+
+**Teaching** — A packaged framework improvement or pattern update distributed from the hub to all wheels for adoption.
+
+For deeper technical details, see [AGENTS.md](../framework/AGENTS.md) or the framework's [CLAUDE.md](../framework/CLAUDE.md).
+
+---
+
+## For Engineers: Internal Architecture
+
+New contributors to the Tracks spoke should start with **[ARCHITECTURE.md](ARCHITECTURE.md)** — a comprehensive guide covering spoke identity, directory structure, lug schema, advisor system, signal routing, and the full work lifecycle.
+
+Quick reference:
+- **[AGENTS.md](AGENTS.md)** — Universal Wheelwright bootstrap and WAI patterns
+- **[CLAUDE.md](CLAUDE.md)** — Claude Code IDE integration and session protocol
+- **[KnowMe.md](WAI-Spoke/KnowMe.md)** — Current project state and constraints
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — Engineering onboarding guide (you are here)
+
+---
+
 ## Three Ways to Generate a Track
 
 ### Start here — Closing Request
