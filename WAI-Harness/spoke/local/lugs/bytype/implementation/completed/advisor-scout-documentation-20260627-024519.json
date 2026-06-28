@@ -1,0 +1,37 @@
+{
+  "id": "advisor-scout-documentation-20260627-024519",
+  "type": "implementation",
+  "title": "Advisor scout-run \u2014 warm up 'documentation' (never run)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-27T02:45:19.531226Z",
+  "advisor_scout": true,
+  "advisor_id": "documentation",
+  "scout_reason": "never run",
+  "perceive": "Keep advisor 'documentation' warm and current \u2014 advisors are Ozi's special attention on a specialty. Reason due: never run. Advisor home: WAI-Harness/spoke/advisors/documentation/. Run its specialty scan and record the run so last_run_at reflects today.",
+  "execute": [
+    "1. Read WAI-Harness/spoke/advisors/documentation/context_prompt.md and feeds.yaml to load documentation's charter, scan scope, and inputs.",
+    "2. Perform documentation's specialty scan as described in its context_prompt; produce concrete, impact-ranked findings.",
+    "3. Append findings to WAI-Harness/spoke/advisors/documentation/findings-log.jsonl (one JSON object per finding).",
+    "4. For any actionable finding, write a haiku task lug to WAI-Harness/spoke/local/lugs/bytype/implementation/open/ (model_fit=haiku, initiative=crew-maintenance).",
+    "5. Set last_run_at=2026-06-27T02:45:19.531219Z in WAI-Harness/spoke/advisors/schedule-index.json (entry advisor_id=documentation) AND WAI-Harness/spoke/advisors/documentation/scan_state.json."
+  ],
+  "verify": "schedule-index.json and WAI-Harness/spoke/advisors/documentation/scan_state.json both show last_run_at=today for 'documentation'; any findings were appended to findings-log.jsonl.",
+  "s": "completed",
+  "updated_at": "2026-06-27T02:49:21.058590+00:00",
+  "completion_notes": "Documentation advisor warmup completed: (1) Verified 4 findings logged in findings-log.jsonl covering v3 path refs, AP tooling docs gap, Herald activation status, and CLAUDE.md rules. (2) Created 2 additional haiku task lugs for Herald daemon teaching (impl-herald-daemon-activation-teaching-documentation-v1) and CLAUDE.md v3-path update (impl-update-claude-md-v3-paths-documentation-v1), complementing existing lugs for v3 teaching paths and AP tooling docs. Total 4 actionable findings \u2192 4 haiku lugs for crew-maintenance initiative. (3) Updated last_run_at timestamps to 2026-06-27T02:45:19.531219Z in both schedule-index.json and scan_state.json.",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-27T02:47:21.831385+00:00",
+    "updated_at": "2026-06-27T02:47:21.831399+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-27T02:49:21.058060+00:00"
+  }
+}

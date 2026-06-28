@@ -1,0 +1,37 @@
+{
+  "id": "advisor-scout-framework_development-20260627-023905",
+  "type": "implementation",
+  "title": "Advisor scout-run \u2014 warm up 'framework_development' (never run)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-27T02:39:05.705570Z",
+  "advisor_scout": true,
+  "advisor_id": "framework_development",
+  "scout_reason": "never run",
+  "perceive": "Keep advisor 'framework_development' warm and current \u2014 advisors are Ozi's special attention on a specialty. Reason due: never run. Advisor home: WAI-Harness/spoke/advisors/framework_development/. Run its specialty scan and record the run so last_run_at reflects today.",
+  "execute": [
+    "1. Read WAI-Harness/spoke/advisors/framework_development/context_prompt.md and feeds.yaml to load framework_development's charter, scan scope, and inputs.",
+    "2. Perform framework_development's specialty scan as described in its context_prompt; produce concrete, impact-ranked findings.",
+    "3. Append findings to WAI-Harness/spoke/advisors/framework_development/findings-log.jsonl (one JSON object per finding).",
+    "4. For any actionable finding, write a haiku task lug to WAI-Harness/spoke/local/lugs/bytype/implementation/open/ (model_fit=haiku, initiative=crew-maintenance).",
+    "5. Set last_run_at=2026-06-27T02:39:05.705559Z in WAI-Harness/spoke/advisors/schedule-index.json (entry advisor_id=framework_development) AND WAI-Harness/spoke/advisors/framework_development/scan_state.json."
+  ],
+  "verify": "schedule-index.json and WAI-Harness/spoke/advisors/framework_development/scan_state.json both show last_run_at=today for 'framework_development'; any findings were appended to findings-log.jsonl.",
+  "s": "completed",
+  "updated_at": "2026-06-27T02:41:25.916618+00:00",
+  "completion_notes": "Completed: Scanned framework_development feeds (teachings, specs, implementation lugs, CLAUDE.md rules). Identified 3 new findings: (1) 4 high-urgency blocked lugs impacting expedition, (2) 10 advisors with unresolved {FEEDS_CONTEXT} placeholders breaking context synthesis, (3) 33 open lugs with blocking dependencies creating bottleneck network. Created 3 actionable haiku task lugs (unblock tier1, feeds-system impl, dependency audit). Updated scan_state.json and schedule-index.json with last_run_at=2026-06-27T02:39:05.705559Z. Findings appended to findings-log.jsonl (9 total, 8 actionable).",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-27T02:39:05.709726+00:00",
+    "updated_at": "2026-06-27T02:39:05.709736+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-27T02:41:25.915900+00:00"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "crew-recommend-documentation-20260626-182957",
+  "type": "implementation",
+  "title": "Advisor recommendation \u2014 recruit documentation advisor (template=knowledge-advisor)",
+  "status": "needs_review",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "gastown",
+  "urgency": 6,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-26T18:29:57.151197Z",
+  "crew_provision": true,
+  "domain": "documentation",
+  "template_id": "knowledge-advisor",
+  "justification": "Project identity is documentation and prompt library; benefits from dedicated writing and content quality review",
+  "perceive": "RECOMMENDATION (user approval required): recruit a 'documentation' advisor seeded from the hub 'knowledge-advisor' template. Justification: Project identity is documentation and prompt library; benefits from dedicated writing and content quality review APPROVE by setting execution_mode=auto on this lug; DEFER/REJECT by moving it out of open/. Hub templates: /home/mario/projects/wheelwright/hub/WAI-Hub/advisor-templates/. Roster: WAI-Harness/spoke/advisors/registry.json. Pattern: WAI-Harness/spoke/advisors/archie/context_prompt.md.",
+  "execute": [
+    "0. GATE: only proceed if the user approved (execution_mode=auto). Otherwise stop.",
+    "1. Read /home/mario/projects/wheelwright/hub/WAI-Hub/advisor-templates/knowledge-advisor/charter.md and source-guidance.md.",
+    "2. Read WAI-Harness/spoke/advisors/registry.json. Reuse a fitting 'new'/'stub' advisor_id in department_id=knowledge, else use a fresh advisor_id (the domain name, e.g. 'documentation').",
+    "3. Create WAI-Harness/spoke/advisors/<advisor_id>/ if not present.",
+    "4. Write WAI-Harness/spoke/advisors/<advisor_id>/context_prompt.md adapting the knowledge-advisor charter for domain=documentation (advisor_id, domain, mission, responsibilities, escalation-to-Ozi). Pattern: WAI-Harness/spoke/advisors/archie/context_prompt.md.",
+    "5. Write WAI-Harness/spoke/advisors/<advisor_id>/scan_state.json: {\"advisor_id\": \"<advisor_id>\", \"domain\": \"documentation\", \"status\": \"stub\", \"last_run_at\": null, \"initialized_at\": \"2026-06-26T18:29:57.151174Z\"}",
+    "6. Update WAI-Harness/spoke/advisors/registry.json: advisor entry status=stub, department_id=knowledge, domain=documentation, initialized_from_template=knowledge-advisor. Preserve other entries.",
+    "7. Update WAI-Harness/spoke/advisors/schedule-index.json: if advisor_id absent, append {\"advisor_id\": \"<advisor_id>\", \"run_cadence\": \"weekly\", \"event_triggers\": [], \"last_run_at\": null, \"next_recommended_run\": null}.",
+    "8. Update WAI-Harness/spoke/advisors/ozi/scan_state.json: set team_coverage.gaps_detected[domain=documentation].proposal_status=provisioned and the matching recommendations_pending entry to provisioned."
+  ],
+  "verify": "WAI-Harness/spoke/advisors/documentation/context_prompt.md exists and is non-empty; WAI-Harness/spoke/advisors/documentation/scan_state.json exists with status=stub; registry.json has entry advisor_id=documentation status=stub; schedule-index.json has weekly entry for documentation; ozi/scan_state.json team_coverage.gaps_detected[domain=documentation].proposal_status == 'provisioned'.",
+  "acceptance_criteria": [
+    "WAI-Harness/spoke/advisors/documentation/context_prompt.md exists and is non-empty",
+    "WAI-Harness/spoke/advisors/documentation/scan_state.json exists with status=stub",
+    "registry.json entry advisor_id=documentation has status=stub",
+    "schedule-index.json has weekly entry for documentation",
+    "ozi scan_state team_coverage gap[domain=documentation].proposal_status == 'provisioned'"
+  ],
+  "execution_substrate": "gastown"
+}

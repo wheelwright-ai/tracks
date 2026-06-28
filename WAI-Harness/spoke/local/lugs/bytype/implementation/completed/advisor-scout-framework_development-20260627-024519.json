@@ -1,0 +1,37 @@
+{
+  "id": "advisor-scout-framework_development-20260627-024519",
+  "type": "implementation",
+  "title": "Advisor scout-run \u2014 warm up 'framework_development' (never run)",
+  "status": "completed",
+  "routed_to": "LOCAL",
+  "model_fit": "haiku",
+  "execution_mode": "auto",
+  "urgency": 7,
+  "effort_score": 2,
+  "quality_score": 8,
+  "initiative": "crew-maintenance",
+  "authored_by": "ozi-autopilot-scouting",
+  "created_at": "2026-06-27T02:45:19.530873Z",
+  "advisor_scout": true,
+  "advisor_id": "framework_development",
+  "scout_reason": "never run",
+  "perceive": "Keep advisor 'framework_development' warm and current \u2014 advisors are Ozi's special attention on a specialty. Reason due: never run. Advisor home: WAI-Harness/spoke/advisors/framework_development/. Run its specialty scan and record the run so last_run_at reflects today.",
+  "execute": [
+    "1. Read WAI-Harness/spoke/advisors/framework_development/context_prompt.md and feeds.yaml to load framework_development's charter, scan scope, and inputs.",
+    "2. Perform framework_development's specialty scan as described in its context_prompt; produce concrete, impact-ranked findings.",
+    "3. Append findings to WAI-Harness/spoke/advisors/framework_development/findings-log.jsonl (one JSON object per finding).",
+    "4. For any actionable finding, write a haiku task lug to WAI-Harness/spoke/local/lugs/bytype/implementation/open/ (model_fit=haiku, initiative=crew-maintenance).",
+    "5. Set last_run_at=2026-06-27T02:45:19.530863Z in WAI-Harness/spoke/advisors/schedule-index.json (entry advisor_id=framework_development) AND WAI-Harness/spoke/advisors/framework_development/scan_state.json."
+  ],
+  "verify": "schedule-index.json and WAI-Harness/spoke/advisors/framework_development/scan_state.json both show last_run_at=today for 'framework_development'; any findings were appended to findings-log.jsonl.",
+  "s": "completed",
+  "updated_at": "2026-06-27T02:47:21.829890+00:00",
+  "completion_notes": "Completed: Scanned framework_development feeds and framework state. Identified 2 high-impact findings: (1) Unresolved {FEEDS_CONTEXT} placeholder in framework_development advisor context_prompt.md prevents context synthesis; (2) Same issue in documentation advisor. Created 1 actionable haiku task lug (framework-feeds-context-resolver-20260627) to implement feeds.yaml and feed injection system. Updated scan_state.json and schedule-index.json with last_run_at=2026-06-27T02:45:19.530863Z. Findings appended to findings-log.jsonl (2 findings, both actionable).",
+  "workflow": {
+    "current_owner": "ozi-autopilot",
+    "assigned_at": "2026-06-27T02:45:19.534561+00:00",
+    "updated_at": "2026-06-27T02:45:19.534570+00:00",
+    "dispatch_method": "autopilot-subprocess",
+    "completed_at": "2026-06-27T02:47:21.829258+00:00"
+  }
+}

@@ -7,5 +7,8 @@
   "by": "claude-sonnet-4-6",
   "fw_ver": "2.0.137",
   "delivered_at": "2026-04-30T06:49:08.996107+00:00",
-  "delivered_from": "minder"
+  "delivered_from": "minder",
+  "execution_mode": "tender",
+  "execution_substrate": null,
+  "gt_convoy_hint": "no model_fit"
 }
