@@ -889,6 +889,40 @@ This is the **unify-then-VERIFY** guarantee: convergence is not done until the m
 
 ---
 
+### 10j. Proofer Release Gate (verify the session's work BEFORE commit/push)
+
+Proofer (the Release Engineer / Deployment Validator advisor) runs at closeout to prove the work done this
+session still holds — *delivered != verified*. This is the session-boundary quality gate: what we are about
+to commit/push must still pass its checks before it can ship.
+
+Resolve the engine (central master tool; portable across spokes) and run the proof on THIS spoke:
+
+```bash
+PROOFER=$([ -f WAI-Harness/hub/local/scripts/wai_assurance.py ] \
+  && echo WAI-Harness/hub/local/scripts/wai_assurance.py \
+  || echo /home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/scripts/wai_assurance.py)
+python3 "$PROOFER" --spoke . --quick   # writes last_green ledger; exit 1 = REGRESSION
+```
+
+Read the verdict (exit code + `WAI-Harness/spoke/local/runtime/assurance-ledger.json`):
+
+- **Regression (was-green → now-red, exit 1)** — this session broke a previously-working capability:
+  - **Customer-facing / complicated spoke** → **HARD GATE: do NOT commit/push the regression.** Fix-forward
+    until the proof is green, or revert the breaking change + open a P1 fix lug, then re-run this step. A known
+    break must never reach a customer site.
+  - **Infra spoke** → advisory: record the regression in the session summary + open a fix lug; may proceed.
+- **All green (or new reds that were never green)** → proceed to Step 11.
+
+Then refresh Proofer's north star — the **accurate PathGraph** — so it reflects what this session actually
+changed: append the session's added/changed modules/tools/specs to
+`WAI-Harness/spoke/local/pathgraph/history.jsonl` (per `wilbur/docs/pathgraph-spec.md`) and surface any new
+aspiration-vs-reality drift as a gap lug.
+
+Record the proof verdict (green / regressions[]) in the session summary. **Skip only if `SKIP_TEST_GATE=true`**
+(MICRO / CONVERSATION_ONLY — a conversation-only session changed no capability).
+
+---
+
 ### 11. Completion Banner + Git Commit
 
 Display the banner **before** committing, then auto-proceed after 10s unless user cancels:
