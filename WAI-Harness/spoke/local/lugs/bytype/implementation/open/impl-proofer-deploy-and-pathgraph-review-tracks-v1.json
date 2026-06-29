@@ -1,0 +1,50 @@
+{
+  "id": "impl-proofer-deploy-and-pathgraph-review-tracks-v1",
+  "type": "implementation",
+  "status": "open",
+  "priority": "P1",
+  "execute_when": "ready",
+  "routed_to": "SPOKE/tracks",
+  "destination_wheel_id": "tracks",
+  "from": "proofer",
+  "source_wheel_id": "mywheel",
+  "model": "sonnet",
+  "effort_score": 5,
+  "impact": 9,
+  "roi": 9,
+  "title": "Proofer: deploy the Release-Engineer advisor + run a full review -> accurate PathGraph (tracks)",
+  "perceive": "Proofer (Release Engineer / Deployment Validator) north star = an ACCURATE PathGraph: the living record of what is ACTUALLY in this spoke (tracks), reconciled against aspiration. PathGraph spec: wilbur/docs/pathgraph-spec.md; artifact: WAI-Harness/spoke/local/pathgraph/ (history.jsonl). delivered != verified: the union of completed lugs/specs is the real production surface and must be proven still-real + still-working. Infra spoke: gate advisory.",
+  "execute": [
+    "DEPLOY Proofer: scaffold advisors/proofer/ from canon (/home/mario/projects/wheelwright/mywheel/WAI-Harness/spoke/advisors/proofer/contract.json) -> copy contract.json into this spoke's WAI-Harness/spoke/local/advisors/proofer/ (or WAI-Spoke/advisors/proofer/ on v3); register 'proofer' in this spoke's advisors/schedule-index.json (run_cadence daily, event_triggers [closeout,pre_distribution,push], priority 9, tool-backed).",
+    "BUILD ACCURATE PATHGRAPH (pillar 1): per wilbur/docs/pathgraph-spec.md, inventory what is ACTUALLY in this spoke (modules, tools, specs, capabilities, completed lugs) and reconcile vs aspiration; write/refresh WAI-Harness/spoke/local/pathgraph/ (append history.jsonl); surface each aspiration-vs-reality DRIFT as a PEV-complete gap lug.",
+    "PROVE RETENTION (pillar 2): run `python3 /home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/scripts/wai_assurance.py --spoke .` (runs this spoke's tests + validators, writes the last_green ledger at WAI-Harness/spoke/local/runtime/assurance-ledger.json, flags was-green->now-red regressions). For any red/regression, open a PEV-complete fix lug.",
+    "CHECK RUNTIME (pillar 3, LOCAL/DEV only for now): reachability of the dev deployment (hub-registry dev hostname/port); record up/down advisory (no prod gate yet).",
+    "COMMIT scoped (advisor + pathgraph + ledger) to this spoke; push per normal lifecycle."
+  ],
+  "verify": [
+    "advisors/proofer/contract.json present + 'proofer' registered in this spoke's schedule-index.json",
+    "WAI-Harness/spoke/local/pathgraph/ refreshed (history.jsonl appended) and its modules reflect ACTUAL code (spot-check 2-3)",
+    "assurance-ledger.json written with per-capability last_green; any red/regression has a fix lug",
+    "drift between aspiration and reality is captured as gap lugs (not silently dropped)"
+  ],
+  "acceptance_criteria": [
+    "Proofer advisor deployed + scheduled in this spoke",
+    "An accurate PathGraph exists for this spoke (reality-reconciled, drift surfaced)",
+    "Retention proof ran with a last_green ledger; regressions flagged"
+  ],
+  "target_files": [
+    "WAI-Harness/spoke/local/advisors/proofer/contract.json",
+    "WAI-Harness/spoke/local/advisors/schedule-index.json",
+    "WAI-Harness/spoke/local/pathgraph/history.jsonl",
+    "WAI-Harness/spoke/local/runtime/assurance-ledger.json"
+  ],
+  "tags": [
+    "proofer",
+    "pathgraph",
+    "release-validation",
+    "fleet-deploy"
+  ],
+  "origin": "mywheel s136 operator directive: deploy Proofer + full PathGraph review per active spoke (tonight AP)",
+  "created_at": "2026-06-29T06:21:42.957553+00:00",
+  "delivered_at": "2026-06-29T06:21:42.957553+00:00"
+}
