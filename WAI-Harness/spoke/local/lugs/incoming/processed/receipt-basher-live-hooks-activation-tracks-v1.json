@@ -1,0 +1,23 @@
+{
+  "id": "receipt-basher-live-hooks-activation-tracks-v1",
+  "type": "notice",
+  "status": "open",
+  "model": "haiku",
+  "from_wheel_id": "basher",
+  "destination_wheel_id": "tracks",
+  "created_at": "2026-06-30T04:20:00Z",
+  "delivered_at": "2026-06-30T04:20:00Z",
+  "summary": "Basher activated managed/.claude/hooks canon -> live on your spoke (restore --live-hooks).",
+  "perceive": "Your harness was on 4.4.3 (managed/ updated) but live .claude/hooks were never activated, so the Herald auto-spawn block + stop-worktree-hygiene.sh + validate_track_buffer.py were missing from live, and session-start.sh/synthesize_turn.py/user-prompt-submit.sh were stale.",
+  "what_changed": "Ran `basher restore --spoke tracks --live-hooks`. Deployed missing live hooks + subsumed stale ones from your own managed canon. local-only=0 (no custom hooks existed to preserve). Verified: bash -n clean, session-start.sh live==managed, herald auto-spawn line present (no-op unless you set herald.json enabled:true).",
+  "verify": "grep -c '_HERALD=' .claude/hooks/session-start.sh  # ->1 ; bash -n .claude/hooks/session-start.sh",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "criterion": "live .claude/hooks/session-start.sh matches managed canon and passes bash -n",
+      "verified": true
+    }
+  ],
+  "note": "Herald daemon remains DISABLED on your spoke (operator chose basher-only). The spawn line is a safe no-op until enabled. Commit the updated .claude/hooks at your next session if you want them tracked.",
+  "_authored_by": "basher session-110"
+}
