@@ -1,7 +1,7 @@
 {
   "schema_version": "1.4",
-  "generated_at": "2026-06-30T09:37:29.794073+00:00",
-  "valid_through": "2026-07-01T09:37:29.794073+00:00",
+  "generated_at": "2026-07-01T13:47:30.962420+00:00",
+  "valid_through": "2026-07-02T13:47:30.962420+00:00",
   "excluded_providers": [
     "deepseek",
     "kimi",
@@ -28,7 +28,7 @@
       },
       "subscription": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.81,
           "dimension_scores": {
@@ -46,7 +46,7 @@
           ]
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.81,
           "dimension_scores": {
@@ -64,7 +64,7 @@
           ]
         },
         "fast": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.795,
           "dimension_scores": {
@@ -85,7 +85,7 @@
       },
       "api": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.8225,
           "dimension_scores": {
@@ -105,7 +105,7 @@
           "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.8075,
           "dimension_scores": {
@@ -125,7 +125,7 @@
           "cost_output_1m_usd": null
         },
         "economy": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.805,
           "dimension_scores": {
@@ -168,6 +168,7 @@
         "gemini-3.1-flash-image",
         "gemini-3.1-flash-image-preview",
         "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite-image",
         "gemini-3.1-flash-lite-preview",
         "gemini-3.1-flash-tts-preview",
         "gemini-3.1-pro-preview",
@@ -349,7 +350,7 @@
       },
       "subscription": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.81,
           "dimension_scores": {
@@ -367,7 +368,7 @@
           ]
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.81,
           "dimension_scores": {
@@ -385,7 +386,7 @@
           ]
         },
         "fast": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.795,
           "dimension_scores": {
@@ -406,7 +407,7 @@
       },
       "api": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.8225,
           "dimension_scores": {
@@ -503,7 +504,7 @@
       },
       "subscription": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.7925,
           "dimension_scores": {
@@ -521,7 +522,7 @@
           ]
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.796,
           "dimension_scores": {
@@ -560,7 +561,7 @@
       },
       "api": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.805,
           "dimension_scores": {
@@ -580,7 +581,7 @@
           "cost_output_1m_usd": null
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.795,
           "dimension_scores": {
@@ -643,6 +644,7 @@
         "gemini-3.1-flash-image",
         "gemini-3.1-flash-image-preview",
         "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite-image",
         "gemini-3.1-flash-lite-preview",
         "gemini-3.1-flash-tts-preview",
         "gemini-3.1-pro-preview",
@@ -978,7 +980,7 @@
       },
       "subscription": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.7925,
           "dimension_scores": {
@@ -996,7 +998,7 @@
           ]
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.796,
           "dimension_scores": {
@@ -1035,7 +1037,7 @@
       },
       "api": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.805,
           "dimension_scores": {
@@ -1201,7 +1203,7 @@
           "cost_output_1m_usd": 15.0
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.8283,
           "dimension_scores": {
@@ -1221,7 +1223,7 @@
           "cost_output_1m_usd": null
         },
         "economy": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.8383,
           "dimension_scores": {
@@ -1264,6 +1266,7 @@
         "gemini-3.1-flash-image",
         "gemini-3.1-flash-image-preview",
         "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite-image",
         "gemini-3.1-flash-lite-preview",
         "gemini-3.1-flash-tts-preview",
         "gemini-3.1-pro-preview",
@@ -1445,7 +1448,7 @@
       },
       "subscription": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.775,
           "dimension_scores": {
@@ -1463,7 +1466,7 @@
           ]
         },
         "balanced": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.782,
           "dimension_scores": {
@@ -1502,7 +1505,7 @@
       },
       "api": {
         "quality": {
-          "model_id": "claude-fable-5",
+          "model_id": "claude-sonnet-5",
           "provider": "anthropic",
           "score": 0.7875,
           "dimension_scores": {
@@ -1591,7 +1594,7 @@
   "per_provider": {
     "coding_high": {
       "anthropic": {
-        "model_id": "claude-fable-5",
+        "model_id": "claude-sonnet-5",
         "composite_score": 0.835,
         "qualify_score": null,
         "qualify_status": "pending",
@@ -1625,7 +1628,7 @@
     },
     "planning_high": {
       "anthropic": {
-        "model_id": "claude-fable-5",
+        "model_id": "claude-sonnet-5",
         "composite_score": 0.835,
         "qualify_score": null,
         "qualify_status": "pending",
@@ -1647,7 +1650,7 @@
     },
     "debugging_medium": {
       "anthropic": {
-        "model_id": "claude-fable-5",
+        "model_id": "claude-sonnet-5",
         "composite_score": 0.8175,
         "qualify_score": null,
         "qualify_status": "pending",
@@ -1703,7 +1706,7 @@
     },
     "ideation_medium": {
       "anthropic": {
-        "model_id": "claude-fable-5",
+        "model_id": "claude-sonnet-5",
         "composite_score": 0.8175,
         "qualify_score": null,
         "qualify_status": "pending",
@@ -1757,7 +1760,7 @@
     },
     "api_generate_medium": {
       "anthropic": {
-        "model_id": "claude-fable-5",
+        "model_id": "claude-sonnet-5",
         "composite_score": 0.8,
         "qualify_score": null,
         "qualify_status": "pending",
