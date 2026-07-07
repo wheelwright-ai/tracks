@@ -1,9 +1,9 @@
 {
-  "cached_at": "2026-07-05T09:37:19.494481+00:00",
+  "cached_at": "2026-07-06T09:37:22.694286+00:00",
   "ttl_hours": 24,
   "catalog": null,
   "fleet_chart": {
-    "generated_at": "2026-07-05T09:37:19.319845+00:00",
+    "generated_at": "2026-07-06T09:37:22.563660+00:00",
     "spoke_count": 5,
     "total_sessions": 16,
     "observations": [
@@ -57,8 +57,8 @@
       }
     ]
   },
-  "recommendations_pulled_at": "2026-07-05T09:37:19.494481+00:00",
-  "recommendations_valid_through": "2026-07-06T09:37:19.398743+00:00",
+  "recommendations_pulled_at": "2026-07-06T09:37:22.694286+00:00",
+  "recommendations_valid_through": "2026-07-07T09:37:22.622603+00:00",
   "usage_summary": {
     "limits_available": false,
     "entries": []
