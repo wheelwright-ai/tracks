@@ -1,0 +1,190 @@
+# Teaching: Mandatory Adversarial Implementability Review + Model-Tier Routing for Build Plans
+
+**Type:** Protocol Enhancement
+**Version:** 1.0.0
+**Created:** 2026-07-08
+**safe_to_auto_adopt:** true
+**applies_to_spoke_types:** all
+**Affects:** wai-plan-validation, wai-complexity-gate, wai-lug-schema
+**Supersedes:** nothing
+**weight:** 10
+**fingerprint:** a3f
+
+---
+
+## Prerequisites
+
+**Standalone (no dependencies):**
+None — this teaching is standalone and has no dependencies.
+
+## Batch Sequence
+
+**Batch:** standalone
+**Apply order:** 1 of 1
+**Depends on:** none
+**Required before:** none
+**Parallel safe:** yes
+**Full batch order:** standalone
+
+---
+
+## What This Teaching Provides
+
+Adds a MANDATORY adversarial implementability review gate to `wai-plan-validation` (Step 0) that must run before any build plan reaches the user for approval. The reviewer spawns a subagent in implementer persona that verifies the plan's factual premises against the ACTUAL repo/DB/config state — not just internal consistency — producing a BLOCKER/GAP/DEFER-OK triage with a recorded `review_resolution` section.
+
+Also standardizes model-tier routing in `wai-lug-schema`: haiku is the default for mechanical/baked-in work; sonnet for integration judgment; escalation above haiku requires a stated reason in `model_fit_reason`. The `wai-complexity-gate` Plan Validation Gate section is updated to reference both requirements.
+
+---
+
+## Why This Matters
+
+**Trigger case (ezorg-email-website, 2026-07-08):** A plan document (`docs/BOARD_WORKSPACE_PLAN.md`) appeared complete but contained a factually false premise: it claimed to use "fresh tables with distinct names" as a Supabase migration mitigation, when legacy tables `public.cycles`, `work_items`, and `initiatives` already existed with incompatible schemas. A sonnet subagent reviewing in implementer persona (and verifying against the actual migration files) caught 5 blockers, ~20 gaps, and 10 data-model mismatches. The headline defect would have caused Phase 0 migrations using `CREATE TABLE IF NOT EXISTS` to silently attach new code to the wrong legacy tables, corrupting the foundation phase. Review cost: ~60k tokens, ~4 min.
+
+Without this gate, confident-but-wrong plan premises surface mid-implementation when they are most expensive to fix. Plans read as complete to their authors; the adversarial review reads them as an implementer who has to execute each step against real system state.
+
+Operator directive (mariov96): "These reviews must be mandatory otherwise we are setting ourselves up for pain."
+
+---
+
+## What Changed
+
+### `wai-plan-validation.md`
+
+**Before:** Single-pass self-validation checklist (PEV completeness, testable verify, ACs, file targets, dependency clarity). No external review step.
+
+**After:** Two-step process:
+- **Step 0 (new, NON-SKIPPABLE):** Mandatory adversarial implementability review by a subagent in implementer persona. Includes full reviewer prompt template requiring: (a) section-by-section judgment-gap analysis, (b) factual premise verification against actual repo/DB/config, (c) data-model vs. promised-features cross-check, (d) BLOCKER/GAP/DEFER-OK severity triage. Plan must receive PASS verdict and record a `review_resolution` section before it can be shown to the user. A plan without this section is blocked.
+- **Step 1 (existing, renamed):** Self-validation checklist, now also requires `model_fit` to be set on each child lug.
+- **After approval (new):** Mandatory implementation lug generation with model-tier assignment using the routing table from `wai-lug-schema.md`. Default to affordable tier; escalation requires `model_fit_reason`.
+
+### `wai-complexity-gate.md`
+
+**Before:** Plan Validation Gate section pointed to `/wai-plan-validation` with one-line description of lug requirements.
+
+**After:** Plan Validation Gate section lists both steps explicitly and states that a missing review record is a protocol violation.
+
+### `wai-lug-schema.md`
+
+**Before:** `model_fit` default described as "haiku"; escalation guidance was implicit.
+
+**After:**
+- `model_fit` default entry clarified: "Default is haiku — use the cheapest model capable of the work."
+- New `model_fit_reason` field added (null default): required when escalating above haiku; one sentence stating why affordable tier is insufficient.
+- New **Model-Tier Routing** section added after Required Field Defaults: a 3-row table mapping work character to model tier with explicit rules (haiku=default, escalation requires reason, haiku lugs require baked-in specifics to eliminate judgment calls).
+
+---
+
+## Context Doc Patch
+
+```json
+[
+  {
+    "section": "Planning",
+    "action": "add",
+    "content": "## Mandatory Plan Review\n\nAny 0-to-1 or multi-phase build plan MUST pass an adversarial implementability review (wai-plan-validation Step 0) before reaching the operator for approval. The reviewer verifies factual premises against actual repo/DB/config state. Plans without a recorded `review_resolution` section are blocked. After approval, implementation lugs are generated with model-tier assignments (haiku default; escalation requires stated reason in `model_fit_reason`)."
+  }
+]
+```
+
+---
+
+## How to Apply This Teaching
+
+### Step 1 — Replace wai-plan-validation.md
+
+Replace the content of `.claude/commands/wai-plan-validation.md` with the updated version from the framework's `spoke/managed/templates/commands/wai-plan-validation.md`.
+
+```bash
+# From the spoke root (adjust MASTER_PATH as needed).
+# NOTE: reads the WAI-State.json wheel.framework_path field, which currently
+# points at the deprecated /wheelwright/framework repo. That field itself is
+# scheduled for a rename (framework_path -> master_path, or retirement) under
+# impl-integrity-w7-retire-framework-term-v1 part 2 — update this read once
+# that lands.
+MASTER_PATH=$(python3 -c "import json; d=json.load(open('WAI-Harness/spoke/local/WAI-State.json')); print(d['wheel'].get('framework_path') or '')" 2>/dev/null || echo "")
+if [ -n "$MASTER_PATH" ]; then
+  cp "$MASTER_PATH/spoke/managed/templates/commands/wai-plan-validation.md" .claude/commands/wai-plan-validation.md
+  echo "PASS — wai-plan-validation.md updated"
+else
+  echo "MANUAL — copy mywheel/WAI-Harness/spoke/managed/templates/commands/wai-plan-validation.md to .claude/commands/wai-plan-validation.md"
+fi
+```
+
+### Step 2 — Replace wai-complexity-gate.md
+
+```bash
+if [ -n "$MASTER_PATH" ]; then
+  cp "$MASTER_PATH/spoke/managed/templates/commands/wai-complexity-gate.md" .claude/commands/wai-complexity-gate.md
+  echo "PASS — wai-complexity-gate.md updated"
+else
+  echo "MANUAL — copy mywheel/WAI-Harness/spoke/managed/templates/commands/wai-complexity-gate.md to .claude/commands/wai-complexity-gate.md"
+fi
+```
+
+### Step 3 — Replace wai-lug-schema.md
+
+```bash
+if [ -n "$MASTER_PATH" ]; then
+  cp "$MASTER_PATH/spoke/managed/templates/commands/wai-lug-schema.md" .claude/commands/wai-lug-schema.md
+  echo "PASS — wai-lug-schema.md updated"
+else
+  echo "MANUAL — copy mywheel/WAI-Harness/spoke/managed/templates/commands/wai-lug-schema.md to .claude/commands/wai-lug-schema.md"
+fi
+```
+
+### Step 4 — Move teaching to processed
+
+```bash
+mkdir -p WAI-Harness/spoke/local/seed/ingest/processed/
+mv WAI-Harness/spoke/local/seed/ingest/teaching-mandatory-plan-review-v1.md.teaching WAI-Harness/spoke/local/seed/ingest/processed/
+```
+
+---
+
+## Behavioral Implications
+
+After this teaching is applied, agents on this spoke will:
+
+1. **Never present a build plan for approval without first running a subagent adversarial review.** The reviewer must verify factual premises against actual filesystem/DB/config state, not just check internal consistency.
+2. **Block plan presentation if the review produced any BLOCKERs** until they are resolved in the plan document and the `review_resolution` section is written.
+3. **Generate implementation lugs immediately after plan approval** (not as an optional follow-up), with model-tier assignments derived from the routing table.
+4. **Default to `model_fit: "haiku"` for implementation lugs** and require a stated reason (`model_fit_reason`) when escalating to sonnet or opus.
+5. **Treat a plan without a `review_resolution` section as blocked** — it cannot reach the user.
+
+---
+
+## Verification
+
+After applying:
+
+```bash
+# Check wai-plan-validation.md contains the adversarial review gate
+grep -q "Mandatory Adversarial" .claude/commands/wai-plan-validation.md && echo "PASS — review gate present" || echo "FAIL — wai-plan-validation.md not updated"
+
+# Check wai-complexity-gate.md references the adversarial review
+grep -q "Adversarial implementability" .claude/commands/wai-complexity-gate.md && echo "PASS — complexity gate updated" || echo "FAIL — wai-complexity-gate.md not updated"
+
+# Check wai-lug-schema.md has model_fit_reason field
+grep -q "model_fit_reason" .claude/commands/wai-lug-schema.md && echo "PASS — model_fit_reason field present" || echo "FAIL — wai-lug-schema.md not updated"
+
+# Check model-tier routing table is present
+grep -q "Model-Tier Routing" .claude/commands/wai-lug-schema.md && echo "PASS — routing table present" || echo "FAIL — routing table missing"
+
+# Check severity triage present (BLOCKER and DEFER-OK appear separately in template)
+grep -q "BLOCKER" .claude/commands/wai-plan-validation.md && grep -q "DEFER-OK" .claude/commands/wai-plan-validation.md && echo "PASS — severity triage (BLOCKER/GAP/DEFER-OK) present" || echo "FAIL — severity triage missing"
+```
+
+---
+
+## Backward Compatibility
+
+- All existing lugs without `model_fit_reason` remain valid — the field is optional and null by default.
+- Existing `model_fit` values are unchanged; the routing table adds guidance, not a new field.
+- The adversarial review gate is forward-only: it does not retroactively invalidate plans already approved and in-progress.
+- Spokes that have not yet adopted this teaching will not enforce the review gate — adoption is the trigger.
+
+---
+
+**Teaching Package:** mandatory-plan-review-v1
+**safe_to_auto_adopt:** true
+**Impact:** Protocol change affecting all spokes: planning workflow gains mandatory adversarial review gate and model-tier routing for implementation lugs. No data migration required.

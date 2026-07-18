@@ -18,6 +18,7 @@ When enabled, Ozi:
 - respects this session's parallel budget
 - polls in watch mode every 5 minutes when run with `python3 wai_ozi.py --watch`
 - does not force other sessions into auto mode
+- enables the background wip-capture auto-commit: `wai_hygiene` may commit uncommitted tracked work on session/worktree branches (never on main)
 
 ## Protocol
 

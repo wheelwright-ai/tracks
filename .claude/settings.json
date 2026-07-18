@@ -15,5 +15,105 @@
   "_basher": {
     "managed_by": "basher tools update",
     "new_entries": "document value + declare scope: spoke-local or wheel-wide. Wheel-wide changes: write a lug to /home/mario/projects/basher/WAI-Spoke/lugs/incoming/"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-end-lane.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/user-prompt-submit.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-tool-guard.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-write-guard.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-test-runner.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          },
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-track-flush.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          },
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-savepoint-guard.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          },
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-worktree-hygiene.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-compact.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-create.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ]
   }
 }

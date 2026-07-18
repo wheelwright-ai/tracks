@@ -86,19 +86,73 @@ try:
 except Exception: pass
 print(m)" 2>/dev/null)
   [[ -z "$_TR_MODEL" ]] && _TR_MODEL=$(python3 -c "import json;print(json.load(open('$STATE_FILE')).get('_session_state',{}).get('ai_id','') or '')" 2>/dev/null)
-  [[ -z "$_TR_MODEL" ]] && _TR_MODEL="<your-model-id>"
+  # Unresolved model => the honest DATA value "unknown", never the prompt placeholder.
+  # "<your-model-id>" is a template token the model is told to substitute in its statusline;
+  # writing it into the buffer leaked it through track -> model-usage/usage.jsonl and minted
+  # a phantom model-interface/_your-model-id_.json profile the Navigator could route against
+  # (observed 2026-07-14). A prompt token is not a data value. model_profile_build.load_usage
+  # also drops non-model ids at the read side, so old events and lagging spokes stay harmless.
+  [[ -z "$_TR_MODEL" ]] && _TR_MODEL="unknown"
   if [[ "$MODE" == v4 ]]; then _TR_BUF="WAI-Harness/spoke/local/runtime/track-buffer.json"; else _TR_BUF="WAI-Spoke/runtime/track-buffer.json"; fi
+
+  # W1.6: pre-seed the buffer with HOOK-OWNED envelope fields via a real read-update-write
+  # (not prose the model must reproduce by hand). Preserve any other keys already present
+  # (e.g. a partial write from mid-turn tooling); ts is the hook's own system clock, never
+  # model-reported. Best-effort — a write failure here must never block the turn.
+  _TR_BUF_ABS="$PROJECT_DIR/$_TR_BUF"
+  python3 - "$_TR_BUF_ABS" "$_TR_N" "$_TR_MODEL" <<'PYEOF' 2>/dev/null || true
+import json, sys
+from pathlib import Path
+from datetime import datetime, timezone
+
+buf_path, turn, model = sys.argv[1], sys.argv[2], sys.argv[3]
+p = Path(buf_path)
+data = {}
+if p.exists():
+    try:
+        loaded = json.loads(p.read_text())
+        if isinstance(loaded, dict):
+            data = loaded
+    except Exception:
+        data = {}
+data["event"] = "turn"
+data["turn"] = int(turn)
+data["source"] = "model"
+data["ts"] = datetime.now(timezone.utc).isoformat()
+data["ts_source"] = "system_clock"
+data["model"] = model
+p.parent.mkdir(parents=True, exist_ok=True)
+tmp = p.with_suffix(p.suffix + ".tmp")
+tmp.write_text(json.dumps(data, indent=2))
+tmp.replace(p)
+PYEOF
+
   _TR_SL="Turn ${_TR_N} | ${_TR_DATE} | ${_TR_TIME} | ${_TR_MODEL} | Gold: +{count}"
   printf '%s\n' "<wai-track-turn>"
   printf '%s\n' "WAI Track v2.0.2 per-turn obligations (an INSTRUCTION to act on, not a message to acknowledge):"
-  printf '%s\n' "1. RICH ENTRY (Layer-1, full-feature): before your statusline, write ${_TR_BUF} as ONE JSON object."
-  printf '%s\n' "   Envelope: {\"event\":\"turn\",\"turn\":${_TR_N},\"source\":\"model\",\"ts\":\"<iso8601>\",\"ts_source\":\"system_clock\"}"
+  printf '%s\n' "1. RICH ENTRY (Layer-1, full-feature): before your statusline, READ the pre-seeded ${_TR_BUF}"
+  printf '%s\n' "   (the hook already wrote hook-owned keys: event, turn, source, ts, ts_source, model)."
+  printf '%s\n' "   Do NOT overwrite the hook-owned keys — ADD your own judgment fields, then write the"
+  printf '%s\n' "   full MERGED object back (hook-owned keys preserved verbatim + your fields added)."
   printf '%s\n' "   REQUIRED every turn (never omit): user_msg (verbatim <=500c), user_intent, action, outcome,"
   printf '%s\n' "   thinking (3-8 sentences: why/tradeoffs/what-was-rejected), focus (one line), phase."
   printf '%s\n' "   Soft-required unless empty this turn: decisions, insights, open. History is append-only."
   printf '%s\n' "   INSIGHT CONTRACT (feeds the lens insights view [s], place-awareness): make insights a look-BACK over the WHOLE"
   printf '%s\n' "   session so far, reconciling loose threads into one ACTIONABLE read for this turn; open = work the user"
   printf '%s\n' "   requested that is not yet verified or completed. As verbose as possible WHILE brief: dense and skimmable,"
+  printf '%s\n' "   LANDING CONTRACT (non-negotiable): every \`open\` entry is an OBJECT, never a bare string:"
+  printf '%s\n' "     {\"text\": \"...\", \"landing\": {\"kind\": \"...\", ...}}"
+  printf '%s\n' "   A thread without a landing condition is chatter, not work. Pick the kind that can be"
+  printf '%s\n' "   CHECKED BY A MACHINE with no judgement:"
+  printf '%s\n' "     lug_completed {\"kind\":\"lug_completed\",\"id\":\"impl-foo-v1\"}      lug reaches completed/"
+  printf '%s\n' "     file_exists   {\"kind\":\"file_exists\",\"path\":\"tools/foo.py\"}      path exists"
+  printf '%s\n' "     file_contains {\"kind\":\"file_contains\",\"path\":\"x.sh\",\"needle\":\"FOO\"}"
+  printf '%s\n' "     commit        {\"kind\":\"commit\",\"sha\":\"abc1234\"}                 sha is an ancestor of HEAD"
+  printf '%s\n' "     command       {\"kind\":\"command\",\"cmd\":\"pytest -q tests/x.py\"}    exits 0"
+  printf '%s\n' "     manual        {\"kind\":\"manual\",\"note\":\"why a human is required\"}  never auto-lands"
+  printf '%s\n' "   The condition must be FALSE right now and become TRUE only when the work is genuinely"
+  printf '%s\n' "   done. A condition satisfiable by partial work is a Goodhart target, not an oracle —"
+  printf '%s\n' "   if you cannot write an honest one, use manual and say why. Never invent a passing check."
   printf '%s\n' "   so the reader gets place-awareness here and opens chat for full detail."
   printf '%s\n' "2. STATUSLINE (mandatory, NON-WAIVABLE — the LAST line of your response, even on a question/options"
   printf '%s\n' "   list and even if the user says 'no footer'). Emit EXACTLY, replacing {count} with the number of"
@@ -108,12 +162,61 @@ print(m)" 2>/dev/null)
   printf '%s\n' "</wai-track-turn>"
 fi
 
-# (1) CSRP AC4 — per-turn lane heartbeat (throttled ~5min via marker; fails silent).
+# ── TASTEGRAPH PRESENTATION VECTOR (per-turn, unconditional) ────────────────
+#
+# s137 measured TasteGraph as near non-binding: preferences sourced ONLY from
+# the graph had close to zero compliance. Cause was structural, not willpower —
+# the whole graph was rendered once at SessionStart and never again, truncated
+# mid-sentence, and 33 preferences were capped out silently.
+#
+# This fires the PRESENTATION slice every turn, at the moment output is being
+# composed, which is where adherence failed most often. It must be a hook and
+# never an agent-invoked step: anything that depends on the agent REMEMBERING
+# to ask reproduces the exact failure being fixed.
+#
+# Loud on absent, per the same doctrine as the RESIDENT and TasteGraph blocks
+# above — silence is how a dead system stays hidden for months.
+# ${PROJECT_DIR} not ${CLAUDE_PROJECT_DIR}: line 16 establishes the :-. fallback.
+# Using the raw var meant an unset CLAUDE_PROJECT_DIR resolved to /WAI-Harness/...,
+# the [ -f ] test failed, and the whole block vanished SILENTLY — no DEGRADED
+# banner. The one config where the feature disappears had the least signal.
+_TGV="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/tastegraph_vector.py"
+if [ -f "$_TGV" ]; then
+  _TGV_OUT="$(python3 "$_TGV" select --vector presentation \
+                --session "${WAI_SESSION:-unknown}" --turn "${_TR_N:-0}" \
+                --context "composing turn output" 2>&1)"
+  if [ -n "$_TGV_OUT" ]; then
+    printf '%s\n' "<tastegraph-vector>"
+    printf '%s\n' "These are the operator preferences that govern HOW YOU WRITE THIS REPLY."
+    printf '%s\n' "Selected deterministically for the presentation vector; full bodies, never truncated."
+    printf '%s\n' "$_TGV_OUT"
+    printf '%s\n' "</tastegraph-vector>"
+  else
+    printf '%s\n' "<tastegraph-vector>DEGRADED: selector present but returned nothing — check ${_TGV}</tastegraph-vector>"
+  fi
+fi
+
+# (1) CSRP AC4 — per-turn lane heartbeat (throttled ~5min via marker).
+#
+# --no-create is LOAD-BEARING (impl-lane-registry-liveness-authority): a heartbeat must
+# NEVER mint a lane. lane-register defaults to create=True, so a prompt submitted after
+# SessionEnd released the lane (or in any session that never registered one) RESURRECTED
+# it as a ghost — the 11.4h phantom-peer bug the SessionEnd hook exists to close. Refresh
+# a lane that exists; never author one. Birth belongs to SessionStart (lane-adopt) alone.
 if [[ -n "$_UPS_SID" ]]; then
   _HBM="$BASE/runtime/lanes/$_UPS_SID/.hb"
   if [[ -z "$(find "$_HBM" -mmin -5 2>/dev/null)" ]]; then
     _WG="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/worktree_guard.py"
-    [[ -f "$_WG" ]] && python3 "$_WG" lane-register --session "$_UPS_SID" --base "$BASE" --transcript "$_UPS_TRANSCRIPT" >/dev/null 2>&1 || true
+    if [[ -f "$_WG" ]]; then
+      _UPS_LANE_ERR=$(mktemp 2>/dev/null || echo /tmp/wai-ups-lane-err.$$)
+      if ! python3 "$_WG" lane-register --session "$_UPS_SID" --base "$BASE" \
+             --transcript "$_UPS_TRANSCRIPT" --no-create >/dev/null 2>"$_UPS_LANE_ERR"; then
+        # Loud, not silent: a heartbeat that fails silently is how a LIVE session goes
+        # TTL-stale and every concurrency guard starts failing open (blind).
+        echo "[WAI] degraded: lane heartbeat failed in user-prompt-submit for $_UPS_SID — $(head -c 300 "$_UPS_LANE_ERR" 2>/dev/null | tr '\n' ' '). This session may go stale in the lane registry; commit scoped (never git add -A)." >&2
+      fi
+      rm -f "$_UPS_LANE_ERR" 2>/dev/null
+    fi
     mkdir -p "$(dirname "$_HBM")" 2>/dev/null && touch "$_HBM" 2>/dev/null || true
   fi
 fi

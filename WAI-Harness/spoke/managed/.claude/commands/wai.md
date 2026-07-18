@@ -406,6 +406,7 @@ Pre-conditions: No `<wai-session-init>` in context AND `WAI-Spoke/wakeup-brief.j
 │  {If teachings_pending > 0: ⚑ Teachings: N pending — adopt before work queue}
 │  {If incoming_lugs_pending > 0: ⚑ Incoming: N lugs unprocessed — triage before work queue}
 │  {If hub_signals_pending > 0: Hub signals: N pending}
+│  {If lug_staleness.violations_count > 0: ⚠ Lug staleness: N SLO violation(s), oldest {oldest_violation.id} at {oldest_violation.age_hours}h (SLO {oldest_violation.slo_hours}h){If lug_staleness.stale_report:  — report itself is {report_age_hours}h old, may be stale}}
 │  {If recommendations exist: Navigator: matrix {generated_at_date} ✓  (or ⚠ stale {age}h if valid_through <= now)}
 │  {default_mode: Available: {best_model_id} ({profile_id}, score={score}) [{provider}] [+ N others — configure API keys to unlock]}
 │  {embedded_ai_mode (top ready lug tagged ai-integration/embedding-ai/llm-feature/ai-tool): Full landscape: {provider_count} providers, {model_count} models | Best: {model_id} ({provider}) | Cost: {cost_model_id} | See recommendations-current.json}

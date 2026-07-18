@@ -345,6 +345,14 @@ Write a final track point as the **terminal entry** — this is the marker wakeu
 
 Do NOT delete the track file — it's the permanent session record. A session without this terminal entry will show as INTERRUPTED on next wakeup.
 
+**Resident digest roll (AUTOMATIC — right after the terminal track entry):** fold this session into the spoke's continuity digest (spec-resident-voice-v1):
+
+```bash
+python3 {TOOLS}/resident_digest.py roll --session {session_id}
+```
+
+Idempotent (re-run is a no-op) and deterministic (no model call, <0.1s). If the tool or `resident/` dir is absent (spoke not yet bootstrapped), skip silently — do not create state at closeout. The digest write is included in the closeout commit like any other `{BASE}` file.
+
 **Ledger terminal entry:** After writing the track.jsonl closeout event, also append a final row to `wai_track_ledger.md` in the session directory:
 
 ```
@@ -695,98 +703,11 @@ If no next ready item after completion: `chain_target_lug` is set to `null` — 
 Before committing, mark the session clean in WAI-State and verify savepoints:
 
 ```bash
-python3 - <<'PYEOF'
-import json, datetime, os, glob, shutil, sys
-
-state_path = '{BASE}/WAI-State.json'
-ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
-with open(state_path) as f:
-    state = json.load(f)
-
-# --- Savepoint complete gate ---
-# Find this session's savepoint (the one with status active/pending and our session_id).
-guard_path = '{BASE}/runtime/session-guard.json'
-try:
-    current_session_id = json.load(open(guard_path)).get('session_id', '')
-except Exception:
-    current_session_id = ''
-
-sp_files = sorted(glob.glob('{BASE}/savepoints/*.json'))
-sp_files = [f for f in sp_files if '.gitkeep' not in f]
-
-my_sp_path = None
-my_sp = None
-for f in sp_files:
-    try:
-        d = json.load(open(f))
-        if d.get('session_id') == current_session_id or d.get('claiming_session_id') == current_session_id:
-            my_sp_path = f
-            my_sp = d
-            break
-    except Exception:
-        pass
-
-# Conflict check: does any other active savepoint share a lug in lug_locks?
-if my_sp:
-    my_locks = set(my_sp.get('lug_locks', []))
-    if my_locks:
-        for f in sp_files:
-            if f == my_sp_path:
-                continue
-            try:
-                other = json.load(open(f))
-                if other.get('status') not in ('pending', 'active'):
-                    continue
-                other_locks = set(other.get('lug_locks', []))
-                conflicts = my_locks & other_locks
-                if conflicts:
-                    other_status = other.get('status', '?')
-                    if other_status == 'active':
-                        print(f"CONFLICT HARD-STOP: lug(s) {conflicts} also held by active savepoint {other['id']} (session {other.get('claiming_session_id','?')})")
-                        print("Resolve: either complete the other session's savepoint first, or remove the conflicting lug from lug_locks manually.")
-                        sys.exit(1)
-                    else:
-                        # Other is pending (not yet claimed) — auto-resolve via git history
-                        print(f"  Conflict note: lug(s) {conflicts} also in pending savepoint {other['id']} — auto-resolved (git history is truth)")
-                        # Record in my_sp conflicts
-                        my_sp.setdefault('conflicts', []).append({
-                            'sp_id': other['id'], 'lugs': list(conflicts), 'resolution': 'auto_git'
-                        })
-            except Exception:
-                pass
-
-    # Complete: update savepoint file and move to completed/
-    my_sp['status'] = 'completed'
-    my_sp['completed_at'] = ts
-    os.makedirs('{BASE}/savepoints/completed', exist_ok=True)
-    dest = '{BASE}/savepoints/completed/' + os.path.basename(my_sp_path)
-    with open(my_sp_path, 'w') as f:
-        json.dump(my_sp, f, indent=2)
-    shutil.move(my_sp_path, dest)
-    print(f"  Savepoint completed: {my_sp['id']} → savepoints/completed/")
-
-    # Update pointer
-    pointer = state.get('_savepoint', {})
-    active_ids = pointer.get('active_ids', [])
-    active_ids = [x for x in active_ids if x != my_sp['id']]
-    state['_savepoint'] = {'active_ids': active_ids, 'count': len(active_ids)}
-elif sp_files:
-    print(f"  No savepoint for session {current_session_id} — {len(sp_files)} other savepoint(s) untouched")
-else:
-    # No savepoints at all — ensure pointer is clean
-    state['_savepoint'] = {'active_ids': [], 'count': 0}
-
-# --- Session status ---
-if '_session_status' not in state:
-    state['_session_status'] = {}
-state['_session_status']['status'] = 'clean'
-state['_session_status']['clean_at'] = ts
-state['_session_status']['interrupted_at'] = state['_session_status'].get('interrupted_at')
-state['_session_status']['interrupted_session'] = None
-with open(state_path, 'w') as f:
-    json.dump(state, f, indent=2)
-print(f'_session_status.status = clean @ {ts}')
-PYEOF
+# Completes THIS session's savepoint (hard-stops on an active-savepoint lug_locks conflict;
+# auto-resolves a pending one, git history being truth) and marks the session clean.
+# Extracted from this ceremony 2026-07-14 (was a 95-line inline heredoc) —
+# behaviour preserved verbatim in tools/closeout_session_status.py.
+python3 WAI-Harness/spoke/managed/tools/closeout_session_status.py --base {BASE}
 ```
 
 ### DISRUPTION SURFACE
@@ -797,8 +718,11 @@ Check before committing. Zero disruptions = zero output, zero overhead.
 if [[ ${#DISRUPTIONS[@]} -gt 0 ]]; then
   REMEDIATION_ID=$(python3 -c "import random,string; print(''.join(random.choices('0123456789abcdef',k=12)))")
   python3 - <<EOF
-import json, datetime, os
-session_id = open('{BASE}/runtime/session-guard.json').read() if os.path.exists('{BASE}/runtime/session-guard.json') else '{}'
+import json, datetime, os, sys
+sys.path.insert(0, 'WAI-Harness/spoke/managed/tools')
+from worktree_guard import resolve_guard_path
+guard_path = resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID'))
+session_id = open(guard_path).read() if os.path.exists(guard_path) else '{}'
 try:
     session_id = json.loads(session_id).get('session_id', 'unknown')
 except Exception:
@@ -881,7 +805,7 @@ Then proceed exactly as below — teaching: dedicated teaching commit; runtime: 
 If `teaching_files` is non-empty:
 ```bash
 # Read session_id for commit message
-SESSION_ID=$(python3 -c "import json,os; print(json.load(open('{BASE}/runtime/session-guard.json')).get('session_id','unknown'))" 2>/dev/null || echo "unknown")
+SESSION_ID=$(python3 -c "import json,os,sys; sys.path.insert(0,'WAI-Harness/spoke/managed/tools'); from worktree_guard import resolve_guard_path; print(json.load(open(resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID')))).get('session_id','unknown'))" 2>/dev/null || echo "unknown")
 git add {teaching_files...}
 git commit -m "teaching: adopt ${#teaching_files[@]} teaching(s) — $SESSION_ID"
 ```
@@ -997,7 +921,8 @@ fi
 # Check if WAI-State.json was externally modified since session start
 # (another concurrent session already closed out and updated it)
 STATE_SHA_NOW=$(git show HEAD:{BASE}/WAI-State.json 2>/dev/null | md5sum | cut -c1-8 || echo "new")
-STATE_SHA_SESSION=$(git show "$(cat {BASE}/runtime/session-guard.json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("session_start_sha","HEAD"))' 2>/dev/null || echo HEAD)":{BASE}/WAI-State.json 2>/dev/null | md5sum | cut -c1-8 || echo "unknown")
+GUARD_PATH=$(python3 -c "import sys,os; sys.path.insert(0,'WAI-Harness/spoke/managed/tools'); from worktree_guard import resolve_guard_path; print(resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID')))")
+STATE_SHA_SESSION=$(git show "$(cat "$GUARD_PATH" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("session_start_sha","HEAD"))' 2>/dev/null || echo HEAD)":{BASE}/WAI-State.json 2>/dev/null | md5sum | cut -c1-8 || echo "unknown")
 if [[ "$STATE_SHA_NOW" != "$STATE_SHA_SESSION" && "$STATE_SHA_SESSION" != "unknown" ]]; then
     echo "WAI-State.json was modified by another session since this session started."
     echo "Review the diff before proceeding:"
@@ -1061,8 +986,10 @@ git commit -m "WAI Session [N]: [accomplishments] | [version] | also: {out-of-sc
 
 ```bash
 python3 -c "
-import json, datetime, subprocess, os
-session_guard = '{BASE}/runtime/session-guard.json'
+import json, datetime, subprocess, os, sys
+sys.path.insert(0, 'WAI-Harness/spoke/managed/tools')
+from worktree_guard import resolve_guard_path
+session_guard = resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID'))
 session_id = None
 try:
     session_id = json.load(open(session_guard)).get('session_id')
@@ -1115,7 +1042,7 @@ Build the step results from what actually ran this session, then call:
 # Export DISRUPTIONS array to string so Python block can read it
 DISRUPTIONS_STR=$(IFS=','; echo "${DISRUPTIONS[*]}")
 
-SESSION_ID=$(python3 -c "import json; print(json.load(open('{BASE}/runtime/session-guard.json')).get('session_id','unknown'))" 2>/dev/null || echo "unknown")
+SESSION_ID=$(python3 -c "import json,os,sys; sys.path.insert(0,'WAI-Harness/spoke/managed/tools'); from worktree_guard import resolve_guard_path; print(json.load(open(resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID')))).get('session_id','unknown'))" 2>/dev/null || echo "unknown")
 GIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 
 STEPS_JSON=$(python3 - <<'PYEOF'

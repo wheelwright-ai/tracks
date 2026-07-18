@@ -129,53 +129,12 @@ Read {BASE}/WAI-State.json. Then in order:
    Lowercase each word. Strip all non-alphanumeric characters. Join with hyphens.
    Result: slug = "word1-word2-word3" (used in filenames and IDs).
 
-2. SCAN LUG LOCKS
-   Run:
-   python3 -c "
-   import json, glob, os, subprocess
-   BASE = (json.loads(subprocess.run(['python3','WAI-Harness/spoke/managed/tools/wai_paths.py','--root','.','--json'], capture_output=True, text=True).stdout or '{}').get('_base') or ('WAI-Harness/spoke/local' if os.path.isdir('WAI-Harness/spoke/local') else 'WAI-Spoke'))
-   lug_locks = []
-   for f in sorted(glob.glob(f'{BASE}/lugs/bytype/*/in_progress/*.json')):
-       try:
-           d = json.load(open(f))
-           lug_locks.append(d.get('id', os.path.basename(f).replace('.json','')))
-       except: pass
-   print(json.dumps(lug_locks))
-   "
-   Store result as LUG_LOCKS.
-
-3. SCAN PAPER TRAIL (best-effort; empty lists are acceptable if scanning is slow)
-   Run:
-   python3 -c "
-   import json, glob, os, datetime, subprocess
-   BASE = (json.loads(subprocess.run(['python3','WAI-Harness/spoke/managed/tools/wai_paths.py','--root','.','--json'], capture_output=True, text=True).stdout or '{}').get('_base') or ('WAI-Harness/spoke/local' if os.path.isdir('WAI-Harness/spoke/local') else 'WAI-Spoke'))
-   session_id = '{session_id}'
-   guard_path = f'{BASE}/runtime/session-guard.json'
-   try:
-       started = datetime.datetime.fromisoformat(json.load(open(guard_path)).get('started_at','').replace('Z','+00:00'))
-   except:
-       started = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=4)
-
-   completed, opened = [], []
-   for f in glob.glob(f'{BASE}/lugs/bytype/*/completed/*.json'):
-       try:
-           d = json.load(open(f))
-           ca = d.get('completed_at','')
-           ts = datetime.datetime.fromisoformat(ca.replace('Z','+00:00')) if ca else None
-           if ts and ts >= started:
-               completed.append(d.get('id',''))
-       except: pass
-   for f in glob.glob(f'{BASE}/lugs/bytype/*/open/*.json') + glob.glob(f'{BASE}/lugs/bytype/*/in_progress/*.json'):
-       try:
-           d = json.load(open(f))
-           ca = d.get('created_at','')
-           ts = datetime.datetime.fromisoformat(ca.replace('Z','+00:00')) if ca else None
-           if ts and ts >= started:
-               opened.append(d.get('id',''))
-       except: pass
-   print(json.dumps({'completed': completed, 'opened': opened}))
-   "
-   Store result as PAPER_TRAIL.
+2+3. SCAN LUG LOCKS + PAPER TRAIL (one tool; paper trail is best-effort — empty lists are acceptable)
+   Run: python3 WAI-Harness/spoke/managed/tools/savepoint_scan_state.py --base {BASE}
+   It emits: {"lug_locks": [...], "paper_trail": {"completed": [...], "opened": [...]}}
+   Store `lug_locks` as LUG_LOCKS and `paper_trail` as PAPER_TRAIL.
+   (LUG_LOCKS = every lug held in_progress. PAPER_TRAIL = lugs completed/opened since this
+   session started per the worktree guard, falling back to a 4-hour window.)
 
 3b. SCAN UNCOMMITTED FILES (lightweight git audit)
    Run: git status --short
@@ -348,6 +307,16 @@ git push origin main
 ```
 
 If the push is rejected (no remote, auth, or non-fast-forward), report the exact error and the local commit SHA — never silently leave a savepoint unpushed.
+
+**Step 3a.5 (main session): Resident digest roll — AUTOMATIC, before the loose-ends gate**
+
+Fold this session into the spoke's continuity digest (spec-resident-voice-v1) so the eject carries memory forward:
+
+```bash
+python3 {TOOLS}/resident_digest.py roll --session {session_id}
+```
+
+Idempotent, deterministic, <0.1s. If the tool or `resident/` dir is absent (spoke not bootstrapped), skip silently. Include the digest write in the Step 3 commit scope.
 
 **Step 3b (main session): No-Loose-Ends Gate — a savepoint must leave NO stranded work**
 

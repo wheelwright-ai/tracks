@@ -1,0 +1,388 @@
+#!/usr/bin/env python3
+"""Auto-eject savepoint: the EXISTENCE guarantee half of the savepoint resume
+contract (impl-savepoint-loss-safety-net-v1, spec-savepoint-resume-contract-v1).
+
+v4's validate_savepoint.py guarantees a savepoint's QUALITY once written, but
+nothing guaranteed one gets written AT ALL — savepoint creation lived only inside
+/wai-closeout, which a session can skip (context blowout, abandon, /clear, crash).
+A session ending any other way lost 100% of its resume state. This tool is the
+Stop-time safety net: when a session ends with substantive unfinished work and no
+savepoint exists for it, write a DEGRADED-but-DURABLE auto-eject savepoint so the
+next session resumes from disk instead of archaeology.
+
+HARNESS-MODE-AWARE (works in both trees, one file):
+  v3 working base = <root>/WAI-Spoke
+  v4 working base = <root>/WAI-Harness/spoke/local
+Mode selection mirrors .claude/hooks/harness_mode.sh: explicit WAI_HARNESS_MODE
+override wins, else prefer v4 when present, else v3.
+
+The auto-eject savepoint is stamped status='auto-eject' + degraded=true and carries
+an honest_flag that it is machine-reconstructed and may be incomplete. It is EXEMPT
+from validate_savepoint.py's full hard gate (a degraded record beats nothing), but
+it is a real, on-disk, resume-path-visible savepoint.
+
+CLI:
+    python3 tools/auto_eject_savepoint.py --session <id> [--root DIR]
+        [--mode v3|v4] [--dry-run]
+    exit 0 always (a safety net never blocks Stop); prints a JSON status line.
+"""
+import argparse
+import datetime
+import fcntl
+import glob
+import json
+import os
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import wai_paths  # noqa: E402  the single source of truth for harness-mode roots
+
+
+def resolve_working_base(root, mode=None):
+    """Return (working_base, mode) via the canonical wai_paths resolver. Kept as a
+    thin wrapper so existing callers/tests keep their signature; all mode logic now
+    lives in tools/wai_paths.py (mirrors .claude/hooks/harness_mode.sh)."""
+    return wai_paths.resolve_wai_root(root, mode)
+
+
+UNFILED_INITIATIVE = "initiative-unfiled-savepoints-v1"
+
+
+def _paths(working_base):
+    return {
+        # Canonical (initiative-scoped) savepoint home. The legacy loose
+        # `{base}/savepoints/` home is RETIRED — writing there recreated the
+        # phantom loose dir that savepoint_migrate.py exists to clear.
+        "initiative_savepoints": os.path.join(working_base, "initiatives", "savepoints"),
+        "initiatives": os.path.join(working_base, "initiatives"),
+        "lugs": os.path.join(working_base, "lugs"),
+        "sessions": os.path.join(working_base, "sessions"),
+        "state": os.path.join(working_base, "WAI-State.json"),
+    }
+
+
+def resolve_init_dir(working_base):
+    """The initiative a fresh auto-eject belongs under.
+
+    Tie-break (impl-w1-savepoint-pointer-autoeject-v1): naive newest-mtime-across-ALL-
+    in_progress-lugs misfiles when a bulk operation touches many lugs at once, leaving
+    them sharing one mtime with a null initiative_id -- that bulk mtime would otherwise
+    beat a genuinely active, older, correctly-tagged lug. So: glob
+    bytype/*/in_progress/*.json, keep ONLY entries with a truthy initiative_id, then
+    pick the newest mtime among THAT filtered set (filter first, then rank).
+    Fallback: initiatives/current.json's initiative_id. Final fallback: UNFILED."""
+    lugs_glob = os.path.join(working_base, "lugs", "bytype", "*", "in_progress", "*.json")
+    candidates = []
+    for f in glob.glob(lugs_glob):
+        try:
+            d = json.load(open(f))
+        except Exception:
+            continue
+        iid = d.get("initiative_id")
+        if not iid:
+            continue
+        try:
+            mtime = os.path.getmtime(f)
+        except OSError:
+            continue
+        candidates.append((mtime, iid))
+    if candidates:
+        candidates.sort(key=lambda x: x[0])
+        return candidates[-1][1]
+    cur = os.path.join(working_base, "initiatives", "current.json")
+    try:
+        d = json.load(open(cur))
+        iid = d.get("initiative_id")
+        if iid:
+            return iid
+    except Exception:
+        pass
+    return UNFILED_INITIATIVE
+
+
+def _write_savepoint_pointer(base, savepoint_id, path, lug_id, initiative_id, status="auto-eject"):
+    """Record the just-written savepoint as the live resume pointer.
+
+    Canonical home: the top-level `_savepoint` key inside {base}/WAI-State.json (NOT a
+    standalone pointer file) -- this mirrors wakeup-canonical.sh's own _write_state(),
+    which already writes _session_state into the same file under the same lock, and
+    matches the pointer shape already live in WAI-State.json from this session's manual
+    savepoint update: {savepoint_id, path, lug_id, initiative_id, status, ts}.
+
+    Locking: fcntl.flock on {base}/runtime/.waistate.lock -- the exact lock file
+    wakeup-canonical.sh already serializes WAI-State.json writes through (see
+    wakeup-canonical.sh's `( flock 9; _write_state ) 9>"$BASE/runtime/.waistate.lock"`).
+    Write is atomic: build the full merged dict, write to a tmp file, os.replace() into
+    place -- no partial-write window is ever observable.
+
+    Best-effort by design: any exception here must never propagate to the caller. A
+    pointer-write failure degrades gracefully (the savepoint file itself already landed
+    safely) rather than becoming a new single point of failure for the auto-eject path.
+
+    DEFERENCE RULE: an auto-eject pointer must never clobber an unresumed authored
+    savepoint. The safety net's premise is "a degraded record beats nothing" -- when a
+    `status: pending` pointer is already live, the alternative is not nothing, it is a
+    human-authored resume contract that no session has consumed yet. Overwriting it
+    silently loses the operator's actual next step and replaces it with a machine
+    reconstruction explicitly stamped "treat as a lead, not a contract".
+
+    So when the live pointer is `pending`, we KEEP it and park ours under
+    `_savepoint_autoeject` instead. The auto-eject savepoint FILE still lands either way
+    -- that is where the safety net's value actually is -- only the resume pointer defers.
+    """
+    state_path = os.path.join(base, "WAI-State.json")
+    runtime_dir = os.path.join(base, "runtime")
+    lock_path = os.path.join(runtime_dir, ".waistate.lock")
+    os.makedirs(runtime_dir, exist_ok=True)
+    pointer = {
+        "savepoint_id": savepoint_id,
+        "path": path,
+        "lug_id": lug_id,
+        "initiative_id": initiative_id,
+        "status": status,
+        "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    lock_f = open(lock_path, "a+")
+    try:
+        fcntl.flock(lock_f, fcntl.LOCK_EX)
+        try:
+            try:
+                d = json.load(open(state_path))
+            except Exception:
+                d = {}
+            live = d.get("_savepoint")
+            if isinstance(live, dict) and live.get("status") == "pending":
+                # Defer: an authored, unresumed savepoint outranks a degraded auto-eject.
+                pointer["deferred_to"] = live.get("savepoint_id")
+                d["_savepoint_autoeject"] = pointer
+            else:
+                d["_savepoint"] = pointer
+            tmp = state_path + ".tmp"
+            with open(tmp, "w") as f:
+                json.dump(d, f, indent=2)
+            os.replace(tmp, state_path)
+        finally:
+            fcntl.flock(lock_f, fcntl.LOCK_UN)
+    finally:
+        lock_f.close()
+
+
+def in_progress_lugs(lugs_dir):
+    """Lug ids currently in any bytype/*/in_progress/ (the lug_locks signal)."""
+    out = []
+    for f in sorted(glob.glob(os.path.join(lugs_dir, "bytype", "*", "in_progress", "*.json"))):
+        out.append(os.path.basename(f)[:-5])
+    return out
+
+
+def uncommitted_work(root):
+    """True if git reports any tracked/untracked change. Best-effort: a non-repo
+    or git error returns [] (we do not block on git)."""
+    try:
+        r = subprocess.run(
+            ["git", "-C", root, "status", "--porcelain"],
+            capture_output=True, text=True, timeout=15,
+        )
+        if r.returncode != 0:
+            return []
+        return [ln for ln in r.stdout.splitlines() if ln.strip()]
+    except Exception:
+        return []
+
+
+def next_recommendation(state_path):
+    try:
+        d = json.load(open(state_path))
+    except Exception:
+        return ""
+    rec = (d.get("_session_state", {}) or {}).get("next_session_recommendation", "")
+    if isinstance(rec, str) and rec.strip() and rec.strip().lower() != "none":
+        return rec.strip()
+    return ""
+
+
+def savepoint_exists_for_session(savepoints_dir, session_id):
+    """A savepoint already covers this session if any *.json (active or completed)
+    has claiming_session_id, claiming_session, session_id, or id matching it.
+
+    `savepoints_dir` is the initiative-scoped root ({base}/initiatives/savepoints);
+    scan it recursively so per-initiative + completed/ subdirs are all covered. The
+    retired loose home is also swept so a pre-migration straggler still counts."""
+    sid = session_id
+    short = sid.split(".")[0]  # tolerate session-guard suffix (".contributor")
+    legacy_loose = os.path.join(os.path.dirname(os.path.dirname(savepoints_dir)), "savepoints")
+    pats = [
+        os.path.join(savepoints_dir, "**", "*.json"),
+        os.path.join(legacy_loose, "*.json"),
+    ]
+    for pat in pats:
+        for f in glob.glob(pat, recursive=True):
+            try:
+                d = json.load(open(f))
+            except Exception:
+                continue
+            for k in ("claiming_session_id", "claiming_session", "session_id"):
+                v = str(d.get(k, ""))
+                if v and (v == sid or v == short or v.split(".")[0] == short):
+                    return os.path.basename(f)
+    return None
+
+
+def track_tail(sessions_dir, session_id, n=8):
+    """Best-effort: return the last n track entries (as compact dicts) for seeding
+    work_done. Tries the exact session dir, then the newest session dir."""
+    short = session_id.split(".")[0]
+    candidates = [os.path.join(sessions_dir, short, "track.jsonl")]
+    if not os.path.exists(candidates[0]):
+        dirs = sorted(glob.glob(os.path.join(sessions_dir, "*")), reverse=True)
+        candidates += [os.path.join(d, "track.jsonl") for d in dirs]
+    for path in candidates:
+        if os.path.exists(path):
+            try:
+                lines = [l for l in open(path).read().splitlines() if l.strip()]
+            except Exception:
+                continue
+            tail = []
+            for l in lines[-n:]:
+                try:
+                    tail.append(json.loads(l))
+                except Exception:
+                    pass
+            return tail
+    return []
+
+
+def detect_unfinished(working_base, root):
+    """Return (is_unfinished, signals)."""
+    p = _paths(working_base)
+    locks = in_progress_lugs(p["lugs"])
+    dirty = uncommitted_work(root)
+    rec = next_recommendation(p["state"])
+    signals = {
+        "in_progress_lugs": locks,
+        "uncommitted_files": len(dirty),
+        "next_recommendation": rec,
+    }
+    return (bool(locks) or bool(dirty) or bool(rec)), signals
+
+
+def build_autoeject(session_id, working_base, root, signals, mode):
+    p = _paths(working_base)
+    init_dir = resolve_init_dir(working_base)
+    tail = track_tail(p["sessions"], session_id)
+    work_done = []
+    for t in tail:
+        what = t.get("summary") or t.get("what") or t.get("action")
+        if what:
+            work_done.append({"what": str(what)[:300], "evidence": "track entry (auto-seeded)", "verified": False})
+    if not work_done:
+        work_done = [{
+            "what": "Session ended without /wai-closeout; no per-turn summaries were recoverable from the track.",
+            "evidence": "auto-eject from " + (p["sessions"]),
+            "verified": False,
+        }]
+    rec = signals.get("next_recommendation") or "Run /wai and review the in_progress lugs + git status; no explicit next step was recorded."
+    return {
+        "id": "sp-" + session_id.split(".")[0] + "-autoeject",
+        "slug": "autoeject",
+        "session_id": session_id,
+        "initiative_id": init_dir,
+        "claiming_session_id": None,
+        "status": "auto-eject",
+        "degraded": True,
+        "schema_version": 2,
+        "harness_mode": mode,
+        "git_sha": _git_sha(root),
+        "git_branch": _git_branch(root),
+        "work_done": work_done,
+        "where_we_are": "AUTO-EJECT: this session ended without a savepoint or closeout. State below is machine-reconstructed from the track tail, in_progress lugs, and git status — treat as a lead, not a contract.",
+        "first_actions": [{
+            "order": 1,
+            "action": rec,
+            "command_or_target": None,
+            "depends_on": None,
+            "needs_authorization": None,
+        }],
+        "in_progress_lugs": signals.get("in_progress_lugs", []),
+        "uncommitted_files": signals.get("uncommitted_files", 0),
+        "honest_flags": [{
+            "flag": "AUTO-GENERATED savepoint (status=auto-eject, degraded=true). It was written by the Stop-hook safety net, not authored by the session. work_done/first_actions are reconstructed and may be incomplete or wrong.",
+            "why_it_matters": "A degraded-but-durable resume lead beats total loss, but do not trust it as a full resume contract — verify against git history and the in_progress lugs.",
+            "where_recorded": None,
+        }],
+        "deferred": [],
+        "pending_handoffs": [],
+        "blockers_and_human_gates": [],
+        "open_questions": [],
+        "paper_trail": {"topics": ["auto-eject"], "decisions": []},
+        "created_by": "auto_eject_savepoint.py",
+    }
+
+
+def _git_sha(root):
+    try:
+        r = subprocess.run(["git", "-C", root, "rev-parse", "--short", "HEAD"],
+                           capture_output=True, text=True, timeout=10)
+        return r.stdout.strip() if r.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def _git_branch(root):
+    try:
+        r = subprocess.run(["git", "-C", root, "rev-parse", "--abbrev-ref", "HEAD"],
+                           capture_output=True, text=True, timeout=10)
+        return r.stdout.strip() if r.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def run(session_id, root, mode=None, dry_run=False):
+    """Core entry. Returns a status dict (also the structure tests assert on)."""
+    working_base, active = resolve_working_base(root, mode)
+    if working_base is None:
+        return {"action": "skip", "reason": "no harness root (neither WAI-Spoke nor WAI-Harness)", "mode": active}
+    p = _paths(working_base)
+    existing = savepoint_exists_for_session(p["initiative_savepoints"], session_id)
+    if existing:
+        return {"action": "skip", "reason": "savepoint already exists for session", "savepoint": existing, "mode": active}
+    unfinished, signals = detect_unfinished(working_base, root)
+    if not unfinished:
+        return {"action": "skip", "reason": "no substantive unfinished work", "mode": active, "signals": signals}
+    sp = build_autoeject(session_id, working_base, root, signals, active)
+    # Write to the INITIATIVE-SCOPED home (never the retired loose dir).
+    dest_dir = os.path.join(p["initiative_savepoints"], sp["initiative_id"])
+    dest = os.path.join(dest_dir, sp["id"] + ".json")
+    if not dry_run:
+        os.makedirs(dest_dir, exist_ok=True)
+        json.dump(sp, open(dest, "w"), indent=2)
+        try:
+            _write_savepoint_pointer(
+                working_base,
+                sp["id"],
+                os.path.relpath(dest, root),
+                None,  # auto-eject savepoints are not tied to a specific lug
+                sp["initiative_id"],
+                status="auto-eject",
+            )
+        except Exception:
+            pass  # pointer write is best-effort; never blocks the safety net
+    return {"action": "wrote" if not dry_run else "would-write", "savepoint": dest,
+            "initiative": sp["initiative_id"], "mode": active, "signals": signals}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--session", required=True, help="current session id")
+    ap.add_argument("--root", default=".", help="spoke root (default .)")
+    ap.add_argument("--mode", choices=["v3", "v4"], default=None)
+    ap.add_argument("--dry-run", action="store_true")
+    a = ap.parse_args()
+    status = run(a.session, os.path.abspath(a.root), a.mode, a.dry_run)
+    print(json.dumps(status))
+    return 0  # a safety net never blocks Stop
+
+
+if __name__ == "__main__":
+    sys.exit(main())

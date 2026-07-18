@@ -923,6 +923,50 @@ This section documents additional fields relevant to the Crew architecture, deta
 - **`model_override`** (string, default: `null`): An optional field to specify a particular model ID (e.g., `claude-opus-4-7`, `gemini-1.5-pro`) that should be used for executing this lug, overriding `model_fit`.
   - *Set/Read by:* Delivery Manager (Dana), Architect (Archie).
 
+## Certification Fields (overlay, additive)
+
+Part of the lug **certification chain** (`initiative-lug-certification-v1`) — a multi-gate review/sign-off protocol layered on top of the existing lug lifecycle. These 3 fields are purely additive: any lug MAY carry them, no lug is required to, and no existing reader needs to change to tolerate their presence.
+
+**Design keystone: overlay, not rename.** Physical status directories (`open`, `in_progress`, `completed`, and the other 11 confirmed status dirs) never change. `ozi_autopilot.py`'s intake/dispatch logic, the expediter, and dispatch all hardcode these directory names — turning certification states into new physical directories would be a breaking migration for every consumer. Instead, certification state is layered on top via fields, mapped onto the existing dirs:
+
+| Field | Type | Meaning |
+|-------|------|---------|
+| `cert_state` | enum | `DRAFTED` \| `VALIDATED` \| `SCHEDULED` \| `IMPLEMENTED` \| `VERIFIED` \| `RECONCILED` |
+| `cert_weight` | enum | `trivial` \| `standard` \| `critical` — inferred at Gate 2 from impact/urgency/file_targets signals; security/RLS/cross-circle/money touches force `critical` |
+| `signatures` | array | Append-only. Each entry: `{gate, role, agent_id, model, verdict, timestamp, attests, evidence[], findings?}` |
+
+**Overlay mapping (cert_state → physical status dir):**
+
+| Physical dir | Superset-contains these `cert_state` values |
+|--------------|---------------------------------------------|
+| `open` | `DRAFTED`, `VALIDATED`, `SCHEDULED` |
+| `in_progress` | `IMPLEMENTED` |
+| `completed` | `VERIFIED`, `RECONCILED` |
+
+**`signatures[]` entry shape:**
+```json
+{
+  "gate": 1,
+  "role": "validator",
+  "agent_id": "s137-main",
+  "model": "claude-fable-5",
+  "verdict": "PASS",
+  "timestamp": "2026-07-09T23:49:08.240148+00:00",
+  "attests": "one-sentence statement of what this signer attests to",
+  "evidence": ["pointer 1", "pointer 2"],
+  "findings": []
+}
+```
+
+**Provably additive — confirmed, not assumed.** Grep across `WAI-Harness/spoke/managed/tools/` finds exactly one strict JSON-Schema validator with `additionalProperties: false` support (`_schema_validate.py`); it is used only by `wayfinder_cycle_close.py` and `scout_executor.py` against non-lug schemas (PathGraph, DriveGraph, `grounded_loop`, TasteGraph) — never against generic lug JSON. `ozi_autopilot.py`'s intake (`_phase0a_intake`, reads lugs via plain `json.loads()` and only accesses named keys like `type`/`status`) and `spoke_expediter.py`'s `scan_lugs()` (same pattern: `glob` + `json.load` + named-key access) both ignore unknown fields by construction. Live proof, not just a claim: as of this writing 43 real lugs already carry `cert_state`/`cert_weight`/`signatures[]` in production, and `scan_lugs()` scans all of them today with zero errors.
+
+**Bootstrap exception:** Until the Gate 3 (implementer) and Gate 4 (verifier) sub-agents formally exist, Ozi acts as the manual gate owner for this entire chain. If you are reading this section while authoring or implementing a lug: the certification schema is documented and ready, but the chain is **not yet automatically enforced end-to-end** — treat `cert_state`/`cert_weight`/`signatures[]` as informative/manually-maintained until the gate SAs land.
+
+**Founding precedent:** this mechanism's own authoring session ran an independent multi-lens review chain (diagnosticians → synthesis → independent adversarial verifiers → corrected specs) and caught a 17/24 correction rate on its own addendum before landing — cited here as the founding evidence for why an independent-verification gate structure is worth building, not a rubber-stamp.
+
+---
+
 ## Schema Changelog
 
 2026-05-20: +state, +risk_tier, +lead_advisor, +consulting_advisors, +execution_mode, +model_override (Phase A crew architecture, all additive)
+2026-07-10: +cert_state, +cert_weight, +signatures[] (lug certification chain overlay, additive — see Certification Fields section above)

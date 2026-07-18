@@ -1,0 +1,104 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/user-prompt-submit.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-tool-guard.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-track-flush.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          },
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-test-runner.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-compact.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-create.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*~/projects/*)",
+      "Bash(*~/.claude/*)",
+      "Bash(git *)",
+      "Bash(python3 *)",
+      "Bash(date *)",
+      "Bash(test *)",
+      "Bash(which *)",
+      "Bash(echo *)",
+      "Bash(pwd)",
+      "Bash(sleep *)",
+      "Bash(kill *)",
+      "Bash(crontab *)",
+      "Write(*)",
+      "Read(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Skill(*)",
+      "Agent(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/projects)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
+    ]
+  }
+}

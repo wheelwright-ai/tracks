@@ -294,3 +294,17 @@ def test_pull_version_desync_writes_nothing(tmp_path):
     assert rep["ok"] is False
     assert rep["master_version"] == "4.1.0" and rep["expected"] == "4.2.0"
     assert (spoke / "WAI-Harness" / "spoke" / "managed" / "tools/a.py").read_text() == before
+
+
+def test_distribute_neutralizes_is_master_on_target(tmp_path):
+    # a distributed spoke must NOT inherit is_master:true -- only the master (canonical
+    # author) keeps it (bug fix-manifest-is-master-neutralized-on-distribute-v1). The
+    # md5 verify must stay green because MANIFEST.json is excluded from the file hashes.
+    master = _make_master(tmp_path / "master", {"tools/a.py": "v2\n"})
+    target = tmp_path / "target" / "managed"
+    _write(target / "tools/a.py", "v1\n")
+    assert hu.load_manifest(master)["is_master"] is True
+    rep = hu.upgrade(master, target, dry_run=False)
+    assert rep["ok"] is True and rep["verify_post"]["ok"] is True
+    assert json.loads((target / hu.MANIFEST_NAME).read_text())["is_master"] is False
+    assert hu.load_manifest(master)["is_master"] is True

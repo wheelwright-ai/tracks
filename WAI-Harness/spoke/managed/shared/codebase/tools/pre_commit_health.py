@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""
+Pre-commit health gate for WAI spokes.
+
+Runs a quick health check and exits non-zero if critical drift is detected.
+Designed to be fast (<100ms) and catch only FAIL-level findings.
+
+Also runs security_scan on changed prompt/teaching files to catch injection patterns.
+
+Usage:
+  python3 tools/pre_commit_health.py          # check current dir
+  python3 tools/pre_commit_health.py /path     # check specific spoke
+
+Exit codes:
+  0 = healthy (or no WAI-Spoke found — not a WAI project)
+  1 = drift detected — fix before committing
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from tools.spoke_health_check import run_health_check
+from tools import wai_paths
+from tools.lug_json_parse_gate import sweep as sweep_lug_json
+
+
+def run_security_scan(spoke_path):
+    """Run security_scan on prompt surfaces within the spoke."""
+    from tools.security_scan import load_patterns, scan_target, scan_file
+
+    patterns = load_patterns()
+    findings = []
+
+    # Advisors + lugs/bytype live at different paths under v3 vs v4 (advisors is a
+    # sibling of the working base in both, but that sibling itself moves — see
+    # wai_paths.advisors_dir / LOCAL_CATEGORIES). Hardcoding the v3 "WAI-Spoke/..."
+    # shape here scans ZERO files on a v4-only spoke — resolve both via wai_paths so
+    # this stays correct in either mode.
+    advisors_dir = wai_paths.advisors_dir(str(spoke_path))
+    if advisors_dir and Path(advisors_dir).exists():
+        findings.extend(scan_target(advisors_dir, patterns))
+
+    # Scan teachings in hub directory
+    hub_teachings = Path(spoke_path) / "hub" / "teachings_repo"
+    if hub_teachings.exists():
+        findings.extend(scan_target(str(hub_teachings), patterns))
+
+    # Scan open lug files for _behavior_directive
+    lugs_dir = wai_paths.category(str(spoke_path), "lugs")
+    if lugs_dir:
+        bytype_dir = Path(lugs_dir) / "bytype"
+        if bytype_dir.exists():
+            findings.extend(scan_target(str(bytype_dir), patterns))
+
+    block_findings = [f for f in findings if f.get("severity") == "block"]
+    warn_findings = [f for f in findings if f.get("severity") == "warn"]
+
+    if warn_findings:
+        print(f"WAI security scan: {len(warn_findings)} warning(s) found")
+        for w in warn_findings:
+            print(f"  WARN: {w.get('file', '?')} — {w.get('message', '?')}")
+
+    if block_findings:
+        print(f"WAI security scan: {len(block_findings)} block-level finding(s)")
+        for b in block_findings:
+            print(f"  BLOCK: {b.get('file', '?')} — {b.get('message', '?')}")
+        return False  # unhealthy
+
+    return True  # healthy (warnings are OK for warn-only policy)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Pre-commit spoke health check.")
+    parser.add_argument("--spoke-path", default=".", metavar="PATH", help="Path to spoke root")
+    args = parser.parse_args()
+    spoke_path = args.spoke_path
+
+    # Skip silently if not a WAI project (v3 WAI-Spoke/ OR v4 WAI-Harness/, not v3-only —
+    # a v3-only check here silently no-ops this gate on every v4-only spoke, see
+    # reference-v3-lint-undercounts-broken-tools)
+    if wai_paths.detect(spoke_path)["active"] == "none":
+        sys.exit(0)
+
+    # Run structural health check
+    report = run_health_check(spoke_path, mode="quick")
+
+    if report.failed > 0:
+        print(f"WAI pre-commit: {report.failed} issue(s) found")
+        for c in report.checks:
+            if c.status == "FAIL":
+                print(f"  FAIL: {c.id} — {c.detail}")
+        print("Fix these before committing. Run: python3 tools/spoke_health_check.py . --quick")
+        sys.exit(1)
+
+    # Run security scan on prompt surfaces
+    if not run_security_scan(spoke_path):
+        sys.exit(1)
+
+    # Reject lugs with unresolved conflict markers or broken JSON before they land
+    bad_lugs = sweep_lug_json(spoke_path)
+    if bad_lugs:
+        print(f"WAI pre-commit: {len(bad_lugs)} unparseable/conflicted lug(s)")
+        for p, reason in bad_lugs:
+            print(f"  FAIL: {p} — {reason}")
+        print("Fix by re-cutting/dropping the conflicted lug — never hand-splice JSON.")
+        sys.exit(1)
+
+    # Healthy — exit silently for clean pre-commit experience
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

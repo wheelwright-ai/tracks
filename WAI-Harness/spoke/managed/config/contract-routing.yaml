@@ -1,0 +1,81 @@
+# contract-routing.yaml — B3 tier-router thresholds (DATA, not code).
+#
+# Consumed by WAI-Harness/spoke/managed/tools/contract_router.py's route(event).
+# Any threshold tweak happens HERE, never as a Python literal in contract_router.py
+# (impl-spine-b3-tier-router-v1 architect lens: "hardcoding thresholds defeats the
+# 'routing table is DATA' requirement the first time someone tweaks a number").
+#
+# Ladder recap (see contract_router.py docstring for the full decision order):
+#   Tier A — goal_planner.replan_on_block() ladder (default, low occurrence_count).
+#   Tier B — conductor.emit_feedback(harness_gap=True) (occurrence_count crosses A's
+#            ceiling at A, or aging re-escalation lands here).
+#   Tier C — OPERATOR-ASKS.md + sandboxed:true stamp (occurrence_count crosses B's
+#            ceiling at B, OR any invariant_breach, OR any goodhart_flag, OR aging
+#            re-escalation past grace while already at C).
+
+tiers:
+  A:
+    # Exclusive upper bound: occurrence_count >= this value escalates A -> B.
+    max_occurrence: 3
+  B:
+    # Exclusive upper bound: occurrence_count >= this value escalates B -> C.
+    max_occurrence: 2
+
+straight_to_c:
+  # Any invariant_breach or goodhart_flag jumps straight to Tier C, regardless of
+  # occurrence_count or current_tier.
+  on_invariant_breach: true
+  on_goodhart_flag: true
+
+slo_aging:
+  # If an event sits unresolved at its current_tier past slo.grace, re-emit at the
+  # NEXT tier up (escalation_map below). Tier A has no aging entry here: A's own
+  # escalation is occurrence-driven (tiers.A.max_occurrence), not time-driven.
+  reescalate_past_grace: true
+  escalation_map:
+    B: C
+    C: C
+
+# ---------------------------------------------------------------------------
+# reason_codes — C9 fixed enum vocabulary for silent state-clear ledger entries
+# (impl-spine-c9-reason-codes-state-clears-v1). DATA, not code: recorded via
+# capgraph_blocks.record_event(kind="reason_code", subject, {reason_code, detail,
+# ...}); the kind itself does NOT validate against this list -- each call site
+# binds its reason_code from the fixed set below so the vocabulary stays
+# centrally defined instead of scattering magic strings per file. This is a
+# SEPARATE namespace from tiers/straight_to_c/slo_aging above (those route B3
+# structural-block escalation; these classify WHY state was cleared/moved/retired,
+# no escalation involved).
+#
+# Each category name below == the "subject" domain used at record_event() call
+# sites; the seed splits into 4 haiku lugs, one per group of categories:
+#   c9a -> dispatch_unlink
+#   c9b -> incoming_drain, signal_clear
+#   c9c -> teaching_archival, savepoint_migrate
+#   c9d -> lug_retire
+reason_codes:
+  dispatch_unlink:      # wai_ozi_dispatch.py update_lug_status() completion/unlink (~line 234)
+    - completed_normal    # lug moved to its target status dir in the normal PEV flow
+    - completed_forced    # status transition forced (e.g. extra_fields override / recheck loop)
+    - unlink_orphaned     # source lug file could not be found/re-read; treated as orphaned cleanup
+  incoming_drain:        # ozi_autopilot.py _phase0a_intake() (~line 1878)
+    - drained_to_bytype   # known type, routed to lugs/bytype/<type>/<status>/ (the summary["moved"] path)
+    - intake_unknown_type # no alias + no matching bytype/<type> dir -- wrapped in a notation lug
+                           # (pre-existing string, already stamped on notation lugs at
+                           # ozi_autopilot.py:1966 -- reused here, not reinvented, so the vocabulary
+                           # doesn't fork between the notation-lug field and this ledger kind)
+    - drain_error         # OSError / malformed JSON while draining a single incoming/ file
+  signal_clear:          # ozi_autopilot.py hub_processed_ids / outbox routing (~line 2264-2297)
+    - signal_cleared_hub_processed  # signal id found in hub's processed set -- cleared, no re-delivery
+    - signal_routed_to_outbox       # signal moved to hub outbox for delivery/processing
+  teaching_archival:     # ozi_autopilot.py teachings/queued -> teachings/archived (~line 406)
+    - teaching_archived_consolidation  # detail carries {from_version, to_version}
+  savepoint_migrate:     # savepoint_migrate.py migrate() relocation (~line 179-180)
+    - savepoint_migrated_relocated  # non-terminal savepoint moved under its initiative dir
+    - savepoint_migrated_terminal   # terminal savepoint moved to its terminal destination
+  lug_retire:            # lug_readiness.py retire() (~line 176-182)
+    - stale_no_relevance  # aged out with no remaining relevance (never age-alone; see
+                           # feedback-age-is-not-a-retire-verdict -- age only flags for review)
+    - superseded           # replaced by a newer lug covering the same ground
+    - duplicate             # duplicate of an already-tracked lug
+    - operator_retired      # explicit operator decision to retire

@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "grounded_loop",
+  "description": "A work item's contract for deterministic, measured completion. Two separate gates: legality_gate (is the work well-posed?) and metric_target (did a named, oracle-measured signal actually move?). A loop only earns a hard 'completed' when its metric_target moved as declared; otherwise it is flagged. Soft outcomes must state their limits — an unverifiable claim is never a hard green.",
+  "type": "object",
+  "properties": {
+    "legality_gate": {
+      "type": "object",
+      "description": "Is the work legal/well-posed BEFORE we judge its effect? Separate from whether it moved a metric.",
+      "properties": {
+        "well_formed": {"type": "boolean"},
+        "self_contained": {"type": "boolean"},
+        "verifiable": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "metric_target": {
+      "type": "object",
+      "description": "The named signal this loop must move, and the oracle that measures it.",
+      "properties": {
+        "name": {"type": "string", "minLength": 1, "description": "Plain-language name of what should change (human-readable)."},
+        "oracle": {"type": "string", "minLength": 1, "description": "Loop-type key into grounded_oracle_map (e.g. test-loop, contract-loop, lint-loop, health-loop)."},
+        "direction": {"enum": ["up", "down", "becomes_true"]},
+        "baseline_cmd": {"type": "string", "description": "Optional command that reads the current metric value."},
+        "soft": {"type": "boolean", "description": "True when the outcome cannot be deterministically measured; it is then labeled, never counted as a hard green."},
+        "soft_limits": {"type": "string", "description": "Required when soft==true: what the soft label does and does not assert."}
+      },
+      "required": ["name", "oracle", "direction"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["metric_target"],
+  "additionalProperties": true
+}
