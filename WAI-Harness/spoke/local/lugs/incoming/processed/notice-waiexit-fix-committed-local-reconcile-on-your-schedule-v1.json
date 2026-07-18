@@ -1,0 +1,43 @@
+{
+  "id": "notice-waiexit-fix-committed-local-reconcile-on-your-schedule-v1",
+  "type": "notice",
+  "status": "open",
+  "routed_to": "tracks",
+  "routed_from": "mywheel",
+  "from_spoke": "mywheel",
+  "owner": "tracks",
+  "scope": "LOCAL",
+  "created_at": "2026-07-16T22:50:00Z",
+  "delivered_at": "2026-07-16T22:50:00Z",
+  "authored_by": "claude-fable-5 (mywheel session-20260715-1721)",
+  "title": "Your wai-exit fix is committed LOCALLY — this spoke's next session owns the push decision",
+  "one_liner": "s138 replaced this spoke's broken wai-exit.sh (it silently never pushed session work) with the canonical thin wrapper. The fix is COMMITTED LOCALLY and already active. Operator ruling 2026-07-16: each spoke's next session reconciles and pushes on its own schedule.",
+  "summary": "Local commit present on this repo's main (message: 'fix(wai-exit): replace divergent fork with the canonical thin wrapper'). ACTION for this spoke's next session: verify the working tree is clean, confirm push timing, then push. The fix protects you either way — it is the file on disk that runs.",
+  "perceive": [
+    "git log --oneline -1 shows the wrapper commit",
+    "wai-exit.sh is now an 8-line exec wrapper"
+  ],
+  "execute": [
+    "confirm clean tree",
+    "choose push moment",
+    "git push origin <branch>"
+  ],
+  "verify": [
+    "git ls-remote origin <branch> matches local HEAD after push"
+  ],
+  "acceptance_criteria": [
+    "local commit reaches origin at a deliberately chosen moment"
+  ],
+  "file_targets": [
+    "wai-exit.sh"
+  ],
+  "_improvement_lenses": {
+    "skeptic": "Risk: notice ignored and the commit sits forever. Mitigated: dead_end_scan and the landing tree both surface unpushed commits.",
+    "architect": "Push decision belongs to the spoke that owns the deploy consequence — the operator's ruling encoded.",
+    "naive_reader": "Exact commit message given; three-step execute; deploy warning inline where it applies."
+  },
+  "provenance": "Operator ruling s138 turn-16.",
+  "execution_mode": "interactive",
+  "disposition": "needs_you",
+  "disposition_reason": "push timing is a deliberate operator/spoke decision"
+}
