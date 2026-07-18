@@ -345,13 +345,7 @@ Write a final track point as the **terminal entry** — this is the marker wakeu
 
 Do NOT delete the track file — it's the permanent session record. A session without this terminal entry will show as INTERRUPTED on next wakeup.
 
-**Resident digest roll (AUTOMATIC — right after the terminal track entry):** fold this session into the spoke's continuity digest (spec-resident-voice-v1):
-
-```bash
-python3 {TOOLS}/resident_digest.py roll --session {session_id}
-```
-
-Idempotent (re-run is a no-op) and deterministic (no model call, <0.1s). If the tool or `resident/` dir is absent (spoke not yet bootstrapped), skip silently — do not create state at closeout. The digest write is included in the closeout commit like any other `{BASE}` file.
+**Resident digest roll (AUTOMATIC — right after the terminal track entry):** fold this session into the spoke's continuity digest (spec-resident-voice-v1) with `python3 {TOOLS}/resident_digest.py roll --session {session_id}`. Idempotent (re-run is a no-op), deterministic (no model call, <0.1s). If the tool or `resident/` dir is absent (spoke not yet bootstrapped) skip silently — never create state at closeout. The digest write rides in the closeout commit like any other `{BASE}` file.
 
 **Ledger terminal entry:** After writing the track.jsonl closeout event, also append a final row to `wai_track_ledger.md` in the session directory:
 
@@ -976,9 +970,7 @@ git add -A
 git commit -m "WAI Session [N]: [accomplishments] | [version] | also: {out-of-scope summary if any}"
 ```
 
-**Critical:** `{BASE}/WAI-State.json` listed explicitly first to guarantee staging. If Minimal ceremony, include `(minimal closeout — full deferred)` in message.
-
-**Note:** `git push` is intentionally absent — push is offloaded to `wai-exit.sh` (section 1c), which pushes all unpushed commits + tags when the tool exits. This keeps CC latency low and avoids push races in concurrent sessions.
+**Critical:** `{BASE}/WAI-State.json` listed explicitly first to guarantee staging. If Minimal ceremony, include `(minimal closeout — full deferred)` in message. `git push` is intentionally absent: push is offloaded to `wai-exit.sh` (section 1c), which pushes all unpushed commits + tags on tool exit — keeping CC latency low and avoiding push races between concurrent sessions.
 
 ---
 

@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.12.0",
+  "harness_version": "4.12.1",
   "is_master": false,
-  "generated_at": "2026-07-18T23:27:03.470274+00:00",
-  "master_sha": "7dad5396903eb9cdf4a7ac506754023d5d6bad69",
+  "generated_at": "2026-07-18T23:41:19.144471+00:00",
+  "master_sha": "86b173e648e2fa5c173eca07c312cba9a495260f",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -151,7 +151,7 @@
     },
     ".claude/commands/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "6120a561627f94713aa8d6d61d6df978",
+      "md5": "8f071a6e6d219785922d95efd925a911",
       "owner": "basher"
     },
     ".claude/commands/wai-compact-resume.md": {
@@ -2146,7 +2146,7 @@
     },
     "templates/commands/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "6120a561627f94713aa8d6d61d6df978",
+      "md5": "8f071a6e6d219785922d95efd925a911",
       "owner": "basher"
     },
     "templates/commands/wai-compact-resume.md": {
