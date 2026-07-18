@@ -43,6 +43,7 @@ Pre-conditions met: hook pre-computed all data, track entry already written by s
 │  {If TOOL ADVISOR audit due: ⚠ Tool audit due}
 │  {If Hook drift in CONTEXT HEALTH: ⚠ Hook drift: N hooks stale (oldest: Xd) — sync recommended}
 │  {If context feeds stale: Context feeds: N stale}
+│  {If assurance_health: Assurance: trail {trail.checkable_ratio:.0%} checkable{If trail.drifted>0: | ⚠ {trail.drifted} DRIFTED}{If trail.unevidenced_claims>0: | {trail.unevidenced_claims} unevidenced} | canon {If canon.ok: clean|⚠ {canon.drift_count} drift}{If open_assurance_lugs>0: | {open_assurance_lugs} assurance lug(s)}}
 │  {If HISTORIAN ADVICE present: Historian: {first bullet}}
 │  {Active feedback: top-3 from MEMORY.md feedback entries — see Step 3b}
 │  Next: {first item from NEXT ACTIONS}

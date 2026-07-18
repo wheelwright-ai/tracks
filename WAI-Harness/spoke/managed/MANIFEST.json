@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.12.1",
+  "harness_version": "4.12.2",
   "is_master": false,
-  "generated_at": "2026-07-18T23:41:19.144471+00:00",
-  "master_sha": "86b173e648e2fa5c173eca07c312cba9a495260f",
+  "generated_at": "2026-07-18T23:52:39.020853+00:00",
+  "master_sha": "fd2c06218af597cb6e3273671361170d547e44f0",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -546,7 +546,7 @@
     },
     ".claude/commands/wai.md": {
       "version": "4.6.5",
-      "md5": "216d377d0200aa959069a152da60f0ff",
+      "md5": "6cfa72a412e4e995bb5e943378c0e293",
       "owner": "basher"
     },
     ".claude/hooks/flush_buffer.py": {
@@ -2541,7 +2541,7 @@
     },
     "templates/commands/wai.md": {
       "version": "4.6.5",
-      "md5": "216d377d0200aa959069a152da60f0ff",
+      "md5": "6cfa72a412e4e995bb5e943378c0e293",
       "owner": "basher"
     },
     "templates/cursor/.cursorrules": {
@@ -3131,7 +3131,7 @@
     },
     "tools/assurance_sweep.py": {
       "version": "4.11.0",
-      "md5": "a8cc9d05ddbd7a73ad52902e7a44f712",
+      "md5": "b9cfc3a7e1ea1f09b65b884ef9de3581",
       "owner": "basher"
     },
     "tools/atomic_write.py": {
@@ -3436,7 +3436,7 @@
     },
     "tools/generate_wakeup_brief.py": {
       "version": "4.6.5",
-      "md5": "112020c010553ee6c447a82f066df030",
+      "md5": "b998f98b47253ea67efd89112c9ce132",
       "owner": "basher"
     },
     "tools/goal_eval.py": {

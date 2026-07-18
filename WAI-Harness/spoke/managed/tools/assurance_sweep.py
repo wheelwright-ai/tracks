@@ -36,6 +36,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -150,9 +151,29 @@ PROBES = [probe_canon_adherence, probe_savepoint_trail, probe_thread_landing]
 
 # ---- lug writing ------------------------------------------------------------
 
+# Volatile substrings that must NOT contribute to a lug's identity. A finding's
+# detail carries live numbers ("55 work entries", "13%"), and hashing those made
+# the id change every time the metric moved.
+_VOLATILE = re.compile(r"\d+")
+
+
 def _lug_id(f):
-    """Deterministic id — a repeat sweep must UPDATE, never duplicate."""
-    h = hashlib.sha1(f"{f['instrument']}|{f['kind']}|{f['detail'][:120]}".encode()).hexdigest()[:8]
+    """Deterministic id — a repeat sweep must UPDATE, never duplicate.
+
+    CAUGHT BY DOGFOODING, s138. The first version hashed the raw detail, which
+    embeds the current measurement. So "94 entries claim verified=true" and "55
+    entries claim verified=true" were DIFFERENT findings by id, and the sweep
+    opened a fresh lug every time the number moved — three of them within an
+    hour, describing one unchanged problem.
+
+    That is precisely the backlog-burying failure this id scheme exists to
+    prevent, and the idempotence tests missed it because they used a fixed detail
+    string while real findings carry a moving one. Identity now comes from what
+    the finding IS (instrument, kind, and the detail with digits stripped), never
+    from its current magnitude.
+    """
+    stable = _VOLATILE.sub("#", f["detail"][:120])
+    h = hashlib.sha1(f"{f['instrument']}|{f['kind']}|{stable}".encode()).hexdigest()[:8]
     return f"assurance-{f['kind']}-{h}-v1"
 
 

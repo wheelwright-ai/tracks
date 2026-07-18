@@ -548,6 +548,59 @@ def read_qa_health(spoke: "Optional[Path]") -> "Optional[dict]":
                 "stale_tests": [], "status": "unreadable"}
 
 
+
+def read_assurance_health(spoke: "Optional[Path]") -> "Optional[dict]":
+    """The wheel's own measurements, surfaced at wakeup instead of on request.
+
+    THE PROBLEM THIS CLOSES (s138). The oracle, the trail walker and the canon
+    checker all became real this session, and all three were invisible unless
+    somebody thought to run them. An instrument nobody sees is on exactly the
+    same path as the mandatory plan-review gate found dead this session: present,
+    correct, and quietly not participating.
+
+    Cheap and read-only. Reads the artefacts the tools already leave behind
+    rather than executing them — a wakeup must not pay for a test run. Every
+    field is independently optional, so a spoke that has not adopted a given
+    instrument shows nothing rather than an error.
+    """
+    if spoke is None:
+        return None
+    out = {}
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import savepoint_walk as _sw  # noqa: PLC0415
+
+        rep = _sw.walk(str(_project_root_for(spoke)), run_commands=False)
+        if rep.get("entries"):
+            out["trail"] = {
+                "checkable_ratio": rep.get("checkable_ratio", 0.0),
+                "drifted": rep["counts"].get("drifted", 0),
+                "unevidenced_claims": rep.get("claimed_verified_but_uncheckable", 0),
+                "entries": rep.get("entries", 0),
+            }
+    except Exception:  # noqa: BLE001 — a brief must never fail on an optional read
+        pass
+
+    try:
+        import canon_adherence as _ca  # noqa: PLC0415
+
+        rep = _ca.check(str(_project_root_for(spoke)))
+        out["canon"] = {"ok": bool(rep.get("ok")),
+                        "drift_count": rep.get("drift_count", 0),
+                        "undeployed_count": rep.get("undeployed_count", 0)}
+    except Exception:  # noqa: BLE001
+        pass
+
+    try:
+        d = _project_root_for(spoke) / "WAI-Harness/spoke/local/lugs/bytype/task/open"
+        if d.is_dir():
+            out["open_assurance_lugs"] = len([f for f in os.listdir(d)
+                                              if f.startswith("assurance-")])
+    except OSError:
+        pass
+    return out or None
+
+
 def read_lug_staleness(spoke: "Optional[Path]") -> "Optional[dict]":
     """impl-w4-lug-staleness-wakeup-reader-v1: top-line surface for
     maintenance/lug-staleness-latest.json (produced by fleet_hygiene_scan.py's
@@ -1022,6 +1075,7 @@ def main() -> None:
     ac_drift_data = read_ac_drift(SPOKE)
     qa_health_data = read_qa_health(SPOKE)
     lug_staleness_data = read_lug_staleness(SPOKE)
+    assurance_health_data = read_assurance_health(SPOKE)
     refresh_position_map(SPOKE)
     position_map_data = read_position_map(SPOKE)
     tastegraph_data = read_tastegraph_prefs(SPOKE, hub_path)
@@ -1056,6 +1110,7 @@ def main() -> None:
         "lug_staleness": lug_staleness_data,
         "position_map": position_map_data,
         "tastegraph_prefs": tastegraph_data,
+        "assurance_health": assurance_health_data,
     }
 
     # Atomic write
