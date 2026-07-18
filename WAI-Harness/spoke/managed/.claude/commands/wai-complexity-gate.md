@@ -71,7 +71,12 @@ Model switches recorded in `WAI-State.json` under `model_log`.
 
 ## Plan Validation Gate
 
-When this gate produces an implementation plan (epic + child lugs), run **`/wai-plan-validation`** before showing it to the user: each child lug must have complete PEV, a testable `verify`, explicit `acceptance_criteria`, and explicit `blocked_by` for in-plan dependencies. Refine any failing lug in place — never present a plan with `[gap]` placeholders.
+When this gate produces an implementation plan (epic + child lugs), run **`/wai-plan-validation`** before showing it to the user. This includes two mandatory steps:
+
+1. **Step 0 — Adversarial implementability review (NON-SKIPPABLE):** spawn a subagent in implementer persona to verify the plan's factual premises against the actual repo/DB/config state. The plan must receive a PASS verdict and have a `review_resolution` section before it reaches the user. A plan without a recorded review is a protocol violation.
+2. **Step 1 — Lug validation:** each child lug must have complete PEV, a testable `verify`, explicit `acceptance_criteria`, `model_fit` set, and explicit `blocked_by` for in-plan dependencies.
+
+Refine any failing item in place — never present a plan with `[gap]` placeholders or a missing review record.
 
 ## Related Skills
 

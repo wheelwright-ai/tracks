@@ -1,12 +1,23 @@
 # WAI Savepoint
 
-Save enough state to exit cleanly — safe eject before context runs out.
+Loss prevention and topic punctuation — durable state, whether or not the session ends.
 
 ---
 
 ## Purpose
 
-A savepoint is a **safe eject** — commit enough state that the next session starts cleanly without archaeology. Use when approaching context limit, before compression fires, or any time you want to exit without a full `/wai-closeout` ceremony. Does NOT require an in-progress lug.
+A savepoint is **loss prevention**, not an exit. Commit enough state that the work survives an
+interruption and the next session starts without archaeology. Does NOT require an in-progress lug.
+
+**It does not end the session.** Preferred use is **punctuation**: a topic finished, so close its
+record and CONTINUE the same session on the next topic — restarting to start a new topic pays the
+wakeup cost twice for nothing. **Eject** only when context is short, compression is imminent, or the
+operator is leaving. Never recommend ending a session merely because a topic completed.
+(`work-style-savepoint-is-punctuation-not-exit`)
+
+**It must stand alone.** The operator frequently leaves having run a savepoint and NO closeout, so
+never defer a durability step — commit, push, state write — on the assumption closeout will follow.
+(`work-style-savepoint-must-stand-alone`)
 
 Multiple savepoints can coexist — each is a standalone file. This enables parallel sessions or multiple parked work streams on the same spoke. The next `/wai` presents a menu; the session actively picks which context to claim.
 
@@ -62,13 +73,17 @@ A lane whose opening session is **not open** (heartbeat stale beyond the open wi
 WAI-Harness/spoke/managed/tools/converge_closeout.py candidates --base {BASE} --session-id {SESSION_ID}
 ```
 
-Exit `10` = absorption candidates exist (their openers are gone). Absorb them — reconcile committed work, commit-to-branch any uncommitted, reap stale lanes, then re-verify:
+Exit `10` = absorption candidates exist (their openers are gone). **SURFACE them; do NOT absorb them.**
+A parked lane is the operator's fork, not litter — absorbing one destroys a thread he meant to return
+to (`risk-tolerance-never-absorb-a-fork-silently`). List each with branch, last commit and uncommitted
+count, then offer `[A]bsorb / [K]eep parked / [S]kip`. Only on an explicit **A** naming a lane:
 
 ```bash
-WAI-Harness/spoke/managed/tools/converge_closeout.py converge --base {BASE} --session-id {SESSION_ID} --repo {REPO}
+WAI-Harness/spoke/managed/tools/converge_closeout.py converge --base {BASE} --session-id {SESSION_ID} --repo {REPO} --confirm-absorb {SID}
 ```
 
-Exit `0` = no candidates, proceed. NEVER absorb an OPEN lane — only sessions that aren't running. `{SESSION_ID}` is this session's CC session id (the lane key).
+Exit `0` = no candidates, proceed. The tool now FAILS CLOSED without `--confirm-absorb`, so this is a
+real gate, not advice. Never absorb an OPEN lane. Parking is always recoverable; absorbing is not.
 
 **Step 1 (main session): Compose the savepoint strings**
 
@@ -81,9 +96,14 @@ not just one-liners. Strings:
 
 Structured (emitted into the savepoint file — pre-render each as the JSON value substituted into Step 2's template):
 
-- `work_done_items`: a NON-EMPTY JSON list of `{ "what": "...", "evidence": "...", "verified": true|false }`
-  — one object per real piece of work done (evidence = test/command/file proving it). Any `verified:false`
-  item MUST have a matching `honest_flags` entry — never claim "probably done".
+- `work_done_items`: a NON-EMPTY JSON list of
+  `{ "what": "...", "evidence": "...", "verification": "...", "verified": true|false }`
+  — one object per real piece of work done. **`verified: true` REQUIRES a RE-RUNNABLE `verification`**:
+  a command, a repo path, or a commit sha. Prose ("confirmed by reading the diff") is a note, not
+  evidence — use `verified: false` plus an `honest_flags` entry instead. A claim is not evidence
+  (`risk-tolerance-claim-is-not-evidence`); the savepoint trail is what Ozi walks back over, and an
+  unevidenced claim makes that walk report confidence it has not earned. Enforced by
+  `validate_savepoint.py` at write time and re-checked by `savepoint_walk.py` later.
 - `first_actions`: a NON-EMPTY JSON list of `{ "action": "..." }` — the DECIDED first executable step(s)
   for the resuming agent. `first_actions[0].action` must be executable with no decision (no
   pick/choose/which/or/"?" — put any alternative in a fallback, not a question). This is the structured
@@ -129,55 +149,12 @@ Read {BASE}/WAI-State.json. Then in order:
    Lowercase each word. Strip all non-alphanumeric characters. Join with hyphens.
    Result: slug = "word1-word2-word3" (used in filenames and IDs).
 
-2. SCAN LUG LOCKS
-   Run:
-   python3 -c "
-   import json, glob, os, subprocess
-   BASE = (json.loads(subprocess.run(['python3','WAI-Harness/spoke/managed/tools/wai_paths.py','--root','.','--json'], capture_output=True, text=True).stdout or '{}').get('_base') or ('WAI-Harness/spoke/local' if os.path.isdir('WAI-Harness/spoke/local') else 'WAI-Spoke'))
-   lug_locks = []
-   for f in sorted(glob.glob(f'{BASE}/lugs/bytype/*/in_progress/*.json')):
-       try:
-           d = json.load(open(f))
-           lug_locks.append(d.get('id', os.path.basename(f).replace('.json','')))
-       except: pass
-   print(json.dumps(lug_locks))
-   "
-   Store result as LUG_LOCKS.
-
-3. SCAN PAPER TRAIL (best-effort; empty lists are acceptable if scanning is slow)
-   Run:
-   python3 -c "
-   import json, glob, os, datetime, subprocess, sys
-   BASE = (json.loads(subprocess.run(['python3','WAI-Harness/spoke/managed/tools/wai_paths.py','--root','.','--json'], capture_output=True, text=True).stdout or '{}').get('_base') or ('WAI-Harness/spoke/local' if os.path.isdir('WAI-Harness/spoke/local') else 'WAI-Spoke'))
-   session_id = '{session_id}'
-   sys.path.insert(0, 'WAI-Harness/spoke/managed/tools')
-   from worktree_guard import resolve_guard_path
-   guard_path = resolve_guard_path(BASE, os.environ.get('CLAUDE_CODE_SESSION_ID'))
-   try:
-       started = datetime.datetime.fromisoformat(json.load(open(guard_path)).get('started_at','').replace('Z','+00:00'))
-   except:
-       started = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=4)
-
-   completed, opened = [], []
-   for f in glob.glob(f'{BASE}/lugs/bytype/*/completed/*.json'):
-       try:
-           d = json.load(open(f))
-           ca = d.get('completed_at','')
-           ts = datetime.datetime.fromisoformat(ca.replace('Z','+00:00')) if ca else None
-           if ts and ts >= started:
-               completed.append(d.get('id',''))
-       except: pass
-   for f in glob.glob(f'{BASE}/lugs/bytype/*/open/*.json') + glob.glob(f'{BASE}/lugs/bytype/*/in_progress/*.json'):
-       try:
-           d = json.load(open(f))
-           ca = d.get('created_at','')
-           ts = datetime.datetime.fromisoformat(ca.replace('Z','+00:00')) if ca else None
-           if ts and ts >= started:
-               opened.append(d.get('id',''))
-       except: pass
-   print(json.dumps({'completed': completed, 'opened': opened}))
-   "
-   Store result as PAPER_TRAIL.
+2+3. SCAN LUG LOCKS + PAPER TRAIL (one tool; paper trail is best-effort — empty lists are acceptable)
+   Run: python3 WAI-Harness/spoke/managed/tools/savepoint_scan_state.py --base {BASE}
+   It emits: {"lug_locks": [...], "paper_trail": {"completed": [...], "opened": [...]}}
+   Store `lug_locks` as LUG_LOCKS and `paper_trail` as PAPER_TRAIL.
+   (LUG_LOCKS = every lug held in_progress. PAPER_TRAIL = lugs completed/opened since this
+   session started per the worktree guard, falling back to a 4-hour window.)
 
 3b. SCAN UNCOMMITTED FILES (lightweight git audit)
    Run: git status --short

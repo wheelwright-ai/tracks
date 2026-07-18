@@ -70,6 +70,29 @@ def strip_structured(text):
 # Each returns a list of violations: {"evidence": str, "note": str}.
 # A detector MUST NOT guess. If it cannot prove a violation, it returns [].
 
+# Negation guard (added s138 after an adversarial false-positive probe).
+#
+# Four detectors fired on text that MENTIONED the banned thing in order to warn
+# against it: "brew install is macOS-only, on WSL2 use apt", "nobody has to see
+# above", "would you like me to check before anything destructive". Each finding
+# was specific, confident, and wrong.
+#
+# That is the failure mode this whole toolchain exists to avoid — a wrong finding
+# is worse than an admitted gap, because it trains the reader to discount the
+# real ones. The guard is a bounded window over the preceding characters, not a
+# parser: deliberately dumb, and it either abstains or it does not fire.
+_NEGATION_CUES = re.compile(
+    r"\b(not|never|no|avoid|instead of|rather than|don't|do not|doesn't|"
+    r"cannot|can't|without|-only|only for|unlike|nobody|none of)\b",
+    re.IGNORECASE)
+
+
+def _negated(text, start, window=90):
+    """Is the match preceded by a negation cue inside a short window?"""
+    return bool(_NEGATION_CUES.search(text[max(0, start - window):start]))
+
+
+
 def d_no_markdown_headings(text, _pref):
     """communication-message-format: no_headings."""
     out = []
@@ -206,10 +229,20 @@ def d_no_windows_code_paths(text, _pref):
 
 def d_no_macos_tooling(text, _pref):
     """taste-user-006: WSL2 on Windows — never suggest macOS tooling."""
-    pat = re.compile(r"\b(brew install|brew tap|pbcopy|pbpaste|"
-                     r"defaults write|open -a )\S*", re.IGNORECASE)
+    # Narrowed s138 after an adversarial probe. The earlier pattern fired on any
+    # MENTION, so "the docs mention brew install for macOS users, but on WSL2 use
+    # apt" — text that gets the platform exactly right — was reported as a
+    # violation. The preference bans SUGGESTING macOS tooling, so the detector now
+    # requires imperative position: line-start, or directly after run/use/try/do.
+    # A detector that cannot be made precise is narrowed, not left confidently
+    # wrong; the cost is missing an oddly-phrased real case, which is the cheaper
+    # error.
+    pat = re.compile(r"(?:^|(?<=\brun )|(?<=\buse )|(?<=\btry )|(?<=\bdo ))"
+                     r"(brew install|brew tap|pbcopy|pbpaste|defaults write|open -a )\S*",
+                     re.IGNORECASE | re.MULTILINE)
+    clean = strip_structured(text)
     return [{"evidence": m.group(0)[:80], "note": "macOS-only tooling suggested"}
-            for m in pat.finditer(strip_structured(text))]
+            for m in pat.finditer(clean) if not _negated(clean, m.start())]
 
 
 def d_no_typo_flagging(text, _pref):
@@ -218,8 +251,9 @@ def d_no_typo_flagging(text, _pref):
         r"(did you mean\b|you (probably |likely )?meant\b|"
         r"(i )?(assume|think|presume) you meant\b|typo in your\b)",
         re.IGNORECASE)
+    clean = strip_structured(text)
     return [{"evidence": m.group(0)[:80], "note": "flagged an operator typo"}
-            for m in pat.finditer(strip_structured(text))]
+            for m in pat.finditer(clean) if not _negated(clean, m.start())]
 
 
 def d_no_reference_by_label(text, _pref):
@@ -235,9 +269,10 @@ def d_no_reference_by_label(text, _pref):
         r"|as discussed (earlier|above|previously)"
         r"|see above\b|per my (earlier|previous)\b"
         r"|refer back to\b|decision #\d)", re.IGNORECASE)
+    clean = strip_structured(text)
     return [{"evidence": m.group(0)[:80],
              "note": "reference-by-label — sends the operator into history"}
-            for m in pat.finditer(strip_structured(text))]
+            for m in pat.finditer(clean) if not _negated(clean, m.start())]
 
 
 def d_no_preamble(text, _pref):
@@ -271,9 +306,23 @@ def d_no_permission_ask_for_safe_ops(text, _pref):
         r"\b(want me to|should i|shall i|would you like me to)\s+"
         r"(check|look|read|show|list|inspect|search|grep|find|display|survey)\b",
         re.IGNORECASE)
-    return [{"evidence": m.group(0)[:80],
-             "note": "asked permission for a read-only operation"}
-            for m in pat.finditer(strip_structured(text))]
+    clean = strip_structured(text)
+    out = []
+    for m in pat.finditer(clean):
+        # A pause before something destructive is CORRECT even when the sentence
+        # also contains a read-only verb ("check with you before deleting").
+        # Whole sentence, both directions: "Should I delete the stashes, or would
+        # you like me to check with you first?" has its destructive verb BEFORE
+        # the matched phrase, and a forward-only window called it a violation.
+        sentence = clean[max(0, m.start() - 160):m.start() + 160]
+        if re.search(r"\b(delet|remov|destroy|overwrit|force|reset|drop|purge|wipe)",
+                     sentence, re.IGNORECASE):
+            continue
+        if _negated(clean, m.start()):
+            continue
+        out.append({"evidence": m.group(0)[:80],
+                    "note": "asked permission for a read-only operation"})
+    return out
 
 
 # pref_id -> (detector, closing_only)

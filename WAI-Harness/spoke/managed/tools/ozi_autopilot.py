@@ -2073,6 +2073,15 @@ class OziAutopilot:
         "notation": "notation",
         "review": "review",
         "chain": "chain",
+        # "chore" is the same defect "ack" was, found the same way (2026-07-18):
+        # a LIVE bytype/chore/ dir holding a real lug, with no entry here. The
+        # in-tree fallback below hides it locally — bytype/chore/ exists, so the
+        # dir-check route files it — but a chore lug arriving at a spoke WITHOUT
+        # that dir already present gets wrapped as notation-intake-unknown-type-*
+        # and never dispatched. Silent on the machine that has the dir, broken on
+        # every machine that does not, which is why the live-tree test caught it
+        # here and nowhere else.
+        "chore": "chore",
         # "ack" completes the map: it was the ONE live bytype/ dir with no explicit
         # entry (2026-07-14). Acks are not rare -- the sender-ack rule means every
         # accepted cross-spoke lug returns one, so an unmapped ack landing in a tree

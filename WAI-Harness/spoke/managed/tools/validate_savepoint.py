@@ -27,10 +27,33 @@ CLI:
 import glob
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wai_paths  # noqa: E402  harness-mode root resolver (single source of truth)
+
+
+def _has_rerunnable_check(item):
+    """Does this work_done entry record something a machine can re-run LATER?
+
+    Intentionally the SAME conservative test savepoint_walk.py applies when it
+    walks the trail, so the validator and the walker cannot disagree about what
+    counts as evidence — a gate that accepts what the auditor rejects is worse
+    than no gate, because it creates records that look valid and audit as empty.
+
+    Accepts a shell/pytest command or a repo path. Rejects prose. `evidence` is
+    checked too: a commit sha there is re-checkable even when `verification`
+    reads as a human note.
+    """
+    blob = " ".join(str(item.get(k) or "") for k in ("verification", "evidence"))
+    if not blob.strip():
+        return False
+    return bool(
+        re.search(r"\b(python3?|pytest|bash|sh)\b[^\n]{3,}", blob)
+        or re.search(r"(?:WAI-Harness|tools|tests|scripts)/[\w./-]+\.\w+", blob)
+        or re.search(r"\b(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b", blob)  # commit sha — ancestry is checkable
+    )
 
 
 def _is_nonempty_list(v):
@@ -120,6 +143,23 @@ def validate_resume_contract(sp, spoke_root="."):
                 failures.append(f"work_done[{i}] missing 'verified' boolean")
             elif item.get("verified") is False:
                 has_unverified = True
+            elif item.get("verified") is True and not _has_rerunnable_check(item):
+                # THE CLAIM-IS-NOT-EVIDENCE RULE (s138). Measured across the real
+                # trail: 330 work entries, 8 with a re-runnable check, 100 marked
+                # verified=true. ~98 entries asserted verification and recorded no
+                # way to confirm it. That is the self-graded pattern the compliance
+                # oracle exists to kill, sitting inside the record Ozi is meant to
+                # walk back over and trust.
+                #
+                # A savepoint is the durable record. If "verified" can mean "I say
+                # so", the trail is decoration. So verified=true must carry
+                # something a machine can re-run later: a command, or a path.
+                failures.append(
+                    f"work_done[{i}] claims verified=true but records no RE-RUNNABLE check. "
+                    "Put a command or a file path in 'verification' (prose like 'confirmed by "
+                    "reading the diff' is a note, not evidence). If it genuinely cannot be "
+                    "re-checked, set verified=false and add an honest_flag."
+                )
         if has_unverified and not _is_nonempty_list(honest_flags):
             failures.append(
                 "work_done has unverified item(s) (verified=false) but honest_flags "

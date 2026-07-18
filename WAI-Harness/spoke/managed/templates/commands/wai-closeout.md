@@ -703,101 +703,11 @@ If no next ready item after completion: `chain_target_lug` is set to `null` — 
 Before committing, mark the session clean in WAI-State and verify savepoints:
 
 ```bash
-python3 - <<'PYEOF'
-import json, datetime, os, glob, shutil, sys
-from pathlib import Path
-
-state_path = '{BASE}/WAI-State.json'
-ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
-with open(state_path) as f:
-    state = json.load(f)
-
-# --- Savepoint complete gate ---
-# Find this session's savepoint (the one with status active/pending and our session_id).
-sys.path.insert(0, 'WAI-Harness/spoke/managed/tools')
-from worktree_guard import resolve_guard_path
-guard_path = resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID'))
-try:
-    current_session_id = json.load(open(guard_path)).get('session_id', '')
-except Exception:
-    current_session_id = ''
-
-sp_files = [f for f in sorted(glob.glob('{BASE}/initiatives/savepoints/**/*.json', recursive=True)) if 'completed' not in Path(f).parts]
-
-my_sp_path = None
-my_sp = None
-for f in sp_files:
-    try:
-        d = json.load(open(f))
-        if d.get('session_id') == current_session_id or d.get('claiming_session_id') == current_session_id:
-            my_sp_path = f
-            my_sp = d
-            break
-    except Exception:
-        pass
-
-# Conflict check: does any other active savepoint share a lug in lug_locks?
-if my_sp:
-    my_locks = set(my_sp.get('lug_locks', []))
-    if my_locks:
-        for f in sp_files:
-            if f == my_sp_path:
-                continue
-            try:
-                other = json.load(open(f))
-                if other.get('status') not in ('pending', 'active'):
-                    continue
-                other_locks = set(other.get('lug_locks', []))
-                conflicts = my_locks & other_locks
-                if conflicts:
-                    other_status = other.get('status', '?')
-                    if other_status == 'active':
-                        print(f"CONFLICT HARD-STOP: lug(s) {conflicts} also held by active savepoint {other['id']} (session {other.get('claiming_session_id','?')})")
-                        print("Resolve: either complete the other session's savepoint first, or remove the conflicting lug from lug_locks manually.")
-                        sys.exit(1)
-                    else:
-                        # Other is pending (not yet claimed) — auto-resolve via git history
-                        print(f"  Conflict note: lug(s) {conflicts} also in pending savepoint {other['id']} — auto-resolved (git history is truth)")
-                        # Record in my_sp conflicts
-                        my_sp.setdefault('conflicts', []).append({
-                            'sp_id': other['id'], 'lugs': list(conflicts), 'resolution': 'auto_git'
-                        })
-            except Exception:
-                pass
-
-    # Complete: update savepoint file and move to completed/
-    my_sp['status'] = 'completed'
-    my_sp['completed_at'] = ts
-    dest_dir = os.path.join(os.path.dirname(my_sp_path), 'completed')
-    dest = os.path.join(dest_dir, os.path.basename(my_sp_path))
-    os.makedirs(dest_dir, exist_ok=True)
-    with open(my_sp_path, 'w') as f:
-        json.dump(my_sp, f, indent=2)
-    shutil.move(my_sp_path, dest)
-    print(f"  Savepoint completed: {my_sp['id']} → {dest_dir}/")
-
-    # Update pointer
-    pointer = state.get('_savepoint', {})
-    active_ids = pointer.get('active_ids', [])
-    active_ids = [x for x in active_ids if x != my_sp['id']]
-    state['_savepoint'] = {'active_ids': active_ids, 'count': len(active_ids)}
-elif sp_files:
-    print(f"  No savepoint for session {current_session_id} — {len(sp_files)} other savepoint(s) untouched")
-else:
-    # No savepoints at all — ensure pointer is clean
-    state['_savepoint'] = {'active_ids': [], 'count': 0}
-
-# --- Session status ---
-if '_session_status' not in state:
-    state['_session_status'] = {}
-state['_session_status']['status'] = 'clean'
-state['_session_status']['clean_at'] = ts
-state['_session_status']['interrupted_at'] = state['_session_status'].get('interrupted_at')
-state['_session_status']['interrupted_session'] = None
-with open(state_path, 'w') as f:
-    json.dump(state, f, indent=2)
-print(f'_session_status.status = clean @ {ts}')
-PYEOF
+# Completes THIS session's savepoint (hard-stops on an active-savepoint lug_locks conflict;
+# auto-resolves a pending one, git history being truth) and marks the session clean.
+# Extracted from this ceremony 2026-07-14 (was a 95-line inline heredoc) —
+# behaviour preserved verbatim in tools/closeout_session_status.py.
+python3 WAI-Harness/spoke/managed/tools/closeout_session_status.py --base {BASE}
 ```
 
 ### DISRUPTION SURFACE

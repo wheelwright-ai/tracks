@@ -205,6 +205,11 @@ def absorption_candidates(base, session_id, open_window=ACTIVE_WINDOW_S):
     return out
 
 
+def _cand_sid(cand):
+    """Session id of an absorption candidate — the key the operator confirms by."""
+    return cand.get("sid") if isinstance(cand, dict) else cand
+
+
 def _match_lane(wt_name, lanes):
     """Best-effort map a worktree to its owning lane: lane wai_session == worktree name,
     or the worktree-name appears in the lane's transcript/worktree hint."""
@@ -407,7 +412,24 @@ def reconcile_lane(repo, name, verify=True, test_cmd=None, base=None, session_id
 # ── the lead loop ───────────────────────────────────────────────────────────
 
 def converge(base, session_id, repo=".", my_worktree=None, verify=True,
-             test_cmd=None, active_window=ACTIVE_WINDOW_S, lease_seconds=DEFAULT_LEASE_S):
+             test_cmd=None, active_window=ACTIVE_WINDOW_S, lease_seconds=DEFAULT_LEASE_S,
+             confirm_absorb=None):
+    """Converge competitor lanes into one tree.
+
+    CONSENT GATE (risk-tolerance-never-absorb-a-fork-silently). A parked lane is
+    the operator's FORKED WORK, not litter to reclaim. He reported in s138 that
+    forks were being absorbed back without his interaction, and he was right: the
+    savepoint ceremony ran this function on its exit-10 path with no consent step.
+
+    Ceremony prose alone is not a gate — a prose instruction is advice a future
+    agent can skip, and this one had been skipped for months. So the refusal
+    lives HERE, where it fails closed regardless of who calls it.
+
+    `confirm_absorb` must name the session ids being absorbed (or the sentinel
+    "ALL"). Without it, this returns a refusal listing the candidates and changes
+    nothing. Absorption is not reversible by checkout; keeping a lane parked
+    always is.
+    """
     root = wg.repo_root(repo)
     lanes = wg.live_lanes(base)
     competitors = {s: m for s, m in lanes.items() if s != session_id}
@@ -416,6 +438,26 @@ def converge(base, session_id, repo=".", my_worktree=None, verify=True,
     # 1. zero-cost common path: nobody to converge with.
     if not competitors and not others_wts:
         return {"ok": True, "lead": False, "reason": "no-competitors", "converged": []}
+
+    # 2. CONSENT GATE — refuse to absorb anything the operator has not named.
+    cands = absorption_candidates(base, session_id, active_window)
+    if cands:
+        approved = set(confirm_absorb or [])
+        if "ALL" not in approved:
+            unapproved = [c for c in cands if _cand_sid(c) not in approved]
+            if unapproved:
+                return {
+                    "ok": False,
+                    "lead": False,
+                    "reason": "absorb-not-confirmed",
+                    "candidates": unapproved,
+                    "advice": (
+                        "These are PARKED FORKS, not litter — absorbing one destroys a thread "
+                        "the operator intended to return to. Surface them as a choice and "
+                        "re-run with --confirm-absorb <session-id> (repeatable) for each lane "
+                        "he approves, or leave them parked. Keeping a lane parked is always "
+                        "safe; absorbing is not reversible by checkout."),
+                }
 
     # 2. exactly-one-lead gate.
     lk = acquire_lock(base, session_id, lease_seconds)
@@ -513,6 +555,10 @@ def main(argv=None):
     ds = sub.add_parser("drain-signals"); add_base(ds)
     rl = sub.add_parser("reconcile-lane"); rl.add_argument("--repo", default="."); rl.add_argument("--name", required=True); rl.add_argument("--no-verify", action="store_true"); rl.add_argument("--test-cmd", default=None); rl.add_argument("--base", default=None); rl.add_argument("--session-id", default=None)
     cv = sub.add_parser("converge"); add_base(cv); cv.add_argument("--repo", default="."); cv.add_argument("--my-worktree", default=None); cv.add_argument("--no-verify", action="store_true"); cv.add_argument("--test-cmd", default=None); cv.add_argument("--active-window", type=int, default=ACTIVE_WINDOW_S); cv.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_S)
+    cv.add_argument("--confirm-absorb", action="append", default=None, metavar="SESSION_ID",
+                    help="operator-confirmed lane to absorb (repeatable; 'ALL' to confirm every "
+                         "candidate). REQUIRED when candidates exist — a parked lane is a fork, "
+                         "not litter, and absorbing it is not reversible by checkout.")
 
     args = ap.parse_args(argv)
     if args.cmd == "candidates":
@@ -535,7 +581,8 @@ def main(argv=None):
     elif args.cmd == "converge":
         out = converge(args.base, args.session_id, args.repo, args.my_worktree,
                        verify=not args.no_verify, test_cmd=args.test_cmd,
-                       active_window=args.active_window, lease_seconds=args.lease_seconds)
+                       active_window=args.active_window, lease_seconds=args.lease_seconds,
+                       confirm_absorb=args.confirm_absorb)
     else:
         ap.error("unknown command")
     print(json.dumps(out, indent=2))

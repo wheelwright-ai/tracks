@@ -77,7 +77,7 @@ A lug is a JSON file at `WAI-Spoke/lugs/bytype/{type}/{status}/{id}.json`. The f
 | `impact` | `impact` | **Impact score** 1-10. Used by ROI scorer. Default inferred from type if absent. |
 | `effort` | `effort` | **Effort score** 1-5. Used by ROI scorer. Default inferred from type if absent. |
 | `urgency` | `urgency` | **Dispatch priority tier** 1-5 (default 3). 1=URGENT (immediate), 2=HIGH, 3=NORMAL, 4=LOW, 5=DEFER. Tiers sort before ROI — all tier-1 items dispatch before any tier-2. Backward compatible: omitted = tier 3. |
-| `rt` | `routed_to` | Routing target: `LOCAL`, `mywheel`, or `SPOKE/{spoke_id}` for cross-spoke. Signal lugs do not use `routed_to` — write directly to `{hub_path}/WAI-Hub/signals/incoming/`. |
+| `rt` | `routed_to` | Routing target: `LOCAL`, `FRAMEWORK`, or `SPOKE/{spoke_id}` for cross-spoke. Signal lugs do not use `routed_to` — write directly to `{hub_path}/WAI-Hub/signals/incoming/`. |
 | `spec_id` | `spec_id` | Optional. On implementation lugs: ID of the spec lug that defines the behavior being implemented. Singular — one primary spec per impl. |
 | `suggested_skill` | `suggested_skill` | Optional. The exact skill command that resolves this lug (e.g. `/wai-foundation` for a `missing_foundation` remediation lug). When set, the wakeup work-queue surfaces it as the **first** recommended action — a one-line, copy-paste CTA, not a paragraph of file edits. |
 | `hyp` | `hypothesis` | Optional (ideation). **Why** we're doing this — the belief that motivates the work. Capture at creation when ideating with an agent so intent is shared, not implied. |
@@ -379,8 +379,7 @@ For named lugs (foundation, epic): use human-readable IDs:
 | `phase` | `null` | Phase membership ID (e.g. `"p1-foundation"`) — groups items for milestone tracking. Cross-reference `project_ozi_directive_crew_design.md` for crew phases. |
 | `phase_order` | `null` | Numeric ordering within a phase (lower = earlier) |
 | `execute_when` | `null` | Conditional trigger — see Execute-When Gates section below |
-| `model_fit` | `"haiku"` | **Model class for execution.** Default is `"haiku"` — use the cheapest model capable of the work. See **Model-Tier Routing** table below. Tender reads this field to route lug passes. |
-| `model_fit_reason` | `null` | **Required when escalating above haiku.** One sentence stating why the affordable tier is insufficient (e.g. "requires cross-file architectural judgment across 8 modules"). Omit on haiku lugs. |
+| `model_fit` | `"haiku"` | **Model class for execution.** Implementation and coding lugs default to `"haiku"`. Set to `"sonnet"` for work requiring reasoning, architecture decisions, or multi-file changes. Set to `"opus"` for planning-heavy or high-stakes work. Tender reads this field to route lug passes. |
 | `state` | `null` | Fine-grained sub-status within `s`, free-form string |
 | `risk_tier` | `'standard'` | One of: `low`, `standard`, `elevated`, `critical` |
 | `lead_advisor` | `null` | Crew folder slug, e.g. `delivery-manager` |
@@ -393,21 +392,6 @@ For named lugs (foundation, epic): use human-readable IDs:
 | `gt_convoy_hint` | `null` | Optional. Brief one-sentence description for the gastown Mayor convoy context. Set alongside `execution_substrate: "gastown"`. |
 
 > **Sub-agent dispatch fields:** `files_to_create`, `files_to_edit`, `files_to_read`, `wave`, `dependencies`, and `blocking` are optional. Populate them only for lugs intended for sub-agent dispatch. Omitting them on human-executed lugs is correct.
-
-### Model-Tier Routing
-
-**Default to the cheapest model capable of the work. Escalation requires a stated reason in `model_fit_reason`.**
-
-| Work character | `model_fit` | When to use |
-|----------------|-------------|-------------|
-| Mechanical / baked-in: exact SQL, shell commands, file edits fully specified in the lug, no architectural judgment required | `"haiku"` | Default — most implementation lugs |
-| Integration judgment: coordinating multiple files/services, interpreting ambiguous requirements, light design decisions | `"sonnet"` | Set + add `model_fit_reason` |
-| Genuinely novel architecture, high-stakes design with no precedent in the codebase, adversarial review of complex plans | `"opus"` | Set + add `model_fit_reason`; frontier only when truly required |
-
-**Rules:**
-- Haiku is the default. Do not write `model_fit: "sonnet"` without a reason.
-- `subagent_guidance` in the lug should bake in enough specifics that haiku can execute without judgment calls (exact SQL, exact endpoint signatures, exact file paths). If you cannot write that level of detail, upgrade to sonnet and document why.
-- Adversarial plan reviews (see `wai-plan-validation.md` Step 0) run at sonnet-class; frontier is not required for review work.
 
 ### `gb` (gathered_by) — Model ID Required
 
@@ -698,7 +682,7 @@ If found in `priority` on an existing lug, treat as P1-equivalent.
 | Value | Meaning | Behavior at Closeout |
 |-------|---------|---------------------|
 | `"LOCAL"` | Stays in this spoke | `completed/` only |
-| `"mywheel"` | mywheel (master/hub) improvement | hub teaching delivery + `completed/` |
+| `"FRAMEWORK"` | Framework improvement | hub teaching delivery + `completed/` |
 | `"SIGNAL"` | **Deprecated** — do not use. Signal lugs are user alerts; write directly to `{hub_path}/WAI-Hub/signals/incoming/` with no `routed_to` needed. | ignored |
 | `"SPOKE/{spoke_id}"` | Cross-spoke routing | `{hub_path}/WAI-Hub/lugs/incoming/{spoke_id}/` + completed locally |
 | `"ASSESSOR"` | Model performance telemetry | Deposited to `{hub_path}/WAI-Hub/advisors/assessor/inbox/` at closeout by `spoke-telemetry-closeout` |
@@ -736,7 +720,7 @@ If any check fails: fix the lug. Do not deliver a draft.
 ### Routing Logic at Lug Creation
 
 1. Load `_project_foundation.boundaries`
-2. Classify: LOCAL (only this project) | mywheel (affects how projects work — impl/task lugs that improve mywheel's schemas, skills, or protocols) | SPOKE/{id} (belongs to another spoke) | ASSESSOR (model telemetry capture)
+2. Classify: LOCAL (only this project) | FRAMEWORK (affects how projects work — impl/task lugs that improve framework schemas, skills, or protocols) | SPOKE/{id} (belongs to another spoke) | ASSESSOR (model telemetry capture)
 3. Announce: `"Creating {type} '{title}' → {routed_to}"`
 4. Wait for user confirmation
 5. Record decision in `scope_verified_by`
@@ -751,12 +735,12 @@ When you are working in spoke A and observe work that belongs elsewhere, use thi
 | Situation | Correct Action | Wrong Action |
 |-----------|---------------|-------------|
 | You observe spoke B has a bug or improvement while working in spoke A | Write a lug to `{hub_path}/WAI-Hub/lugs/incoming/{spoke_b_id}/` (`routed_to: "SPOKE/{spoke_b_id}"`) | Routing to hub incoming (hub never relays to spokes) |
-| Improvement to mywheel's schemas, skills, or protocols | mywheel impl/task lug to `{hub_path}/WAI-Hub/lugs/incoming/mywheel/` (`routed_to: "mywheel"`) | Writing a signal lug |
+| Improvement to framework schemas, skills, or protocols | Framework impl/task lug to `framework/WAI-Spoke/lugs/incoming/` (`routed_to: "FRAMEWORK"`) | Writing a signal lug |
 | Something the USER must decide or act on (not agent-resolvable) | Signal lug (`type: "signal"`) → write to `{hub_path}/WAI-Hub/signals/incoming/` | Creating an impl/task lug (user won't see it at startup) |
 | Architectural decision owned by one spoke | Lug to that spoke's inbox (`routed_to: "SPOKE/{id}"`) | Any broadcast mechanism |
 | Work only relevant to the spoke you are currently in | Local lug (`routed_to: "LOCAL"`) | Any of the above |
 
-**Anti-pattern:** Do not create signal lugs for mywheel fixes. A gap you want mywheel (master/hub) to address is a `task` or `implementation` lug with `routed_to: "mywheel"`. Signal lugs are for the user — things no agent can resolve without human input. `routed_to: "SIGNAL"` is deprecated; do not use.
+**Anti-pattern:** Do not create signal lugs for framework fixes. A gap you want the framework to address is a `task` or `implementation` lug with `routed_to: "FRAMEWORK"`. Signal lugs are for the user — things no agent can resolve without human input. `routed_to: "SIGNAL"` is deprecated; do not use.
 
 ---
 
@@ -769,16 +753,16 @@ When you are working in spoke A and observe work that belongs elsewhere, use thi
 
 ---
 
-## Signal vs Task vs mywheel Fix
+## Signal vs Task vs Framework Fix
 
 | Type | Audience | Who acts? | Where stored? |
 |------|---------|-----------|--------------|
 | `signal` | **Human user** — something only you can decide or action | User only — agents show it, do not resolve it | `{hub_path}/WAI-Hub/signals/incoming/` |
 | `task` / `implementation` | Agent or user | Agent executes at next session | `lugs/bytype/{type}/open/` |
-| mywheel fix (`routed_to: "mywheel"`) | mywheel (master/hub) / Ozi | mywheel agent implements, publishes teaching | `lugs/bytype/{type}/open/` with `routed_to: "mywheel"` |
+| Framework fix (`routed_to: "FRAMEWORK"`) | Framework team / Ozi | Framework agent implements, publishes teaching | `lugs/bytype/{type}/open/` with `routed_to: "FRAMEWORK"` |
 | `phone-home` | Hub requesting status | AUTO by learn | Handled by spoke learn protocol |
 
-**Decision rule:** If a human must read it and choose what to do → signal. If an agent can implement it without human input → task/impl lug. If it improves mywheel for all spokes → task/impl with `routed_to: "mywheel"`.
+**Decision rule:** If a human must read it and choose what to do → signal. If an agent can implement it without human input → task/impl lug. If it improves the framework for all spokes → task/impl with `routed_to: "FRAMEWORK"`.
 
 ### Signal Required Fields
 
@@ -807,11 +791,11 @@ Signals must not accumulate. Each session start shows open signals. If a signal 
 ### When NOT to Use a Signal
 
 - The agent can resolve it without you → use `task` lug
-- It's a mywheel (master/hub) improvement → use `task`/`implementation` with `routed_to: "mywheel"`
+- It's a framework improvement → use `task`/`implementation` with `routed_to: "FRAMEWORK"`
 - It's informational and requires no action → write a `learning` lug or memory file
-- It's fleet-wide behavior → mywheel publishes a teaching after implementing it
+- It's fleet-wide behavior → framework publishes a teaching after implementing it
 
-The old "fleet-wide patch via signal" mechanism is retired. Emit a mywheel impl lug instead — mywheel implements and publishes a teaching; spokes absorb it at wakeup.
+The old "fleet-wide patch via signal" mechanism is retired. Emit a framework impl lug instead — the framework implements and publishes a teaching; spokes absorb it at wakeup.
 
 ### Migration Note (v2 → v3 Signal Semantics)
 
@@ -819,7 +803,7 @@ Existing signal lugs in `WAI-Spoke/lugs/bytype/signal/` are **legacy**. Do not c
 
 | Old pattern | New pattern |
 |------------|------------|
-| `type: "signal"`, `routed_to: "mywheel"` (fleet patch) | `type: "task"` or `"implementation"`, `routed_to: "mywheel"` |
+| `type: "signal"`, `routed_to: "FRAMEWORK"` (fleet patch) | `type: "task"` or `"implementation"`, `routed_to: "FRAMEWORK"` |
 | `WAI-Spoke/signals/inbound/` patch files | Deprecated — do not create new patch files there |
 | `WAI-Hub/signals/incoming/framework/` | Deprecated path — no new files |
 | New user alert to human | `type: "signal"` → write to `{hub_path}/WAI-Hub/signals/incoming/{id}.json` |

@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.11.0",
+  "harness_version": "4.12.0",
   "is_master": false,
-  "generated_at": "2026-07-18T18:37:07.810319+00:00",
-  "master_sha": "3591c9a2e187fe19a581adecacaf147f5fffc5e9",
+  "generated_at": "2026-07-18T23:27:03.470274+00:00",
+  "master_sha": "7dad5396903eb9cdf4a7ac506754023d5d6bad69",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -166,7 +166,7 @@
     },
     ".claude/commands/wai-complexity-gate.md": {
       "version": "4.6.5",
-      "md5": "3dbdaed2e4a353f5d6bb8245ef961394",
+      "md5": "696e20d41700a6239d43aaf2d928ac36",
       "owner": "basher"
     },
     ".claude/commands/wai-context-guard.md": {
@@ -212,6 +212,11 @@
     ".claude/commands/wai-dogfood.md": {
       "version": "4.6.5",
       "md5": "257436c397a6c6dc7ec3ba8c522ad9e0",
+      "owner": "basher"
+    },
+    ".claude/commands/wai-fork.md": {
+      "version": "4.11.0",
+      "md5": "dde701efa3635b5735945f2d3d4fb129",
       "owner": "basher"
     },
     ".claude/commands/wai-foundation-gate.md": {
@@ -386,7 +391,7 @@
     },
     ".claude/commands/wai-plan-validation.md": {
       "version": "4.6.5",
-      "md5": "29ea443b145bdccabd953afe96ac3bc3",
+      "md5": "94ffe607e8dc311e0fdb7a89bcfff0bf",
       "owner": "basher"
     },
     ".claude/commands/wai-principles-reference.md": {
@@ -416,7 +421,7 @@
     },
     ".claude/commands/wai-savepoint.md": {
       "version": "4.6.5",
-      "md5": "c5c4d610aed8afe8b376531f54f97ca4",
+      "md5": "61751759313c9a94bc7ecb7bae6857f7",
       "owner": "basher"
     },
     ".claude/commands/wai-signal-capture.md": {
@@ -2141,7 +2146,7 @@
     },
     "templates/commands/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "9be9ca3b26fb7f2dddc4e829303aea02",
+      "md5": "6120a561627f94713aa8d6d61d6df978",
       "owner": "basher"
     },
     "templates/commands/wai-compact-resume.md": {
@@ -2202,6 +2207,11 @@
     "templates/commands/wai-dogfood.md": {
       "version": "4.6.5",
       "md5": "257436c397a6c6dc7ec3ba8c522ad9e0",
+      "owner": "basher"
+    },
+    "templates/commands/wai-fork.md": {
+      "version": "4.11.0",
+      "md5": "dde701efa3635b5735945f2d3d4fb129",
       "owner": "basher"
     },
     "templates/commands/wai-foundation-gate.md": {
@@ -2311,7 +2321,7 @@
     },
     "templates/commands/wai-lug-schema.md": {
       "version": "4.6.5",
-      "md5": "839af015446423f19714cb675cc03347",
+      "md5": "cad424ca037d72187da644c7b5379f59",
       "owner": "basher"
     },
     "templates/commands/wai-mode.md": {
@@ -2406,7 +2416,7 @@
     },
     "templates/commands/wai-savepoint.md": {
       "version": "4.6.5",
-      "md5": "55f393ee4cefd8a67440ebbfdc1829ec",
+      "md5": "61751759313c9a94bc7ecb7bae6857f7",
       "owner": "basher"
     },
     "templates/commands/wai-signal-capture.md": {
@@ -3119,6 +3129,11 @@
       "md5": "72879d434a25a35706e24419c59073f5",
       "owner": "basher"
     },
+    "tools/assurance_sweep.py": {
+      "version": "4.11.0",
+      "md5": "a8cc9d05ddbd7a73ad52902e7a44f712",
+      "owner": "basher"
+    },
     "tools/atomic_write.py": {
       "version": "4.6.5",
       "md5": "546e7772987a2eed5b7db3eb49fbc93a",
@@ -3152,6 +3167,11 @@
     "tools/burn_panel.py": {
       "version": "4.6.5",
       "md5": "640f467673e3e61cc62684c54f40cfa9",
+      "owner": "basher"
+    },
+    "tools/canon_adherence.py": {
+      "version": "4.11.0",
+      "md5": "e57722b11f9e4e84061f2ea03efa7c09",
       "owner": "basher"
     },
     "tools/capgraph_blocks.py": {
@@ -3256,7 +3276,7 @@
     },
     "tools/converge_closeout.py": {
       "version": "4.6.5",
-      "md5": "a3886a77d0108e088957dd365fe85afb",
+      "md5": "7abe398d268d9aa753bca7d1ce2bd9bb",
       "owner": "basher"
     },
     "tools/create_harness_db.py": {
@@ -3661,7 +3681,7 @@
     },
     "tools/ozi_autopilot.py": {
       "version": "4.6.5",
-      "md5": "bae80d4a8ea756c3a08bb281804804a8",
+      "md5": "da7774e59087b5cd47ce2493ff7a2553",
       "owner": "basher"
     },
     "tools/ozi_headless.py": {
@@ -3749,6 +3769,11 @@
       "md5": "c5f4f809d33336d0518668dff4ff2b93",
       "owner": "basher"
     },
+    "tools/savepoint_backfill.py": {
+      "version": "4.11.0",
+      "md5": "a64037cfdd330c452b48192f209c3bcb",
+      "owner": "basher"
+    },
     "tools/savepoint_migrate.py": {
       "version": "4.6.5",
       "md5": "e3f4094c4ec683178c7f3784b9d31f55",
@@ -3762,6 +3787,11 @@
     "tools/savepoint_scan_state.py": {
       "version": "4.6.6",
       "md5": "fdd2d6b3a035d7b0281fc4e2469eceff",
+      "owner": "basher"
+    },
+    "tools/savepoint_walk.py": {
+      "version": "4.11.0",
+      "md5": "1bdfe94429b6c58d29e7e0497a94d5ec",
       "owner": "basher"
     },
     "tools/scaffold_advisor_contract.py": {
@@ -3797,6 +3827,11 @@
     "tools/security_scan.py": {
       "version": "4.6.5",
       "md5": "1f98ffae8666dd8f5e3fc9f5d9dd103c",
+      "owner": "basher"
+    },
+    "tools/session_fork.py": {
+      "version": "4.11.0",
+      "md5": "30e8a373b9cfb2f1538bdbe55db4bc6d",
       "owner": "basher"
     },
     "tools/session_reaper.py": {
@@ -3861,7 +3896,7 @@
     },
     "tools/tastegraph_compliance.py": {
       "version": "4.11.0",
-      "md5": "6ca9803c4e816e7e0967b08590a1aabb",
+      "md5": "fe34b4828d217da59c5da9b9fc01d263",
       "owner": "basher"
     },
     "tools/tastegraph_grade.py": {
@@ -3961,7 +3996,7 @@
     },
     "tools/validate_savepoint.py": {
       "version": "4.6.5",
-      "md5": "238e8b0de13ffc555834107d8d67dff1",
+      "md5": "effcc80b2932c5c20c85c859d5e93d39",
       "owner": "basher"
     },
     "tools/validate_teaching.py": {
