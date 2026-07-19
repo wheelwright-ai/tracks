@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.12.2",
+  "harness_version": "4.12.3",
   "is_master": false,
-  "generated_at": "2026-07-18T23:52:39.020853+00:00",
-  "master_sha": "fd2c06218af597cb6e3273671361170d547e44f0",
+  "generated_at": "2026-07-19T00:08:31.020277+00:00",
+  "master_sha": "7c6b6353f01da02ddffd330f017889723d1c00b3",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -3316,7 +3316,7 @@
     },
     "tools/db_writer.py": {
       "version": "4.6.5",
-      "md5": "d71c3ea6ee98c560debffa40c8cd4e55",
+      "md5": "2a04f5ac93c374b8a2096a4b8a4aba4b",
       "owner": "basher"
     },
     "tools/dead_end_scan.py": {
@@ -3361,7 +3361,7 @@
     },
     "tools/event_bus.py": {
       "version": "4.6.5",
-      "md5": "82d59445a4e052565835ed02c6d20f5c",
+      "md5": "f8cfdc4cc783d398e7d13bee2829f66a",
       "owner": "basher"
     },
     "tools/exit_safety_check.py": {

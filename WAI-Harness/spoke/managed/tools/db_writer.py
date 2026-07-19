@@ -36,14 +36,40 @@ def _managed_base(spoke_root="."):
     return Path(spoke_root) / "WAI-Spoke" / "managed"  # last-resort v3 fallback
 
 
-DEFAULT_DB = str(_managed_base() / "harness.db")
-DEFAULT_JOURNAL = str(_managed_base() / "events-journal.jsonl")
+# WAI_EVENTS_JOURNAL redirects the durable journal, which exists so a TEST RUN
+# cannot write into production state.
+#
+# Caught by adversarial verification s138: running the suite appended live rows
+# to the git-TRACKED events-journal.jsonl, so "suite green" and "working tree
+# clean" could not both be true after anyone reproduced the verification. A
+# closeout gate that checks tree cleanliness would trip on its own test run —
+# and the natural "fix" of gitignoring the journal is wrong, because it is a
+# historical record and untracking it loses that history on restore.
+#
+# So the tests move, not the record. conftest.py points this at a tmp path.
+DEFAULT_DB = str(os.environ.get("WAI_EVENTS_DB") or (_managed_base() / "harness.db"))
+DEFAULT_JOURNAL = str(os.environ.get("WAI_EVENTS_JOURNAL")
+                      or (_managed_base() / "events-journal.jsonl"))
 EVENT_COLS = ("event_id", "ts", "spoke", "session", "actor", "type",
               "subject_ref", "status", "evidence", "correlation_id", "parent_event")
 
 
-def enqueue_event(event, journal_path=DEFAULT_JOURNAL):
+def _journal_path():
+    """Resolve the journal at CALL time, never at import.
+
+    The first attempt at this fix bound the env override to a module-level
+    constant, which is read the moment db_writer is imported — before pytest's
+    session fixture can set it. The suite still wrote into the real tracked
+    journal and the fix silently did nothing, which is its own small lesson: an
+    override that resolves at import is not an override for anything that
+    configures itself after import.
+    """
+    return os.environ.get("WAI_EVENTS_JOURNAL") or DEFAULT_JOURNAL
+
+
+def enqueue_event(event, journal_path=None):
     """Append a typed event to the durable journal. Non-blocking; O_APPEND is atomic per line."""
+    journal_path = journal_path or _journal_path()
     event = dict(event)
     event.setdefault("event_id", uuid.uuid4().hex)
     os.makedirs(os.path.dirname(os.path.abspath(journal_path)), exist_ok=True)

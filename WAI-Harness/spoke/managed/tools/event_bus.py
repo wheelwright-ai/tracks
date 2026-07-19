@@ -96,13 +96,17 @@ def _is_decision_with_why(event):
     return bool(ev.get("rationale")) and bool(ev.get("alternatives"))
 
 
-def emit(event, journal_path=DEFAULT_JOURNAL):
+def emit(event, journal_path=None):
     """Validate the typed schema, enforce decision-before-action, append to the
     durable journal, and return the assigned event_id.
 
     Raises EmissionError on a missing required field or a flow-changing action
     that does not reference a preceding decision event carrying rationale +
     alternatives. The bus never silently drops an event."""
+    # Resolved at CALL time, not import: WAI_EVENTS_JOURNAL is what keeps a test
+    # run out of the git-tracked production journal, and an override bound at
+    # import happens before pytest's fixture can set it (s138).
+    journal_path = journal_path or os.environ.get("WAI_EVENTS_JOURNAL") or DEFAULT_JOURNAL
     event = {k: v for k, v in event.items() if k in SCHEMA_FIELDS}
     missing = [f for f in REQUIRED_FIELDS if not event.get(f)]
     if missing:
