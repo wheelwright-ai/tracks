@@ -7,7 +7,35 @@
 # Outputs: <wai-session-init> block injected into session context
 #
 
+# A Herald-spawned single-shot responder (claude -p with WAI_HERALD_SPAWN=1) must
+# NOT run the full wakeup: no briefing, no chain-claiming, no lane-register, no
+# session-init. It does ONLY the lug carried in its prompt, then exits. Hard-gate
+# here at the very top — before any expensive/stateful work — so suppression does
+# not depend on the responder honouring a prompt instruction.
+# (impl-basher-herald-spawn-suppression-and-csrp-policy-v1)
+if [[ "${WAI_HERALD_SPAWN:-0}" == "1" ]]; then
+  echo "[HERALD RESPONDER — single-shot; full wakeup suppressed, no chain claims] msg=${WAI_HERALD_MESSAGE_ID:-?} thread=${WAI_HERALD_THREAD_ID:-?}"
+  exit 0
+fi
+
 PROJECT_DIR="${WAI_PROJECT_DIR:-${CODEX_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$(pwd)}}}"
+
+# _wai_detach: launch a background daemon that Claude Code will NOT count as an
+# active shell at session exit and that never flashes a terminal window. setsid
+# gives the child a BRAND-NEW session with no controlling terminal (full detach);
+# nohup is the portable fallback where setsid is absent (e.g. stock macOS). stdin
+# is closed, all FDs redirected, and the job disowned so bash stops tracking it.
+# Usage: _wai_detach <LOGFILE|/dev/null> <cmd> [args...]
+_wai_detach() {
+  local _log="$1"; shift
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "$@" </dev/null >>"$_log" 2>&1 &
+  else
+    nohup "$@" </dev/null >>"$_log" 2>&1 &
+  fi
+  disown 2>/dev/null || true
+}
+
 # Mode-aware data-plane base (canon v4): v4-only -> WAI-Harness/spoke/local ; else v3 WAI-Spoke.
 if [[ -d "$PROJECT_DIR/WAI-Harness/spoke/local" && ! -d "$BASE" ]]; then
   BASE="$PROJECT_DIR/WAI-Harness/spoke/local"
@@ -99,11 +127,19 @@ fi
 
 # ── Session lane: identify THIS Claude Code session and isolate its tracking ──
 # The CC session_id (SessionStart payload on stdin; == transcript basename) is the
-# lane key. lane-register is idempotent: a re-fire of the SAME session (IDE reconnect,
+# lane key. lane-adopt is idempotent: a re-fire of the SAME session (IDE reconnect,
 # /context) returns the SAME wai_session (SKIP_SESSION_INIT=true), while a genuinely
 # concurrent SECOND session gets its OWN wai_session — no date-based identity hijack.
 # `timeout` guards the stdin read so a SessionStart with no piped stdin can never hang
 # startup; we fall through to the legacy date-based path in that case.
+#
+# ADOPT, not register (impl-lane-registry-liveness-authority): the launcher already
+# RESERVED a provisional lane keyed by $WAI_LAUNCH_TOKEN before it exec'd claude, so the
+# lane exists from t=0 — this hook UPGRADES that reservation to the real session id and
+# inherits its started_at. Registration here was the ONLY registration, which left a
+# measured ~7s pre-exec window where a launching session was invisible to isolation.
+# No token (session started outside the launcher) -> lane-adopt falls back to a plain
+# registration internally, so every session still gets laned.
 _STDIN=$(timeout 2 cat 2>/dev/null || true)
 CC_SID=$(printf '%s' "$_STDIN" | python3 -c "import json,sys; print(json.load(sys.stdin).get('session_id',''))" 2>/dev/null)
 CC_TRANSCRIPT=$(printf '%s' "$_STDIN" | python3 -c "import json,sys; print(json.load(sys.stdin).get('transcript_path',''))" 2>/dev/null)
@@ -113,16 +149,27 @@ SESSION_NAME=""
 SKIP_SESSION_INIT=false
 LANE_OTHERS_COUNT=0
 LANE_OTHERS=""
+LANE_DEGRADED=""
 _WG="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/worktree_guard.py"
 if [[ -n "$CC_SID" && -f "$_WG" ]]; then
-  _LANE=$(python3 "$_WG" lane-register --session "$CC_SID" --base "$BASE" --transcript "$CC_TRANSCRIPT" 2>/dev/null)
-  if [[ -n "$_LANE" ]]; then
+  # Keep stderr: a lane failure must be LOUD. Silencing it degraded OPEN — a failed
+  # lane op read as "0 other lanes", i.e. "you are alone, the shared tree is yours",
+  # which is the exact hazard isolation exists to prevent.
+  _LANE_ERR=$(mktemp 2>/dev/null || echo /tmp/wai-lane-err.$$)
+  _LANE=$(python3 "$_WG" lane-adopt --token "${WAI_LAUNCH_TOKEN:-}" --session "$CC_SID" \
+            --base "$BASE" --transcript "$CC_TRANSCRIPT" 2>"$_LANE_ERR")
+  _LANE_RC=$?
+  if [[ $_LANE_RC -ne 0 || -z "$_LANE" ]]; then
+    LANE_DEGRADED="lane-adopt failed (rc=$_LANE_RC): $(head -c 300 "$_LANE_ERR" 2>/dev/null | tr '\n' ' ')"
+    echo "[WAI] DEGRADED: $LANE_DEGRADED — lane liveness is UNKNOWN for this session. Treating the tree as SHARED (fail-closed): scope every git add; do NOT git add -A." >&2
+  else
     SESSION_NAME=$(printf '%s' "$_LANE" | python3 -c "import json,sys; print(json.load(sys.stdin).get('wai_session',''))" 2>/dev/null)
     LANE_OTHERS_COUNT=$(printf '%s' "$_LANE" | python3 -c "import json,sys; print(json.load(sys.stdin).get('others_count',0))" 2>/dev/null)
     LANE_OTHERS=$(printf '%s' "$_LANE" | python3 -c "import json,sys; print(', '.join(json.load(sys.stdin).get('others',[])))" 2>/dev/null)
     _LANE_CREATED=$(printf '%s' "$_LANE" | python3 -c "import json,sys; print(json.load(sys.stdin).get('created',False))" 2>/dev/null)
     [[ "$_LANE_CREATED" == "False" ]] && SKIP_SESSION_INIT=true
   fi
+  rm -f "$_LANE_ERR" 2>/dev/null
 fi
 
 # Legacy fallback: no session id (older CC / direct run). Reuse the same-day completed
@@ -149,39 +196,6 @@ fi
 SESSION_DIR="$BASE/sessions/$SESSION_NAME"
 mkdir -p "$SESSION_DIR"
 touch "$SESSION_DIR/track.jsonl"
-
-# ── 1a. WAI Track v0.34.1 — create wai_track_ledger.md (owned by framework, distributed by Basher. Do not remove.) ──
-# Create the ledger file with proper header if it doesn't exist
-_LEDGER_FILE="$SESSION_DIR/wai_track_ledger.md"
-if [[ ! -f "$_LEDGER_FILE" ]]; then
-  python3 -c "
-import sys, os
-from datetime import datetime, timezone
-session_id = '$SESSION_NAME'
-ts = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-content = f'''# WAI Track 0.34.1 - Live Ledger
-## Session: {session_id}
-Provider: Claude Code
-Timezone: UTC
-Started: {ts}
-Note: Append one row per turn to Turn Log before responding.
-
-## Turn Log
-| Turn | Time (UTC) | Phase | Summary |
-|------|-----------|-------|---------|
-
-## Signals
-| Turn | Type | Category | Detail |
-|------|------|---------|--------|
-
-## Assets
-| Turn | Asset ID | Type | Description |
-|------|---------|------|-------------|
-'''
-  with open('$_LEDGER_FILE', 'w') as f:
-    f.write(content)
-" 2>/dev/null || true
-fi
 
 # ── 1b. Check previous session track integrity ──────────────────────────────
 PREV_SESSION_STATUS="FIRST_SESSION"
@@ -259,15 +273,33 @@ IP_LIST=$(ls "$LUGS_DIR/bug/in_progress/"*.json "$LUGS_DIR/feature/in_progress/"
   | xargs -I{} basename {} .json 2>/dev/null | sort | sed 's/^/  - /' | tr '\n' '\n')
 
 # ── 4. Hub + teaching check ───────────────────────────────────────────────────
+# ADVISORS DATA PLANE — the one v4 home that is a SIBLING of local/, not under it
+# (WAI-Harness/spoke/advisors). wai_paths.advisors_dir() has always been right;
+# this hook hand-joined "$BASE/advisors" (BASE=spoke/local) and so probed a path that does not
+# exist, silently blanking Expediter, Historian, Context feeds, Advisors-ready and
+# TOOL ADVISOR while 35 advisors sat on disk.
+ADVISORS_BASE="$PROJECT_DIR/WAI-Harness/spoke/advisors"
+[[ -d "$ADVISORS_BASE" ]] || ADVISORS_BASE="$PROJECT_DIR/WAI-Spoke/advisors"   # v3 fallback
+
 HUB_PATH=$(jq -r '.wheel.hub_path // ""' "$STATE_FILE" 2>/dev/null)
 NODE_TYPE=$(jq -r '.wheel.node_type // "spoke"' "$STATE_FILE" 2>/dev/null || echo "spoke")
 PROCESSED_DIR="$BASE/seed/ingest/processed"
 
+# HUB DATA PLANE — v4 moved hub payload down one level into hub/local/; hub/ itself
+# now holds only local/ and managed/. This hook read the v3 layout for weeks and
+# therefore reported "0 teachings, 0 signals" on every spoke, because every path it
+# probed simply did not exist. Behind that zero sat 4 signals plus 26 spoke-branch
+# and 4 cross-spoke teachings (hub nodes read the smaller hub-only branch, so this
+# repo surfaces far fewer than a spoke does). Resolve once here and never probe
+# "$HUB_PATH/<payload>" directly again.
+HUB_DATA="$HUB_PATH"
+[[ -n "$HUB_PATH" && -d "$HUB_PATH/local" ]] && HUB_DATA="$HUB_PATH/local"
+
 # Spoke nodes read spoke/current + cross_spoke/current; hub nodes read hub-only/current + cross_spoke/current
 if [[ "$NODE_TYPE" == "hub" ]]; then
-  TEACH_DIRS=("$HUB_PATH/teachings_repo/hub-only/current" "$HUB_PATH/teachings_repo/cross_spoke/current")
+  TEACH_DIRS=("$HUB_DATA/teachings_repo/hub-only/current" "$HUB_DATA/teachings_repo/cross_spoke/current")
 else
-  TEACH_DIRS=("$HUB_PATH/teachings_repo/spoke/current" "$HUB_PATH/teachings_repo/cross_spoke/current")
+  TEACH_DIRS=("$HUB_DATA/teachings_repo/spoke/current" "$HUB_DATA/teachings_repo/cross_spoke/current")
 fi
 
 HUB_STATUS="MISSING"
@@ -284,7 +316,13 @@ INIT_VERSION=$(jq -r '.wheel.initialized_at_version // "0.0.0"' "$STATE_FILE" 2>
 # Returns true if $1 <= $2 (semver-safe via sort -V)
 _version_lte() { [ "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" = "$1" ]; }
 
-if [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
+# A bare -d on the hub root is a FALSE GREEN: it passed for weeks against a
+# directory containing none of the expected payload. Require the teachings repo to
+# actually be there before claiming OK, and name the failure when it is not.
+if [[ -n "$HUB_PATH" && -d "$HUB_PATH" && ! -d "$HUB_DATA/teachings_repo" ]]; then
+  HUB_STATUS="DEGRADED (no teachings_repo under $HUB_DATA)"
+  TEACH_STATUS="MISSING"
+elif [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
   HUB_STATUS="OK"
   TEACH_STATUS="OK"
   for TEACH_DIR in "${TEACH_DIRS[@]}"; do
@@ -340,9 +378,9 @@ done
 # Count only framework-targeted signals (incoming/framework/) — hub/ signals are hub-session scope
 HUB_SIGNALS=0
 HUB_SIGNALS_HUB=0
-if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming" ]]; then
+if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming" ]]; then
   # framework-targeted signals (exclude status=delivered — already absorbed)
-  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/framework" ]]; then
+  if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming/framework" ]]; then
     HUB_SIGNALS=$(python3 -c "
 import json, glob, os, sys
 count = 0
@@ -356,22 +394,22 @@ for f in sorted(glob.glob(sys.argv[1] + '/*.json')):
     except Exception:
         count += 1
 print(count)
-" "$HUB_PATH/WAI-Hub/signals/incoming/framework" 2>/dev/null || echo "0")
+" "$HUB_DATA/WAI-Hub/signals/incoming/framework" 2>/dev/null || echo "0")
   else
     # fallback: flat incoming/ (pre-subfolder layout)
-    HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+    HUB_SIGNALS=$(ls "$HUB_DATA/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
   fi
   # hub-targeted signals (informational only — processed by hub sessions)
-  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/hub" ]]; then
-    HUB_SIGNALS_HUB=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/hub/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming/hub" ]]; then
+    HUB_SIGNALS_HUB=$(ls "$HUB_DATA/WAI-Hub/signals/incoming/hub/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
   fi
 fi
 
 # ── 5b. Hub registry update ──────────────────────────────────────────────────
 # Update outstanding_work counts in hub-registry.json on every session start.
 # Match by path (not basename) — spoke directory name may differ from wheel_id.
-if [[ "$HUB_STATUS" == "OK" && -f "$HUB_PATH/hub-registry.json" ]]; then
-  WHEEL_ID=$(jq -r --arg path "$PROJECT_DIR" '.wheels[] | select(.path == $path) | .wheel_id' "$HUB_PATH/hub-registry.json" 2>/dev/null)
+if [[ "$HUB_STATUS" == "OK" && -f "$HUB_DATA/hub-registry.json" ]]; then
+  WHEEL_ID=$(jq -r --arg path "$PROJECT_DIR" '.wheels[] | select(.path == $path) | .wheel_id' "$HUB_DATA/hub-registry.json" 2>/dev/null)
   if [[ -n "$WHEEL_ID" && "$WHEEL_ID" != "null" ]]; then
     _OPEN=$(count_lugs "$LUGS_DIR/*/open/*.json")
     _IP=$(count_lugs "$LUGS_DIR/*/in_progress/*.json")
@@ -383,8 +421,8 @@ if [[ "$HUB_STATUS" == "OK" && -f "$HUB_PATH/hub-registry.json" ]]; then
        --arg ts "$_TS" \
        '(.wheels[] | select(.wheel_id == $id)).outstanding_work = {"open": $open, "in_progress": $ip, "last_checked": $ts} |
         (.wheels[] | select(.wheel_id == $id)).last_sync = $ts' \
-       "$HUB_PATH/hub-registry.json" > "$_TMP" 2>/dev/null \
-      && mv "$_TMP" "$HUB_PATH/hub-registry.json" \
+       "$HUB_DATA/hub-registry.json" > "$_TMP" 2>/dev/null \
+      && mv "$_TMP" "$HUB_DATA/hub-registry.json" \
       || rm -f "$_TMP"
   fi
 fi
@@ -467,11 +505,11 @@ fi
 
 # ── 8b. Skill sync check ─────────────────────────────────────────────────────
 SYNC_STATUS="OK"
-TEMPLATES_CMDS="$PROJECT_DIR/templates/commands"
+MANAGED_CMDS="$PROJECT_DIR/WAI-Harness/spoke/managed/.claude/commands"
 CLAUDE_CMDS="$PROJECT_DIR/.claude/commands"
-if [[ -d "$TEMPLATES_CMDS" && -d "$CLAUDE_CMDS" ]]; then
+if [[ -d "$MANAGED_CMDS" && -d "$CLAUDE_CMDS" ]]; then
   SYNC_OUT_OF_SYNC=""
-  for src in "$TEMPLATES_CMDS"/wai*.md; do
+  for src in "$MANAGED_CMDS"/wai*.md; do
     [[ -f "$src" ]] || continue
     fname=$(basename "$src")
     dst="$CLAUDE_CMDS/$fname"
@@ -488,7 +526,7 @@ fi
 
 # ── 9. Historian advice (latest review) ──────────────────────────────────────
 HISTORIAN_ADVICE=""
-HISTORIAN_DIR="$BASE/advisors/historian/reviews"
+HISTORIAN_DIR="$ADVISORS_BASE/historian/reviews"
 if [[ -d "$HISTORIAN_DIR" ]]; then
   LATEST_REVIEW=$(ls -1 "$HISTORIAN_DIR"/review-*.md 2>/dev/null | sort | tail -1)
   if [[ -n "$LATEST_REVIEW" ]]; then
@@ -503,7 +541,7 @@ fi
 
 # ── 9b. Expediter summary ────────────────────────────────────────────────────
 EXPEDITER_SUMMARY=""
-EXPEDITER_STATE="$BASE/advisors/expediter/scan_state.json"
+EXPEDITER_STATE="$ADVISORS_BASE/expediter/scan_state.json"
 if [[ "$BRIEF_FRESH" == "true" ]]; then
   # Fast path: use pre-computed queue data from brief instead of re-running expediter
   _READY=$(jq -r '.queue_snapshot.ready_count // 0' "$_BRIEF_PATH" 2>/dev/null || echo "0")
@@ -523,8 +561,8 @@ fi  # end BRIEF_FRESH else block for expediter
 
 # ── 9c. Advisor context feed staleness check ─────────────────────────────────
 CONTEXT_FEED_STATUS=""
-ADVISORS_DIR="$BASE/advisors"
-if [[ -d "$ADVISORS_DIR" && -f "$PROJECT_DIR/tools/advisor_context_refresh.py" ]]; then
+ADVISORS_DIR="$ADVISORS_BASE"
+if [[ -d "$ADVISORS_DIR" && -f "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/advisor_context_refresh.py" ]]; then
   STALE_ADVISORS=""
   UNINIT_ADVISORS=""
   NOW_TS=$(date +%s)
@@ -564,9 +602,9 @@ except: print(7)
   # Auto-init uninit advisors in background
   if [[ -n "$UNINIT_ADVISORS" ]]; then
     mkdir -p "$HOME/.claude/logs"
-    python3 "$PROJECT_DIR/tools/advisor_context_refresh.py" \
-      --init --quiet --spoke-path "$PROJECT_DIR" \
-      >> "$HOME/.claude/logs/context-refresh-$(date +%Y%m%d).log" 2>&1 &
+    _wai_detach "$HOME/.claude/logs/context-refresh-$(date +%Y%m%d).log" \
+      python3 "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/advisor_context_refresh.py" \
+      --init --quiet --spoke-path "$PROJECT_DIR"
     UNINIT_COUNT=$(echo $UNINIT_ADVISORS | wc -w | tr -d ' ')
     CONTEXT_FEED_STATUS="  Context feeds: ${UNINIT_COUNT} initializing in background (${UNINIT_ADVISORS# })"
   elif [[ -n "$STALE_ADVISORS" ]]; then
@@ -592,6 +630,183 @@ if [[ -f "$WAKEUP_BRIEF_PATH" ]]; then
   else
     WAKEUP_BRIEF_STATUS="  Wakeup brief: STALE (new commits since generation)"
   fi
+fi
+
+# ── 9b++. TasteGraph preferences (W1) ───────────────────────────────────────
+# The operator's preferences are pre-budgeted AT GENERATION (80-line ceiling,
+# communication first, caps announced in-block). Print the block VERBATIM: any
+# re-wrap/re-summarise/truncate here would make this hook a second formatting
+# authority that silently drifts from the generator.
+#
+# Degradation is ALWAYS loud. Printing nothing is what hid this whole system for
+# months — the JSON was correct and no model ever saw a byte of it. An absent or
+# degraded block is a real finding about the session, never a reason for silence.
+#
+# Deliberately NOT gated on BRIEF_FRESH: a stale brief still carries the
+# operator's real preferences, and stale prefs beat no prefs.
+
+# ── RESIDENT section (spec-resident-voice-v1) — unconditional continuity slice ──
+# Surfaces open_threads + last-session focus from the spoke's rolling digest so
+# every session opens knowing what is open/decided/stuck WITHOUT being asked.
+# ~1k tokens. Same loudness doctrine as TasteGraph: absent digest = loud line,
+# never silence (an unread memory is indistinguishable from no memory).
+RESIDENT_SECTION=""
+_RD_DIGEST="$PROJECT_DIR/WAI-Harness/spoke/local/resident/digest.json"
+if [[ -f "$_RD_DIGEST" ]]; then
+  RESIDENT_SECTION=$(python3 - "$_RD_DIGEST" <<'PYEOF' 2>/dev/null
+import json, sys, os
+from datetime import datetime, timezone
+d = json.load(open(sys.argv[1]))
+lines = []
+threads = d.get("open_threads", [])
+warm = d.get("warm", [])
+last = warm[-1] if warm else None
+lines.append(f"RESIDENT — continuity digest ({len(d.get('sessions_folded', []))} sessions folded, updated {str(d.get('updated_at'))[:16]})")
+if last:
+    lines.append(f"  Last session: {last.get('session')} — {last.get('focus') or '(no focus recorded)'}")
+if threads:
+    lines.append(f"  OPEN THREADS ({len(threads)}) — resolve or route these BEFORE new work; the operator expects a clear desk:")
+    for o in threads:
+        lines.append(f"    - [{o.get('session')} t{o.get('turn')}] {o.get('text')}")
+    lines.append("  Duty: for each thread state its mechanical landing condition, CHECK it, then execute (safe+in-authority) or route as a lug. An open thread without its landing condition is chatter.")
+else:
+    lines.append("  OPEN THREADS: none — clear desk.")
+print("\n".join(lines))
+PYEOF
+)
+  [[ -z "$RESIDENT_SECTION" ]] && RESIDENT_SECTION="RESIDENT: ⚠ DEGRADED — digest.json present but unreadable. Continuity is NOT loaded; run resident_digest.py show to diagnose."
+else
+  RESIDENT_SECTION="RESIDENT: ⚠ ABSENT — no continuity digest at spoke/local/resident/. Sessions are starting cold. Bootstrap: python3 \$TOOLS/resident_digest.py bootstrap"
+fi
+
+# ── THREAD LANDING (spec-tastegraph-vector-middleman-v1 / landing machinery) ──
+# Ozi's desk-clearing intention, made mechanical. Every open thread carries a
+# landing condition; this CHECKS each one at wakeup and reports landed / open /
+# uncheckable. Read-only here — clearing is an explicit act, never a side
+# effect of reading. Loud on absent: a missing tool must not look like a clear
+# desk.
+LANDING_SECTION=""
+_TL_TOOL="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/thread_landing.py"
+if [[ -f "$_TL_TOOL" ]]; then
+  LANDING_SECTION=$(python3 "$_TL_TOOL" --spoke-path "${PROJECT_DIR}" check 2>&1)
+  [[ -z "$LANDING_SECTION" ]] && LANDING_SECTION="THREAD LANDING: DEGRADED — checker present but returned nothing. Desk state UNKNOWN, not clear."
+else
+  LANDING_SECTION="THREAD LANDING: ABSENT — no thread_landing.py. Open threads are UNCHECKED; the desk below is unverified."
+fi
+
+# ── SPOKE READINESS ──────────────────────────────────────────────────────────
+# Two questions, kept apart on purpose. Q1 "will it operate as expected?" is the
+# HARNESS's responsibility and a failure there is a harness defect. Q2 "what is the
+# next action to health?" is the SPOKE's own condition -- most spokes are a mess
+# because the harness never governed the behaviour that built them, so a Q2 finding
+# is the next piece of work, never an upgrade failure. Reporting them as one status
+# is how a green light came to sit above a spoke with 1 runnable lug in 51.
+#
+# Silent when fully operational with nothing notable: the panel earns its lines by
+# having something to say.
+READINESS_SECTION=""
+_RD_TOOL="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/spoke_readiness.py"
+if [[ -f "$_RD_TOOL" ]]; then
+  READINESS_SECTION=$(python3 "$_RD_TOOL" --root "${PROJECT_DIR}" 2>&1 || true)
+fi
+
+# ── WORK SPLIT ───────────────────────────────────────────────────────────────
+# The operator's standing question, answered first: what is stuck on ME, and what
+# can Ozi take without me. NEEDS YOU is ranked by unblock leverage so the top of
+# the list is whatever frees the most autonomous work per decision.
+#
+# Truth is the disposition stamped on each lug; ready-queue.json is only a cache
+# and the tool recomputes from lugs whenever that cache is absent, stale, or
+# zero-over-a-non-empty-backlog. Never let this section report a clear desk it has
+# not established.
+#
+# Consumes the handoff closeout wrote (_session_state.blocked_on_human): what the
+# LAST session learned about the operator's blocking set, including reasoning an
+# agent could only have had in the moment. Recomputing cold each wakeup loses that.
+_HANDOFF=$(jq -r '
+  ._session_state.blocked_on_human // empty
+  | if .status == "UNKNOWN" then "  carried forward: UNKNOWN — " + (.reason // "no reason recorded")
+    else "  carried forward from last session: " + (.count|tostring) + " blocking you"
+         + (if (.top // []) | length > 0
+            then " (top: " + (.top[0].id) + ")" else "" end)
+    end' "$STATE_FILE" 2>/dev/null || true)
+
+WORK_SPLIT_SECTION=""
+_WS_TOOL="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/work_split.py"
+if [[ -f "$_WS_TOOL" ]]; then
+  WORK_SPLIT_SECTION=$(python3 "$_WS_TOOL" --spoke-root "${PROJECT_DIR}" --limit 5 2>&1)
+  [[ -n "$_HANDOFF" ]] && WORK_SPLIT_SECTION="${WORK_SPLIT_SECTION}
+${_HANDOFF}"
+  [[ -z "$WORK_SPLIT_SECTION" ]] && WORK_SPLIT_SECTION="WORK SPLIT: DEGRADED — splitter present but returned nothing. Your blocking set is UNKNOWN, not empty."
+else
+  WORK_SPLIT_SECTION="WORK SPLIT: ABSENT — no work_split.py at spoke/managed/tools/. Operator-vs-Ozi split is UNREPORTED this session."
+fi
+
+# ── ADVISOR PANEL ────────────────────────────────────────────────────────────
+# The advisor bench, as a call sheet: last run, net-net call to action, next due.
+# Sits immediately above TASTEGRAPH so it occupies the same screen position every
+# session and is recognisable by shape alone.
+#
+# Reads the SIBLING advisors dir (WAI-Harness/spoke/advisors), NOT the local/ base
+# — advisors are the one v4 home that does not live under local/. Using $BASE here
+# is what silently blanked Expediter, Context feeds, Advisors-ready and TOOL
+# ADVISOR in this very briefing. The tool resolves the path itself via wai_paths;
+# do not hand-join it here.
+#
+# Loud on absent, same doctrine as RESIDENT/TASTEGRAPH: an unreported bench must
+# never look like a healthy one.
+ADVISOR_PANEL_SECTION=""
+_AP_TOOL="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/advisor_panel.py"
+if [[ -f "$_AP_TOOL" ]]; then
+  ADVISOR_PANEL_SECTION=$(python3 "$_AP_TOOL" --spoke-root "${PROJECT_DIR}" --limit 12 2>&1)
+  [[ -z "$ADVISOR_PANEL_SECTION" ]] && ADVISOR_PANEL_SECTION="ADVISORS: DEGRADED — panel present but returned nothing. Bench state UNKNOWN, not idle."
+else
+  ADVISOR_PANEL_SECTION="ADVISORS: ABSENT — no advisor_panel.py at spoke/managed/tools/. Advisor run state is UNREPORTED this session."
+fi
+
+# ── AWARENESS vector (spec-tastegraph-vector-middleman-v1) ──────────────────
+#
+# Fires unconditionally at SessionStart, the orienting moment — BEFORE the
+# agent decides what to work on. This is where engagement-working-queue-triage-
+# spec lives: the single named preference that s137 proved was delivered intact
+# and still ignored, and which until now landed in an UNWIRED vector.
+#
+# Loud on absent/degraded, same doctrine as RESIDENT and TASTEGRAPH above:
+# silence is how a dead system stays hidden.
+AWARENESS_SECTION=""
+_TGV_TOOL="${PROJECT_DIR:-.}/WAI-Harness/spoke/managed/tools/tastegraph_vector.py"
+if [[ -f "$_TGV_TOOL" ]]; then
+  AWARENESS_SECTION=$(python3 "$_TGV_TOOL" select --vector awareness \
+                        --session "${SESSION_NAME:-unknown}" --turn 0 \
+                        --context "session start — orienting before choosing work" 2>&1)
+  if [[ -z "$AWARENESS_SECTION" ]]; then
+    AWARENESS_SECTION="AWARENESS VECTOR: ⚠ DEGRADED — selector present but returned nothing. Orienting preferences are NOT in force. Diagnose: python3 \$TOOLS/tastegraph_vector.py select --vector awareness"
+  fi
+else
+  AWARENESS_SECTION="AWARENESS VECTOR: ⚠ ABSENT — no tastegraph_vector.py at spoke/managed/tools/. Per-moment preference delivery is NOT active this session."
+fi
+
+TASTEGRAPH_SECTION=""
+if [[ -f "$_BRIEF_PATH" ]]; then
+  _TG_PRESENT=$(jq -r 'has("tastegraph_prefs")' "$_BRIEF_PATH" 2>/dev/null || echo "false")
+  if [[ "$_TG_PRESENT" != "true" ]]; then
+    TASTEGRAPH_SECTION="TASTEGRAPH: ⚠ ABSENT — wakeup-brief.json carries no tastegraph_prefs key. Operator preferences are NOT in force this session."
+  else
+    _TG_BLOCK=$(jq -r '.tastegraph_prefs.block // ""' "$_BRIEF_PATH" 2>/dev/null || echo "")
+    _TG_DEGRADED=$(jq -r '.tastegraph_prefs.degraded // false' "$_BRIEF_PATH" 2>/dev/null || echo "false")
+    _TG_REASON=$(jq -r '.tastegraph_prefs.degraded_reason // .tastegraph_prefs.reason // ""' "$_BRIEF_PATH" 2>/dev/null || echo "")
+    if [[ "$_TG_DEGRADED" == "true" ]]; then
+      TASTEGRAPH_SECTION="TASTEGRAPH: ⚠ DEGRADED — ${_TG_REASON:-no reason recorded in the brief}. Preferences below (if any) may be incomplete."
+      [[ -n "$_TG_BLOCK" ]] && TASTEGRAPH_SECTION="${TASTEGRAPH_SECTION}
+${_TG_BLOCK}"
+    elif [[ -z "$_TG_BLOCK" ]]; then
+      TASTEGRAPH_SECTION="TASTEGRAPH: ⚠ EMPTY — tastegraph_prefs exists but its block is empty. Preferences are NOT in force this session."
+    else
+      TASTEGRAPH_SECTION="$_TG_BLOCK"
+    fi
+  fi
+else
+  TASTEGRAPH_SECTION="TASTEGRAPH: ⚠ NO BRIEF — wakeup-brief.json is missing. Operator preferences are NOT in force this session."
 fi
 
 # ── 9b+. Savepoint pending check ───────────────────────────────────────────
@@ -662,10 +877,49 @@ if [[ -n "$STALE_COUNT" ]]; then
   STALE_LUGS_STATUS="  Stale in_progress: ${_N} lug(s) unchanged >4h — ${_LIST}"
 fi
 
+# ── 9b+++. Newer-savepoint-than-pointer scan ────────────────────────────────
+# Cheap freshness check (impl-w1-wakeup-newer-savepoint-scan-v1): is there a
+# savepoint on disk newer than the last pointer update? The pointer written by
+# impl-w1-savepoint-pointer-autoeject-v1 lives as WAI-State.json's top-level
+# `_savepoint` key (not a standalone file), so "the pointer file's mtime" is
+# STATE_FILE's own mtime -- a plain stat(), never a JSON parse of `ts`. Surfaces
+# anything auto-eject or a manual savepoint wrote without refreshing the
+# pointer. No STATE_FILE yet -> ref_mtime=0 -> fail-open, everything surfaces
+# (correct first-run behavior, not a bug to fix).
+NEWER_SAVEPOINT_STATUS=""
+NEWER_SP_INFO=$(python3 -c "
+import glob, os
+ref_mtime = 0
+if os.path.exists('$STATE_FILE'):
+    try:
+        ref_mtime = os.path.getmtime('$STATE_FILE')
+    except OSError:
+        ref_mtime = 0
+newer = []
+for f in glob.glob('$BASE/initiatives/savepoints/**/*.json', recursive=True):
+    if '/completed/' in f.replace(os.sep, '/'):
+        continue
+    try:
+        if os.path.getmtime(f) > ref_mtime:
+            newer.append(os.path.basename(f))
+    except OSError:
+        continue
+if newer:
+    newer.sort()
+    head = ', '.join(newer[:3])
+    more = f' +{len(newer)-3}' if len(newer) > 3 else ''
+    print(f'{len(newer)}|{head}{more}')
+" 2>/dev/null)
+if [[ -n "$NEWER_SP_INFO" ]]; then
+  _NSP_N=$(echo "$NEWER_SP_INFO" | cut -d'|' -f1)
+  _NSP_LIST=$(echo "$NEWER_SP_INFO" | cut -d'|' -f2-)
+  NEWER_SAVEPOINT_STATUS="  Newer savepoint(s) not yet pointed to: ${_NSP_N} — ${_NSP_LIST}"
+fi
+
 # ── 9c. Advisor schedule evaluation ────────────────────────────────────────
 ADVISORS_READY=""
 if [[ "$BRIEF_FRESH" != "true" ]]; then
-if [[ -f "$PROJECT_DIR/tools/advisor_schedule_eval.py" && -f "$BASE/advisors/schedule-index.json" ]]; then
+if [[ -f "$PROJECT_DIR/tools/advisor_schedule_eval.py" && -f "$ADVISORS_BASE/schedule-index.json" ]]; then
   EVAL_OUT=$(cd "$PROJECT_DIR" && python3 tools/advisor_schedule_eval.py --json 2>/dev/null)
   if [[ -n "$EVAL_OUT" ]]; then
     ADVISORS_READY=$(python3 -c "
@@ -681,13 +935,13 @@ fi  # end BRIEF_FRESH guard for advisor schedule eval
 
 # ── 10. Ozi nightly report (if hub connected) ───────────────────────────────
 OZI_NIGHTLY=""
-if [[ -n "$HUB_PATH" && -d "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports" ]]; then
+if [[ -n "$HUB_PATH" && -d "$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports" ]]; then
   # Find most recent report (today or yesterday)
   TODAY=$(date +%Y-%m-%d)
   YESTERDAY=$(date -d "yesterday" +%Y-%m-%d 2>/dev/null || date -v-1d +%Y-%m-%d 2>/dev/null || echo "")
   REPORT_FILE=""
-  [[ -f "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json" ]] && REPORT_FILE="$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json"
-  [[ -z "$REPORT_FILE" && -n "$YESTERDAY" && -f "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json" ]] && REPORT_FILE="$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json"
+  [[ -f "$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json" ]] && REPORT_FILE="$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json"
+  [[ -z "$REPORT_FILE" && -n "$YESTERDAY" && -f "$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json" ]] && REPORT_FILE="$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json"
 
   if [[ -n "$REPORT_FILE" ]]; then
     REPORT_DATE=$(jq -r '.date // "unknown"' "$REPORT_FILE" 2>/dev/null)
@@ -714,7 +968,7 @@ fi
 
 # ── Tool Advisor: surface pending config drift ──────────────────────────────
 TOOL_ADVISOR_PENDING=""
-TOOL_ADVISOR_STATE="$BASE/advisors/tool-advisor/scan_state.json"
+TOOL_ADVISOR_STATE="$ADVISORS_BASE/tool-advisor/scan_state.json"
 if [[ -f "$TOOL_ADVISOR_STATE" ]]; then
   AUDIT_PENDING=$(jq -r '.audit_pending // false' "$TOOL_ADVISOR_STATE" 2>/dev/null)
   AUDIT_REASON=$(jq -r '.audit_reason // ""' "$TOOL_ADVISOR_STATE" 2>/dev/null)
@@ -732,7 +986,10 @@ fi
 # in-flight files, the S45 silent-revert). Surface the live peers + commit-safety
 # advice so this session scopes its adds.
 CONCURRENCY_BLOCK=""
-if [[ "${LANE_OTHERS_COUNT:-0}" -gt 0 && -n "$CC_SID" && -f "$_WG" ]]; then
+if [[ -n "${LANE_DEGRADED:-}" ]]; then
+  # Fail-closed: we could not establish lane state, so we must NOT imply "you are alone".
+  CONCURRENCY_BLOCK="CONCURRENT SESSIONS — UNKNOWN (fail-closed)\n  ⚠ The lane registry could not be read: ${LANE_DEGRADED}\n  Peer sessions CANNOT be ruled out. Assume this working tree is SHARED.\n  Commit safety: scope every git add to your own files; never 'git add -A'.\n  Source isolation: python3 WAI-Harness/spoke/managed/tools/worktree_guard.py wt-new <name>, then 'cd .worktrees/<name> && claude'."
+elif [[ "${LANE_OTHERS_COUNT:-0}" -gt 0 && -n "$CC_SID" && -f "$_WG" ]]; then
   _OWN_ADVICE=$(python3 "$_WG" ownership --session "$CC_SID" --base "$BASE" --repo-path "$PROJECT_DIR" 2>/dev/null \
     | python3 -c "import json,sys; print(json.load(sys.stdin).get('advice',''))" 2>/dev/null)
   CONCURRENCY_BLOCK="CONCURRENT SESSIONS\n  ⚠ ${LANE_OTHERS_COUNT} other live session(s) sharing this working tree.\n  Your track is isolated: ${BASE_REL}/sessions/${SESSION_NAME}/track.jsonl\n  Commit safety: ${_OWN_ADVICE:-scope every git add to your own files; do not git add -A.}\n  Source isolation: launch a session in its own worktree — python3 WAI-Harness/spoke/managed/tools/worktree_guard.py wt-new <name>, then 'cd .worktrees/<name> && claude'."
@@ -777,15 +1034,28 @@ $(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
 $(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)
 $(if [[ -n "$SAVEPOINT_STATUS" ]]; then echo "$SAVEPOINT_STATUS"; fi)
 $(if [[ -n "$STALE_LUGS_STATUS" ]]; then echo "$STALE_LUGS_STATUS"; fi)
+$(if [[ -n "$NEWER_SAVEPOINT_STATUS" ]]; then echo "$NEWER_SAVEPOINT_STATUS"; fi)
 $(if [[ $SIGNALS_APPLIED_COUNT -gt 0 ]]; then printf "  Signals: Applied %d patch(es):%b\n" "$SIGNALS_APPLIED_COUNT" "$SIGNALS_APPLIED_PATCHES"; fi)
   Sync: ${SYNC_STATUS}
 $(if [[ -n "$EXPEDITER_SUMMARY" ]]; then echo "$EXPEDITER_SUMMARY"; fi)
 $(if [[ -n "$CONTEXT_FEED_STATUS" ]]; then echo "$CONTEXT_FEED_STATUS"; fi)
 $(if [[ -n "$ADVISORS_READY" ]]; then echo "$ADVISORS_READY"; fi)
 $(if [[ -n "$CC_GAPS" ]]; then printf "\nCLAUDE OPTIMIZATION (run /wai-tool-advisor for details)\n%b" "$CC_GAPS"; fi)
+${RESIDENT_SECTION}
+${LANDING_SECTION}
+
 NEXT ACTIONS (from session $((SESSION_COUNT - 1)))
   ${NEXT_REC}
 $(if [[ -n "$TOOL_ADVISOR_PENDING" ]]; then printf "\nTOOL ADVISOR\n%b\n" "$TOOL_ADVISOR_PENDING"; fi)
+${READINESS_SECTION}
+
+${WORK_SPLIT_SECTION}
+
+${ADVISOR_PANEL_SECTION}
+
+${TASTEGRAPH_SECTION}
+${AWARENESS_SECTION}
+
 STATIC DATA
   Project: ${PROJECT_NAME} v${PROJECT_VERSION}
   Skills: ${SKILLS_COUNT}

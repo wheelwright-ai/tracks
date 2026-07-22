@@ -61,9 +61,9 @@ wilbur/
     └── optimization-backlog.schema.json
 ```
 
-Runtime data lives in `WAI-Spoke/`:
-- `WAI-Spoke/tastegraph.json` — live preference store (21 seed preferences)
-- `WAI-Spoke/advisors/historian/advisor.json` — Historian advisor config
+Runtime data lives in `WAI-Harness/spoke/`:
+- `WAI-Harness/spoke/tastegraph.json` — live preference store (21 seed preferences)
+- `WAI-Harness/spoke/advisors/historian/advisor.json` — Historian advisor config
 
 ---
 

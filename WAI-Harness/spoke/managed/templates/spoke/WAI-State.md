@@ -3,7 +3,7 @@
 ---
 
 **Wheelwright Framework v1.0**
-**Structure:** v1 (WAI-Spoke/ directory)
+**Structure:** v1 (WAI-Harness/spoke/ directory)
 **Hub:** *Not yet configured - run `WAI hub create` or `WAI hub locate`*
 
 *This wheel uses Wheelwright Framework to maintain perfect context across AI sessions. Wheelwright transforms AI from order-taker to informed, responsible project partner.*

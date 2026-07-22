@@ -76,10 +76,10 @@ Copy the content above and save as: WAI_Track-20260318-0315-Claude-claude-sonnet
 [Download: WAI_Track-20260318-0315-Claude-claude-sonnet-4-5.jsonl]
 ```
 
-**Option C: File write (if WAI-Spoke/ exists)**
+**Option C: File write (if WAI-Harness/spoke/ exists)**
 ```bash
-# Write to WAI-Spoke/sessions/
-echo '{...}' >> WAI-Spoke/sessions/WAI_Track-20260318-0315-Claude-claude-sonnet-4-5.jsonl
+# Write to WAI-Harness/spoke/sessions/
+echo '{...}' >> WAI-Harness/spoke/sessions/WAI_Track-20260318-0315-Claude-claude-sonnet-4-5.jsonl
 ```
 
 ---

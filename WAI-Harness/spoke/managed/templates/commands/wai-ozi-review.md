@@ -9,12 +9,12 @@ Invoke when wakeup shows `[UAT] N item(s) pending review` in the RECENT ACTIVITY
 
 ## Step 1 -- Load Pending Items
 
-Read `WAI-Spoke/advisors/autopilot/activity-log.jsonl`. Filter entries where `uat_status == "pending"`.
+Read `WAI-Harness/spoke/advisors/autopilot/activity-log.jsonl`. Filter entries where `uat_status == "pending"`.
 
 ```python
 import json
 
-log_path = "WAI-Spoke/advisors/autopilot/activity-log.jsonl"
+log_path = "WAI-Harness/spoke/advisors/autopilot/activity-log.jsonl"
 pending = []
 with open(log_path) as f:
     for line in f:
@@ -74,7 +74,7 @@ Rewrite the activity-log.jsonl with updated `uat_status` and `uat_notes` for eac
 ```python
 import json
 
-log_path = "WAI-Spoke/advisors/autopilot/activity-log.jsonl"
+log_path = "WAI-Harness/spoke/advisors/autopilot/activity-log.jsonl"
 
 # Read all entries
 entries = []

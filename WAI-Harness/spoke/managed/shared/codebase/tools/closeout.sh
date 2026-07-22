@@ -273,6 +273,30 @@ else
     log "model_usage_backfill.py not found — skipping"
 fi
 
+# ── Step 5.6: PathGraph horizon refresh ─────────────────────────────────────
+# Rebuilds current.json/near-future.json (full rebuild from the lug corpus)
+# and appends new vision.jsonl aspirations from this session's track — the
+# spec's "PathGraph refresh runs: post-session (incremental)" cadence.
+# Non-fatal: a stale PathGraph is a WARN in spoke_health_check, not a closeout
+# blocker. Lug: impl-pathgraph-horizons-generator-v1.
+header "Step 5.6: PathGraph horizon refresh"
+
+PATHGRAPH_PY="$SCRIPT_DIR/pathgraph_generate.py"
+if [ -f "$PATHGRAPH_PY" ]; then
+    if $DRY_RUN; then
+        drylog "Would run pathgraph_generate.py $TARGET_SPOKE_ROOT"
+    else
+        PG_OUT=$(python3 "$PATHGRAPH_PY" "$TARGET_SPOKE_ROOT" 2>/dev/null || echo "")
+        if [ -n "$PG_OUT" ]; then
+            log "PathGraph horizons refreshed"
+        else
+            log "PathGraph horizon refresh failed — skipping (non-blocking)"
+        fi
+    fi
+else
+    log "pathgraph_generate.py not found — skipping"
+fi
+
 # ── Step 6: Regenerate llms-full.md ─────────────────────────────────────────
 header "Step 6: Docs (llms-full.md)"
 

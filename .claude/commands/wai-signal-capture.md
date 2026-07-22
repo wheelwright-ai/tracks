@@ -42,7 +42,7 @@ safe_to_auto_adopt: true
 
 **If an interim behavioral patch was applied locally** (signal flavor: `patch`):
 - The teaching should include an "undo" step if the permanent fix supersedes the patch
-- Remove from `WAI-Spoke/signals/inbound/` and `registry.json` after teaching is generated
+- Remove from `WAI-Harness/spoke/signals/inbound/` and `registry.json` after teaching is generated
 - The loop-close in `session-start.sh §0.6` handles this automatically when the teaching is adopted
 
 ---
@@ -60,7 +60,7 @@ During the session, watch for decisions or learnings with impact >= 8:
 - Significant discoveries (what we learned)
 - Permanent constraints adopted
 
-**When detected**, write a v2 signal file to `WAI-Spoke/signals/inbound/<id>.json`:
+**When detected**, write a v2 signal file to `WAI-Harness/spoke/signals/inbound/<id>.json`:
 
 ```json
 {
@@ -88,7 +88,7 @@ During the session, watch for decisions or learnings with impact >= 8:
 ```
 📡 High-Impact Signals This Session:
 - [signal summary] (risk: X, flavor: patch/delivery)
-  → Logged to WAI-Spoke/signals/inbound/
+  → Logged to WAI-Harness/spoke/signals/inbound/
 ```
 
 **Impact scale:**
@@ -114,7 +114,7 @@ During the session, watch for decisions or learnings with impact >= 8:
 | Single-spoke bug or fix | LOCAL impl lug → `bytype/implementation/open/` |
 | Framework protocol gap | FRAMEWORK impl lug → `bytype/implementation/open/` |
 | Behavioral pattern already in CLAUDE.md | No action |
-| Fleet-wide behavioral patch, all three gate questions YES | Signal lug (`routed_to: "FRAMEWORK"`) → `WAI-Spoke/signals/inbound/` |
+| Fleet-wide behavioral patch, all three gate questions YES | Signal lug (`routed_to: "FRAMEWORK"`) → `WAI-Harness/spoke/signals/inbound/` |
 
 **Default assumption:** write a lug. The gate flips you to a signal — not the other way around.
 
@@ -125,7 +125,7 @@ When in doubt, write a lug.
 
 ## Context
 
-This skill uses the v2 signal architecture: signals live in `WAI-Spoke/signals/` (not `bytype/signal/`), carry `risk_score` (not `roi`), and are auto-applied at session start via `session-start.sh`. Legacy `WAI-Signals.jsonl` and `bytype/signal/undelivered/` are retired.
+This skill uses the v2 signal architecture: signals live in `WAI-Harness/spoke/signals/` (not `bytype/signal/`), carry `risk_score` (not `roi`), and are auto-applied at session start via `session-start.sh`. Legacy `WAI-Signals.jsonl` and `bytype/signal/undelivered/` are retired.
 
 **Why signals matter**: High-impact decisions captured in real-time become the
 institutional memory that makes AI context persistence valuable. Without signals,

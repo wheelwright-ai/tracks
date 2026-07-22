@@ -8,7 +8,7 @@
 
 ```bash
 # Skip current session dir (just created by hook); check previous
-LAST_TRACK="WAI-Spoke/sessions/$(ls -1t WAI-Spoke/sessions/ | sed -n '2p')/track.jsonl"
+LAST_TRACK="WAI-Harness/spoke/sessions/$(ls -1t WAI-Harness/spoke/sessions/ | sed -n '2p')/track.jsonl"
 if [ -f "$LAST_TRACK" ]; then
     LAST_LINE=$(tail -1 "$LAST_TRACK")
     # CLEAN = completed turn OR explicit closeout event
@@ -24,14 +24,14 @@ else
 fi
 ```
 
-**Recovery (INTERRUPTED):** Recovery prompt is shown by `wai-enter.sh` before launch — no in-session action needed. If seen mid-session, check `WAI-Spoke/sessions/{prev_session}/track.jsonl` and `bytype/*/in_progress/` for context.
+**Recovery (INTERRUPTED):** Recovery prompt is shown by `wai-enter.sh` before launch — no in-session action needed. If seen mid-session, check `WAI-Harness/spoke/sessions/{prev_session}/track.jsonl` and `bytype/*/in_progress/` for context.
 
 ---
 
 ## Step 4: Lug Folder Structure
 
 ```
-WAI-Spoke/lugs/
+WAI-Harness/spoke/lugs/
   incoming/                        — inbound deliveries
   outgoing/                        — outbound deliveries
   reference/                       — reference docs
@@ -46,7 +46,7 @@ WAI-Spoke/lugs/
 ```
 
 ```
-WAI-Spoke/signals/
+WAI-Harness/spoke/signals/
   inbound/                         — behavioral patches awaiting session-start auto-apply
   processed/                       — applied/archived signals
   registry.json                    — patch application registry {applied: [{id, applied_at, risk_score}]}
@@ -70,11 +70,11 @@ Rule: **see it → fix it → teach it → clear it. Nothing remains in the inco
 
 **Track B — Framework signals → Spokes** (spoke is the receiver):
 ```
-Framework emits patch signal → WAI-Spoke/signals/inbound/<id>.json
+Framework emits patch signal → WAI-Harness/spoke/signals/inbound/<id>.json
 session-start.sh §0.5 auto-applies patch at next wakeup → registry.json updated
 Framework generates teaching → distributes via hub/teachings_repo/
 Teaching adopted at spoke → session-start.sh §0.6 loop-close fires
-Signal archived to WAI-Spoke/signals/processed/ + removed from registry
+Signal archived to WAI-Harness/spoke/signals/processed/ + removed from registry
 ```
 Rule: **patch is temporary. Teaching is the permanent fix. Loop-close clears the patch when teaching arrives.**
 
@@ -82,7 +82,7 @@ Rule: **patch is temporary. Teaching is the permanent fix. Loop-close clears the
 
 ```bash
 FOUR_HOURS_AGO=$(date -d '4 hours ago' +%s 2>/dev/null || date -v-4H +%s)
-for lug in WAI-Spoke/lugs/bytype/*/in_progress/*.json; do
+for lug in WAI-Harness/spoke/lugs/bytype/*/in_progress/*.json; do
     UPDATED=$(jq -r '.updated_at // .created_at' "$lug")
     UPDATED_EPOCH=$(date -d "$UPDATED" +%s 2>/dev/null || echo 0)
     if [ "$UPDATED_EPOCH" -lt "$FOUR_HOURS_AGO" ]; then
@@ -99,7 +99,7 @@ Options: **Abandon** (→ completed with "abandoned" note) | **Resume** (→ ope
 
 The Spoke-Local Expediter scores lug quality and triages undelivered signals. It runs automatically at session start and its stats appear in the wakeup briefing.
 
-**State location:** `WAI-Spoke/advisors/expediter/scan_state.json`
+**State location:** `WAI-Harness/spoke/advisors/expediter/scan_state.json`
 
 **Manual run:**
 ```bash
@@ -112,7 +112,7 @@ python3 tools/spoke_expediter.py --signals      # also triage signals
 - `refinement_queue_size` — number of lugs below threshold needing refinement
 - `last_run_at` — ISO timestamp of last run
 
-**Refinement queue:** `WAI-Spoke/advisors/expediter/refinement-queue.jsonl` — one entry per lug needing improvement.
+**Refinement queue:** `WAI-Harness/spoke/advisors/expediter/refinement-queue.jsonl` — one entry per lug needing improvement.
 
 **Session init line:** `Expediter: avg {q}/10 | {n} need refinement | last {date}` — appears in CONTEXT HEALTH if state file exists.
 
@@ -121,12 +121,12 @@ python3 tools/spoke_expediter.py --signals      # also triage signals
 ## Step 4b: Historian Watermark Script
 
 ```bash
-LAST_SCAN_RAW=$(jq -r '.last_scan_session // ""' WAI-Spoke/advisors/historian/scan_state.json 2>/dev/null)
+LAST_SCAN_RAW=$(jq -r '.last_scan_session // ""' WAI-Harness/spoke/advisors/historian/scan_state.json 2>/dev/null)
 LAST_SCAN_TS=$(echo "$LAST_SCAN_RAW" | sed 's/^[^0-9]*//')
 
 UNREVIEWED_SESSIONS=0
 UNREVIEWED_POINTS=0
-for session_dir in WAI-Spoke/sessions/session-*/; do
+for session_dir in WAI-Harness/spoke/sessions/session-*/; do
     session_ts="${$(basename "$session_dir")#session-}"
     if [[ -z "$LAST_SCAN_TS" || "$session_ts" > "$LAST_SCAN_TS" ]]; then
         count=$(wc -l < "$session_dir/track.jsonl" 2>/dev/null || echo 0)
@@ -158,12 +158,12 @@ nudges: []
 ## Step 5: Teaching Scan Script
 
 ```bash
-HUB_PATH=$(jq -r '.wheel.hub_path' WAI-Spoke/WAI-State.json)
+HUB_PATH=$(jq -r '.wheel.hub_path' WAI-Harness/spoke/WAI-State.json)
 test -d "${HUB_PATH}" && echo "HUB_OK" || echo "HUB_MISSING"
 test -d "${HUB_PATH}/teachings_repo/framework/current" && echo "TEACHINGS_OK" || echo "TEACHINGS_MISSING"
 
 # Before-state count
-BEFORE_COUNT=$(ls -1 WAI-Spoke/seed/ingest/processed/*.teaching 2>/dev/null | wc -l)
+BEFORE_COUNT=$(ls -1 WAI-Harness/spoke/seed/ingest/processed/*.teaching 2>/dev/null | wc -l)
 ls -1 "${HUB_PATH}/teachings_repo/framework/current/"*.teaching 2>/dev/null
 
 # Detect auto-adopt flag
@@ -207,7 +207,7 @@ Fix: Set wheel.hub_path in WAI-State.json to the correct hub directory.
 }
 ```
 
-Keep rolling window of 3: `ls -1 WAI-Spoke/.autosave/turn-*.json | sort -V | head -n -3 | xargs -r rm -f`
+Keep rolling window of 3: `ls -1 WAI-Harness/spoke/.autosave/turn-*.json | sort -V | head -n -3 | xargs -r rm -f`
 
 ### Track Entry (JSONL)
 
@@ -258,8 +258,8 @@ Token estimate: ~15-20k vs ~46k full wakeup. Saves ~26-31k tokens per chained it
 ### Step 9: Recent Completions Script
 
 ```bash
-if [ -f "WAI-Spoke/runtime/spoke-changelog.jsonl" ]; then
-    tail -5 WAI-Spoke/runtime/spoke-changelog.jsonl | python3 -c "
+if [ -f "WAI-Harness/spoke/runtime/spoke-changelog.jsonl" ]; then
+    tail -5 WAI-Harness/spoke/runtime/spoke-changelog.jsonl | python3 -c "
 import sys, json
 for line in sys.stdin:
     e = json.loads(line.strip())
@@ -276,7 +276,7 @@ Each advisor can declare a `feeds.yaml` specifying what external context it need
 
 **File structure per advisor:**
 ```
-WAI-Spoke/advisors/{name}/
+WAI-Harness/spoke/advisors/{name}/
   feeds.yaml           ← context appetite declaration
   context_prompt.md    ← synthesis prompt (Ozi-authored)
   context/
@@ -304,7 +304,7 @@ python3 tools/advisor_context_refresh.py --dry-run          # show plan only
 
 **On-install:** session-start.sh detects advisors with no snapshot and launches `--init` in background. First context lands before next session start.
 
-**Spoke profile:** High-impact findings (impact_score >= 7) are promoted to `WAI-Spoke/spoke-profile.json`. Synced to hub registry at closeout.
+**Spoke profile:** High-impact findings (impact_score >= 7) are promoted to `WAI-Harness/spoke/spoke-profile.json`. Synced to hub registry at closeout.
 
 **Hub shared context:** Common topics (claude-capabilities, wai-framework-updates) live at `WAI-Hub/context/`. Refresh: `python3 hub/tools/hub_context_refresh.py`.
 
@@ -318,7 +318,7 @@ python3 tools/advisor_context_refresh.py --dry-run          # show plan only
 |------|---------|--------|
 | `WAI-State.json` | Identity, foundation, session state | UPDATE |
 | `WAI-State-extended.json` | Migration, closeout, bootstrap | READ (on-demand) |
-| `WAI-Spoke/skills/WAI-Skills.jsonl` | Skill registry | READ |
+| `WAI-Harness/spoke/skills/WAI-Skills.jsonl` | Skill registry | READ |
 | `lugs/bytype/*/open/*.json` | Active work — open | UPDATE |
 | `lugs/bytype/*/in_progress/*.json` | Active work — in progress | UPDATE |
 | `WAI-LugIndex.jsonl` | Lug lookup index | READ (on-demand) |

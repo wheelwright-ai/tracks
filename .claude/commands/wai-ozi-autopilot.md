@@ -38,13 +38,13 @@ considered but never implemented. `basher autopilot` is the only supported invoc
 python3 {harness_path}/tools/ozi_autopilot.py --spoke-path .
 ```
 
-Where `{harness_path}` is the value of `.wheel.harness_path` in `WAI-Spoke/WAI-State.json`.
+Where `{harness_path}` is the value of `.wheel.harness_path` in `WAI-Harness/spoke/WAI-State.json`.
 
 **Flags:**
 
 | Flag | Default | Purpose |
 |------|---------|---------|
-| `--spoke-path PATH` | required | Project root containing `WAI-Spoke/` (use `.` for current dir) |
+| `--spoke-path PATH` | required | Project root containing `WAI-Harness/spoke/` (use `.` for current dir) |
 | `--budget N` | 3 | Max lugs dispatched in Phase 3 |
 | `--dry-run` | off | Plan only — print what would run, make no changes |
 | `--advisor-scouting` | off | Enable advisor scouting pass (Phase 0 enrichment) |
@@ -112,7 +112,7 @@ Autopilot emits a JSON summary to stdout. Key fields:
   python3 -c "
   import json
   from pathlib import Path
-  for f in Path('WAI-Spoke/lugs/bytype').rglob('open/*.json'):
+  for f in Path('WAI-Harness/spoke/lugs/bytype').rglob('open/*.json'):
       d = json.loads(f.read_text())
       w = d.get('wave')
       if w and isinstance(w, str):
@@ -121,8 +121,8 @@ Autopilot emits a JSON summary to stdout. Key fields:
   ```
 
 **`phase_3_execute: "error: ..."` (other)**
-- Check `WAI-Spoke/advisors/autopilot/activity-log.jsonl` for the last failed entry.
-- A self-healing recovery lug should appear in `WAI-Spoke/lugs/bytype/impl/open/` after the run (once Basher lug `748f5bf4b310` is applied).
+- Check `WAI-Harness/spoke/advisors/autopilot/activity-log.jsonl` for the last failed entry.
+- A self-healing recovery lug should appear in `WAI-Harness/spoke/lugs/bytype/impl/open/` after the run (once Basher lug `748f5bf4b310` is applied).
 
 **`phase_0_assess` warnings:**
 - `"hub_path not found"` — WAI-State.json missing `.wheel.hub_path`. Hub-dependent phases skip gracefully.
@@ -139,14 +139,14 @@ After any run with errors, check for self-healing lugs created by the autopilot:
 python3 -c "
 import json
 from pathlib import Path
-for f in Path('WAI-Spoke/lugs/bytype/impl/open').glob('*.json'):
+for f in Path('WAI-Harness/spoke/lugs/bytype/impl/open').glob('*.json'):
     d = json.loads(f.read_text())
     if 'Autopilot phase error' in d.get('title', ''):
         print(f.stem, '--', d.get('title',''))
 "
 ```
 
-Recovery lugs are P1 impl lugs. Ozi will dispatch them on the next run. If the issue is in `tools/`, the lug's `routed_to` should be `BASHER` — move it to `WAI-Spoke/lugs/incoming/` of the basher spoke.
+Recovery lugs are P1 impl lugs. Ozi will dispatch them on the next run. If the issue is in `tools/`, the lug's `routed_to` should be `BASHER` — move it to `WAI-Harness/spoke/lugs/incoming/` of the basher spoke.
 
 ---
 
@@ -154,12 +154,12 @@ Recovery lugs are P1 impl lugs. Ozi will dispatch them on the next run. If the i
 
 | File | Purpose |
 |------|---------|
-| `WAI-Spoke/advisors/autopilot/scan_state.json` | Run statistics, last run timestamp, Gastown queue |
-| `WAI-Spoke/advisors/autopilot/activity-log.jsonl` | Append-only log of every run |
+| `WAI-Harness/spoke/advisors/autopilot/scan_state.json` | Run statistics, last run timestamp, Gastown queue |
+| `WAI-Harness/spoke/advisors/autopilot/activity-log.jsonl` | Append-only log of every run |
 
 View last run summary:
 ```bash
-python3 -c "import json; d=json.load(open('WAI-Spoke/advisors/autopilot/scan_state.json')); print(json.dumps(d.get('last_run_summary'), indent=2))"
+python3 -c "import json; d=json.load(open('WAI-Harness/spoke/advisors/autopilot/scan_state.json')); print(json.dumps(d.get('last_run_summary'), indent=2))"
 ```
 
 ---
@@ -169,7 +169,7 @@ python3 -c "import json; d=json.load(open('WAI-Spoke/advisors/autopilot/scan_sta
 After each advisor expedition completes, the advisor must:
 
 1. **Write reflection_latest.json** — Summarize findings, scout performance, and observations from the expedition
-2. **Compute and write wilbur_kpi_report.json** — Using schema from spec-advisor-wilbur-kpi-rollup-v1, compute KPI metrics and set `meets_wilbur_expectations` based on thresholds. Store at `WAI-Spoke/advisors/{advisor_id}/wilbur_kpi_report.json`
+2. **Compute and write wilbur_kpi_report.json** — Using schema from spec-advisor-wilbur-kpi-rollup-v1, compute KPI metrics and set `meets_wilbur_expectations` based on thresholds. Store at `WAI-Harness/spoke/advisors/{advisor_id}/wilbur_kpi_report.json`
 
 The wilbur_kpi_report fields:
 - `coverage_score` — from coverage_taxonomy.yaml overall_coverage_score

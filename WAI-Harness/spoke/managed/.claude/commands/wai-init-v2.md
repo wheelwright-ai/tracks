@@ -80,7 +80,7 @@ wai init my-project --type framework
 1. **init.create_wheel** - Wheel directory creation
 2. **init.git_init** - Git repository initialization  
 3. **init.ssh_config** - SSH config creation (if needed)
-4. All observations persisted to: `WAI-Spoke/observations.jsonl`
+4. All observations persisted to: `WAI-Harness/spoke/observations.jsonl`
 
 ## Failed Observations
 

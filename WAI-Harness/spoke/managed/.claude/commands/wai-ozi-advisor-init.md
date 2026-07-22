@@ -4,7 +4,7 @@
 **Spec:** spec-ozi-advisor-init-routine-v1  
 **Trigger:** new spoke in hub-registry.json OR `ozi init-advisors --spoke <spoke_id>`  
 **Model:** sonnet (context discovery) + haiku (scout template expansion)  
-**Output:** `WAI-Spoke/advisors/activation_summary.json` + per-advisor scaffold files
+**Output:** `WAI-Harness/spoke/advisors/activation_summary.json` + per-advisor scaffold files
 
 ---
 
@@ -32,7 +32,7 @@ Ozi runs this routine when a new spoke joins the fleet, or when an existing spok
 Read the following files from the spoke root:
 - `CLAUDE.md` — project type, stack, constraints
 - `WAI-State.json` — wheel identity, spoke_id, qualifiers
-- `WAI-Spoke/WAI-Guide.md` — behavioral protocols (if present)
+- `WAI-Harness/spoke/WAI-Guide.md` — behavioral protocols (if present)
 
 Produce a `spoke_context` object:
 
@@ -91,7 +91,7 @@ For each selected template, replace placeholders:
 - `{{PROJECT_TYPE}}` → spoke_context.project_type
 - `{{STACK}}` → comma-joined spoke_context.stack
 
-Write customized scouts to `{spoke_root}/WAI-Spoke/scouts/spoke_local/draft/` with status set to `draft`.
+Write customized scouts to `{spoke_root}/WAI-Harness/spoke/scouts/spoke_local/draft/` with status set to `draft`.
 
 Do not write scouts if `--dry-run` is set.
 
@@ -110,7 +110,7 @@ Default `advisor_default_seconds` by advisor:
 
 ### D — Write schedule.yaml
 
-Write `{spoke_root}/WAI-Spoke/advisors/{advisor_id}/schedule.yaml`:
+Write `{spoke_root}/WAI-Harness/spoke/advisors/{advisor_id}/schedule.yaml`:
 
 ```yaml
 advisor_id: "<advisor_id>"
@@ -157,7 +157,7 @@ Do not overwrite if `schedule.yaml` already exists and `--reset` is not set.
 ### E — Write coverage_taxonomy.yaml
 
 For each selected scout template, derive dimensions from the template's `dimension_id` field.  
-Write `{spoke_root}/WAI-Spoke/advisors/{advisor_id}/coverage_taxonomy.yaml`:
+Write `{spoke_root}/WAI-Harness/spoke/advisors/{advisor_id}/coverage_taxonomy.yaml`:
 
 ```yaml
 advisor_id: "<advisor_id>"
@@ -188,7 +188,7 @@ Do not overwrite if `coverage_taxonomy.yaml` already exists and `--reset` is not
 
 ### F — Write scout_wishlist.yaml
 
-Derive from the gap_scouts_needed list. Write `{spoke_root}/WAI-Spoke/advisors/{advisor_id}/scout_wishlist.yaml`.
+Derive from the gap_scouts_needed list. Write `{spoke_root}/WAI-Harness/spoke/advisors/{advisor_id}/scout_wishlist.yaml`.
 
 ### G — Decrement Budget
 
@@ -200,7 +200,7 @@ remaining_budget_seconds -= granted_seconds
 
 ## Step 4 — Write activation_summary.json
 
-Write `{spoke_root}/WAI-Spoke/advisors/activation_summary.json`:
+Write `{spoke_root}/WAI-Harness/spoke/advisors/activation_summary.json`:
 
 ```json
 {
@@ -226,15 +226,15 @@ Write `{spoke_root}/WAI-Spoke/advisors/activation_summary.json`:
 
 ## Step 5 — Surface to Wilbur
 
-If Wilbur is registered in hub-registry.json, deliver a lug to `{wilbur_path}/WAI-Spoke/lugs/incoming/`:
+If Wilbur is registered in hub-registry.json, deliver a lug to `{wilbur_path}/WAI-Harness/spoke/lugs/incoming/`:
 
 ```json
 {
   "type": "task",
   "routed_to": "WILBUR",
   "title": "Advisor init complete — <spoke_id> (<N> advisors activated)",
-  "perceive": "activation_summary.json written at {spoke_root}/WAI-Spoke/advisors/",
-  "payload_path": "{spoke_root}/WAI-Spoke/advisors/activation_summary.json"
+  "perceive": "activation_summary.json written at {spoke_root}/WAI-Harness/spoke/advisors/",
+  "payload_path": "{spoke_root}/WAI-Harness/spoke/advisors/activation_summary.json"
 }
 ```
 

@@ -59,7 +59,7 @@ Wilbur's core reasoning cycle. Runs for every candidate idea, improvement, or ob
 
 | Field | Value |
 |-------|-------|
-| Inputs | evaluated idea, `WAI-Spoke/lugs/bytype/` (all lugs) |
+| Inputs | evaluated idea, `WAI-Harness/spoke/lugs/bytype/` (all lugs) |
 | Outputs | `match_result: none\|partial\|exact`, `related_lug_ids[]` |
 | Gate | If exact match exists and is open: update it, don't create a new one. |
 

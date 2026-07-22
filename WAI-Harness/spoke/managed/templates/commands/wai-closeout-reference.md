@@ -7,7 +7,7 @@
 > (`BASE=$(python3 WAI-Harness/spoke/managed/tools/wai_paths.py --root . --json | python3 -c "import json,sys; print(json.load(sys.stdin).get('_base') or '')")`;
 > fall back to `WAI-Harness/spoke/local` if that dir exists, else `WAI-Spoke`). Tools resolve as
 > `TOOLS="WAI-Harness/spoke/managed/tools"; [ -d "$TOOLS" ] || TOOLS="tools"`. Never hardcode
-> `WAI-Spoke/` — on a v4-only spoke it does not exist.
+> `WAI-Harness/spoke/` — on a v4-only spoke it does not exist.
 
 ---
 
@@ -56,7 +56,7 @@ Placement: after first `---`, before `## What This Teaching Provides`.
   index.json          — hub-level index
 ```
 
-**Publication rule:** Write new teachings to `spoke/current/` (default for all spoke-applicable teachings) or `cross_spoke/current/` (if the teaching must also apply when the hub node wakes up). Do NOT write to `framework/current/` for new teachings — it is a legacy path kept for backward compatibility. Do NOT write to `hub/WAI-Spoke/teachings/` — that is the hub spoke's local teaching cache, not a distribution channel.
+**Publication rule:** Write new teachings to `spoke/current/` (default for all spoke-applicable teachings) or `cross_spoke/current/` (if the teaching must also apply when the hub node wakes up). Do NOT write to `framework/current/` for new teachings — it is a legacy path kept for backward compatibility. Do NOT write to `hub/WAI-Harness/spoke/teachings/` — that is the hub spoke's local teaching cache, not a distribution channel.
 
 - Copy-based, no symlinks
 - Skip copy if content hash matches existing hub file

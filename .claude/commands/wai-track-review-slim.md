@@ -12,7 +12,7 @@
 git log --oneline --since="7 days ago" | grep -E "^[a-f0-9]+ (feat|fix|chore|refactor)"
 ```
 
-Read `WAI-Spoke/WAI-State.json` → `wheel.name`, `fw_version`.
+Read `WAI-Harness/spoke/WAI-State.json` → `wheel.name`, `fw_version`.
 Read `{hub_path}/hub-registry.json` → active spoke list.
 
 ---
@@ -61,7 +61,7 @@ Scan hooks, templates, skills for stale patterns referencing retired behavior:
 
 ```bash
 grep -rE "lugs/active[/]|bytype/signal/undelivered" \
-  .claude/hooks/ templates/commands/ WAI-Spoke/skills/
+  .claude/hooks/ templates/commands/ WAI-Harness/spoke/skills/
 ```
 
 If 3+ spokes share same stale pattern → emit a teaching instead of individual lugs.

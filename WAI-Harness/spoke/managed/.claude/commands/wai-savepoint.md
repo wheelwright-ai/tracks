@@ -43,7 +43,7 @@ from ceremony_lib import resolve_base, resolve_tools
 BASE, TOOLS = resolve_base(), resolve_tools()
 ```
 
-Do NOT hardcode `WAI-Spoke/` — on a v4-only spoke it does not exist. Use `{BASE}/…` for all
+Do NOT hardcode `WAI-Harness/spoke/` — on a v4-only spoke it does not exist. Use `{BASE}/…` for all
 data-tree paths (state, lugs, sessions, savepoints, runtime, bolts) and `{TOOLS}/…` for tools.
 
 All mechanical work runs in a **sub-agent** dispatched from the main session. The main session contributes exactly one reasoning turn: the input strings. Everything else is deterministic JSON/git work that runs fresh.
@@ -85,6 +85,32 @@ WAI-Harness/spoke/managed/tools/converge_closeout.py converge --base {BASE} --se
 Exit `0` = no candidates, proceed. The tool now FAILS CLOSED without `--confirm-absorb`, so this is a
 real gate, not advice. Never absorb an OPEN lane. Parking is always recoverable; absorbing is not.
 
+**Step 0.9: Materialise open threads into lugs (RESUME GUARANTEE)**
+
+```bash
+python3 {TOOLS}/thread_materialize.py --root .
+python3 {TOOLS}/thread_materialize.py --root . --verify    # MUST print CLEAN
+```
+
+Every open thread gets a lug in `bytype/task/open/`. The thread's landing condition
+becomes the lug's `verify` — a thread already carries a machine-checkable definition
+of done, which is precisely what a lug needs and what hand-authored lugs most often
+lack. Thread and lug back-reference each other (`thread.lug_id` ↔ `lug._thread_id`)
+so they stay in step and neither can drift into being the only record.
+
+Run this BEFORE composing the resume contract, so the contract cites lug ids rather
+than restating thread prose.
+
+**`--verify` printing CLEAN is a precondition of a valid savepoint, not advice.**
+Open threads otherwise live only in the resident digest, which is derived from
+CONVERSATION. Lose the session and the thread text survives while the work it
+represents has no lug, no owner and no place in the backlog — the next session
+reconstructs intent by reading a transcript instead of picking up a backlog item.
+An orphan thread is work that exists only in a conversation nobody can replay.
+
+If a thread genuinely should not become work, close the thread deliberately rather
+than leaving it orphaned to satisfy the check.
+
 **Step 1 (main session): Compose the savepoint strings**
 
 Compose the resume contract — this is the only step requiring session context. It MUST satisfy
@@ -104,10 +130,21 @@ Structured (emitted into the savepoint file — pre-render each as the JSON valu
   (`risk-tolerance-claim-is-not-evidence`); the savepoint trail is what Ozi walks back over, and an
   unevidenced claim makes that walk report confidence it has not earned. Enforced by
   `validate_savepoint.py` at write time and re-checked by `savepoint_walk.py` later.
-- `first_actions`: a NON-EMPTY JSON list of `{ "action": "..." }` — the DECIDED first executable step(s)
-  for the resuming agent. `first_actions[0].action` must be executable with no decision (no
-  pick/choose/which/or/"?" — put any alternative in a fallback, not a question). This is the structured
+- `first_actions`: a NON-EMPTY JSON list of `{ "action": "...", "lug": "<lug-id>" }` — the DECIDED first
+  executable step(s) for the resuming agent. `first_actions[0].action` must be executable with no decision
+  (no pick/choose/which/or/"?" — put any alternative in a fallback, not a question). This is the structured
   counterpart of `resume_note`.
+  Each entry SHOULD carry `lug`, the id of the lug that action advances — Step 0.9 guarantees one exists
+  for every open thread. An action with no lug is an instruction that dies with this conversation; an
+  action with a lug is work the next session can pick up from the backlog alone.
+- `open_threads`: JSON list of `{ "lug": "<lug-id>", "remaining": "<what is left to complete it>" }`, one
+  entry per unlanded thread. Take the ids from `thread_materialize.py --verify` (or the `lug_id` now
+  written onto each thread in the digest). `remaining` must state what the thread still NEEDS — not what
+  it is about; the title already says that. "Awaiting operator decision on X" and "needs the parser
+  rewritten to handle Y" are useful; "continue work" is not.
+  This is the field that makes a lost session recoverable: it states what was open AND what each thread
+  still requires, in durable records rather than in the transcript. Empty list only when there are
+  genuinely no unlanded threads — never as a shortcut when composing under time pressure.
 - `workspace`: JSON `{ "path": "<tree to resume in>", "why": "..." }` — removes framework-vs-spoke ambiguity.
 - `honest_flags`: JSON list of strings naming anything not fully verified (empty list `[]` if all work_done is verified).
 - `inbox_snapshot`: JSON list of the basenames currently in `{BASE}/lugs/incoming/` (`[]` if empty) so the resumer's inbox-first pass surfaces nothing unexpected.
@@ -297,24 +334,10 @@ python3 {TOOLS}/validate_savepoint.py {sp_file} --spoke-root {REPO}
 > value would be consumed as the positional path and the tool would try to open a directory
 > (`IsADirectoryError`). `{REPO}` defaults to `.` when unset (the ceremony runs from repo root).
 
-- exit 0 → contract valid; proceed to Step 2.9.
+- exit 0 → contract valid; proceed to Step 3.
 - exit non-zero → **STOP. Do NOT commit.** Fix the fields the validator names (workspace, non-empty paper-trail when lugs were touched, resolvable deferred/handoff refs) and re-run. Never commit an invalid savepoint.
 
-**Step 2.9 (main session): CSRP convergence — lane-aware savepoint (converge competitors into ONE verified tree)**
-
-If concurrent sessions exist, become a candidate convergence LEAD before committing (CSRP P6, `impl-csrp-p6-convergent-closeout-v1`). Zero-cost no-op when you are the only session.
-
-```bash
-python3 {TOOLS}/converge_closeout.py converge --base {BASE} --session-id {cc_sid} --repo . --my-worktree {wt_name}
-```
-
-Branch on the JSON:
-- `lead:false, reason:"no-competitors"` → proceed to Step 3 unchanged (zero cost).
-- `lead:false, reason:"not-lead"` → another lead is converging; close your **OWN lane only** (commit scoped via `commit-mine.sh`, do not merge to main). Proceed to Step 3 for the own-lane commit.
-- `lead:true, ok:true` → competitors converged + the unified HEAD re-verified (`verify.status: green`); proceed to Step 3 to persist the single tree.
-- `lead:true, ok:false` (verify `RED`) → **STOP. Do NOT commit.** The unified tree failed its test gate (integration breakage convergence exists to catch); the merge-lock is RETAINED. Fix-forward on `main` until green, then re-run. Never savepoint a red unified tree. (Lease auto-expires — no deadlock on crash.)
-
-This is **unify-then-VERIFY**: convergence is not done until the merged tree passes the test gate on the unified HEAD.
+> **Savepoint is a lightweight eject — no test-gate convergence.** Savepoint scopes its commit to its own lane (Step 3) and does NOT run the CSRP unify-then-VERIFY merge. Full lane convergence + the unified test gate belong to `/wai-closeout` (CSRP P6); a savepoint that cannot afford that heavy step should still leave a safe own-lane eject. If concurrent sessions share this tree, keep Step 3's `git add` scoped to your own changes (see the Step 3 note) rather than merging to main here.
 
 **Step 3 (main session, after sub-agent completes): COMMIT + PUSH, then report**
 
@@ -350,7 +373,7 @@ capture it in a lug, or discard-with-reason before reporting success. Never repo
 savepoint complete with session-scope dead-ends outstanding. (`branches_ahead` is a
 fleet note, not a blocker.)
 
-Then output exactly:
+Output exactly:
 
 ```
 Savepoint: {sp_id}  (committed {short_sha}, pushed)
@@ -359,6 +382,33 @@ Focus: {focus_directive}                     ← omit line if null
 Work done: {work_done}
 Next: {resume_note}
 ```
+
+**Step 4 (main session): EXIT SAFETY VERDICT (MANDATORY LAST OUTPUT)**
+
+A mid-session save answers a narrower question than closeout, but the same one at heart: is it safe
+to walk away NOW? This is the ceremony's true final step — print its block after the Step 3b report
+above, nothing follows it but the statusline (impl-exitclarity-2-ceremony-verdict-wiring-v1).
+
+```bash
+python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id {SESSION_ID}
+```
+
+`{SESSION_ID}` resolves as elsewhere in this ceremony. Print the rendered block **verbatim**.
+
+**NOT_SAFE / SAFE_AFTER loop (max 2 iterations):** Step 3 already committed and pushed, so a lingering
+`git.dirty`/`git.unpushed` here usually means state changed after it (the Step 3a.5 digest roll, or
+Step 3b's own remediation). Commit it scoped as Step 3 does, re-run, at most twice. Still not `SAFE TO
+EXIT` → surface the block as-is; never report a savepoint safe when it is not. Out-of-scope findings
+(lane absorption, CSRP notices) belong to Steps 0.4-0.6 and already ran.
+
+**PUSH RECONCILIATION:** unlike closeout, this ceremony's Step 3 already pushes as part of its normal
+flow — `git push origin main` when Step 0.5 resolved `csrp_aware:false` (sole owner), or the session
+branch (not main) when `csrp_aware:true`. Follow the same rule here: only run a `git push` this block
+surfaces when sole-owner; in concurrent mode, print it for the operator instead of running it and say
+why.
+
+**CONVERGE RECOMMENDED:** the block always carries this line. When it reads `CONVERGE RECOMMENDED: yes
+(...)`, quote the exact `$ ...` command in your closing message.
 
 ---
 
@@ -401,15 +451,7 @@ The active pending savepoint is also pinned in `{BASE}/initiatives/current.json`
 
 **Durable achievement records live in bolts, not savepoints.** Completed savepoints in `savepoints/completed/` are prunable once their session's bolt has been emitted. The bolt is the immutable, certified record of what the session achieved. Query `{BASE}/bolts/bytype/` for journey history.
 
-### Savepoint closes patterns + emits a bolt
-
-A savepoint is a legitimate **pattern-close point** — not just a resume handoff. Closing at savepoint means a paused/interrupted session still leaves a certified (or partial) receipt, so the journey has no holes. As part of the savepoint, run the **same close step as closeout** (`wai-closeout.md` Step 5e — prefer the Basher verify engine + pattern-cert helper):
-
-- For each **active pattern** this session advanced, run each item's verification by `verify.mode` (mechanical / attested / human) and emit a bolt at `{BASE}/bolts/bytype/.../bolt-{session_id}-{pattern_id}.json`.
-- Fully verified → `certified` bolt (pattern → `certified/`). Closed early with unverified/pending items → **`partial`** bolt that lists certified items + remaining items, so the next worker resumes from proof.
-- Idempotent: updating the same (session, pattern) bolt is fine. Emit nothing if no pattern was advanced.
-
-(This supersedes the earlier "savepoint emits nothing" boundary — under the contract model, closing a pattern is the finishing act, and savepoint is one of its two trigger points alongside closeout.)
+> **Savepoint does NOT emit bolts or close patterns.** Pattern-certification (the `wai-closeout.md` Step 5e verify-and-emit-bolt step) is a **closeout** responsibility, not a savepoint one — savepoint stays a fast eject. A paused session leaves its receipt in the savepoint file + resume contract; the bolt is emitted when the session properly closes out.
 
 ---
 

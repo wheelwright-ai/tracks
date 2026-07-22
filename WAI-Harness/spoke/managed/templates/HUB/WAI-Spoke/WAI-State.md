@@ -3,7 +3,7 @@
 ---
 
 **Wheelwright Framework v3.0**
-**Structure:** v1 (WAI-Spoke/ directory)
+**Structure:** v1 (WAI-Harness/spoke/ directory)
 **Type:** Hub
 
 *This hub aggregates knowledge from all Wheelwright wheels and coordinates framework updates. It maintains the global pattern library and ensures all wheels stay synchronized with the latest framework improvements.*

@@ -49,14 +49,14 @@ Wheelwright enables **persistent context** that survives session boundaries:
 When you first receive a message in a Wheelwright project:
 
 1. **Load WAI Context:**
-   - Read `WAI-Spoke/WAI-Guide.md` (full AI instructions)
-   - Read `WAI-Spoke/WAI-State.json` (project state, decisions)
-   - Read `WAI-Spoke/WAI-State.md` (strategic vision)
+   - Read `WAI-Harness/spoke/WAI-Guide.md` (full AI instructions)
+   - Read `WAI-Harness/spoke/WAI-State.json` (project state, decisions)
+   - Read `WAI-Harness/spoke/WAI-State.md` (strategic vision)
    - This file (WAI-AI-ONBOARDING.md) is already loaded
 
 2. **Check Environment:**
-   - Scan `WAI-Spoke/sessions/` for other AI/machine sessions
-   - Your session tracked in `WAI-Spoke/sessions/{tool}-{machine}.jsonl`
+   - Scan `WAI-Harness/spoke/sessions/` for other AI/machine sessions
+   - Your session tracked in `WAI-Harness/spoke/sessions/{tool}-{machine}.jsonl`
 
 3. **Brief User:**
    - Project name and description
@@ -65,7 +65,7 @@ When you first receive a message in a Wheelwright project:
    - Any uncommitted work (git status)
 
 4. **Check for Teachings:**
-   - Look for `WAI-Spoke/seed/ingest/*.teaching` files
+   - Look for `WAI-Harness/spoke/seed/ingest/*.teaching` files
    - If present, propose adoption plan before other work
 
 ---
@@ -203,7 +203,7 @@ Scale 1-10, measures significance:
 ### Pattern: Shipit
 ```
 1. Run closeout logic first
-2. Stage WAI-Spoke/ files: git add WAI-Spoke/
+2. Stage WAI-Harness/spoke/ files: git add WAI-Harness/spoke/
 3. Commit: git commit -m "session summary message"
 4. Ask user: "Push to remote? [y/n]"
 5. If yes: git push origin HEAD
@@ -211,7 +211,7 @@ Scale 1-10, measures significance:
 
 ### Pattern: Teach Adoption
 ```
-1. Detect *.teaching files in WAI-Spoke/seed/ingest/
+1. Detect *.teaching files in WAI-Harness/spoke/seed/ingest/
 2. Read manifest.json for file metadata
 3. For each file:
    - safe_to_auto_adopt: true → Copy to target location
@@ -225,7 +225,7 @@ Scale 1-10, measures significance:
 ## File Structure Quick Reference
 
 ```
-WAI-Spoke/
+WAI-Harness/spoke/
 ├── WAI-Guide.md              # Full AI instructions (load always)
 ├── WAI-State.json            # Project state and decisions (load always)
 ├── WAI-State.md              # Strategic vision (load always)
@@ -280,7 +280,7 @@ Wheelwright supports multiple AI tools working on the same project:
 - **Gemini** - See GEMINI.md for Gemini-specific setup
 - **Other AI tools** - Follow this onboarding doc + create tool-specific integration
 
-Each tool tracks its own session in `WAI-Spoke/sessions/{tool}-{machine}.jsonl`.
+Each tool tracks its own session in `WAI-Harness/spoke/sessions/{tool}-{machine}.jsonl`.
 
 No session collision - multiple AIs can work in parallel.
 

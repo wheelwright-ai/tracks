@@ -7,10 +7,10 @@ This project uses Wheelwright (WAI) for session continuity.
 On your first turn in a Wheelwright project:
 
 1. Read `AGENTS.md`.
-2. Read `WAI-Spoke/WAI-State.json`.
+2. Read `WAI-Harness/spoke/WAI-State.json`.
 3. Use the first wakeup file that exists:
-   - `WAI-Spoke/commands/wai.md`
-   - `WAI-Spoke/skills/wai/wai.md`
+   - `WAI-Harness/spoke/commands/wai.md`
+   - `WAI-Harness/spoke/skills/wai/wai.md`
    - `templates/commands/wai.md`
 4. Treat this `QWEN.md` read as already satisfying the wakeup protocol's integration-file step.
 5. Do not re-read `QWEN.md` or rescan parent `QWEN.md` files while executing wakeup unless the user explicitly asks.

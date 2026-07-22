@@ -9,7 +9,7 @@
 ## Storage Paths
 
 ```
-WAI-Spoke/lugs/bytype/{type}/{status}/{id}.json
+WAI-Harness/spoke/lugs/bytype/{type}/{status}/{id}.json
 ```
 
 | Status | Path |
@@ -131,8 +131,8 @@ Optional fields any lug MAY carry — part of the lug certification chain. Overl
 
 ```bash
 # Open → in_progress
-mv WAI-Spoke/lugs/bytype/task/open/{id}.json WAI-Spoke/lugs/bytype/task/in_progress/{id}.json
+mv WAI-Harness/spoke/lugs/bytype/task/open/{id}.json WAI-Harness/spoke/lugs/bytype/task/in_progress/{id}.json
 
 # in_progress → completed
-mv WAI-Spoke/lugs/bytype/task/in_progress/{id}.json WAI-Spoke/lugs/bytype/task/completed/{id}.json
+mv WAI-Harness/spoke/lugs/bytype/task/in_progress/{id}.json WAI-Harness/spoke/lugs/bytype/task/completed/{id}.json
 ```

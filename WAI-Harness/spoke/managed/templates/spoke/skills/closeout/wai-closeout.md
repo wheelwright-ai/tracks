@@ -7,7 +7,7 @@ Save session state so the next agent can pick up where we left off.
 ## Execution Context
 
 - **Nodes:** spoke, hub
-- **Paths Required:** spoke_path (current directory with WAI-Spoke/)
+- **Paths Required:** spoke_path (current directory with WAI-Harness/spoke/)
 
 ---
 
@@ -37,7 +37,7 @@ Run in order: **0a** File Hygiene, **0b** Breaking Changes, **0c** Tests, **0d**
 
 ### 1. Lug Reconciliation
 
-Scan `WAI-Spoke/lugs/bytype/other/open/` for autosave lugs (`ty="autosave"`, `reconciled=false`). Consolidate into ONE session-summary lug. Mark autosaves `reconciled: true`, `s: "c"`. Write to `lugs/bytype/session-summary/{id}.json`.
+Scan `WAI-Harness/spoke/lugs/bytype/other/open/` for autosave lugs (`ty="autosave"`, `reconciled=false`). Consolidate into ONE session-summary lug. Mark autosaves `reconciled: true`, `s: "c"`. Write to `lugs/bytype/session-summary/{id}.json`.
 
 See `wai-closeout-reference.md` for session-summary lug schema.
 
@@ -67,7 +67,7 @@ Review the printed summary, then complete the remaining AI-only fields:
 - `_session_state.next_session_recommendation` = what the next session should focus on
 - `_session_state.track_path` = current session track path (if not passed via `--track-path`)
 
-**Capability check:** `test -d WAI-Spoke/lugs/bytype && echo BYTYPE_OK || echo FLAT_LUG` — if FLAT_LUG, skip 5b and 5c entirely.
+**Capability check:** `test -d WAI-Harness/spoke/lugs/bytype && echo BYTYPE_OK || echo FLAT_LUG` — if FLAT_LUG, skip 5b and 5c entirely.
 
 ### 5b. Adoption Marker Sync
 
@@ -84,7 +84,7 @@ Move delivered signals from `undelivered/` to `delivered/`.
 
 ### 5d. Changelog Entries
 
-For each resolved lug, append to `WAI-Spoke/runtime/spoke-changelog.jsonl`. See `wai-closeout-reference.md` for changelog entry format. Framework-internal changes go in CHANGELOG.md, not spoke-changelog.
+For each resolved lug, append to `WAI-Harness/spoke/runtime/spoke-changelog.jsonl`. See `wai-closeout-reference.md` for changelog entry format. Framework-internal changes go in CHANGELOG.md, not spoke-changelog.
 
 ### 6. Finalize Session Track
 
@@ -110,12 +110,12 @@ Validate lugs created/modified this session (excluding session-summary and autos
 
 **Primary delivery is immediate** — cross-spoke lugs MUST be delivered at creation time, not here. Step 9 is a safety-net sweep for any that slipped through (interrupted sessions, draft lugs promoted late, edge cases).
 
-Scan `WAI-Spoke/lugs/outgoing/` for any `.json` file where `delivered_at` is absent OR `status` is not `"delivered"`:
+Scan `WAI-Harness/spoke/lugs/outgoing/` for any `.json` file where `delivered_at` is absent OR `status` is not `"delivered"`:
 
 1. **Pre-delivery quality check** — lug must have ALL of: non-empty `perceive`, non-empty `execute`, non-empty `verify`, `destination_wheel_id` set and non-empty, `acceptance_criteria` as a non-empty list, `effort_score` (integer), `model_fit` present. For `impl`/`feature`/`task` lugs: `target_files` or `files_to_edit` must be present.
    - Any check fails → log `DELIVERY BLOCKED: {lug_id} — missing: {fields}` and skip. Do not deliver incomplete lugs.
 2. Look up `destination_wheel_id` in the hub registry → get spoke `path`.
-3. Copy lug to `{target_path}/WAI-Spoke/lugs/incoming/{filename}`.
+3. Copy lug to `{target_path}/WAI-Harness/spoke/lugs/incoming/{filename}`.
 4. In the local outgoing copy: set `"status": "delivered"`, add `"delivered_at": "{iso_timestamp}"`.
 5. Log: `Delivered: {lug_id} → {target_spoke}`.
 
@@ -145,19 +145,19 @@ Extract from WAI-State.json: `spoke_id`, `name`, `version`, `status`, `one_liner
 
 ### 10. Autosave Cleanup
 
-Remove autosave checkpoints older than 3 sessions from `WAI-Spoke/.autosave/`. See `wai-closeout-reference.md` for cleanup script.
+Remove autosave checkpoints older than 3 sessions from `WAI-Harness/spoke/.autosave/`. See `wai-closeout-reference.md` for cleanup script.
 
 ### 11. Git Commit + Push
 
 Commit and push **immediately** — no user confirmation required. Banner displays AFTER.
 
 ```bash
-git add WAI-Spoke/WAI-State.json WAI-Spoke/ [other session files]
+git add WAI-Harness/spoke/WAI-State.json WAI-Harness/spoke/ [other session files]
 git commit -m "WAI Session [N]: [accomplishments] | [version]"
 git push origin main
 ```
 
-**Critical:** `WAI-Spoke/WAI-State.json` listed explicitly first to guarantee staging. If Minimal ceremony, include `(minimal closeout — full deferred)` in message.
+**Critical:** `WAI-Harness/spoke/WAI-State.json` listed explicitly first to guarantee staging. If Minimal ceremony, include `(minimal closeout — full deferred)` in message.
 
 ### 12. Verification + Completion Banner
 
@@ -181,6 +181,23 @@ Skip if not production. Tag `v$VERSION`, push tag. If tag exists: stop and repor
 ### 14. Verification
 
 `git status` (clean), `git log --oneline -1`, `git tag -l | tail -1` (if production).
+
+### 15. EXIT SAFETY VERDICT (MANDATORY LAST OUTPUT)
+
+Run and print this block **verbatim** as the ceremony's true final output — nothing follows it but
+the statusline (impl-exitclarity-2-ceremony-verdict-wiring-v1):
+
+```bash
+python3 WAI-Harness/spoke/managed/tools/exit_safety_check.py --render --base WAI-Spoke --session-id {session_id}
+```
+
+*(v4-only spoke — no `WAI-Harness/spoke/` tree: use `--base WAI-Harness/spoke/local` instead.)*
+
+If the verdict is not `SAFE TO EXIT`: run only the listed commit/push commands, re-run, up to 2
+iterations, then surface the block to the operator — closeout is not complete on a NOT_SAFE verdict,
+only on `SAFE TO EXIT` or an explicit operator override. Run a `git push` finding automatically only
+when no other session shares this tree; otherwise print it for the operator instead of running it.
+When the block reads `CONVERGE RECOMMENDED: yes`, quote its exact command in your closing message.
 
 ---
 

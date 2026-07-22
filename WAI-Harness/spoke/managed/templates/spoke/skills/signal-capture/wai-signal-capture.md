@@ -15,7 +15,7 @@ During the session, watch for decisions or learnings with impact >= 8:
 - Significant discoveries (what we learned)
 - Permanent constraints adopted
 
-**When detected**, write a v2 signal file to `WAI-Spoke/signals/inbound/<id>.json`:
+**When detected**, write a v2 signal file to `WAI-Harness/spoke/signals/inbound/<id>.json`:
 
 ```json
 {
@@ -39,7 +39,7 @@ During the session, watch for decisions or learnings with impact >= 8:
 ```
 High-Impact Signals This Session:
 - [signal summary] (risk: X, flavor: patch)
-  → Logged to WAI-Spoke/signals/inbound/ — routes to framework at closeout
+  → Logged to WAI-Harness/spoke/signals/inbound/ — routes to framework at closeout
 ```
 
 **Impact scale:**
@@ -65,7 +65,7 @@ High-Impact Signals This Session:
 | Single-spoke bug or fix | LOCAL impl lug → `bytype/implementation/open/` |
 | Framework protocol gap | FRAMEWORK impl lug → `bytype/implementation/open/` |
 | Behavioral pattern already in CLAUDE.md | No action |
-| Fleet-wide behavioral patch, all three gate questions YES | Signal lug (`routed_to: "FRAMEWORK"`) → `WAI-Spoke/signals/inbound/` |
+| Fleet-wide behavioral patch, all three gate questions YES | Signal lug (`routed_to: "FRAMEWORK"`) → `WAI-Harness/spoke/signals/inbound/` |
 
 **Default assumption:** write a lug. The gate flips you to a signal — not the other way around.
 
@@ -76,7 +76,7 @@ and remove any that don't warrant permanent record.
 
 ## Context
 
-This skill uses the v2 signal architecture: signals live in `WAI-Spoke/signals/` (not `bytype/signal/`), carry `risk_score` (not `roi`), and always use `routed_to: "FRAMEWORK"`. Legacy `WAI-Signals.jsonl` and `bytype/signal/undelivered/` are retired.
+This skill uses the v2 signal architecture: signals live in `WAI-Harness/spoke/signals/` (not `bytype/signal/`), carry `risk_score` (not `roi`), and always use `routed_to: "FRAMEWORK"`. Legacy `WAI-Signals.jsonl` and `bytype/signal/undelivered/` are retired.
 
 **Why signals matter**: High-impact decisions captured in real-time become the
 institutional memory that makes AI context persistence valuable. Without signals,

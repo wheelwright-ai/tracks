@@ -12,7 +12,7 @@ Skip if: the work queue has 0 ready items, the only ready item is the one just c
 
 ## Step 1 — Capture the insight now (partial staging)
 
-Write or merge `WAI-Spoke/runtime/closeout-staging.json` with `type: "partial"` — the pre-composed landing zone closeout will harvest:
+Write or merge `WAI-Harness/spoke/runtime/closeout-staging.json` with `type: "partial"` — the pre-composed landing zone closeout will harvest:
 
 ```json
 {

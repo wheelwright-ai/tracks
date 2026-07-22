@@ -44,7 +44,7 @@ Compare `lug.fw_ver` against current `WAI-State.json → wheel.version`:
 
 Run on demand or at wakeup when `major_drift + unversioned > 5`.
 
-1. Load all lugs from `WAI-Spoke/lugs/bytype/` (scan active statuses)
+1. Load all lugs from `WAI-Harness/spoke/lugs/bytype/` (scan active statuses)
 2. Read current version from `WAI-State.json → wheel.version`
 3. Score each non-reconciled lug by `fw_ver`
 4. Report counts by score with recommended actions
@@ -58,7 +58,7 @@ For each lug in `major_drift` or `unversioned` (or `minor_drift` if requested):
 
 1. Read the lug content fully
 2. Identify protocol references, path names, field names, behavioral directives
-3. Check each against current framework (`templates/commands/`, `WAI-Spoke/skills/`)
+3. Check each against current framework (`templates/commands/`, `WAI-Harness/spoke/skills/`)
 4. Classify using `review_status` values
 5. Append review fields: `reviewed_fw_ver`, `reviewed_at`, `reviewed_by`, `review_status`, `review_notes`
 6. If substantively outdated: set `reconciled: true`; if replaced, set `superseded_by`
@@ -72,7 +72,7 @@ For each lug in `major_drift` or `unversioned` (or `minor_drift` if requested):
 After reviewing any lug where `hub_origin: true`:
 
 1. Create a `lug-review` payload with: `source_id`, `review_fw_ver`, `review_status`, `review_notes`, `reviewed_by`, `reviewed_at`
-2. Write to `WAI-Spoke/lugs/outgoing/lug-review-{source_id}.jsonl`
+2. Write to `WAI-Harness/spoke/lugs/outgoing/lug-review-{source_id}.jsonl`
 3. Closeout Step 9 (Outgoing Delivery) routes it to hub
 4. Hub accepts only if `review_fw_ver >= hub's current copy's fw_ver`
 
@@ -92,7 +92,7 @@ At Step 4 (Load Lugs): count lugs by currency score. If `major_drift + unversion
 
 ## Closeout Integration
 
-At Step 9 (Outgoing Delivery): include any `lug-review-*.jsonl` files from `WAI-Spoke/lugs/outgoing/` in the hub delivery batch.
+At Step 9 (Outgoing Delivery): include any `lug-review-*.jsonl` files from `WAI-Harness/spoke/lugs/outgoing/` in the hub delivery batch.
 
 ---
 

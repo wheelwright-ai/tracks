@@ -36,9 +36,9 @@ Score = number of tool areas returning `"pass"`. Maximum: 4.
 
 | File | Purpose |
 |------|---------|
-| `WAI-Spoke/advisors/tool-advisor/scan_state.json` | Current score, sessions since audit |
-| `WAI-Spoke/advisors/tool-advisor/passes.jsonl` | Audit history |
-| `WAI-Spoke/advisors/tool-advisor/vectors.jsonl` | Score trend per run |
+| `WAI-Harness/spoke/advisors/tool-advisor/scan_state.json` | Current score, sessions since audit |
+| `WAI-Harness/spoke/advisors/tool-advisor/passes.jsonl` | Audit history |
+| `WAI-Harness/spoke/advisors/tool-advisor/vectors.jsonl` | Score trend per run |
 
 ---
 

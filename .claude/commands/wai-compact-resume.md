@@ -20,7 +20,20 @@ BASE=$(python3 WAI-Harness/spoke/managed/tools/wai_paths.py --root . --json 2>/d
 TOOLS="WAI-Harness/spoke/managed/tools"; [ -d "$TOOLS" ] || TOOLS="tools"
 ```
 
-Do NOT hardcode `WAI-Spoke/` — on a v4-only spoke it does not exist. Use `{BASE}/…` for data-tree paths and `{TOOLS}/…` for tools.
+Do NOT hardcode `WAI-Harness/spoke/` — on a v4-only spoke it does not exist. Use `{BASE}/…` for data-tree paths and `{TOOLS}/…` for tools.
+
+**Step 0 — Read the resume pointer FIRST (1 tool call, often all you need):**
+
+```
+Read: {BASE}/runtime/compact-resume.json
+```
+
+Written by `pre-compact.sh` at the moment of compaction. Carries the live facts a
+compacted session loses: `session_id`, `lane_track_path`, `base`, `active_initiative_id`,
+`focus_lock`, `savepoint_status`, and the most-recent `in_progress_lug_ids` (with
+`in_progress_total`). If present, you already have session id + track path — skip straight
+to Step 2 (read the track). If absent (older compaction, or the file was never written),
+fall through to Step 1.
 
 **Step 1 — Read WAI-State.json (1 tool call):**
 
@@ -58,7 +71,10 @@ Re-invoke `/wai-closeout` — it's idempotent. The track shows the last complete
 |----------|-----------|-----|
 | CLAUDE.md | **YES** | System-level injection — re-loaded every turn |
 | MEMORY.md | **YES** | System-level injection — re-loaded every turn |
-| Hook reminders (ledger, wakeup) | **YES** | UserPromptSubmit fires every turn |
+| Per-turn UserPromptSubmit reminders (ledger, track heartbeat) | **YES** | UserPromptSubmit fires every turn |
+| `<wai-compact-resume>` / `<wai-post-compact>` injection | **YES** | SessionStart `compact` matcher + the flag path fire once after compaction |
+| Full SessionStart wakeup briefing | **NO** | Does NOT re-fire on compaction — only the light compact-resume injector runs (a compacted session is not a new session; wakeup-canonical is deliberately not re-invoked) |
+| `compact-resume.json` pointer | **YES** | Filesystem — written by `pre-compact.sh`, read at Step 0 |
 | WAI-State.json | **YES** | Filesystem — read on resume |
 | Lugs (all statuses) | **YES** | Filesystem — read on resume |
 | Skill file bodies | **NO** | Context only — re-invoke to restore |
@@ -66,7 +82,7 @@ Re-invoke `/wai-closeout` — it's idempotent. The track shows the last complete
 | Tool output context | **NO** | Compressed away |
 | In-session reasoning | **NO** | Compressed away |
 
-**Key insight:** The filesystem always survives compaction. Only the conversation context is compressed. Recovery means re-reading the right files — not starting over.
+**Key insight:** The filesystem always survives compaction. Only the conversation context is compressed — and the full wakeup briefing does **not** re-run, so do not wait for it. Recovery means reading `compact-resume.json` + the track — not starting over, and not re-waking.
 
 ---
 
@@ -74,9 +90,11 @@ Re-invoke `/wai-closeout` — it's idempotent. The track shows the last complete
 
 | Component | Purpose | Compaction-specific? |
 |-----------|---------|----------------------|
-| `pre-compact.sh` | Writes `compacted.flag` + recovery hint to compaction summary | YES |
-| `compacted.flag` in `{BASE}/runtime/` | Signals post-compaction to next turn's hook | YES |
-| `<wai-post-compact>` block in UserPromptSubmit | Re-orients Claude after compaction | YES |
+| `pre-compact.sh` | Writes `compacted.flag` + `compact-resume.json` (live pointers) + a summary hint | YES |
+| `compact-resume.json` in `{BASE}/runtime/` | Persisted pointers (session/track/initiative/lugs) — read at Step 0 | YES |
+| `compact-resume-inject.sh` (SessionStart `compact`) | Light injector — emits `<wai-compact-resume>` with pointers; does NOT re-run wakeup | YES |
+| `compacted.flag` in `{BASE}/runtime/` | Signals post-compaction to next turn's hook (belt-and-braces path) | YES |
+| `<wai-post-compact>` / `<wai-compact-resume>` block | Re-orients Claude after compaction; names `/wai-compact-resume` | YES |
 | CLAUDE.md Critical Rules "survive compaction" | Documents what survives | YES |
 | Session guard (`session-guard.json`) | General session hygiene (also helps post-compaction) | NO |
 | Ledger turn reminders | General session hygiene (also helps post-compaction) | NO |

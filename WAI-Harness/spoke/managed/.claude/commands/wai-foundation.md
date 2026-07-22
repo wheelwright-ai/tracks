@@ -11,7 +11,7 @@ See `wai-foundation-reference.md` for use cases, full JSON schemas, and query ex
 - **Nodes:** spoke, hub
 - **Exposure:** spoke.chat:local, spoke.chat:external
 - **Paths Required:** spoke_path (current directory)
-- **Lug Storage:** `WAI-Spoke/lugs/bytype/foundation/` (completed/, open/)
+- **Lug Storage:** `WAI-Harness/spoke/lugs/bytype/foundation/` (completed/, open/)
 
 ---
 
@@ -25,7 +25,7 @@ See `wai-foundation-reference.md` for use cases, full JSON schemas, and query ex
 
 ## Prerequisites
 
-- WAI-Spoke/ directory exists
+- WAI-Harness/spoke/ directory exists
 - `lugs/bytype/foundation/` directory exists (created at spoke init)
 
 ## Follow-ons
@@ -49,7 +49,7 @@ There are two distinct paths for teachings to reach a spoke. Understanding the d
 
 ### Spoke Seed/Ingest (Local Staging)
 
-- **Location:** `WAI-Spoke/seed/ingest/` (session-local staging)
+- **Location:** `WAI-Harness/spoke/seed/ingest/` (session-local staging)
 - **Role:** Local staging area for ad-hoc, one-off session loading
 - **Contents:** Session-specific teachings, experimental changes, one-time patches
 - **Lifecycle:** Loaded per-session, **not authoritative** beyond the current session

@@ -216,6 +216,28 @@ def evaluate_execute_when(lug: dict, phases: list[dict] | None = None) -> tuple[
             return False, blocked_reason(lug)
         return True, ""
 
+    # A STRING execute_when is a human note, not a machine gate.
+    #
+    # Authors write `"execute_when": "any session in mywheel"` — it reads as the
+    # obvious shape and nothing rejects it. This function assumed a dict, so one
+    # such lug anywhere in the backlog raised AttributeError out of _execute_lugs
+    # and took the WHOLE execute phase down. The chain then printed "no lug
+    # completed — queue exhausted", so a crash was reported to the operator as
+    # "there is nothing left to do" while 277 dispatchable lugs sat waiting.
+    #
+    # Treat it as prose: it carries no machine-checkable condition, so it gates
+    # nothing. Falling through to the legacy blocked_by check keeps the lug's
+    # real dependencies honoured.
+    if isinstance(ew, str):
+        if is_blocked(lug):
+            return False, blocked_reason(lug)
+        return True, ""
+
+    if not isinstance(ew, dict):
+        # Any other shape (list, number) is malformed rather than merely informal.
+        # Refuse to dispatch rather than guess — but say so instead of crashing.
+        return False, f"execute_when is {type(ew).__name__}, expected an object or a note"
+
     # Manual gate — always blocks unless overridden
     if ew.get("manual_gate", False):
         return False, "manual gate: requires explicit user approval"

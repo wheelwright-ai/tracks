@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.12.3",
+  "harness_version": "4.14.4",
   "is_master": false,
-  "generated_at": "2026-07-19T00:08:31.020277+00:00",
-  "master_sha": "7c6b6353f01da02ddffd330f017889723d1c00b3",
+  "generated_at": "2026-07-22T19:44:41.834322+00:00",
+  "master_sha": "c6a0fe9f183301abe1b02792936dbb38df125ed8",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -16,17 +16,32 @@
     },
     ".claude/agents/lug-reviewer.md": {
       "version": "4.6.5",
-      "md5": "827cc6114b9752cd0ee9308c85ba7aa1",
+      "md5": "4c000bc1da8fd8c76889155f6ca0e472",
       "owner": "basher"
     },
     ".claude/agents/ozi-nightly.md": {
       "version": "4.6.5",
-      "md5": "3759adba8565561a2a1205a612dc53db",
+      "md5": "0a7dd2c54258309e87392a0724a51d15",
       "owner": "basher"
     },
     ".claude/agents/pattern-gate.md": {
       "version": "4.6.5",
-      "md5": "b59fbd0abae59fcc10db9e6d82ecfd3f",
+      "md5": "eac143f1a494cdb2f1cdee0cbddd16ad",
+      "owner": "basher"
+    },
+    ".claude/agents/project-diagnostician.md": {
+      "version": "4.14.3",
+      "md5": "0a88dc6993805377bd591dd2fbd88760",
+      "owner": "basher"
+    },
+    ".claude/agents/recon-scout.md": {
+      "version": "4.14.3",
+      "md5": "236985387f58876ad023e269a6c3634f",
+      "owner": "basher"
+    },
+    ".claude/agents/remediation-executor.md": {
+      "version": "4.14.3",
+      "md5": "e1269052d8824935f1af9a30ba4a8b28",
       "owner": "basher"
     },
     ".claude/agents/resident.md": {
@@ -46,12 +61,22 @@
     },
     ".claude/commands/chat-to-track.md": {
       "version": "4.6.5",
-      "md5": "6f001cb7acf640a2ab675074cc1e16a5",
+      "md5": "4cdd2d5da0552f79a42eea0ac0d37ffe",
+      "owner": "basher"
+    },
+    ".claude/commands/fable-review-reference.md": {
+      "version": "4.14.3",
+      "md5": "5424e453a322767172569e617dd3f6dd",
+      "owner": "basher"
+    },
+    ".claude/commands/fable-review.md": {
+      "version": "4.14.3",
+      "md5": "b50f24601e7099d2619616ab887b25e8",
       "owner": "basher"
     },
     ".claude/commands/generate-teaching.md": {
       "version": "4.6.5",
-      "md5": "b048213ef6153944b4487d9afeac1cfb",
+      "md5": "326758ebca4b55820176072628a6b60c",
       "owner": "basher"
     },
     ".claude/commands/manifest.json": {
@@ -61,47 +86,52 @@
     },
     ".claude/commands/spoke-telemetry-closeout.md": {
       "version": "4.6.5",
-      "md5": "c3d188c705c1eb28102eda7c58de362a",
+      "md5": "efcd6e95266460e9f1c308a2ac51f8e8",
+      "owner": "basher"
+    },
+    ".claude/commands/tool-advisor.md": {
+      "version": "4.14.3",
+      "md5": "d27d9274866b3ca83ccfe1600b914b5d",
       "owner": "basher"
     },
     ".claude/commands/wai-advisor-schema-slim.md": {
       "version": "4.6.5",
-      "md5": "3fdd6592f63cdc8f280396bdd0d26840",
+      "md5": "42c66236815acb24f9f7a13da96de547",
       "owner": "basher"
     },
     ".claude/commands/wai-advisor-schema.md": {
       "version": "4.6.5",
-      "md5": "481ec60060a2657f9b85ff9dfc142d23",
+      "md5": "dab828022879076875bc00176ce429b2",
       "owner": "basher"
     },
     ".claude/commands/wai-apply-all.md": {
       "version": "4.6.5",
-      "md5": "165b07c3952b3cdc2648ae85b24ed248",
+      "md5": "f8506f2b752ad9e0d3d0b8acf4eeb23b",
       "owner": "basher"
     },
     ".claude/commands/wai-auto-off.md": {
       "version": "4.6.5",
-      "md5": "08196ba6e107d8b48fa3c1ab640b0dbf",
+      "md5": "f2ecc2162ad7c51fd120fbf1c9d9b9e3",
       "owner": "basher"
     },
     ".claude/commands/wai-auto-on.md": {
       "version": "4.6.5",
-      "md5": "2df0b67e3e76d65406f3f00aea72ff5e",
+      "md5": "547849f53eb230d8980e0b11fd411890",
       "owner": "basher"
     },
     ".claude/commands/wai-auto-parallel.md": {
       "version": "4.6.5",
-      "md5": "054cad68ec5351977d531bf4691176fc",
+      "md5": "e5095f31c82fe0e77d55412f8bbcfebd",
       "owner": "basher"
     },
     ".claude/commands/wai-auto-status.md": {
       "version": "4.6.5",
-      "md5": "316df53c92974ea245e67974de695014",
+      "md5": "54e3de527896615872c49d432322af57",
       "owner": "basher"
     },
     ".claude/commands/wai-benchmark.md": {
       "version": "4.6.5",
-      "md5": "5d3fae9ef0d622e85002ef03480b3fc7",
+      "md5": "cdb88ff10db02f1cb93450fb80523e8b",
       "owner": "basher"
     },
     ".claude/commands/wai-brief-reference.md": {
@@ -116,12 +146,12 @@
     },
     ".claude/commands/wai-chain-load.md": {
       "version": "4.6.5",
-      "md5": "98bc533dfabf2733b421e9543dc20007",
+      "md5": "077596b90a68909b03b929bbe679dabd",
       "owner": "basher"
     },
     ".claude/commands/wai-chat-to-track.md": {
       "version": "4.6.5",
-      "md5": "a80ccca522229c9b90ad4443d7e7a485",
+      "md5": "5c362d980e8caa1e50c0472872c2cc63",
       "owner": "basher"
     },
     ".claude/commands/wai-claude-maximizer-reference-slim.md": {
@@ -131,32 +161,32 @@
     },
     ".claude/commands/wai-claude-maximizer-reference.md": {
       "version": "4.6.5",
-      "md5": "ca642f8c18177745e8bcc8fa8c0b2514",
+      "md5": "2ee8c2758e708477ca770d2afbd2ca26",
       "owner": "basher"
     },
     ".claude/commands/wai-claude-maximizer.md": {
       "version": "4.6.5",
-      "md5": "b4f85d04edc63a5c5be1fb857c7e5192",
+      "md5": "83172d9b67a6ae4e1cab1daaf0541342",
       "owner": "basher"
     },
     ".claude/commands/wai-closeout-reference.md": {
       "version": "4.6.5",
-      "md5": "4330b78517533ef5dbf04260418b2bb1",
+      "md5": "8baa7c311df9a9e6c80cafbebe584ec9",
       "owner": "basher"
     },
     ".claude/commands/wai-closeout-slim.md": {
       "version": "4.6.5",
-      "md5": "25bb4a2e8586b4b201cbaaf6b2087d41",
+      "md5": "57d06a0e144a21d7931bfbc654ab4c01",
       "owner": "basher"
     },
     ".claude/commands/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "8f071a6e6d219785922d95efd925a911",
+      "md5": "980436b2b4347694904a5f84cc472c01",
       "owner": "basher"
     },
     ".claude/commands/wai-compact-resume.md": {
       "version": "4.6.5",
-      "md5": "24f21a500c0e1fa5b610cd8bed3cbced",
+      "md5": "56636ff10ef4b6b23a3fd0dea2d77841",
       "owner": "basher"
     },
     ".claude/commands/wai-complexity-gate-reference.md": {
@@ -176,13 +206,23 @@
     },
     ".claude/commands/wai-contribute.md": {
       "version": "4.6.5",
-      "md5": "fef4c9a1a06c7a3e93d95bded9d6de1a",
+      "md5": "97b139a38ac9ce89de386265ffb4c10a",
       "owner": "basher"
     },
     ".claude/commands/wai-converge.md": {
       "version": "4.6.5",
-      "md5": "2cc18b4a31eca11029d67e4f66198f22",
+      "md5": "a71b72daa13f45f56032e63fbb9e07ea",
       "owner": "basher"
+    },
+    ".claude/commands/wai-corpus-tests-slim.md": {
+      "version": "4.14.0",
+      "md5": "837578e7490ee35eb11a24c640ef1fea",
+      "owner": "framework"
+    },
+    ".claude/commands/wai-corpus-tests.md": {
+      "version": "4.14.0",
+      "md5": "28b941110117ad3b8cb751589bdc777a",
+      "owner": "framework"
     },
     ".claude/commands/wai-crew-convention-slim.md": {
       "version": "4.6.5",
@@ -196,7 +236,7 @@
     },
     ".claude/commands/wai-crew-honesty.md": {
       "version": "4.6.5",
-      "md5": "721a4ba2ef095104e8536b61849d64ec",
+      "md5": "18832d06196e0f75d96fd2616ff0233f",
       "owner": "basher"
     },
     ".claude/commands/wai-crew-track-schema.md": {
@@ -221,47 +261,47 @@
     },
     ".claude/commands/wai-foundation-gate.md": {
       "version": "4.6.5",
-      "md5": "1ea096a4c9cfc6ed19867c00594191a4",
+      "md5": "69fbdf5d646c74c1148668be304908b7",
       "owner": "basher"
     },
     ".claude/commands/wai-foundation-reference.md": {
       "version": "4.6.5",
-      "md5": "c74174b532f25657cc3610ca65328b0e",
+      "md5": "ba435883aa05004db34c03a4c62f23f6",
       "owner": "basher"
     },
     ".claude/commands/wai-foundation.md": {
       "version": "4.6.5",
-      "md5": "9beb71cc3d1f415673fec2e23157378a",
+      "md5": "6640e3ac2401285283ef50567c7fbcae",
       "owner": "basher"
     },
     ".claude/commands/wai-full-slim.md": {
       "version": "4.6.5",
-      "md5": "b2ac7194d157966a85131d889feaa6e4",
+      "md5": "82f7c0047768ed9e048e523f181dab24",
       "owner": "basher"
     },
     ".claude/commands/wai-full.md": {
       "version": "4.6.5",
-      "md5": "71963795e58d2614bab87ee0955a42ed",
+      "md5": "f706a4e4978136b743628c18c65ac375",
       "owner": "basher"
     },
     ".claude/commands/wai-harness-adopt.md": {
       "version": "4.6.5",
-      "md5": "54f31ac09fc827a89407fa30109e83b2",
+      "md5": "55c81ba31130d7809c1f7b3be191cdf9",
       "owner": "basher"
     },
     ".claude/commands/wai-health.md": {
       "version": "4.6.5",
-      "md5": "093dd6a897ef42e2c829c5c246158317",
+      "md5": "0084f1c2bc377ddd068957f00104b7f2",
       "owner": "basher"
     },
     ".claude/commands/wai-ide-setup-reference.md": {
       "version": "4.6.5",
-      "md5": "faee5579ffaa0634055af545748eeb07",
+      "md5": "bfbf1dc91d9b5f56b6a8074b0794b1de",
       "owner": "basher"
     },
     ".claude/commands/wai-ide-setup.md": {
       "version": "4.6.5",
-      "md5": "4af70dd4a0003acc8775f4cdd28143c6",
+      "md5": "91e05ada52fe5d2d593875c75b7b5361",
       "owner": "basher"
     },
     ".claude/commands/wai-improve-reference-slim.md": {
@@ -276,37 +316,37 @@
     },
     ".claude/commands/wai-improve-slim.md": {
       "version": "4.6.5",
-      "md5": "56c7100635db0ce24b17bc5edece3e3b",
+      "md5": "846a8af750b256c8c7f252d9b5b8392e",
       "owner": "basher"
     },
     ".claude/commands/wai-improve.md": {
       "version": "4.6.5",
-      "md5": "dabb59351056664b278e884fb96c0860",
+      "md5": "7220529ff1e19d8232a004faaf90945b",
       "owner": "basher"
     },
     ".claude/commands/wai-init-v2.md": {
       "version": "4.6.5",
-      "md5": "0fee9ab62b3c4acc431ecf38e3bce3a6",
+      "md5": "fe3c8a3d9021b0aac0b914fc02f920fa",
       "owner": "basher"
     },
     ".claude/commands/wai-initiative.md": {
       "version": "4.6.5",
-      "md5": "3b701808cf7c929c19a447fa03545116",
+      "md5": "9c76b100d60341e7d45b9c11afb6cb2b",
       "owner": "basher"
     },
     ".claude/commands/wai-knowme.md": {
       "version": "4.6.5",
-      "md5": "1a220ef61932e7cb6a102115308f1773",
+      "md5": "b135bd5393a964ebe5bec282e0066884",
       "owner": "basher"
     },
     ".claude/commands/wai-lug-compat-reference.md": {
       "version": "4.6.5",
-      "md5": "c73b43287a44116b0d6897d308f7bee2",
+      "md5": "db37d0b31c329744cb1c3a7efaf9c68f",
       "owner": "basher"
     },
     ".claude/commands/wai-lug-compat.md": {
       "version": "4.6.5",
-      "md5": "d5f67e8b3fda0b3326ff806d717cfcad",
+      "md5": "861708fdde21c130f123748e984035ce",
       "owner": "basher"
     },
     ".claude/commands/wai-lug-schema-reference-slim.md": {
@@ -316,22 +356,22 @@
     },
     ".claude/commands/wai-lug-schema-reference.md": {
       "version": "4.6.5",
-      "md5": "3f7a96ead846b7351ee4d2c5c0c410dc",
+      "md5": "09a720cfbc5c490139bfd538c05e959f",
       "owner": "basher"
     },
     ".claude/commands/wai-lug-schema-slim.md": {
       "version": "4.6.5",
-      "md5": "e331c5303db5f17d840699365e54f7ca",
+      "md5": "9cb502730d8765b75113c4f5e964e48e",
       "owner": "basher"
     },
     ".claude/commands/wai-lug-schema.md": {
       "version": "4.6.5",
-      "md5": "cad424ca037d72187da644c7b5379f59",
+      "md5": "b48c1c6b6525a53332e3b3b29628e347",
       "owner": "basher"
     },
     ".claude/commands/wai-mode.md": {
       "version": "4.6.5",
-      "md5": "ca6380ae665a687f4886e3a20876d1a7",
+      "md5": "831ab1374ff7a57c5dd8aaca1a9d6cb1",
       "owner": "basher"
     },
     ".claude/commands/wai-next.md": {
@@ -341,17 +381,17 @@
     },
     ".claude/commands/wai-ozi-advisor-init.md": {
       "version": "4.6.5",
-      "md5": "eef5d235b8372596203ab835b9d1c039",
+      "md5": "a8ab74caa23da246a88d63050665357d",
       "owner": "basher"
     },
     ".claude/commands/wai-ozi-autopilot-slim.md": {
       "version": "4.6.5",
-      "md5": "0ed006748aef8c971e618a5011720899",
+      "md5": "f6341208ae2ceecf1965616c0839968e",
       "owner": "basher"
     },
     ".claude/commands/wai-ozi-autopilot.md": {
       "version": "4.6.5",
-      "md5": "7cedfcdec849b37c377812cd8564b4ea",
+      "md5": "5c5285189028570191555a3371abdaf0",
       "owner": "basher"
     },
     ".claude/commands/wai-ozi-headless.md": {
@@ -361,12 +401,12 @@
     },
     ".claude/commands/wai-ozi-review.md": {
       "version": "4.6.5",
-      "md5": "8f7dd4291238b17c94c749e812af0413",
+      "md5": "53a824063ccfb4b48695da5553fcdc25",
       "owner": "basher"
     },
     ".claude/commands/wai-ozi-work-queue-monitor-reference-slim.md": {
       "version": "4.6.5",
-      "md5": "8c552a84e02b74371d3848e91ce76fb3",
+      "md5": "c5660aee60777a5c45e134569eccc017",
       "owner": "basher"
     },
     ".claude/commands/wai-ozi-work-queue-monitor-reference.md": {
@@ -381,12 +421,12 @@
     },
     ".claude/commands/wai-ozi-work-queue-monitor.md": {
       "version": "4.6.5",
-      "md5": "72cfdfd40a5d13cba5a3b82293360bc8",
+      "md5": "6e2ac7166668c0d4f68fcae517a80918",
       "owner": "basher"
     },
     ".claude/commands/wai-pattern.md": {
       "version": "4.6.5",
-      "md5": "4440c85755fdba99601edc1732b0df41",
+      "md5": "d58795c3582e30a64f4021154126de2d",
       "owner": "basher"
     },
     ".claude/commands/wai-plan-validation.md": {
@@ -396,7 +436,7 @@
     },
     ".claude/commands/wai-principles-reference.md": {
       "version": "4.6.5",
-      "md5": "f0d6aa1547ef50d62f9f62a786b50e1f",
+      "md5": "de8057216740a3b63b59c8053f8edfb9",
       "owner": "basher"
     },
     ".claude/commands/wai-principles.md": {
@@ -406,12 +446,12 @@
     },
     ".claude/commands/wai-reference-slim.md": {
       "version": "4.6.5",
-      "md5": "35c1b17de805c5d3d7f2034b4cb59e03",
+      "md5": "eb3512b5eb40ff71cf322c62a937d862",
       "owner": "basher"
     },
     ".claude/commands/wai-reference.md": {
       "version": "4.6.5",
-      "md5": "0e969692cd7c38f717b6afd6b5b1c8cf",
+      "md5": "8ca456e6891a305109f1f3b2b6816d06",
       "owner": "basher"
     },
     ".claude/commands/wai-rules.md": {
@@ -421,12 +461,12 @@
     },
     ".claude/commands/wai-savepoint.md": {
       "version": "4.6.5",
-      "md5": "61751759313c9a94bc7ecb7bae6857f7",
+      "md5": "ebdfc6b5fea5499e9fe519b9cbf58aa8",
       "owner": "basher"
     },
     ".claude/commands/wai-signal-capture.md": {
       "version": "4.6.5",
-      "md5": "d4708e861d431140066c3438ae80eb46",
+      "md5": "3e7cbe0c68dbca0a2f6a894f07be3567",
       "owner": "basher"
     },
     ".claude/commands/wai-slim.md": {
@@ -441,17 +481,17 @@
     },
     ".claude/commands/wai-stewardship-framework.md": {
       "version": "4.6.5",
-      "md5": "f67a5a36aa66292d0d36dd6190c26124",
+      "md5": "8904480b7756f9e72419efb6049b235d",
       "owner": "basher"
     },
     ".claude/commands/wai-stewardship-guard.md": {
       "version": "4.6.5",
-      "md5": "23f3c496b9c97c02c74dd35d0fbca55e",
+      "md5": "5ad7a9833062a118f44829cfbdedfcc2",
       "owner": "basher"
     },
     ".claude/commands/wai-strategic-debt-log.md": {
       "version": "4.6.5",
-      "md5": "3237c39ee14bf9e4ecba9e20b21e4b1e",
+      "md5": "95e196faf8b1c4ab6730e30400917ca5",
       "owner": "basher"
     },
     ".claude/commands/wai-sync-v2.md": {
@@ -461,8 +501,18 @@
     },
     ".claude/commands/wai-task-complete.md": {
       "version": "4.6.5",
-      "md5": "7e977c8e462a656d13522fda794aa7ee",
+      "md5": "26a2af9df4aa401170b0ebc55fc92e53",
       "owner": "basher"
+    },
+    ".claude/commands/wai-tastegraph-export.md": {
+      "version": "4.14.0",
+      "md5": "4ab0cd46565cc731c2cfca5d26d73901",
+      "owner": "framework"
+    },
+    ".claude/commands/wai-test.md": {
+      "version": "4.14.0",
+      "md5": "068ec4a77281f4705442fad4fc2ec503",
+      "owner": "framework"
     },
     ".claude/commands/wai-time.md": {
       "version": "4.6.5",
@@ -471,67 +521,67 @@
     },
     ".claude/commands/wai-tool-advisor-reference-slim.md": {
       "version": "4.6.5",
-      "md5": "e78500406273a47428b8574cae5bc3b5",
+      "md5": "45966001664265bf7fa8ca9fdd188f00",
       "owner": "basher"
     },
     ".claude/commands/wai-tool-advisor-reference.md": {
       "version": "4.6.5",
-      "md5": "7a76a7a65b487d021b16f096e68e74d5",
+      "md5": "f7cae71f58f008ec359642c66c031694",
       "owner": "basher"
     },
     ".claude/commands/wai-tool-advisor.md": {
       "version": "4.6.5",
-      "md5": "11ff78c6511518c2e8c868bd49a9c46c",
+      "md5": "52c272135be667ce55896ce685491e7a",
       "owner": "basher"
     },
     ".claude/commands/wai-tool-maximizer-gemini-reference.md": {
       "version": "4.6.5",
-      "md5": "ffc735ec474553567d7d70fa95ccdd8a",
+      "md5": "98ef18d0ee1e54f75a72f8fc54258324",
       "owner": "basher"
     },
     ".claude/commands/wai-tool-maximizer-gemini.md": {
       "version": "4.6.5",
-      "md5": "1c1af2fd69378a0056a9b430db2dbab5",
+      "md5": "5165c0e8c066188c94faae05346edb28",
       "owner": "basher"
     },
     ".claude/commands/wai-track-generate-reference.md": {
       "version": "4.6.5",
-      "md5": "e08a3bb059b829cf357919f6fcc5e1ed",
+      "md5": "a7ccbcee23cc58c0dcddc5f5a2dd949e",
       "owner": "basher"
     },
     ".claude/commands/wai-track-generate.md": {
       "version": "4.6.5",
-      "md5": "48414469e22b1963f26233e12ed83498",
+      "md5": "e5183a181e000fa4a1790c8788eb708d",
       "owner": "basher"
     },
     ".claude/commands/wai-track-rebuild-slim.md": {
       "version": "4.6.5",
-      "md5": "54b4580e7fec1bb4b9c02e39c3e1b3eb",
+      "md5": "6773dafbaa7b0b06d7b8324d41776193",
       "owner": "basher"
     },
     ".claude/commands/wai-track-rebuild.md": {
       "version": "4.6.5",
-      "md5": "b4037d848f4ce5b5159d900a5559005d",
+      "md5": "9a8ff919ccad66239e07bda391c33218",
       "owner": "basher"
     },
     ".claude/commands/wai-track-review-slim.md": {
       "version": "4.6.5",
-      "md5": "705c37d475868a27b8bf8b33bf7ee992",
+      "md5": "0a89277c58a8d7217827761cf758c0ee",
       "owner": "basher"
     },
     ".claude/commands/wai-track-review.md": {
       "version": "4.6.5",
-      "md5": "4bd7756489f658736220d974cec3879f",
+      "md5": "2f6848091db9b9073320e1f70807739e",
       "owner": "basher"
     },
     ".claude/commands/wai-track.md": {
       "version": "4.6.5",
-      "md5": "8c7e7f7a22ea5e548bb8254394119848",
+      "md5": "749e8fc707f0729325cc47b679ed3bad",
       "owner": "basher"
     },
     ".claude/commands/wai-upgrade-report-intake.md": {
       "version": "4.6.5",
-      "md5": "2c2dd20d20e48c599ca89f5536119325",
+      "md5": "28b37c3f1b35340ecec41aecfe8c74f9",
       "owner": "basher"
     },
     ".claude/commands/wai-wayfinder-slim.md": {
@@ -541,12 +591,17 @@
     },
     ".claude/commands/wai-wayfinder.md": {
       "version": "4.6.5",
-      "md5": "093637a1a40ac218982dd249dd45de6b",
+      "md5": "95211c6fc0d52229ec15905cc776e940",
       "owner": "basher"
     },
     ".claude/commands/wai.md": {
       "version": "4.6.5",
-      "md5": "6cfa72a412e4e995bb5e943378c0e293",
+      "md5": "059a97fa3fbc4e326282f94a73c50136",
+      "owner": "basher"
+    },
+    ".claude/hooks/compact-resume-inject.sh": {
+      "version": "4.14.2",
+      "md5": "b32380a85c2443162f6600caed070eba",
       "owner": "basher"
     },
     ".claude/hooks/flush_buffer.py": {
@@ -561,12 +616,12 @@
     },
     ".claude/hooks/post-tool-use.sh": {
       "version": "4.6.5",
-      "md5": "1d93a438be7da2b9be558004ce52ba8e",
+      "md5": "a2c00caf5c78818a3d6339460348ad88",
       "owner": "basher"
     },
     ".claude/hooks/pre-compact.sh": {
       "version": "4.6.5",
-      "md5": "f28c097841ea46b682e4df473e4b402d",
+      "md5": "2661b49a6a2ec7313322bea7dd7e0529",
       "owner": "basher"
     },
     ".claude/hooks/pre-tool-guard.sh": {
@@ -586,12 +641,7 @@
     },
     ".claude/hooks/session-start.sh": {
       "version": "4.6.5",
-      "md5": "480a1fb22775e835ce394213a5043659",
-      "owner": "basher"
-    },
-    ".claude/hooks/session-start.sh.prelight.bak": {
-      "version": "4.6.5",
-      "md5": "b89dc625e47030c62fa3b8c9b541ded7",
+      "md5": "de3b70bd70d5d7d0955bcc51a27420a7",
       "owner": "basher"
     },
     ".claude/hooks/stop-savepoint-guard.sh": {
@@ -606,7 +656,7 @@
     },
     ".claude/hooks/stop-track-flush.sh": {
       "version": "4.6.5",
-      "md5": "22387839718997008309867a32ed081f",
+      "md5": "f99d70ba83452240d7f3572c23c9a176",
       "owner": "basher"
     },
     ".claude/hooks/stop-worktree-hygiene.sh": {
@@ -616,17 +666,27 @@
     },
     ".claude/hooks/synthesize_turn.py": {
       "version": "4.6.5",
-      "md5": "3038a690a112367e9b0b071fc1d2ab20",
+      "md5": "a51e8a28ff9839a556aa2501171aed80",
+      "owner": "basher"
+    },
+    ".claude/hooks/turn_insight.py": {
+      "version": "4.14.4",
+      "md5": "867196bb03389db350e1249bf60c76ad",
       "owner": "basher"
     },
     ".claude/hooks/user-prompt-submit.sh": {
       "version": "4.6.5",
-      "md5": "32eccb70918170cee3c7239f396b93c7",
+      "md5": "bf82f039a398cfb9a66becfe2a843250",
       "owner": "basher"
+    },
+    ".claude/hooks/validate_track_buffer.py": {
+      "version": "4.14.0",
+      "md5": "0a7c5703154b3afe753785c433e4d855",
+      "owner": "framework"
     },
     ".claude/hooks/wakeup-canonical.sh": {
       "version": "4.6.5",
-      "md5": "5864e3579c5fbf05afbe08a64dd6d36f",
+      "md5": "254c7be798b4026a23b3f79f84489383",
       "owner": "basher"
     },
     ".claude/hooks/worktree-create.sh": {
@@ -636,7 +696,7 @@
     },
     ".claude/settings.json": {
       "version": "4.6.5",
-      "md5": "d93dc888e80519461ecc24b749d60218",
+      "md5": "250400e13027c0960d9da9b9201bc492",
       "owner": "basher"
     },
     ".claude/skills/generated/adapters/SKILL.md": {
@@ -759,6 +819,16 @@
       "md5": "9ba618bb478c9fe1efb360d255a25eba",
       "owner": "basher"
     },
+    ".claude/workflows/fable-review-pass2.js": {
+      "version": "4.14.3",
+      "md5": "5d113e38f5b55f14833111b26ca0e62c",
+      "owner": "basher"
+    },
+    ".claude/workflows/fable-review.js": {
+      "version": "4.14.3",
+      "md5": "09b856e3bc49eb6337056dfc70c56aed",
+      "owner": "basher"
+    },
     ".gemini/settings.json": {
       "version": "4.6.5",
       "md5": "23ff7954746a878c437ca8474febea7d",
@@ -821,7 +891,7 @@
     },
     "capabilities-graph.json": {
       "version": "4.6.5",
-      "md5": "2d6135097b1c48dc4a18c787a4c04d56",
+      "md5": "f3fc75ee1f670a1fd8ddb6608e1d3d0a",
       "owner": "basher"
     },
     "config/.gitkeep": {
@@ -849,9 +919,14 @@
       "md5": "23059ea13d0e4e0f8e659fe6bce91615",
       "owner": "basher"
     },
+    "corpus-tests/.gitkeep": {
+      "version": "4.14.0",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "owner": "framework"
+    },
     "crew/KNOWLEDGE.md": {
       "version": "4.6.5",
-      "md5": "b6c3c80fcc130fd80aadd9fd69e50f7f",
+      "md5": "57240fd1e66bd84e5a5a16abcad4b9bd",
       "owner": "basher"
     },
     "crew/README.md": {
@@ -861,7 +936,7 @@
     },
     "crew/SOP.md": {
       "version": "4.6.5",
-      "md5": "f69b353d78acccd06e31b1574ab17d1d",
+      "md5": "dcc4eec6e9784017c9552b88d70941d9",
       "owner": "basher"
     },
     "crew/advisors-registry.json": {
@@ -921,12 +996,12 @@
     },
     "docs/harness/HUB-DATA-PORT-MAP.md": {
       "version": "4.6.5",
-      "md5": "8052e366f485a8f520b9d00fc4399b1c",
+      "md5": "43b846a60891e197587eaf3c92284d3d",
       "owner": "basher"
     },
     "docs/harness/V4-COMPLETE-PLAN.md": {
       "version": "4.6.5",
-      "md5": "fb9e8b02db98f3eaa9220d092ed10724",
+      "md5": "4ec1edca7fa9bf13aa1e60a6dc2f58d9",
       "owner": "basher"
     },
     "docs/harness/cautions/caution-v4-canonicalize-to-master-blocked-v1.json": {
@@ -956,12 +1031,12 @@
     },
     "docs/lug/Wheelwright-Governance.md": {
       "version": "4.6.5",
-      "md5": "b6e4d958dd6e89c1ef520e700c88e0cf",
+      "md5": "08909af328e19181f6809783b57486a5",
       "owner": "basher"
     },
     "docs/spoke-v3-base/README.md": {
       "version": "4.6.5",
-      "md5": "7946e5898bce7719a5214c8529f310dd",
+      "md5": "c57a9d3b9bd73562b299563a66784970",
       "owner": "basher"
     },
     "docs/spoke-v3-base/teachings/README.md": {
@@ -1501,7 +1576,7 @@
     },
     "shared/codebase/skills/wai-ozi-autopilot.md": {
       "version": "4.6.5",
-      "md5": "7e098ce48cf84553e4338ab05ca3edfb",
+      "md5": "bf73314f2089488a8e438c01b62f752f",
       "owner": "basher"
     },
     "shared/codebase/skills/wai-shipit.yaml": {
@@ -1521,7 +1596,7 @@
     },
     "shared/codebase/tools/advisor_schedule_eval.py": {
       "version": "4.6.5",
-      "md5": "c995d06460d81d8b98105216b6171f77",
+      "md5": "4055588fe0d738a23d7720a73f13157a",
       "owner": "basher"
     },
     "shared/codebase/tools/cc_advisor.py": {
@@ -1531,7 +1606,7 @@
     },
     "shared/codebase/tools/closeout.sh": {
       "version": "4.6.5",
-      "md5": "63bf152c0f1f19fc78e548d5d138bbfe",
+      "md5": "c60498460da3577f1064b54460626f4f",
       "owner": "basher"
     },
     "shared/codebase/tools/enrich_lugs.py": {
@@ -1559,9 +1634,14 @@
       "md5": "0c5dc93dbf409187750e69826c6f6251",
       "owner": "basher"
     },
+    "shared/codebase/tools/luci_check.py": {
+      "version": "4.14.0",
+      "md5": "02fc50148ac3cad35065182924926f03",
+      "owner": "framework"
+    },
     "shared/codebase/tools/lug_utils.py": {
       "version": "4.6.5",
-      "md5": "f9b9ab69b80bd62702148738585e9792",
+      "md5": "e6cec3c137aa1cf7fce47e05d5e33ee4",
       "owner": "basher"
     },
     "shared/codebase/tools/pre_commit_health.py": {
@@ -1581,7 +1661,7 @@
     },
     "shared/codebase/tools/score_backlog.py": {
       "version": "4.6.5",
-      "md5": "824cf50cf4760069411fb80b8bb5e044",
+      "md5": "a930e139ad4af608e797a40a8669e621",
       "owner": "basher"
     },
     "shared/codebase/tools/security_scan.py": {
@@ -1831,7 +1911,7 @@
     },
     "supabase/MIGRATION_APPLY.md": {
       "version": "4.6.5",
-      "md5": "9aa2e2af266a1d17b3f4f4bc72825388",
+      "md5": "ea49536c58960a5dabfdd6efba752191",
       "owner": "basher"
     },
     "supabase/migrations/20260529000000_create_activity_events.sql": {
@@ -1916,7 +1996,7 @@
     },
     "templates/HUB/WAI-Spoke/WAI-Guide.md": {
       "version": "4.6.5",
-      "md5": "774f9b7f4e089850ae8d3fd7ffbf0084",
+      "md5": "86174091bce40003a8691d2c50c3606c",
       "owner": "basher"
     },
     "templates/HUB/WAI-Spoke/WAI-Lugs.jsonl": {
@@ -1936,7 +2016,7 @@
     },
     "templates/HUB/WAI-Spoke/WAI-State.md": {
       "version": "4.6.5",
-      "md5": "042014135d43deb7d4433d344bea12d9",
+      "md5": "6e8556b00b8d1375e63edad169f077d7",
       "owner": "basher"
     },
     "templates/HUB/WAI-Spoke/seed/README.md": {
@@ -2016,22 +2096,22 @@
     },
     "templates/agents/octo.md": {
       "version": "4.6.5",
-      "md5": "7b155a3d931b162849d3c1a5ad9e0cb6",
+      "md5": "ffc81eec8127073ec9bd3d4a402a5135",
       "owner": "basher"
     },
     "templates/agents/ozi.md": {
       "version": "4.6.5",
-      "md5": "21ef5b5ffe5a6be0ecae149f2b50951c",
+      "md5": "5ae91df0869f4d39944b97912f436dd9",
       "owner": "basher"
     },
     "templates/claude/CLAUDE.md": {
       "version": "4.6.5",
-      "md5": "faf8a9ba550e67cffbf31c2f3bd65d81",
+      "md5": "68662389ee2f32fd82616320b1be2065",
       "owner": "basher"
     },
     "templates/codex/AGENTS.md": {
       "version": "4.6.5",
-      "md5": "29ef44652fe8df446cf3b5c4563fb1e5",
+      "md5": "82f9796e942a55ff5f8cc94c5981dc5f",
       "owner": "basher"
     },
     "templates/commands/SKILL-EXAMPLES.md": {
@@ -2041,12 +2121,12 @@
     },
     "templates/commands/chat-to-track.md": {
       "version": "4.6.5",
-      "md5": "6f001cb7acf640a2ab675074cc1e16a5",
+      "md5": "4cdd2d5da0552f79a42eea0ac0d37ffe",
       "owner": "basher"
     },
     "templates/commands/generate-teaching.md": {
       "version": "4.6.5",
-      "md5": "b048213ef6153944b4487d9afeac1cfb",
+      "md5": "326758ebca4b55820176072628a6b60c",
       "owner": "basher"
     },
     "templates/commands/manifest.json": {
@@ -2056,47 +2136,47 @@
     },
     "templates/commands/spoke-telemetry-closeout.md": {
       "version": "4.6.5",
-      "md5": "c3d188c705c1eb28102eda7c58de362a",
+      "md5": "efcd6e95266460e9f1c308a2ac51f8e8",
       "owner": "basher"
     },
     "templates/commands/wai-advisor-schema-slim.md": {
       "version": "4.6.5",
-      "md5": "3fdd6592f63cdc8f280396bdd0d26840",
+      "md5": "42c66236815acb24f9f7a13da96de547",
       "owner": "basher"
     },
     "templates/commands/wai-advisor-schema.md": {
       "version": "4.6.5",
-      "md5": "481ec60060a2657f9b85ff9dfc142d23",
+      "md5": "dab828022879076875bc00176ce429b2",
       "owner": "basher"
     },
     "templates/commands/wai-apply-all.md": {
       "version": "4.6.5",
-      "md5": "165b07c3952b3cdc2648ae85b24ed248",
+      "md5": "f8506f2b752ad9e0d3d0b8acf4eeb23b",
       "owner": "basher"
     },
     "templates/commands/wai-auto-off.md": {
       "version": "4.6.5",
-      "md5": "08196ba6e107d8b48fa3c1ab640b0dbf",
+      "md5": "f2ecc2162ad7c51fd120fbf1c9d9b9e3",
       "owner": "basher"
     },
     "templates/commands/wai-auto-on.md": {
       "version": "4.6.5",
-      "md5": "2df0b67e3e76d65406f3f00aea72ff5e",
+      "md5": "547849f53eb230d8980e0b11fd411890",
       "owner": "basher"
     },
     "templates/commands/wai-auto-parallel.md": {
       "version": "4.6.5",
-      "md5": "054cad68ec5351977d531bf4691176fc",
+      "md5": "e5095f31c82fe0e77d55412f8bbcfebd",
       "owner": "basher"
     },
     "templates/commands/wai-auto-status.md": {
       "version": "4.6.5",
-      "md5": "316df53c92974ea245e67974de695014",
+      "md5": "54e3de527896615872c49d432322af57",
       "owner": "basher"
     },
     "templates/commands/wai-benchmark.md": {
       "version": "4.6.5",
-      "md5": "5d3fae9ef0d622e85002ef03480b3fc7",
+      "md5": "cdb88ff10db02f1cb93450fb80523e8b",
       "owner": "basher"
     },
     "templates/commands/wai-brief-reference.md": {
@@ -2111,12 +2191,12 @@
     },
     "templates/commands/wai-chain-load.md": {
       "version": "4.6.5",
-      "md5": "98bc533dfabf2733b421e9543dc20007",
+      "md5": "077596b90a68909b03b929bbe679dabd",
       "owner": "basher"
     },
     "templates/commands/wai-chat-to-track.md": {
       "version": "4.6.5",
-      "md5": "a80ccca522229c9b90ad4443d7e7a485",
+      "md5": "5c362d980e8caa1e50c0472872c2cc63",
       "owner": "basher"
     },
     "templates/commands/wai-claude-maximizer-reference-slim.md": {
@@ -2126,32 +2206,37 @@
     },
     "templates/commands/wai-claude-maximizer-reference.md": {
       "version": "4.6.5",
-      "md5": "ca642f8c18177745e8bcc8fa8c0b2514",
+      "md5": "2ee8c2758e708477ca770d2afbd2ca26",
       "owner": "basher"
     },
     "templates/commands/wai-claude-maximizer.md": {
       "version": "4.6.5",
-      "md5": "b4f85d04edc63a5c5be1fb857c7e5192",
+      "md5": "83172d9b67a6ae4e1cab1daaf0541342",
       "owner": "basher"
+    },
+    "templates/commands/wai-closeout-feedback-v2-slim.md": {
+      "version": "4.14.0",
+      "md5": "5485e43b375bf8b0a10bb4f6057137e6",
+      "owner": "framework"
     },
     "templates/commands/wai-closeout-reference.md": {
       "version": "4.6.5",
-      "md5": "4330b78517533ef5dbf04260418b2bb1",
+      "md5": "8baa7c311df9a9e6c80cafbebe584ec9",
       "owner": "basher"
     },
     "templates/commands/wai-closeout-slim.md": {
       "version": "4.6.5",
-      "md5": "25bb4a2e8586b4b201cbaaf6b2087d41",
+      "md5": "57d06a0e144a21d7931bfbc654ab4c01",
       "owner": "basher"
     },
     "templates/commands/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "8f071a6e6d219785922d95efd925a911",
+      "md5": "980436b2b4347694904a5f84cc472c01",
       "owner": "basher"
     },
     "templates/commands/wai-compact-resume.md": {
       "version": "4.6.5",
-      "md5": "24f21a500c0e1fa5b610cd8bed3cbced",
+      "md5": "56636ff10ef4b6b23a3fd0dea2d77841",
       "owner": "basher"
     },
     "templates/commands/wai-complexity-gate-reference.md": {
@@ -2171,13 +2256,23 @@
     },
     "templates/commands/wai-contribute.md": {
       "version": "4.6.5",
-      "md5": "fef4c9a1a06c7a3e93d95bded9d6de1a",
+      "md5": "97b139a38ac9ce89de386265ffb4c10a",
       "owner": "basher"
     },
     "templates/commands/wai-converge.md": {
       "version": "4.6.5",
-      "md5": "2cc18b4a31eca11029d67e4f66198f22",
+      "md5": "a71b72daa13f45f56032e63fbb9e07ea",
       "owner": "basher"
+    },
+    "templates/commands/wai-corpus-tests-slim.md": {
+      "version": "4.14.0",
+      "md5": "837578e7490ee35eb11a24c640ef1fea",
+      "owner": "framework"
+    },
+    "templates/commands/wai-corpus-tests.md": {
+      "version": "4.14.0",
+      "md5": "28b941110117ad3b8cb751589bdc777a",
+      "owner": "framework"
     },
     "templates/commands/wai-crew-convention-slim.md": {
       "version": "4.6.5",
@@ -2191,7 +2286,7 @@
     },
     "templates/commands/wai-crew-honesty.md": {
       "version": "4.6.5",
-      "md5": "721a4ba2ef095104e8536b61849d64ec",
+      "md5": "18832d06196e0f75d96fd2616ff0233f",
       "owner": "basher"
     },
     "templates/commands/wai-crew-track-schema.md": {
@@ -2216,47 +2311,47 @@
     },
     "templates/commands/wai-foundation-gate.md": {
       "version": "4.6.5",
-      "md5": "1ea096a4c9cfc6ed19867c00594191a4",
+      "md5": "69fbdf5d646c74c1148668be304908b7",
       "owner": "basher"
     },
     "templates/commands/wai-foundation-reference.md": {
       "version": "4.6.5",
-      "md5": "c74174b532f25657cc3610ca65328b0e",
+      "md5": "ba435883aa05004db34c03a4c62f23f6",
       "owner": "basher"
     },
     "templates/commands/wai-foundation.md": {
       "version": "4.6.5",
-      "md5": "9beb71cc3d1f415673fec2e23157378a",
+      "md5": "6640e3ac2401285283ef50567c7fbcae",
       "owner": "basher"
     },
     "templates/commands/wai-full-slim.md": {
       "version": "4.6.5",
-      "md5": "b2ac7194d157966a85131d889feaa6e4",
+      "md5": "82f7c0047768ed9e048e523f181dab24",
       "owner": "basher"
     },
     "templates/commands/wai-full.md": {
       "version": "4.6.5",
-      "md5": "71963795e58d2614bab87ee0955a42ed",
+      "md5": "f706a4e4978136b743628c18c65ac375",
       "owner": "basher"
     },
     "templates/commands/wai-harness-adopt.md": {
       "version": "4.6.5",
-      "md5": "54f31ac09fc827a89407fa30109e83b2",
+      "md5": "55c81ba31130d7809c1f7b3be191cdf9",
       "owner": "basher"
     },
     "templates/commands/wai-health.md": {
       "version": "4.6.5",
-      "md5": "093dd6a897ef42e2c829c5c246158317",
+      "md5": "0084f1c2bc377ddd068957f00104b7f2",
       "owner": "basher"
     },
     "templates/commands/wai-ide-setup-reference.md": {
       "version": "4.6.5",
-      "md5": "faee5579ffaa0634055af545748eeb07",
+      "md5": "bfbf1dc91d9b5f56b6a8074b0794b1de",
       "owner": "basher"
     },
     "templates/commands/wai-ide-setup.md": {
       "version": "4.6.5",
-      "md5": "4af70dd4a0003acc8775f4cdd28143c6",
+      "md5": "91e05ada52fe5d2d593875c75b7b5361",
       "owner": "basher"
     },
     "templates/commands/wai-improve-reference-slim.md": {
@@ -2271,37 +2366,37 @@
     },
     "templates/commands/wai-improve-slim.md": {
       "version": "4.6.5",
-      "md5": "56c7100635db0ce24b17bc5edece3e3b",
+      "md5": "846a8af750b256c8c7f252d9b5b8392e",
       "owner": "basher"
     },
     "templates/commands/wai-improve.md": {
       "version": "4.6.5",
-      "md5": "dabb59351056664b278e884fb96c0860",
+      "md5": "7220529ff1e19d8232a004faaf90945b",
       "owner": "basher"
     },
     "templates/commands/wai-init-v2.md": {
       "version": "4.6.5",
-      "md5": "0fee9ab62b3c4acc431ecf38e3bce3a6",
+      "md5": "fe3c8a3d9021b0aac0b914fc02f920fa",
       "owner": "basher"
     },
     "templates/commands/wai-initiative.md": {
       "version": "4.6.5",
-      "md5": "3b701808cf7c929c19a447fa03545116",
+      "md5": "9c76b100d60341e7d45b9c11afb6cb2b",
       "owner": "basher"
     },
     "templates/commands/wai-knowme.md": {
       "version": "4.6.5",
-      "md5": "1a220ef61932e7cb6a102115308f1773",
+      "md5": "b135bd5393a964ebe5bec282e0066884",
       "owner": "basher"
     },
     "templates/commands/wai-lug-compat-reference.md": {
       "version": "4.6.5",
-      "md5": "c73b43287a44116b0d6897d308f7bee2",
+      "md5": "db37d0b31c329744cb1c3a7efaf9c68f",
       "owner": "basher"
     },
     "templates/commands/wai-lug-compat.md": {
       "version": "4.6.5",
-      "md5": "d5f67e8b3fda0b3326ff806d717cfcad",
+      "md5": "861708fdde21c130f123748e984035ce",
       "owner": "basher"
     },
     "templates/commands/wai-lug-schema-reference-slim.md": {
@@ -2311,22 +2406,22 @@
     },
     "templates/commands/wai-lug-schema-reference.md": {
       "version": "4.6.5",
-      "md5": "3f7a96ead846b7351ee4d2c5c0c410dc",
+      "md5": "09a720cfbc5c490139bfd538c05e959f",
       "owner": "basher"
     },
     "templates/commands/wai-lug-schema-slim.md": {
       "version": "4.6.5",
-      "md5": "e331c5303db5f17d840699365e54f7ca",
+      "md5": "9cb502730d8765b75113c4f5e964e48e",
       "owner": "basher"
     },
     "templates/commands/wai-lug-schema.md": {
       "version": "4.6.5",
-      "md5": "cad424ca037d72187da644c7b5379f59",
+      "md5": "b48c1c6b6525a53332e3b3b29628e347",
       "owner": "basher"
     },
     "templates/commands/wai-mode.md": {
       "version": "4.6.5",
-      "md5": "ca6380ae665a687f4886e3a20876d1a7",
+      "md5": "831ab1374ff7a57c5dd8aaca1a9d6cb1",
       "owner": "basher"
     },
     "templates/commands/wai-next.md": {
@@ -2336,17 +2431,17 @@
     },
     "templates/commands/wai-ozi-advisor-init.md": {
       "version": "4.6.5",
-      "md5": "eef5d235b8372596203ab835b9d1c039",
+      "md5": "a8ab74caa23da246a88d63050665357d",
       "owner": "basher"
     },
     "templates/commands/wai-ozi-autopilot-slim.md": {
       "version": "4.6.5",
-      "md5": "0ed006748aef8c971e618a5011720899",
+      "md5": "f6341208ae2ceecf1965616c0839968e",
       "owner": "basher"
     },
     "templates/commands/wai-ozi-autopilot.md": {
       "version": "4.6.5",
-      "md5": "7cedfcdec849b37c377812cd8564b4ea",
+      "md5": "5c5285189028570191555a3371abdaf0",
       "owner": "basher"
     },
     "templates/commands/wai-ozi-headless.md": {
@@ -2356,12 +2451,12 @@
     },
     "templates/commands/wai-ozi-review.md": {
       "version": "4.6.5",
-      "md5": "8f7dd4291238b17c94c749e812af0413",
+      "md5": "53a824063ccfb4b48695da5553fcdc25",
       "owner": "basher"
     },
     "templates/commands/wai-ozi-work-queue-monitor-reference-slim.md": {
       "version": "4.6.5",
-      "md5": "8c552a84e02b74371d3848e91ce76fb3",
+      "md5": "c5660aee60777a5c45e134569eccc017",
       "owner": "basher"
     },
     "templates/commands/wai-ozi-work-queue-monitor-reference.md": {
@@ -2376,12 +2471,12 @@
     },
     "templates/commands/wai-ozi-work-queue-monitor.md": {
       "version": "4.6.5",
-      "md5": "72cfdfd40a5d13cba5a3b82293360bc8",
+      "md5": "6e2ac7166668c0d4f68fcae517a80918",
       "owner": "basher"
     },
     "templates/commands/wai-pattern.md": {
       "version": "4.6.5",
-      "md5": "4440c85755fdba99601edc1732b0df41",
+      "md5": "d58795c3582e30a64f4021154126de2d",
       "owner": "basher"
     },
     "templates/commands/wai-plan-validation.md": {
@@ -2391,7 +2486,7 @@
     },
     "templates/commands/wai-principles-reference.md": {
       "version": "4.6.5",
-      "md5": "f0d6aa1547ef50d62f9f62a786b50e1f",
+      "md5": "de8057216740a3b63b59c8053f8edfb9",
       "owner": "basher"
     },
     "templates/commands/wai-principles.md": {
@@ -2401,12 +2496,12 @@
     },
     "templates/commands/wai-reference-slim.md": {
       "version": "4.6.5",
-      "md5": "35c1b17de805c5d3d7f2034b4cb59e03",
+      "md5": "eb3512b5eb40ff71cf322c62a937d862",
       "owner": "basher"
     },
     "templates/commands/wai-reference.md": {
       "version": "4.6.5",
-      "md5": "0e969692cd7c38f717b6afd6b5b1c8cf",
+      "md5": "8ca456e6891a305109f1f3b2b6816d06",
       "owner": "basher"
     },
     "templates/commands/wai-rules.md": {
@@ -2416,12 +2511,12 @@
     },
     "templates/commands/wai-savepoint.md": {
       "version": "4.6.5",
-      "md5": "61751759313c9a94bc7ecb7bae6857f7",
+      "md5": "ebdfc6b5fea5499e9fe519b9cbf58aa8",
       "owner": "basher"
     },
     "templates/commands/wai-signal-capture.md": {
       "version": "4.6.5",
-      "md5": "d4708e861d431140066c3438ae80eb46",
+      "md5": "3e7cbe0c68dbca0a2f6a894f07be3567",
       "owner": "basher"
     },
     "templates/commands/wai-slim.md": {
@@ -2436,17 +2531,17 @@
     },
     "templates/commands/wai-stewardship-framework.md": {
       "version": "4.6.5",
-      "md5": "f67a5a36aa66292d0d36dd6190c26124",
+      "md5": "8904480b7756f9e72419efb6049b235d",
       "owner": "basher"
     },
     "templates/commands/wai-stewardship-guard.md": {
       "version": "4.6.5",
-      "md5": "23f3c496b9c97c02c74dd35d0fbca55e",
+      "md5": "5ad7a9833062a118f44829cfbdedfcc2",
       "owner": "basher"
     },
     "templates/commands/wai-strategic-debt-log.md": {
       "version": "4.6.5",
-      "md5": "3237c39ee14bf9e4ecba9e20b21e4b1e",
+      "md5": "95e196faf8b1c4ab6730e30400917ca5",
       "owner": "basher"
     },
     "templates/commands/wai-sync-v2.md": {
@@ -2456,8 +2551,18 @@
     },
     "templates/commands/wai-task-complete.md": {
       "version": "4.6.5",
-      "md5": "7e977c8e462a656d13522fda794aa7ee",
+      "md5": "26a2af9df4aa401170b0ebc55fc92e53",
       "owner": "basher"
+    },
+    "templates/commands/wai-tastegraph-export.md": {
+      "version": "4.14.0",
+      "md5": "4ab0cd46565cc731c2cfca5d26d73901",
+      "owner": "framework"
+    },
+    "templates/commands/wai-test.md": {
+      "version": "4.14.0",
+      "md5": "068ec4a77281f4705442fad4fc2ec503",
+      "owner": "framework"
     },
     "templates/commands/wai-time.md": {
       "version": "4.6.5",
@@ -2466,67 +2571,67 @@
     },
     "templates/commands/wai-tool-advisor-reference-slim.md": {
       "version": "4.6.5",
-      "md5": "e78500406273a47428b8574cae5bc3b5",
+      "md5": "45966001664265bf7fa8ca9fdd188f00",
       "owner": "basher"
     },
     "templates/commands/wai-tool-advisor-reference.md": {
       "version": "4.6.5",
-      "md5": "7a76a7a65b487d021b16f096e68e74d5",
+      "md5": "f7cae71f58f008ec359642c66c031694",
       "owner": "basher"
     },
     "templates/commands/wai-tool-advisor.md": {
       "version": "4.6.5",
-      "md5": "11ff78c6511518c2e8c868bd49a9c46c",
+      "md5": "52c272135be667ce55896ce685491e7a",
       "owner": "basher"
     },
     "templates/commands/wai-tool-maximizer-gemini-reference.md": {
       "version": "4.6.5",
-      "md5": "ffc735ec474553567d7d70fa95ccdd8a",
+      "md5": "98ef18d0ee1e54f75a72f8fc54258324",
       "owner": "basher"
     },
     "templates/commands/wai-tool-maximizer-gemini.md": {
       "version": "4.6.5",
-      "md5": "1c1af2fd69378a0056a9b430db2dbab5",
+      "md5": "5165c0e8c066188c94faae05346edb28",
       "owner": "basher"
     },
     "templates/commands/wai-track-generate-reference.md": {
       "version": "4.6.5",
-      "md5": "e08a3bb059b829cf357919f6fcc5e1ed",
+      "md5": "a7ccbcee23cc58c0dcddc5f5a2dd949e",
       "owner": "basher"
     },
     "templates/commands/wai-track-generate.md": {
       "version": "4.6.5",
-      "md5": "48414469e22b1963f26233e12ed83498",
+      "md5": "e5183a181e000fa4a1790c8788eb708d",
       "owner": "basher"
     },
     "templates/commands/wai-track-rebuild-slim.md": {
       "version": "4.6.5",
-      "md5": "54b4580e7fec1bb4b9c02e39c3e1b3eb",
+      "md5": "6773dafbaa7b0b06d7b8324d41776193",
       "owner": "basher"
     },
     "templates/commands/wai-track-rebuild.md": {
       "version": "4.6.5",
-      "md5": "b4037d848f4ce5b5159d900a5559005d",
+      "md5": "9a8ff919ccad66239e07bda391c33218",
       "owner": "basher"
     },
     "templates/commands/wai-track-review-slim.md": {
       "version": "4.6.5",
-      "md5": "705c37d475868a27b8bf8b33bf7ee992",
+      "md5": "0a89277c58a8d7217827761cf758c0ee",
       "owner": "basher"
     },
     "templates/commands/wai-track-review.md": {
       "version": "4.6.5",
-      "md5": "4bd7756489f658736220d974cec3879f",
+      "md5": "2f6848091db9b9073320e1f70807739e",
       "owner": "basher"
     },
     "templates/commands/wai-track.md": {
       "version": "4.6.5",
-      "md5": "8c7e7f7a22ea5e548bb8254394119848",
+      "md5": "749e8fc707f0729325cc47b679ed3bad",
       "owner": "basher"
     },
     "templates/commands/wai-upgrade-report-intake.md": {
       "version": "4.6.5",
-      "md5": "2c2dd20d20e48c599ca89f5536119325",
+      "md5": "28b37c3f1b35340ecec41aecfe8c74f9",
       "owner": "basher"
     },
     "templates/commands/wai-wayfinder-slim.md": {
@@ -2536,12 +2641,12 @@
     },
     "templates/commands/wai-wayfinder.md": {
       "version": "4.6.5",
-      "md5": "093637a1a40ac218982dd249dd45de6b",
+      "md5": "95211c6fc0d52229ec15905cc776e940",
       "owner": "basher"
     },
     "templates/commands/wai.md": {
       "version": "4.6.5",
-      "md5": "6cfa72a412e4e995bb5e943378c0e293",
+      "md5": "059a97fa3fbc4e326282f94a73c50136",
       "owner": "basher"
     },
     "templates/cursor/.cursorrules": {
@@ -2551,12 +2656,12 @@
     },
     "templates/gemini/GEMINI.md": {
       "version": "4.6.5",
-      "md5": "f936c475ebdc49d6ba36cc1e1a32c538",
+      "md5": "0ad39ee12017a327d9f80f8831332cea",
       "owner": "basher"
     },
     "templates/generic/AI-INSTRUCTIONS.md": {
       "version": "4.6.5",
-      "md5": "af8cce40e0c1c5d51bc91b1af998cb29",
+      "md5": "994e47a1d1488f463c168a7cbef1696e",
       "owner": "basher"
     },
     "templates/harness-base/00-manifest.json": {
@@ -2571,17 +2676,17 @@
     },
     "templates/harness-base/02-detect.md": {
       "version": "4.6.5",
-      "md5": "eb0ade8fa0280e0c677c3895fbe16db6",
+      "md5": "a37d6a036aa90c75e223b1292eae88b5",
       "owner": "basher"
     },
     "templates/harness-base/03-bootstrap.md": {
       "version": "4.6.5",
-      "md5": "4399bbfd13036eeca494611721cf34e2",
+      "md5": "4394d201773b644c0fd2960f807b68cf",
       "owner": "basher"
     },
     "templates/harness-base/04-migrate.md": {
       "version": "4.6.5",
-      "md5": "5859b75b48844cc87796764c04d9e379",
+      "md5": "7eae9ef9391e833ed5c3cade7add9ea2",
       "owner": "basher"
     },
     "templates/harness-base/05-hygiene.md": {
@@ -2591,7 +2696,7 @@
     },
     "templates/harness-base/06-verify.md": {
       "version": "4.6.5",
-      "md5": "e40bd687492a17d5e26f3e487f42c7e4",
+      "md5": "239e17fa00b5f4886da91de6b17a7ff2",
       "owner": "basher"
     },
     "templates/harness-base/README.md": {
@@ -2641,7 +2746,7 @@
     },
     "templates/qwen/QWEN.md": {
       "version": "4.6.5",
-      "md5": "b93e2c0bed8ec67772ec3179e9f85db1",
+      "md5": "e114f7f15217bcca846e2a855ff1c2ef",
       "owner": "basher"
     },
     "templates/registry/teams-schema.json": {
@@ -2659,14 +2764,74 @@
       "md5": "f4cc3d46b30c39c0df1d155ee3a9bc78",
       "owner": "basher"
     },
+    "templates/spoke/.claude/hooks/compact-resume-inject.sh": {
+      "version": "4.14.2",
+      "md5": "b32380a85c2443162f6600caed070eba",
+      "owner": "basher"
+    },
+    "templates/spoke/.claude/hooks/flush_buffer.py": {
+      "version": "4.14.0",
+      "md5": "321a1743f22962b144f26f6617125f0d",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/pre-compact.sh": {
+      "version": "4.14.0",
+      "md5": "2661b49a6a2ec7313322bea7dd7e0529",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/pre-tool-guard.sh": {
+      "version": "4.14.0",
+      "md5": "852664076ab5cef3cc8e8c7919c46529",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/session-start.sh": {
+      "version": "4.14.0",
+      "md5": "2f4ce235f0ee5586c33bb6b56a7699b4",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/stop-test-runner.sh": {
+      "version": "4.14.0",
+      "md5": "9b51d4666ea482a9efa35636084ab7fd",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/stop-track-flush.sh": {
+      "version": "4.14.0",
+      "md5": "22387839718997008309867a32ed081f",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/synthesize_turn.py": {
+      "version": "4.14.0",
+      "md5": "3038a690a112367e9b0b071fc1d2ab20",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/user-prompt-submit.sh": {
+      "version": "4.14.0",
+      "md5": "b6d97abf222bb07cbd2443b41d5bc3b0",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/validate_track_buffer.py": {
+      "version": "4.14.0",
+      "md5": "9fa9ef169f8c17b8c05f046965be95f8",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/wakeup-canonical.sh": {
+      "version": "4.14.0",
+      "md5": "254c7be798b4026a23b3f79f84489383",
+      "owner": "framework"
+    },
+    "templates/spoke/.claude/hooks/worktree-create.sh": {
+      "version": "4.14.0",
+      "md5": "a53270d250676b466a3a2887a92670f2",
+      "owner": "framework"
+    },
     "templates/spoke/.claude/settings.json": {
       "version": "4.6.5",
-      "md5": "fcca7295fc1cbd866ee5df539a5a3487",
+      "md5": "c006d6f7414ee841c9f6d0c006e5d7f5",
       "owner": "basher"
     },
     "templates/spoke/.githooks/pre-commit": {
       "version": "4.6.5",
-      "md5": "fca74e5baa3cb34e10c431c34c3e3a7b",
+      "md5": "4a441edaa90022c8bc6c1c4bdc8ee932",
       "owner": "basher"
     },
     "templates/spoke/.gitignore": {
@@ -2681,17 +2846,17 @@
     },
     "templates/spoke/AGENTS.md": {
       "version": "4.6.5",
-      "md5": "4ffb17890f75ea4733f6c862be778214",
+      "md5": "66ba5e2b137970c9d26c36f3027f86f4",
       "owner": "basher"
     },
     "templates/spoke/CLAUDE.md": {
       "version": "4.6.5",
-      "md5": "83f98fa3975e20922c3c1a6e2dcbd891",
+      "md5": "97281bfdfb35cb7e8fc74c3819b4e6c3",
       "owner": "basher"
     },
     "templates/spoke/GEMINI.md": {
       "version": "4.6.5",
-      "md5": "942c1cbda3cc506c72c3ab8b6a48e74b",
+      "md5": "30b994cd7b178384a949f0015cc47dff",
       "owner": "basher"
     },
     "templates/spoke/LAUNCHER-POINTER.md": {
@@ -2701,7 +2866,7 @@
     },
     "templates/spoke/QWEN.md": {
       "version": "4.6.5",
-      "md5": "9332b2308896ce12465bd1cbd367b6c0",
+      "md5": "c1d5c7c524737375a27f517af18d40e8",
       "owner": "basher"
     },
     "templates/spoke/README.md": {
@@ -2721,7 +2886,7 @@
     },
     "templates/spoke/WAI-Guide.md": {
       "version": "4.6.5",
-      "md5": "e9f1934dac38dd9e3f6ab257d01bce24",
+      "md5": "45d343718bcf333487857577ac5eda83",
       "owner": "basher"
     },
     "templates/spoke/WAI-KB-Sync.json": {
@@ -2766,7 +2931,7 @@
     },
     "templates/spoke/WAI-State.md": {
       "version": "4.6.5",
-      "md5": "a402b8ebe1f3cb8fc149da5ce26f17f6",
+      "md5": "f0ab75f41b259077667b27edd5c76a22",
       "owner": "basher"
     },
     "templates/spoke/_framework/WAI-Dev-Profile.json": {
@@ -2776,7 +2941,7 @@
     },
     "templates/spoke/copilot-instructions.md": {
       "version": "4.6.5",
-      "md5": "c01cff4ceafd65a9cce3771157868b96",
+      "md5": "6ba8464cfa5bf38e6268f0432e2995e5",
       "owner": "basher"
     },
     "templates/spoke/hooks/session-start.sh": {
@@ -2801,7 +2966,7 @@
     },
     "templates/spoke/reference/WAI-AI-ONBOARDING.md": {
       "version": "4.6.5",
-      "md5": "64f6cbb4401625eee80dc07e7c278398",
+      "md5": "371b48457e00e49aa53697ebdd0fb2b3",
       "owner": "basher"
     },
     "templates/spoke/reference/WAI-MERGE-PROTOCOLS.md": {
@@ -2811,7 +2976,7 @@
     },
     "templates/spoke/reference/WAI-VERSION-GUIDE.md": {
       "version": "4.6.5",
-      "md5": "1d93b8c89930a2ae3c10278f99aa863d",
+      "md5": "66ed8972729bd85d4f7d58a4aebb4447",
       "owner": "basher"
     },
     "templates/spoke/sessions/.gitkeep": {
@@ -2826,27 +2991,27 @@
     },
     "templates/spoke/skills/auto-off/wai-auto-off.md": {
       "version": "4.6.5",
-      "md5": "08196ba6e107d8b48fa3c1ab640b0dbf",
+      "md5": "f2ecc2162ad7c51fd120fbf1c9d9b9e3",
       "owner": "basher"
     },
     "templates/spoke/skills/auto-on/wai-auto-on.md": {
       "version": "4.6.5",
-      "md5": "2df0b67e3e76d65406f3f00aea72ff5e",
+      "md5": "547849f53eb230d8980e0b11fd411890",
       "owner": "basher"
     },
     "templates/spoke/skills/auto-parallel/wai-auto-parallel.md": {
       "version": "4.6.5",
-      "md5": "054cad68ec5351977d531bf4691176fc",
+      "md5": "e5095f31c82fe0e77d55412f8bbcfebd",
       "owner": "basher"
     },
     "templates/spoke/skills/auto-status/wai-auto-status.md": {
       "version": "4.6.5",
-      "md5": "316df53c92974ea245e67974de695014",
+      "md5": "54e3de527896615872c49d432322af57",
       "owner": "basher"
     },
     "templates/spoke/skills/benchmark/wai-benchmark.md": {
       "version": "4.6.5",
-      "md5": "ded1c5f1915c4ab67179a19ce7584da2",
+      "md5": "391abe79f5e266bd1a587c3369dc4fe4",
       "owner": "basher"
     },
     "templates/spoke/skills/brief/wai-brief.md": {
@@ -2856,12 +3021,12 @@
     },
     "templates/spoke/skills/chat-to-track/chat-to-track.md": {
       "version": "4.6.5",
-      "md5": "0e89e676a6002c9097f4492a4b895377",
+      "md5": "6423c5939b38b9d8bd25fd1356718edb",
       "owner": "basher"
     },
     "templates/spoke/skills/chat-to-track/wai-chat-to-track.md": {
       "version": "4.6.5",
-      "md5": "a80ccca522229c9b90ad4443d7e7a485",
+      "md5": "5c362d980e8caa1e50c0472872c2cc63",
       "owner": "basher"
     },
     "templates/spoke/skills/closeout/wai-closeout-reference.md": {
@@ -2871,7 +3036,7 @@
     },
     "templates/spoke/skills/closeout/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "e2793f3a9918f1efa70f6e5c80d6b379",
+      "md5": "b0fd169e5ea681e2167f3171ef1ef3af",
       "owner": "basher"
     },
     "templates/spoke/skills/complexity-gate/wai-complexity-gate.md": {
@@ -2886,22 +3051,22 @@
     },
     "templates/spoke/skills/foundation-gate/wai-foundation-gate.md": {
       "version": "4.6.5",
-      "md5": "1ea096a4c9cfc6ed19867c00594191a4",
+      "md5": "69fbdf5d646c74c1148668be304908b7",
       "owner": "basher"
     },
     "templates/spoke/skills/foundation/wai-foundation.md": {
       "version": "4.6.5",
-      "md5": "00b9d4c0e6369513f807edb2ae6d060b",
+      "md5": "383179761a37db793a97db568c44de89",
       "owner": "basher"
     },
     "templates/spoke/skills/ide-setup/wai-ide-setup-reference.md": {
       "version": "4.6.5",
-      "md5": "faee5579ffaa0634055af545748eeb07",
+      "md5": "bfbf1dc91d9b5f56b6a8074b0794b1de",
       "owner": "basher"
     },
     "templates/spoke/skills/ide-setup/wai-ide-setup.md": {
       "version": "4.6.5",
-      "md5": "4af70dd4a0003acc8775f4cdd28143c6",
+      "md5": "91e05ada52fe5d2d593875c75b7b5361",
       "owner": "basher"
     },
     "templates/spoke/skills/improve/wai-improve-reference.md": {
@@ -2911,37 +3076,37 @@
     },
     "templates/spoke/skills/improve/wai-improve.md": {
       "version": "4.6.5",
-      "md5": "24d7c336781c2e8f186b73eb99ca5e0d",
+      "md5": "2536d9f6936211621b9e574a4cb2ef3e",
       "owner": "basher"
     },
     "templates/spoke/skills/init-v2/wai-init-v2.md": {
       "version": "4.6.5",
-      "md5": "0fee9ab62b3c4acc431ecf38e3bce3a6",
+      "md5": "fe3c8a3d9021b0aac0b914fc02f920fa",
       "owner": "basher"
     },
     "templates/spoke/skills/lug-compat/wai-lug-compat-reference.md": {
       "version": "4.6.5",
-      "md5": "8c3ad821e90fbcb747dfd555a62a902d",
+      "md5": "e99d57f13b39ba9a17846490a014e0ed",
       "owner": "basher"
     },
     "templates/spoke/skills/lug-compat/wai-lug-compat.md": {
       "version": "4.6.5",
-      "md5": "d5f67e8b3fda0b3326ff806d717cfcad",
+      "md5": "861708fdde21c130f123748e984035ce",
       "owner": "basher"
     },
     "templates/spoke/skills/lug-schema/wai-lug-schema-reference.md": {
       "version": "4.6.5",
-      "md5": "92ffcc8b76ef116c2e5e6c3e35317de7",
+      "md5": "f4ab8ffa633d77f8c30315e52fa69949",
       "owner": "basher"
     },
     "templates/spoke/skills/lug-schema/wai-lug-schema.md": {
       "version": "4.6.5",
-      "md5": "0b89cfe356d6555519401a93a77cce20",
+      "md5": "22076ffa90db2871af3380a71d65bd07",
       "owner": "basher"
     },
     "templates/spoke/skills/mode/wai-mode.md": {
       "version": "4.6.5",
-      "md5": "ca6380ae665a687f4886e3a20876d1a7",
+      "md5": "831ab1374ff7a57c5dd8aaca1a9d6cb1",
       "owner": "basher"
     },
     "templates/spoke/skills/ozi-work-queue-monitor/wai-ozi-work-queue-monitor-reference.md": {
@@ -2956,7 +3121,7 @@
     },
     "templates/spoke/skills/principles/wai-principles-reference.md": {
       "version": "4.6.5",
-      "md5": "e4da153ff4c6efd3e9afd475eb59f1d2",
+      "md5": "59248e2361f32e31b32eb93f6c06d3fd",
       "owner": "basher"
     },
     "templates/spoke/skills/principles/wai-principles.md": {
@@ -2971,22 +3136,22 @@
     },
     "templates/spoke/skills/signal-capture/wai-signal-capture.md": {
       "version": "4.6.5",
-      "md5": "e658f7a335beff4e4d8b445728d135c2",
+      "md5": "5adc0c0045aaeeb2ff57a434c3e47b98",
       "owner": "basher"
     },
     "templates/spoke/skills/status/wai-status.md": {
       "version": "4.6.5",
-      "md5": "3a65255c154a09d94a0b00a2811a0976",
+      "md5": "533c6b7fb77e25fcec7b6cef94133fcd",
       "owner": "basher"
     },
     "templates/spoke/skills/stewardship-framework/wai-stewardship-framework.md": {
       "version": "4.6.5",
-      "md5": "f67a5a36aa66292d0d36dd6190c26124",
+      "md5": "8904480b7756f9e72419efb6049b235d",
       "owner": "basher"
     },
     "templates/spoke/skills/stewardship-guard/wai-stewardship-guard.md": {
       "version": "4.6.5",
-      "md5": "23f3c496b9c97c02c74dd35d0fbca55e",
+      "md5": "5ad7a9833062a118f44829cfbdedfcc2",
       "owner": "basher"
     },
     "templates/spoke/skills/sync-v2/wai-sync-v2.md": {
@@ -3001,42 +3166,47 @@
     },
     "templates/spoke/skills/tool-advisor/tool-advisor.md": {
       "version": "4.6.5",
-      "md5": "a239e11f470b5c985fdd95aaafdaccc7",
+      "md5": "d27d9274866b3ca83ccfe1600b914b5d",
       "owner": "basher"
     },
     "templates/spoke/skills/track-generate/wai-track-generate-reference.md": {
       "version": "4.6.5",
-      "md5": "01ac7c4e5db8c9c2afb6dea3c2fe5c57",
+      "md5": "6cda1607ebd7f49e0a6f5ba82103edb1",
       "owner": "basher"
     },
     "templates/spoke/skills/track-generate/wai-track-generate.md": {
       "version": "4.6.5",
-      "md5": "48414469e22b1963f26233e12ed83498",
+      "md5": "e5183a181e000fa4a1790c8788eb708d",
       "owner": "basher"
     },
     "templates/spoke/skills/wai/spoke-telemetry-closeout.md": {
       "version": "4.6.5",
-      "md5": "c3d188c705c1eb28102eda7c58de362a",
+      "md5": "efcd6e95266460e9f1c308a2ac51f8e8",
       "owner": "basher"
     },
     "templates/spoke/skills/wai/wai-chain-load.md": {
       "version": "4.6.5",
-      "md5": "98bc533dfabf2733b421e9543dc20007",
+      "md5": "077596b90a68909b03b929bbe679dabd",
       "owner": "basher"
     },
     "templates/spoke/skills/wai/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "b51c1c03a4398689d77d8de299b32c21",
+      "md5": "3d5e79842ce06b0a40e7fe78827c727d",
       "owner": "basher"
     },
     "templates/spoke/skills/wai/wai-reference.md": {
       "version": "4.6.5",
-      "md5": "9f7934b577e2c4cae7ab292746e17b6c",
+      "md5": "e7bad2b7dfa0f585be8dc402ad34bf19",
       "owner": "basher"
+    },
+    "templates/spoke/skills/wai/wai-savepoint.md": {
+      "version": "4.14.0",
+      "md5": "00dd6b3ead25650a23110d2a739a8a20",
+      "owner": "framework"
     },
     "templates/spoke/skills/wai/wai.md": {
       "version": "4.6.5",
-      "md5": "102a2cc6a651de23fc5eb232f0cfb4f0",
+      "md5": "dba3daa0f81bb50fa334284d9d43a685",
       "owner": "basher"
     },
     "templates/spoke/taste.spoke.yaml": {
@@ -3061,12 +3231,12 @@
     },
     "templates/teaching-file.spec.md": {
       "version": "4.6.5",
-      "md5": "67ad4c72cdc8fe12618cb79912583dfd",
+      "md5": "c3f4db92b3eb0a89ed6bace336a0fcda",
       "owner": "basher"
     },
     "templates/teaching-schema.md": {
       "version": "4.6.5",
-      "md5": "54b283912df2d4f93d378e4ade2ee750",
+      "md5": "3a29d159f6b9021febc79e5e28815ba7",
       "owner": "basher"
     },
     "templates/teaching-template.md.teaching": {
@@ -3109,10 +3279,25 @@
       "md5": "f4987e9241bfe839b065f9c148d3d35d",
       "owner": "basher"
     },
+    "tools/advisor_panel.py": {
+      "version": "4.13.1",
+      "md5": "1db89f6608b41ec9d8d8cc7d030f3f13",
+      "owner": "basher"
+    },
+    "tools/advisor_report.py": {
+      "version": "4.14.0",
+      "md5": "4c184a2dc487f1c59e76752ba2e20070",
+      "owner": "framework"
+    },
     "tools/advisor_schedule_eval.py": {
       "version": "4.6.5",
-      "md5": "c995d06460d81d8b98105216b6171f77",
+      "md5": "4055588fe0d738a23d7720a73f13157a",
       "owner": "basher"
+    },
+    "tools/advisor_template_v4.py": {
+      "version": "4.14.0",
+      "md5": "61d67dde1b7fee9bfba22980002c750a",
+      "owner": "framework"
     },
     "tools/ap_brief.py": {
       "version": "4.6.5",
@@ -3151,7 +3336,17 @@
     },
     "tools/autopilot.sh": {
       "version": "4.6.5",
-      "md5": "09afcc9e1df78d63dc96e324c66e52b2",
+      "md5": "c4c69558d98fb986d388509f5a3a77e8",
+      "owner": "basher"
+    },
+    "tools/autopilot_round.py": {
+      "version": "4.13.1",
+      "md5": "fa4407fef9affe62ae112ae802b38a0d",
+      "owner": "basher"
+    },
+    "tools/autopilot_verify.py": {
+      "version": "4.13.1",
+      "md5": "1d021504fb5860d714129e565e6b9c65",
       "owner": "basher"
     },
     "tools/base_cut_draft.py": {
@@ -3164,6 +3359,11 @@
       "md5": "46618e6d43d40ac522050a640154c8c0",
       "owner": "basher"
     },
+    "tools/bootstrap_cut.py": {
+      "version": "4.13.0",
+      "md5": "2c54d14d45c03dd2be35d39d1c843489",
+      "owner": "basher"
+    },
     "tools/burn_panel.py": {
       "version": "4.6.5",
       "md5": "640f467673e3e61cc62684c54f40cfa9",
@@ -3171,7 +3371,7 @@
     },
     "tools/canon_adherence.py": {
       "version": "4.11.0",
-      "md5": "e57722b11f9e4e84061f2ea03efa7c09",
+      "md5": "67dce52b2742ad788c8a1098cc66ce83",
       "owner": "basher"
     },
     "tools/capgraph_blocks.py": {
@@ -3196,7 +3396,12 @@
     },
     "tools/ceremony_token_budget.py": {
       "version": "4.6.5",
-      "md5": "0d7cd3d46e254668f012348935143ef7",
+      "md5": "768622f2ef54c7b796417c095264db86",
+      "owner": "basher"
+    },
+    "tools/chain_advantage.py": {
+      "version": "4.14.2",
+      "md5": "6826a9d018a0c2cfca1b696184dfc2b7",
       "owner": "basher"
     },
     "tools/change_registry.py": {
@@ -3214,6 +3419,11 @@
       "md5": "c4ed362e3e408263a52711cdd0e93de0",
       "owner": "basher"
     },
+    "tools/circle_audit.py": {
+      "version": "4.14.3",
+      "md5": "310fc1cea08edf58bd771c96cda06f01",
+      "owner": "basher"
+    },
     "tools/classify_delta_ceremony.py": {
       "version": "4.6.5",
       "md5": "6924d1189b892b91a28f4bb69918101f",
@@ -3226,7 +3436,7 @@
     },
     "tools/closeout.sh": {
       "version": "4.6.5",
-      "md5": "63bf152c0f1f19fc78e548d5d138bbfe",
+      "md5": "c60498460da3577f1064b54460626f4f",
       "owner": "basher"
     },
     "tools/closeout_ac_gate.py": {
@@ -3246,7 +3456,7 @@
     },
     "tools/commit-mine.sh": {
       "version": "4.6.5",
-      "md5": "b197430bcd6040dceb895f3ba29e1008",
+      "md5": "d51ad1ecfee66b0b32ae0a2cd8ff9983",
       "owner": "basher"
     },
     "tools/compass_decide.py": {
@@ -3258,6 +3468,11 @@
       "version": "4.6.5",
       "md5": "03f5e5f47155ea187e51a4b5dc545479",
       "owner": "basher"
+    },
+    "tools/compile_tastegraph.py": {
+      "version": "4.14.0",
+      "md5": "f62ba70241abd589ffac9bdb3c75abf3",
+      "owner": "framework"
     },
     "tools/compute_capability_gaps.py": {
       "version": "4.6.5",
@@ -3277,6 +3492,11 @@
     "tools/converge_closeout.py": {
       "version": "4.6.5",
       "md5": "7abe398d268d9aa753bca7d1ce2bd9bb",
+      "owner": "basher"
+    },
+    "tools/converge_gate.py": {
+      "version": "4.14.4",
+      "md5": "a5f3c8774774ec2af6c14f7390a397c5",
       "owner": "basher"
     },
     "tools/create_harness_db.py": {
@@ -3336,12 +3556,17 @@
     },
     "tools/deploy_commands.py": {
       "version": "4.6.5",
-      "md5": "09a12618230ef68f7ef927b38ed9143a",
+      "md5": "f57867e63cd44cabff76242c785f7675",
       "owner": "basher"
     },
     "tools/dispatcher.py": {
       "version": "4.6.5",
       "md5": "ee8fd4a987822010a338f809888b3e3e",
+      "owner": "basher"
+    },
+    "tools/disposition_migrate.py": {
+      "version": "4.13.1",
+      "md5": "5e669e96c7f430ccd17e434885950652",
       "owner": "basher"
     },
     "tools/emit_activity_event.py": {
@@ -3384,19 +3609,29 @@
       "md5": "83492d22ed81a1bd9dfbb7f565277f19",
       "owner": "basher"
     },
+    "tools/fleet_dedup_signals.py": {
+      "version": "4.14.0",
+      "md5": "34a52af4b69181d160b3ae727a9d54a5",
+      "owner": "framework"
+    },
     "tools/fleet_hygiene_scan.py": {
       "version": "4.6.5",
       "md5": "01d4f2c14c94a304fd77b12897173041",
       "owner": "basher"
     },
+    "tools/fleet_scope.py": {
+      "version": "4.14.4",
+      "md5": "3343127e67465e508a760307e3fbd82a",
+      "owner": "basher"
+    },
     "tools/fleet_verify.py": {
       "version": "4.6.5",
-      "md5": "61c8437030cd3236d2ba3b7f6a575433",
+      "md5": "ccb34ffb7319d1e5a57c5a3358da9ef0",
       "owner": "basher"
     },
     "tools/flow_metrics.py": {
       "version": "4.6.5",
-      "md5": "4c1ef2e9b1cf5e2b35f55c9672a5fbd4",
+      "md5": "c7bf2b39a627b81e053e6be9fa253bb5",
       "owner": "basher"
     },
     "tools/gap_exposure_validator.py": {
@@ -3494,6 +3729,11 @@
       "md5": "42e32e094c90e7dfa3af1fe90e93a8c9",
       "owner": "basher"
     },
+    "tools/harness_pullcheck.py": {
+      "version": "4.14.4",
+      "md5": "ff078dca892c1d29dd78836ae8b432f7",
+      "owner": "basher"
+    },
     "tools/harness_status.py": {
       "version": "4.6.5",
       "md5": "bba0c2d9e4bca5ad598e6b5d67257401",
@@ -3501,8 +3741,18 @@
     },
     "tools/harness_upgrade.py": {
       "version": "4.6.5",
-      "md5": "706a76bc5ad6a9a7f5aef3b522a8542a",
+      "md5": "ffffabb01e4ad348df42f7f26bc4135a",
       "owner": "basher"
+    },
+    "tools/harness_validate.py": {
+      "version": "4.14.4",
+      "md5": "95acfa3175bfee9bef48837341dc3633",
+      "owner": "basher"
+    },
+    "tools/herald_poll.py": {
+      "version": "4.14.0",
+      "md5": "1ac6716188783d521e1808fdeaece688",
+      "owner": "framework"
     },
     "tools/historian_archaeology.py": {
       "version": "4.6.5",
@@ -3536,7 +3786,7 @@
     },
     "tools/hygiene_run.py": {
       "version": "4.6.5",
-      "md5": "8c2a85ada510cf2c8caaa0ae242ae0f2",
+      "md5": "ec71982cd3e227ca9966d713e611b3e7",
       "owner": "basher"
     },
     "tools/index_sync.py": {
@@ -3596,7 +3846,7 @@
     },
     "tools/lug_gate.py": {
       "version": "4.6.5",
-      "md5": "eb3ef69eda7dc07b3bbcd0f28622afc0",
+      "md5": "b1f4676da4337623f78cf173c0c02292",
       "owner": "basher"
     },
     "tools/lug_json_parse_gate.py": {
@@ -3611,7 +3861,7 @@
     },
     "tools/lug_readiness.py": {
       "version": "4.6.5",
-      "md5": "165195b029e2bb7ab3efc8bea9a780b5",
+      "md5": "63933123f14eb04fe3c09c4f214eef63",
       "owner": "basher"
     },
     "tools/lug_status_reconcile.py": {
@@ -3621,7 +3871,7 @@
     },
     "tools/lug_utils.py": {
       "version": "4.6.5",
-      "md5": "f9b9ab69b80bd62702148738585e9792",
+      "md5": "e6cec3c137aa1cf7fce47e05d5e33ee4",
       "owner": "basher"
     },
     "tools/lug_worktree_map.py": {
@@ -3671,7 +3921,7 @@
     },
     "tools/new_lug.py": {
       "version": "4.6.5",
-      "md5": "33f7604fcd1b9e12e0da761dea02fcd3",
+      "md5": "200d328fcdab71023c48c93efea875af",
       "owner": "basher"
     },
     "tools/observability_dashboard.py": {
@@ -3681,17 +3931,22 @@
     },
     "tools/ozi_autopilot.py": {
       "version": "4.6.5",
-      "md5": "da7774e59087b5cd47ce2493ff7a2553",
+      "md5": "5170327d45a1b01d5ea678e38f4e1e9c",
       "owner": "basher"
     },
     "tools/ozi_headless.py": {
       "version": "4.6.5",
-      "md5": "d5bad15e63ef16fca19658d71b1a610a",
+      "md5": "793884eb86cbc5e300d37d401a9399ae",
       "owner": "basher"
     },
     "tools/path_parity_check.py": {
       "version": "4.6.5",
       "md5": "c73331eba3cc816ba63fc76fe88472e9",
+      "owner": "basher"
+    },
+    "tools/pathgraph_generate.py": {
+      "version": "4.14.3",
+      "md5": "f868b6053c01ac426bac40d1c25fbcbe",
       "owner": "basher"
     },
     "tools/portfolio.py": {
@@ -3811,7 +4066,7 @@
     },
     "tools/score_backlog.py": {
       "version": "4.6.5",
-      "md5": "824cf50cf4760069411fb80b8bb5e044",
+      "md5": "a930e139ad4af608e797a40a8669e621",
       "owner": "basher"
     },
     "tools/scout_executor.py": {
@@ -3839,6 +4094,11 @@
       "md5": "2b0d59abb7be4f73c815940e8a7cfe84",
       "owner": "basher"
     },
+    "tools/session_transcript_archive.py": {
+      "version": "4.14.0",
+      "md5": "e39d6ba294e5683ad72aa3a354eab9b7",
+      "owner": "framework"
+    },
     "tools/spec_index_rebuild.py": {
       "version": "4.6.5",
       "md5": "c4840e2d18b1d07b80bff4f89250d5d4",
@@ -3851,17 +4111,17 @@
     },
     "tools/spoke_expediter.py": {
       "version": "4.6.5",
-      "md5": "42a297ce1f7adf320c737fd9285e2cf6",
+      "md5": "38294cb7ea5fabb1c1dd011b9a9ed354",
       "owner": "basher"
     },
     "tools/spoke_health_check.py": {
       "version": "4.6.5",
-      "md5": "dbbeeaeb369ade3bd5747848be7bd781",
+      "md5": "e3b4ac0d362104a16f3b067dfdc2c9a0",
       "owner": "basher"
     },
     "tools/spoke_integrity_score.py": {
       "version": "4.6.5",
-      "md5": "7f2ccbf9518e23675a25d003e25dfe42",
+      "md5": "0f4a602926079ee21006dd9790b84761",
       "owner": "basher"
     },
     "tools/spoke_parity_check.py": {
@@ -3872,6 +4132,11 @@
     "tools/spoke_position_map.py": {
       "version": "4.6.5",
       "md5": "afa1b5ceb1e9609814aa4fb199adbd12",
+      "owner": "basher"
+    },
+    "tools/spoke_readiness.py": {
+      "version": "4.13.1",
+      "md5": "89abf7aad8a6bec28f31078601a81527",
       "owner": "basher"
     },
     "tools/state_update.py": {
@@ -3939,6 +4204,11 @@
       "md5": "3803b6e06df525ec1e6e2bce82c6fde6",
       "owner": "basher"
     },
+    "tools/test_harness_pullcheck.py": {
+      "version": "4.14.4",
+      "md5": "7ba5eb0a913d49a9ec9f6025320e7d41",
+      "owner": "basher"
+    },
     "tools/test_harness_status.py": {
       "version": "4.6.5",
       "md5": "1c4103142d89b0d735b0b8d4b5893eae",
@@ -3969,10 +4239,25 @@
       "md5": "6876390e49fd7e6703eabca19baddf6c",
       "owner": "basher"
     },
+    "tools/thread_materialize.py": {
+      "version": "4.13.1",
+      "md5": "5f574c7ba1cab2b8c8a1f518529f19ad",
+      "owner": "basher"
+    },
+    "tools/token_attribution.py": {
+      "version": "4.14.3",
+      "md5": "95bef7afa623e9cea1e2fc32491f333d",
+      "owner": "basher"
+    },
     "tools/tool_advisor.py": {
       "version": "4.6.5",
       "md5": "396661a92983b39c3deeb795baab7390",
       "owner": "basher"
+    },
+    "tools/track_prompt_freshness_check.py": {
+      "version": "4.14.0",
+      "md5": "936feee2fc483fcb1ac05250190805df",
+      "owner": "framework"
     },
     "tools/v3_path_lint.py": {
       "version": "4.6.5",
@@ -3997,6 +4282,11 @@
     "tools/validate_savepoint.py": {
       "version": "4.6.5",
       "md5": "effcc80b2932c5c20c85c859d5e93d39",
+      "owner": "basher"
+    },
+    "tools/validate_session_track.py": {
+      "version": "4.14.4",
+      "md5": "e538bc7221c834d5ca733a02cef1bd6b",
       "owner": "basher"
     },
     "tools/validate_teaching.py": {
@@ -4026,8 +4316,13 @@
     },
     "tools/wai-enter.sh": {
       "version": "4.6.9",
-      "md5": "7287452e153914fed1d48a009f913c4f",
+      "md5": "bb8067f798fd0763fcb1c93e48175b70",
       "owner": "basher"
+    },
+    "tools/wai_assurance.py": {
+      "version": "4.14.0",
+      "md5": "50f53651d2704d6c76346cb9bb976d91",
+      "owner": "framework"
     },
     "tools/wai_enter_resume_scan.py": {
       "version": "4.6.5",
@@ -4084,6 +4379,11 @@
       "md5": "6cb276ce8b589c9a26b55dc80150323a",
       "owner": "basher"
     },
+    "tools/wakeup_lib.py": {
+      "version": "4.14.3",
+      "md5": "cb1a16b6858814bec7f9ef6c86df723f",
+      "owner": "basher"
+    },
     "tools/wayfinder_cycle_close.py": {
       "version": "4.6.5",
       "md5": "5463dc73c0c2885ab04fe7f92fba1843",
@@ -4097,6 +4397,11 @@
     "tools/work_impact.py": {
       "version": "4.6.5",
       "md5": "92bdf100679e973c3ffa1d0c4b643f16",
+      "owner": "basher"
+    },
+    "tools/work_split.py": {
+      "version": "4.13.1",
+      "md5": "ce74ed7031e3c4a9c2d9fb2e68f55e41",
       "owner": "basher"
     },
     "tools/worktree_guard.py": {
@@ -4136,7 +4441,7 @@
     },
     "wilbur/CHARTER.md": {
       "version": "4.6.5",
-      "md5": "fb3c4af9026371f10fccd315af2431b0",
+      "md5": "a1c3788d614b2d5fc71ba3f90dd1ac3f",
       "owner": "basher"
     },
     "wilbur/cron/nightly.sh": {
@@ -4151,12 +4456,12 @@
     },
     "wilbur/docs/intelligence-loop-spec.md": {
       "version": "4.6.5",
-      "md5": "7d19075be0fb20b534e92760abd59713",
+      "md5": "bc5375365bd28616ded9bd871e20ab60",
       "owner": "basher"
     },
     "wilbur/docs/nightly-scan-spec.md": {
       "version": "4.6.5",
-      "md5": "37b20da60fc6e4b65dc3a9ac8c9f41f4",
+      "md5": "4ef0f5807218fbcda727ae777447563f",
       "owner": "basher"
     },
     "wilbur/docs/notification-escalation-spec.md": {
@@ -4171,12 +4476,12 @@
     },
     "wilbur/docs/pathgraph-historian-config.md": {
       "version": "4.6.5",
-      "md5": "845e8b41d1b7f6fcd5aa207c9372f01f",
+      "md5": "b014dc1102118886be698c9b287d7c10",
       "owner": "basher"
     },
     "wilbur/docs/pathgraph-spec.md": {
       "version": "4.6.5",
-      "md5": "5e9efd3ed495cd39c0d03dda470bf92b",
+      "md5": "a347fd294224f152a5b2b11601ccb8ac",
       "owner": "basher"
     },
     "wilbur/docs/propagation-plan-template.md": {
@@ -4191,17 +4496,17 @@
     },
     "wilbur/docs/spoke-vision/minder-core-vision.md": {
       "version": "4.6.5",
-      "md5": "7b7b1b4e99853620da85d70a18131257",
+      "md5": "3053e01c907f4856a82fbc3abdd6c882",
       "owner": "basher"
     },
     "wilbur/docs/spoke-vision/minder-fleet-vision.md": {
       "version": "4.6.5",
-      "md5": "e7fcae04228374f2dff7379074dc3208",
+      "md5": "2dbd94cadb7466abaf8362b0eec59040",
       "owner": "basher"
     },
     "wilbur/docs/spoke-vision/minder-forge-vision.md": {
       "version": "4.6.5",
-      "md5": "764817c4fdc233ece039513b7a17f627",
+      "md5": "74dc58d0963b22a20731610c43b16e9c",
       "owner": "basher"
     },
     "wilbur/docs/spoke-vision/minder-ideas-vision.md": {
@@ -4216,7 +4521,7 @@
     },
     "wilbur/docs/spoke-vision/minder-tracks-vision.md": {
       "version": "4.6.5",
-      "md5": "f00dc63921f00ce42471d8b196326792",
+      "md5": "392a530793c892e8e7196c9d8304ec81",
       "owner": "basher"
     },
     "wilbur/docs/spoke-vision/minder-web-vision.md": {
@@ -4226,7 +4531,7 @@
     },
     "wilbur/docs/tastegraph-spec.md": {
       "version": "4.6.5",
-      "md5": "41186c3da08f90904982d3c69df64a9a",
+      "md5": "121ff2de6b8891f3830e69e855366da3",
       "owner": "basher"
     },
     "wilbur/schemas/ScanState.schema.json": {

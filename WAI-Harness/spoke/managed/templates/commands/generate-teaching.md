@@ -10,7 +10,7 @@ Invoke at closeout when you have made improvements to skill files this session t
 
 ## Gate Check
 
-Read `WAI-Spoke/WAI-State.json`. Extract:
+Read `WAI-Harness/spoke/WAI-State.json`. Extract:
 - `wheel.at_head` — must be `true` to proceed
 - `wheel.hub_path` — path to hub (e.g. `/home/mario/projects/wheelwright/hub`)
 - `wheel.name` — this spoke's name (for `submitted_by_spoke`)
@@ -18,14 +18,14 @@ Read `WAI-Spoke/WAI-State.json`. Extract:
 
 If `wheel.at_head` is false, null, or missing: display `"Cannot generate teaching — spoke is not at head. Migrate to latest harness version first."` and stop.
 
-Read `{hub_path}/WAI-Spoke/hub/harness/harness-state.json`. Extract `current_version` (the bootstrap version to diff against).
+Read `{hub_path}/WAI-Harness/spoke/hub/harness/harness-state.json`. Extract `current_version` (the bootstrap version to diff against).
 
 ---
 
 ## Diff Process
 
 For each file in `templates/commands/`:
-1. Check if a corresponding file exists in `{hub_path}/WAI-Spoke/hub/harness/bootstrap/v{current_version}/`
+1. Check if a corresponding file exists in `{hub_path}/WAI-Harness/spoke/hub/harness/bootstrap/v{current_version}/`
 2. If file is new (not in bootstrap): mark as candidate with change_type `"new"`
 3. If file exists in bootstrap but differs: compare content, mark as candidate with change_type `"modified"`
 4. Skip files that are identical to bootstrap
@@ -47,7 +47,7 @@ For each candidate file, compose a teaching entry:
 }
 ```
 
-Write draft to `WAI-Spoke/generate-teaching/drafts/teaching-{slug}-{YYYYMMDD}-v1.json`:
+Write draft to `WAI-Harness/spoke/generate-teaching/drafts/teaching-{slug}-{YYYYMMDD}-v1.json`:
 
 ```json
 {
@@ -77,7 +77,7 @@ Teaching draft: teaching-{id}
 Submit to hub for peer review? [Y]es / [N]o
 ```
 
-Wait for user response. If N: move draft to `WAI-Spoke/generate-teaching/drafts/rejected/` and stop. If Y: proceed to Submission.
+Wait for user response. If N: move draft to `WAI-Harness/spoke/generate-teaching/drafts/rejected/` and stop. If Y: proceed to Submission.
 
 Never auto-submit without explicit Y response.
 
@@ -85,14 +85,14 @@ Never auto-submit without explicit Y response.
 
 ## Submission
 
-1. Write teaching file to `{hub_path}/WAI-Spoke/hub/teachings/incoming/{teaching-id}.json` (copy of draft)
-2. Write audit entry to `WAI-Spoke/generate-teaching/submitted/{teaching-id}-submitted.json`:
+1. Write teaching file to `{hub_path}/WAI-Harness/spoke/hub/teachings/incoming/{teaching-id}.json` (copy of draft)
+2. Write audit entry to `WAI-Harness/spoke/generate-teaching/submitted/{teaching-id}-submitted.json`:
 
 ```json
 {
   "teaching_id": "{id}",
   "delivered_at": "<ISO UTC timestamp>",
-  "delivered_to": "{hub_path}/WAI-Spoke/hub/teachings/incoming/{teaching-id}.json",
+  "delivered_to": "{hub_path}/WAI-Harness/spoke/hub/teachings/incoming/{teaching-id}.json",
   "submitted_by_spoke": "{wheel.name}",
   "harness_version_at_submission": "{current_version}"
 }

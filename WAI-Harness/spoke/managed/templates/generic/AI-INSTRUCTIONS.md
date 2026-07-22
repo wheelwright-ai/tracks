@@ -7,9 +7,9 @@
 ## How to Use This Project
 
 1. **Before your first message**, paste the contents of these files into the chat:
-   - `WAI-Spoke/WAI-Guide.md` - Full AI protocols (REQUIRED)
-   - `WAI-Spoke/WAI-State.json` - Project foundation and decisions (REQUIRED)
-   - `WAI-Spoke/WAI-State.md` - Strategic vision (OPTIONAL)
+   - `WAI-Harness/spoke/WAI-Guide.md` - Full AI protocols (REQUIRED)
+   - `WAI-Harness/spoke/WAI-State.json` - Project foundation and decisions (REQUIRED)
+   - `WAI-Harness/spoke/WAI-State.md` - Strategic vision (OPTIONAL)
 
 2. **Start every session** by saying:
    "I'm working on [project name]. I've pasted the WAI files. Please brief me on recent activity."
@@ -27,9 +27,9 @@
 Wheelwright is a persistent context framework for AI-assisted development. Instead of losing context when sessions end, your project "remembers" everything through WAI files.
 
 **Key files:**
-- `WAI-Spoke/WAI-Guide.md` - Instructions for AI assistants (token efficiency, workflow modes)
-- `WAI-Spoke/WAI-State.json` - Technical state, decisions, constraints
-- `WAI-Spoke/WAI-State.md` - Strategic vision, evolution log
+- `WAI-Harness/spoke/WAI-Guide.md` - Instructions for AI assistants (token efficiency, workflow modes)
+- `WAI-Harness/spoke/WAI-State.json` - Technical state, decisions, constraints
+- `WAI-Harness/spoke/WAI-State.md` - Strategic vision, evolution log
 
 **Workflow Mode:** This project uses ADAPTIVE mode:
 - Complex tasks (multi-file OR >5 steps): Require Discussion → READY TO PLAN → PLAN ACCEPTED gates
@@ -58,7 +58,7 @@ If the task affects 2+ files or requires 6+ steps:
 - `'Compact'` - Compress context when nearing capacity limits
 - `'Time'` - Check current token usage estimate
 
-**Full details in WAI-Spoke/WAI-Guide.md** (paste this file to get started)
+**Full details in WAI-Harness/spoke/WAI-Guide.md** (paste this file to get started)
 
 ---
 

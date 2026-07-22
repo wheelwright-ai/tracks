@@ -1,6 +1,6 @@
 # Historian Advisor — PathGraph Configuration
 
-**Advisor:** Historian (`WAI-Spoke/advisors/historian/`)
+**Advisor:** Historian (`WAI-Harness/spoke/advisors/historian/`)
 **PathGraph integration:** initial_sweep mode + runtime query mode
 **Created:** 2026-05-25
 **Lug:** lug-pathgraph-advisor-spec-v1
@@ -67,6 +67,6 @@ Output only when PathGraph index has records for the session focus module. Omit 
 | `wilbur/pathgraph-initial-drift-report.json` | First drift report after initial_sweep |
 | `wilbur/schemas/pathgraph-index.schema.json` | JSON Schema for individual aspiration records |
 | `wilbur/docs/pathgraph-spec.md` | Full PathGraph specification and protocols |
-| `WAI-Spoke/advisors/historian/advisor.json` | Historian advisor configuration |
-| `WAI-Spoke/advisors/historian/SPEC.md` | PathGraph integration spec for this advisor |
-| `WAI-Spoke/advisors/historian/ephemeral-prd-template.md` | Template for generating ephemeral PRDs |
+| `WAI-Harness/spoke/advisors/historian/advisor.json` | Historian advisor configuration |
+| `WAI-Harness/spoke/advisors/historian/SPEC.md` | PathGraph integration spec for this advisor |
+| `WAI-Harness/spoke/advisors/historian/ephemeral-prd-template.md` | Template for generating ephemeral PRDs |

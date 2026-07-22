@@ -179,6 +179,7 @@ class GroomingResult:
     needs_attention: List[dict] = field(default_factory=list) # [{id, reason}]
     grooming_scores: Dict[str, int] = field(default_factory=dict)  # lug_id -> score
     ineligible: List[str] = field(default_factory=list)      # score < 3, deferred
+    grounded_loop_gaps: List[str] = field(default_factory=list)  # impl lug IDs missing grounded_loop.metric_target (advisory only)
 
 
 @dataclass
@@ -943,6 +944,7 @@ class OziAutopilot:
         advisor_scouting: bool = False,
         scout_if_empty: bool = False,
         provider: str = "anthropic",
+        not_blocking_me: bool = False,
     ) -> None:
         self.spoke_root = spoke_path          # project root (contains WAI-Spoke/ or WAI-Harness/)
         # v3/v4-aware (s131): resolver returns WAI-Spoke while it exists (coexist→v3),
@@ -970,6 +972,8 @@ class OziAutopilot:
         self._wheel_mode_flag = wheel_mode_flag
         self._consolidate_flag = consolidate_flag
         self._initiative_filter = initiative_filter
+        # Operator-initiated "process everything I'm not blocking" run.
+        self._not_blocking_me = bool(not_blocking_me)
         self._initiative_prereq_ok = True  # optimistic; Phase 0b will update if filter is active
         self._rfc_mode = rfc_mode
         self._cohort_size = cohort_size
@@ -1873,6 +1877,13 @@ class OziAutopilot:
             index = json.loads(sched_path.read_text())
         except (OSError, json.JSONDecodeError):
             return []
+        # schedule-index.json comes in two shapes across the fleet (bare list, or
+        # {"last_update_at", "advisors": [...]}). Iterating the dict yields keys,
+        # every entry fails the isinstance check below, and this returns [] — so a
+        # dict-shaped spoke reported "0 due advisors" forever without an error.
+        if isinstance(index, dict):
+            index = index.get("advisors") if isinstance(index.get("advisors"), list) else [
+                v for v in index.values() if isinstance(v, dict) and v.get("advisor_id")]
         try:
             state = json.loads(self.state_file.read_text()) if self.state_file.exists() else {}
         except (OSError, json.JSONDecodeError):
@@ -2047,6 +2058,13 @@ class OziAutopilot:
     _INTAKE_SKIP_TYPES = {
         "initiative_install", "harness-migration", "harness_migration",
         "rfc_response",
+        # A harness contribution has a dedicated consumer that reads master's
+        # incoming/ directly: `harness_converge.py absorb-contributions`. Filing it
+        # under bytype/ would hide it from the only tool that can act on it, and
+        # leaving it unmapped wrapped it in a notation lug instead (observed
+        # 2026-07-22 on pathfinder's contribution). Skipping is what "someone else
+        # drains this" means here.
+        "harness-contribution", "harness_contribution",
     }
     # Canonical bytype folder for each lug type alias. Every type that owns a
     # bytype/ dir is listed explicitly (impl-integrity-w1-intake-completeness-v1:
@@ -2098,6 +2116,12 @@ class OziAutopilot:
         "refinement": "refinement",
         "session-summary": "session-summary", "session_summary": "session-summary",
         "unknown": "unknown",
+        # "upgrade-report" is what harness_upgrade.emit_upgrade_report writes, and
+        # bytype/upgrade-report/ is where the wakeup intake ceremony (Step 2.5) reads.
+        # Unmapped, the reports landed in notation/ and the ceremony read an empty dir
+        # forever -- the producer half of the upgrade-validation circle feeding a
+        # consumer that never saw it (2026-07-22, first real reports).
+        "upgrade-report": "upgrade-report", "upgrade_report": "upgrade-report",
         "work": "work",
     }
 
@@ -3129,6 +3153,17 @@ class OziAutopilot:
                 result.auto_filled.append(lug_id)
             score, attention_reason = self._score_lug(lug)
             result.grooming_scores[lug_id] = score
+            # impl-grounded-loop-backfill-coverage-v1 regression_monitor: flag (advisory
+            # only -- never touches score/eligibility/needs_attention) any impl lug that
+            # reaches grooming without a grounded_loop.metric_target, so coverage erosion
+            # from newly-authored lugs is visible each AP run instead of silently draining
+            # the backfilled baseline.
+            _gl_missing = (
+                (lug.get("type") or "").lower() in ("implementation", "impl")
+                and not ((lug.get("grounded_loop") or {}).get("metric_target"))
+            )
+            if _gl_missing:
+                result.grounded_loop_gaps.append(lug_id)
             # Write score to lug on disk
             lug_path = lug.get("_lug_path")
             if lug_path and Path(lug_path).exists():
@@ -3138,6 +3173,8 @@ class OziAutopilot:
                     if attention_reason:
                         data["needs_attention"] = True
                         data["attention_reason"] = attention_reason
+                    if _gl_missing:
+                        data["grounded_loop_gap"] = True
                     Path(lug_path).write_text(json.dumps(data, indent=2))
                 except (OSError, json.JSONDecodeError):
                     pass
@@ -3613,6 +3650,22 @@ class OziAutopilot:
             file=sys.stderr,
         )
 
+    def _read_run_control(self):
+        """Operator directives for a run already in flight. Never cached.
+
+        Fails OPEN on anything unreadable: a malformed control file must not be
+        able to halt a healthy pass, and an absent one is the normal case.
+        """
+        try:
+            path = os.path.join(str(self.spoke_wai), "runtime", "autopilot-control.json")
+            if not os.path.isfile(path):
+                return {}
+            with open(path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+
     def _load_ready_queue_needs_you_ids(self) -> set:
         """Read the Expediter ready-queue (WAI-Spoke/advisors/expediter/ready-queue.json)
         and return the set of lug ids in the needs-you column. Autopilot must never
@@ -3743,7 +3796,42 @@ class OziAutopilot:
             if dispatched >= self.budget:
                 break
 
+            # --- MID-RUN CONTROL: the operator can steer a pass already in flight ---
+            #
+            # A run takes tens of minutes and hundreds of thousands of tokens. Before
+            # this, noticing a problem mid-pass left only one lever: kill it and lose
+            # the in-flight lug. The control file is polled between lugs, so a
+            # correction lands at the next safe boundary rather than mid-dispatch.
+            #
+            #   runtime/autopilot-control.json
+            #     {"stop": true}                     finish current lug, then stop cleanly
+            #     {"skip": ["lug-id", ...]}          do not dispatch these
+            #     {"only": ["lug-id", ...]}          dispatch only these
+            #     {"budget": 5}                      raise or lower the remaining budget
+            #
+            # Read fresh every iteration and never cached: the whole point is that it
+            # can be written by a human while the run is going. Malformed or absent
+            # means no directives — a broken control file must not stop a healthy run.
+            _ctl = self._read_run_control()
+            if _ctl.get("stop"):
+                print("[autopilot] mid-run control: STOP requested — ending dispatch cleanly",
+                      file=sys.stderr)
+                break
+            if isinstance(_ctl.get("budget"), int) and _ctl["budget"] != self.budget:
+                print(f"[autopilot] mid-run control: budget {self.budget} -> {_ctl['budget']}",
+                      file=sys.stderr)
+                self.budget = _ctl["budget"]
+                if dispatched >= self.budget:
+                    break
+
             lug_id = lug.get("id") or lug.get("i") or "unknown"
+
+            if lug_id in (_ctl.get("skip") or []):
+                print(f"[autopilot] mid-run control: skipping {lug_id}", file=sys.stderr)
+                continue
+            _only = _ctl.get("only") or []
+            if _only and lug_id not in _only:
+                continue
             lug_type = str(lug.get("type") or lug.get("_fs_type") or "unknown")
 
             # --- P0: consult block-memory (read-only; attach known antipatterns) ---
@@ -3768,6 +3856,16 @@ class OziAutopilot:
             if self.hub_directive.get("deep_audit") and lug_type in ("feature", "epic"):
                 continue
             if self._initiative_filter and lug.get("initiative") != self._initiative_filter:
+                continue
+            # --not-blocking-me: process ONLY work the operator is not gating.
+            #
+            # The needs_you_ids exclusion above comes from the ready-queue, which is
+            # a CACHE and can be stale or zero. This gate reads the disposition on
+            # the lug itself -- the truth -- so an unstamped or `review` lug can
+            # never slip into an unattended run just because the index was old. It
+            # is deliberately stricter than the default path: a run the operator
+            # kicks off and walks away from must fail closed.
+            if self._not_blocking_me and lug.get("disposition") != "auto_build":
                 continue
             if str(lug.get("execution_mode", "")).lower() == "manual":
                 continue
@@ -4129,12 +4227,22 @@ class OziAutopilot:
         _t_lug = time.monotonic()
         print(f"[autopilot]   → dispatching {lug_id} (model={model_fit}, timeout={timeout_secs}s)…", file=sys.stderr)
         try:
+            # A dispatched agent is NOT a session. Without this marker each child
+            # inherits the environment, fires SessionStart/Stop, mints its own
+            # session directory and resets the shared turn counter — 16 phantom
+            # session dirs appeared in a single afternoon and the operator noticed
+            # because his track statusline stopped rendering. Telemetry that
+            # fragments under load is worse than none: it makes a busy wheel look
+            # like a series of one-turn sessions that did nothing.
+            _child_env = dict(os.environ)
+            _child_env["WAI_AP_DISPATCH"] = "1"
             proc = subprocess.run(
                 cmd,
                 input=prompt,
                 capture_output=True,
                 text=True,
                 timeout=timeout_secs,
+                env=_child_env,
             )
         except subprocess.TimeoutExpired as exc:
             _elapsed_lug = round(time.monotonic() - _t_lug, 1)
@@ -4171,6 +4279,27 @@ class OziAutopilot:
                     usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
                 )
             except (json.JSONDecodeError, TypeError):
+                usage = {}
+
+            # ATTRIBUTE the spend to the pass and the actor that caused it.
+            # The running total above answers "did the round stay in budget"; it
+            # cannot answer "what is scouting costing us" or "which advisor's work
+            # is expensive", which is what every cost argument on the backlog
+            # actually turns on. Attribution failure is swallowed: a missing ledger
+            # line is a gap in measurement, never a reason to fail delivered work.
+            try:
+                import token_attribution
+                token_attribution.attribute(
+                    "execute",
+                    lug.get("advisor") or lug.get("owner") or lug.get("type") or "autopilot",
+                    model_fit,
+                    usage,
+                    lug_id=lug_id,
+                    run_id=getattr(self, "run_id", None),
+                    duration_ms=int(_elapsed_lug * 1000),
+                    root=str(self.spoke_root),
+                )
+            except Exception:
                 pass
 
             lug_tokens = self._tokens_used - _tokens_before
@@ -5770,16 +5899,36 @@ class OziAutopilot:
             phases["phase_0_5_grooming"] = (
                 f"ok: normalized={len(gr.normalized)}, auto_filled={len(gr.auto_filled)}, "
                 f"needs_attention={len(gr.needs_attention)}, ineligible={len(gr.ineligible)}, "
+                f"grounded_loop_gaps={len(gr.grounded_loop_gaps)}, "
                 f"eligible={len(state.open_lugs)} [{_eg}s]"
             )
             print(
                 f"[autopilot] phase 0.5: done ({_eg}s) — eligible={len(state.open_lugs)}, "
-                f"ineligible={len(gr.ineligible)}, needs_attention={len(gr.needs_attention)}",
+                f"ineligible={len(gr.ineligible)}, needs_attention={len(gr.needs_attention)}, "
+                f"grounded_loop_gaps={len(gr.grounded_loop_gaps)}",
                 file=sys.stderr,
             )
         except Exception as exc:
             phases["phase_0_5_grooming"] = f"error: {exc}"
             result.errors.append(f"phase_0_5: {exc}")
+
+        # impl-grounded-loop-backfill-coverage-v1 regression_monitor: one weekly
+        # grounded_loop coverage line, never allowed to regress below the prior week.
+        # Best-effort: coverage measurement never blocks the run.
+        try:
+            import flow_metrics as _flow_metrics
+            _cov = _flow_metrics.record_grounded_loop_coverage(root=str(self.spoke_root))
+            phases["phase_0_5_grounded_loop_coverage"] = (
+                f"ok: {_cov}" if _cov.get("recorded") else f"skipped: {_cov.get('reason', 'n/a')}"
+            )
+            if _cov.get("regressed"):
+                print(
+                    f"[autopilot] WARNING: grounded_loop coverage regressed "
+                    f"{_cov.get('previous_ratio')} -> {_cov.get('ratio')}",
+                    file=sys.stderr,
+                )
+        except Exception as exc:
+            phases["phase_0_5_grounded_loop_coverage"] = f"error: {exc}"
 
         # Phase 3 — lug execution
         filter_label = f', initiative={self._initiative_filter}' if self._initiative_filter else ''
@@ -6058,6 +6207,13 @@ def main() -> None:
         help="Scope Phase 3 to lugs tagged with this initiative id. Lugs without a matching initiative field are skipped."
     )
     parser.add_argument(
+        "--not-blocking-me", action="store_true",
+        help="Process ONLY work the operator is not gating: dispatch is restricted to "
+             "lugs whose own disposition is auto_build. Reads the lug, not the "
+             "ready-queue cache, so a stale index cannot leak needs_you or ungroomed "
+             "work into an unattended run. Intended for 'kick it off and walk away'."
+    )
+    parser.add_argument(
         "--rfc", action="store_true",
         help="RFC mode: Phase6WheelMode dispatches first cohort with learn_directive instead of full convoy"
     )
@@ -6113,6 +6269,7 @@ def main() -> None:
         wheel_mode_flag=args.wheel_mode,
         consolidate_flag=args.consolidate,
         initiative_filter=args.initiative,
+        not_blocking_me=getattr(args, 'not_blocking_me', False),
         rfc_mode=args.rfc,
         cohort_size=args.cohort_size,
         advance_mode=args.advance_mode,

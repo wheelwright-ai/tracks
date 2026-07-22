@@ -19,6 +19,23 @@ if [[ "${WAI_HERALD_SPAWN:-0}" == "1" ]]; then
 fi
 
 PROJECT_DIR="${WAI_PROJECT_DIR:-${CODEX_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$(pwd)}}}"
+
+# _wai_detach: launch a background daemon that Claude Code will NOT count as an
+# active shell at session exit and that never flashes a terminal window. setsid
+# gives the child a BRAND-NEW session with no controlling terminal (full detach);
+# nohup is the portable fallback where setsid is absent (e.g. stock macOS). stdin
+# is closed, all FDs redirected, and the job disowned so bash stops tracking it.
+# Usage: _wai_detach <LOGFILE|/dev/null> <cmd> [args...]
+_wai_detach() {
+  local _log="$1"; shift
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "$@" </dev/null >>"$_log" 2>&1 &
+  else
+    nohup "$@" </dev/null >>"$_log" 2>&1 &
+  fi
+  disown 2>/dev/null || true
+}
+
 # Mode-aware data-plane base (canon v4): v4-only -> WAI-Harness/spoke/local ; else v3 WAI-Spoke.
 if [[ -d "$PROJECT_DIR/WAI-Harness/spoke/local" && ! -d "$BASE" ]]; then
   BASE="$PROJECT_DIR/WAI-Harness/spoke/local"
@@ -256,15 +273,33 @@ IP_LIST=$(ls "$LUGS_DIR/bug/in_progress/"*.json "$LUGS_DIR/feature/in_progress/"
   | xargs -I{} basename {} .json 2>/dev/null | sort | sed 's/^/  - /' | tr '\n' '\n')
 
 # ── 4. Hub + teaching check ───────────────────────────────────────────────────
+# ADVISORS DATA PLANE — the one v4 home that is a SIBLING of local/, not under it
+# (WAI-Harness/spoke/advisors). wai_paths.advisors_dir() has always been right;
+# this hook hand-joined "$BASE/advisors" (BASE=spoke/local) and so probed a path that does not
+# exist, silently blanking Expediter, Historian, Context feeds, Advisors-ready and
+# TOOL ADVISOR while 35 advisors sat on disk.
+ADVISORS_BASE="$PROJECT_DIR/WAI-Harness/spoke/advisors"
+[[ -d "$ADVISORS_BASE" ]] || ADVISORS_BASE="$PROJECT_DIR/WAI-Spoke/advisors"   # v3 fallback
+
 HUB_PATH=$(jq -r '.wheel.hub_path // ""' "$STATE_FILE" 2>/dev/null)
 NODE_TYPE=$(jq -r '.wheel.node_type // "spoke"' "$STATE_FILE" 2>/dev/null || echo "spoke")
 PROCESSED_DIR="$BASE/seed/ingest/processed"
 
+# HUB DATA PLANE — v4 moved hub payload down one level into hub/local/; hub/ itself
+# now holds only local/ and managed/. This hook read the v3 layout for weeks and
+# therefore reported "0 teachings, 0 signals" on every spoke, because every path it
+# probed simply did not exist. Behind that zero sat 4 signals plus 26 spoke-branch
+# and 4 cross-spoke teachings (hub nodes read the smaller hub-only branch, so this
+# repo surfaces far fewer than a spoke does). Resolve once here and never probe
+# "$HUB_PATH/<payload>" directly again.
+HUB_DATA="$HUB_PATH"
+[[ -n "$HUB_PATH" && -d "$HUB_PATH/local" ]] && HUB_DATA="$HUB_PATH/local"
+
 # Spoke nodes read spoke/current + cross_spoke/current; hub nodes read hub-only/current + cross_spoke/current
 if [[ "$NODE_TYPE" == "hub" ]]; then
-  TEACH_DIRS=("$HUB_PATH/teachings_repo/hub-only/current" "$HUB_PATH/teachings_repo/cross_spoke/current")
+  TEACH_DIRS=("$HUB_DATA/teachings_repo/hub-only/current" "$HUB_DATA/teachings_repo/cross_spoke/current")
 else
-  TEACH_DIRS=("$HUB_PATH/teachings_repo/spoke/current" "$HUB_PATH/teachings_repo/cross_spoke/current")
+  TEACH_DIRS=("$HUB_DATA/teachings_repo/spoke/current" "$HUB_DATA/teachings_repo/cross_spoke/current")
 fi
 
 HUB_STATUS="MISSING"
@@ -281,7 +316,13 @@ INIT_VERSION=$(jq -r '.wheel.initialized_at_version // "0.0.0"' "$STATE_FILE" 2>
 # Returns true if $1 <= $2 (semver-safe via sort -V)
 _version_lte() { [ "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" = "$1" ]; }
 
-if [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
+# A bare -d on the hub root is a FALSE GREEN: it passed for weeks against a
+# directory containing none of the expected payload. Require the teachings repo to
+# actually be there before claiming OK, and name the failure when it is not.
+if [[ -n "$HUB_PATH" && -d "$HUB_PATH" && ! -d "$HUB_DATA/teachings_repo" ]]; then
+  HUB_STATUS="DEGRADED (no teachings_repo under $HUB_DATA)"
+  TEACH_STATUS="MISSING"
+elif [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
   HUB_STATUS="OK"
   TEACH_STATUS="OK"
   for TEACH_DIR in "${TEACH_DIRS[@]}"; do
@@ -337,9 +378,9 @@ done
 # Count only framework-targeted signals (incoming/framework/) — hub/ signals are hub-session scope
 HUB_SIGNALS=0
 HUB_SIGNALS_HUB=0
-if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming" ]]; then
+if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming" ]]; then
   # framework-targeted signals (exclude status=delivered — already absorbed)
-  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/framework" ]]; then
+  if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming/framework" ]]; then
     HUB_SIGNALS=$(python3 -c "
 import json, glob, os, sys
 count = 0
@@ -353,22 +394,22 @@ for f in sorted(glob.glob(sys.argv[1] + '/*.json')):
     except Exception:
         count += 1
 print(count)
-" "$HUB_PATH/WAI-Hub/signals/incoming/framework" 2>/dev/null || echo "0")
+" "$HUB_DATA/WAI-Hub/signals/incoming/framework" 2>/dev/null || echo "0")
   else
     # fallback: flat incoming/ (pre-subfolder layout)
-    HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+    HUB_SIGNALS=$(ls "$HUB_DATA/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
   fi
   # hub-targeted signals (informational only — processed by hub sessions)
-  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/hub" ]]; then
-    HUB_SIGNALS_HUB=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/hub/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
+  if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming/hub" ]]; then
+    HUB_SIGNALS_HUB=$(ls "$HUB_DATA/WAI-Hub/signals/incoming/hub/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
   fi
 fi
 
 # ── 5b. Hub registry update ──────────────────────────────────────────────────
 # Update outstanding_work counts in hub-registry.json on every session start.
 # Match by path (not basename) — spoke directory name may differ from wheel_id.
-if [[ "$HUB_STATUS" == "OK" && -f "$HUB_PATH/hub-registry.json" ]]; then
-  WHEEL_ID=$(jq -r --arg path "$PROJECT_DIR" '.wheels[] | select(.path == $path) | .wheel_id' "$HUB_PATH/hub-registry.json" 2>/dev/null)
+if [[ "$HUB_STATUS" == "OK" && -f "$HUB_DATA/hub-registry.json" ]]; then
+  WHEEL_ID=$(jq -r --arg path "$PROJECT_DIR" '.wheels[] | select(.path == $path) | .wheel_id' "$HUB_DATA/hub-registry.json" 2>/dev/null)
   if [[ -n "$WHEEL_ID" && "$WHEEL_ID" != "null" ]]; then
     _OPEN=$(count_lugs "$LUGS_DIR/*/open/*.json")
     _IP=$(count_lugs "$LUGS_DIR/*/in_progress/*.json")
@@ -380,8 +421,8 @@ if [[ "$HUB_STATUS" == "OK" && -f "$HUB_PATH/hub-registry.json" ]]; then
        --arg ts "$_TS" \
        '(.wheels[] | select(.wheel_id == $id)).outstanding_work = {"open": $open, "in_progress": $ip, "last_checked": $ts} |
         (.wheels[] | select(.wheel_id == $id)).last_sync = $ts' \
-       "$HUB_PATH/hub-registry.json" > "$_TMP" 2>/dev/null \
-      && mv "$_TMP" "$HUB_PATH/hub-registry.json" \
+       "$HUB_DATA/hub-registry.json" > "$_TMP" 2>/dev/null \
+      && mv "$_TMP" "$HUB_DATA/hub-registry.json" \
       || rm -f "$_TMP"
   fi
 fi
@@ -485,7 +526,7 @@ fi
 
 # ── 9. Historian advice (latest review) ──────────────────────────────────────
 HISTORIAN_ADVICE=""
-HISTORIAN_DIR="$BASE/advisors/historian/reviews"
+HISTORIAN_DIR="$ADVISORS_BASE/historian/reviews"
 if [[ -d "$HISTORIAN_DIR" ]]; then
   LATEST_REVIEW=$(ls -1 "$HISTORIAN_DIR"/review-*.md 2>/dev/null | sort | tail -1)
   if [[ -n "$LATEST_REVIEW" ]]; then
@@ -500,7 +541,7 @@ fi
 
 # ── 9b. Expediter summary ────────────────────────────────────────────────────
 EXPEDITER_SUMMARY=""
-EXPEDITER_STATE="$BASE/advisors/expediter/scan_state.json"
+EXPEDITER_STATE="$ADVISORS_BASE/expediter/scan_state.json"
 if [[ "$BRIEF_FRESH" == "true" ]]; then
   # Fast path: use pre-computed queue data from brief instead of re-running expediter
   _READY=$(jq -r '.queue_snapshot.ready_count // 0' "$_BRIEF_PATH" 2>/dev/null || echo "0")
@@ -520,7 +561,7 @@ fi  # end BRIEF_FRESH else block for expediter
 
 # ── 9c. Advisor context feed staleness check ─────────────────────────────────
 CONTEXT_FEED_STATUS=""
-ADVISORS_DIR="$BASE/advisors"
+ADVISORS_DIR="$ADVISORS_BASE"
 if [[ -d "$ADVISORS_DIR" && -f "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/advisor_context_refresh.py" ]]; then
   STALE_ADVISORS=""
   UNINIT_ADVISORS=""
@@ -561,9 +602,9 @@ except: print(7)
   # Auto-init uninit advisors in background
   if [[ -n "$UNINIT_ADVISORS" ]]; then
     mkdir -p "$HOME/.claude/logs"
-    python3 "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/advisor_context_refresh.py" \
-      --init --quiet --spoke-path "$PROJECT_DIR" \
-      >> "$HOME/.claude/logs/context-refresh-$(date +%Y%m%d).log" 2>&1 &
+    _wai_detach "$HOME/.claude/logs/context-refresh-$(date +%Y%m%d).log" \
+      python3 "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/advisor_context_refresh.py" \
+      --init --quiet --spoke-path "$PROJECT_DIR"
     UNINIT_COUNT=$(echo $UNINIT_ADVISORS | wc -w | tr -d ' ')
     CONTEXT_FEED_STATUS="  Context feeds: ${UNINIT_COUNT} initializing in background (${UNINIT_ADVISORS# })"
   elif [[ -n "$STALE_ADVISORS" ]]; then
@@ -651,6 +692,76 @@ if [[ -f "$_TL_TOOL" ]]; then
   [[ -z "$LANDING_SECTION" ]] && LANDING_SECTION="THREAD LANDING: DEGRADED — checker present but returned nothing. Desk state UNKNOWN, not clear."
 else
   LANDING_SECTION="THREAD LANDING: ABSENT — no thread_landing.py. Open threads are UNCHECKED; the desk below is unverified."
+fi
+
+# ── SPOKE READINESS ──────────────────────────────────────────────────────────
+# Two questions, kept apart on purpose. Q1 "will it operate as expected?" is the
+# HARNESS's responsibility and a failure there is a harness defect. Q2 "what is the
+# next action to health?" is the SPOKE's own condition -- most spokes are a mess
+# because the harness never governed the behaviour that built them, so a Q2 finding
+# is the next piece of work, never an upgrade failure. Reporting them as one status
+# is how a green light came to sit above a spoke with 1 runnable lug in 51.
+#
+# Silent when fully operational with nothing notable: the panel earns its lines by
+# having something to say.
+READINESS_SECTION=""
+_RD_TOOL="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/spoke_readiness.py"
+if [[ -f "$_RD_TOOL" ]]; then
+  READINESS_SECTION=$(python3 "$_RD_TOOL" --root "${PROJECT_DIR}" 2>&1 || true)
+fi
+
+# ── WORK SPLIT ───────────────────────────────────────────────────────────────
+# The operator's standing question, answered first: what is stuck on ME, and what
+# can Ozi take without me. NEEDS YOU is ranked by unblock leverage so the top of
+# the list is whatever frees the most autonomous work per decision.
+#
+# Truth is the disposition stamped on each lug; ready-queue.json is only a cache
+# and the tool recomputes from lugs whenever that cache is absent, stale, or
+# zero-over-a-non-empty-backlog. Never let this section report a clear desk it has
+# not established.
+#
+# Consumes the handoff closeout wrote (_session_state.blocked_on_human): what the
+# LAST session learned about the operator's blocking set, including reasoning an
+# agent could only have had in the moment. Recomputing cold each wakeup loses that.
+_HANDOFF=$(jq -r '
+  ._session_state.blocked_on_human // empty
+  | if .status == "UNKNOWN" then "  carried forward: UNKNOWN — " + (.reason // "no reason recorded")
+    else "  carried forward from last session: " + (.count|tostring) + " blocking you"
+         + (if (.top // []) | length > 0
+            then " (top: " + (.top[0].id) + ")" else "" end)
+    end' "$STATE_FILE" 2>/dev/null || true)
+
+WORK_SPLIT_SECTION=""
+_WS_TOOL="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/work_split.py"
+if [[ -f "$_WS_TOOL" ]]; then
+  WORK_SPLIT_SECTION=$(python3 "$_WS_TOOL" --spoke-root "${PROJECT_DIR}" --limit 5 2>&1)
+  [[ -n "$_HANDOFF" ]] && WORK_SPLIT_SECTION="${WORK_SPLIT_SECTION}
+${_HANDOFF}"
+  [[ -z "$WORK_SPLIT_SECTION" ]] && WORK_SPLIT_SECTION="WORK SPLIT: DEGRADED — splitter present but returned nothing. Your blocking set is UNKNOWN, not empty."
+else
+  WORK_SPLIT_SECTION="WORK SPLIT: ABSENT — no work_split.py at spoke/managed/tools/. Operator-vs-Ozi split is UNREPORTED this session."
+fi
+
+# ── ADVISOR PANEL ────────────────────────────────────────────────────────────
+# The advisor bench, as a call sheet: last run, net-net call to action, next due.
+# Sits immediately above TASTEGRAPH so it occupies the same screen position every
+# session and is recognisable by shape alone.
+#
+# Reads the SIBLING advisors dir (WAI-Harness/spoke/advisors), NOT the local/ base
+# — advisors are the one v4 home that does not live under local/. Using $BASE here
+# is what silently blanked Expediter, Context feeds, Advisors-ready and TOOL
+# ADVISOR in this very briefing. The tool resolves the path itself via wai_paths;
+# do not hand-join it here.
+#
+# Loud on absent, same doctrine as RESIDENT/TASTEGRAPH: an unreported bench must
+# never look like a healthy one.
+ADVISOR_PANEL_SECTION=""
+_AP_TOOL="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/advisor_panel.py"
+if [[ -f "$_AP_TOOL" ]]; then
+  ADVISOR_PANEL_SECTION=$(python3 "$_AP_TOOL" --spoke-root "${PROJECT_DIR}" --limit 12 2>&1)
+  [[ -z "$ADVISOR_PANEL_SECTION" ]] && ADVISOR_PANEL_SECTION="ADVISORS: DEGRADED — panel present but returned nothing. Bench state UNKNOWN, not idle."
+else
+  ADVISOR_PANEL_SECTION="ADVISORS: ABSENT — no advisor_panel.py at spoke/managed/tools/. Advisor run state is UNREPORTED this session."
 fi
 
 # ── AWARENESS vector (spec-tastegraph-vector-middleman-v1) ──────────────────
@@ -808,7 +919,7 @@ fi
 # ── 9c. Advisor schedule evaluation ────────────────────────────────────────
 ADVISORS_READY=""
 if [[ "$BRIEF_FRESH" != "true" ]]; then
-if [[ -f "$PROJECT_DIR/tools/advisor_schedule_eval.py" && -f "$BASE/advisors/schedule-index.json" ]]; then
+if [[ -f "$PROJECT_DIR/tools/advisor_schedule_eval.py" && -f "$ADVISORS_BASE/schedule-index.json" ]]; then
   EVAL_OUT=$(cd "$PROJECT_DIR" && python3 tools/advisor_schedule_eval.py --json 2>/dev/null)
   if [[ -n "$EVAL_OUT" ]]; then
     ADVISORS_READY=$(python3 -c "
@@ -824,13 +935,13 @@ fi  # end BRIEF_FRESH guard for advisor schedule eval
 
 # ── 10. Ozi nightly report (if hub connected) ───────────────────────────────
 OZI_NIGHTLY=""
-if [[ -n "$HUB_PATH" && -d "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports" ]]; then
+if [[ -n "$HUB_PATH" && -d "$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports" ]]; then
   # Find most recent report (today or yesterday)
   TODAY=$(date +%Y-%m-%d)
   YESTERDAY=$(date -d "yesterday" +%Y-%m-%d 2>/dev/null || date -v-1d +%Y-%m-%d 2>/dev/null || echo "")
   REPORT_FILE=""
-  [[ -f "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json" ]] && REPORT_FILE="$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json"
-  [[ -z "$REPORT_FILE" && -n "$YESTERDAY" && -f "$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json" ]] && REPORT_FILE="$HUB_PATH/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json"
+  [[ -f "$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json" ]] && REPORT_FILE="$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$TODAY.json"
+  [[ -z "$REPORT_FILE" && -n "$YESTERDAY" && -f "$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json" ]] && REPORT_FILE="$HUB_DATA/WAI-Hub/runtime/ozi-nightly-reports/$YESTERDAY.json"
 
   if [[ -n "$REPORT_FILE" ]]; then
     REPORT_DATE=$(jq -r '.date // "unknown"' "$REPORT_FILE" 2>/dev/null)
@@ -857,7 +968,7 @@ fi
 
 # ── Tool Advisor: surface pending config drift ──────────────────────────────
 TOOL_ADVISOR_PENDING=""
-TOOL_ADVISOR_STATE="$BASE/advisors/tool-advisor/scan_state.json"
+TOOL_ADVISOR_STATE="$ADVISORS_BASE/tool-advisor/scan_state.json"
 if [[ -f "$TOOL_ADVISOR_STATE" ]]; then
   AUDIT_PENDING=$(jq -r '.audit_pending // false' "$TOOL_ADVISOR_STATE" 2>/dev/null)
   AUDIT_REASON=$(jq -r '.audit_reason // ""' "$TOOL_ADVISOR_STATE" 2>/dev/null)
@@ -936,6 +1047,12 @@ ${LANDING_SECTION}
 NEXT ACTIONS (from session $((SESSION_COUNT - 1)))
   ${NEXT_REC}
 $(if [[ -n "$TOOL_ADVISOR_PENDING" ]]; then printf "\nTOOL ADVISOR\n%b\n" "$TOOL_ADVISOR_PENDING"; fi)
+${READINESS_SECTION}
+
+${WORK_SPLIT_SECTION}
+
+${ADVISOR_PANEL_SECTION}
+
 ${TASTEGRAPH_SECTION}
 ${AWARENESS_SECTION}
 

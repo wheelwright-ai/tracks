@@ -292,6 +292,28 @@ def check_subordinates_complete(subordinates: list, index: list, now: datetime.d
     return True, "all subordinates have run within cadence"
 
 
+def normalize_index(raw) -> list:
+    """Return the advisor entry list from either schedule-index shape.
+
+    schedule-index.json exists in the fleet in two shapes: a bare list of
+    advisor entries, and a dict wrapper {"last_update_at": ..., "advisors": [...]}.
+    Every reader here assumed the list. Iterating the dict yields its KEYS, so
+    `entry["advisor_id"]` raised TypeError in this tool and silently matched
+    nothing in ozi_autopilot._due_advisors — which meant that on every
+    dict-shaped spoke (mywheel itself, ezorg-email-website, solutions-by-mv as of
+    2026-07-22) NO advisor was ever evaluated, nothing was ever due, and advisor
+    scouting reported "0 scout lugs" in 0.0s as though the crew were up to date.
+    Discovery stopped and nothing said so.
+    """
+    if isinstance(raw, dict):
+        entries = raw.get("advisors")
+        if isinstance(entries, list):
+            return entries
+        # Last resort: a dict keyed by advisor_id whose values are entries.
+        return [v for v in raw.values() if isinstance(v, dict) and v.get("advisor_id")]
+    return raw if isinstance(raw, list) else []
+
+
 def eval_advisor(entry: dict, now: datetime.datetime, state: dict, index: list | None = None, spoke_root=None) -> dict:
     advisor_id = entry["advisor_id"]
     cadence_key = entry.get("run_cadence") or "weekly"
@@ -461,7 +483,7 @@ def main():
         print("[]")
         sys.exit(0)
 
-    index = json.load(open(schedule_index))
+    index = normalize_index(json.load(open(schedule_index)))
     state = load_spoke_state(spoke_root)
     now = datetime.datetime.now(datetime.timezone.utc)
 

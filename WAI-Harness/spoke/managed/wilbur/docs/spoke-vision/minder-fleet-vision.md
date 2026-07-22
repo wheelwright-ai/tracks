@@ -17,7 +17,7 @@ Fleet health monitoring:
 - `web/routes_status.py` — Blueprint: GET /status, GET /ops/health (Bearer-protected, 5-min background cache), GET /api/health/data, POST /api/health/ingest, POST /api/health/run
 - `web/templates/status_page.html` — Fleet Status Page UI: fleet banner (worst-case rollup, last-checked, Run All), per-spoke expandable cards, 30-dot history strip with hover tooltips, stale-data warning when last run > 26h
 - `src/minder/db/models.py` — HealthRun, HealthCheckResult tables
-- `WAI-Spoke/health/statuschecks.json` — Minder's own health registration (web-server, database, telegram-bot checks)
+- `WAI-Harness/spoke/health/statuschecks.json` — Minder's own health registration (web-server, database, telegram-bot checks)
 - `cron-setup.md` — documents `0 7 * * *` crontab entry for health_monitor.py
 - Nav dot indicator in `_nav.html` for RED/YELLOW fleet state
 
@@ -59,7 +59,7 @@ Key design intentions:
 ## Verified Gap List
 
 - **Tender page not retooled**: Open lug `b70c2a7f95dd` (feature, impact=7) — execution UI needs to become fleet activity log aggregator. Dependency on `d74879881d4d` (activity-log.jsonl schema) first.
-- **Health endpoint registration across spokes**: Only Minder itself has a `WAI-Spoke/health/statuschecks.json`. The fleet-wide rollout template (`feature-spoke-health-registration-template-v1`) — verify if this lug was ever created and delivered to spokes.
+- **Health endpoint registration across spokes**: Only Minder itself has a `WAI-Harness/spoke/health/statuschecks.json`. The fleet-wide rollout template (`feature-spoke-health-registration-template-v1`) — verify if this lug was ever created and delivered to spokes.
 - **HEALTH_CHECK_SECRET not fleet-wide**: Each spoke needs this in their `.env.local`. The signal `signal-fleet-secrets-template-audit-v1` (open) tracks this gap.
 - **Gardener synthesize learnings → teaching delivery**: The synthesize learnings feature (S102) produces proposals but the delivery path to hub teachings/ is manual, not automated.
 - **Surveyor cross-dependency**: `tools/surveyor_report.py` reads hub data paths. Hub path is configured via `hub_path` in WAI-State.json — if hub moves, Surveyor breaks.

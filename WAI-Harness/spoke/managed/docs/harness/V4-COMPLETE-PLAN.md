@@ -6,15 +6,15 @@
 ---
 
 ## Definition of DONE (the only acceptance that matters)
-1. **V4-native session works** — a session in `WAI_HARNESS_MODE=v4-only` runs the full cycle (wakeup → work → closeout → track → savepoint) **entirely on v4 trees** (`WAI-Harness/spoke/local`), with **zero reads/writes to `WAI-Spoke/`**. Proven on: (a) a **greenfield** spoke, (b) a **brownfield upgrade** (v3→v4-native), (c) a **brownfield adopt** (non-WW repo → v4-native).
+1. **V4-native session works** — a session in `WAI_HARNESS_MODE=v4-only` runs the full cycle (wakeup → work → closeout → track → savepoint) **entirely on v4 trees** (`WAI-Harness/spoke/local`), with **zero reads/writes to `WAI-Harness/spoke/`**. Proven on: (a) a **greenfield** spoke, (b) a **brownfield upgrade** (v3→v4-native), (c) a **brownfield adopt** (non-WW repo → v4-native).
 2. **Hub independent** — the hub runs every service (registry, teaching delivery, parity, advisors incl. Trainer/Assessor) **from its new location**; move `wheelwright/hub/WAI-Hub` aside and the hub still works. No symlink into the old folder.
 3. **Framework + old-hub dormant** — removed from the active fleet (registry), nothing's `hub_path`/`master` points at them, set `v3-only`/dormant, harness-dev home relocated. Kept on disk, not active.
 4. **Fleet on v4-native + new hub** — `cutover_readiness.py` GREEN **and** a new native-session check passes for every active registry spoke.
 
 ## Current state (entering this plan)
-- v4 activated (markers) on 27/29 registry spokes, but **not running** — the v4 steps live in `.claude/hooks/session-start.sh` which most spokes don't invoke (they run `WAI-Spoke/_hooks/session-start.sh`, pure v3). **Basher P0 lug `change-basher-wire-v4-into-registered-sessionstart-hook-v1` fixes this** (in flight).
+- v4 activated (markers) on 27/29 registry spokes, but **not running** — the v4 steps live in `.claude/hooks/session-start.sh` which most spokes don't invoke (they run `WAI-Harness/spoke/_hooks/session-start.sh`, pure v3). **Basher P0 lug `change-basher-wire-v4-into-registered-sessionstart-hook-v1` fixes this** (in flight).
 - Coexistence only: even when the v4 hook runs it `exec`s the v3 wakeup. **No native session yet.**
-- `harness_mode.sh` already resolves `coexist|v4-only|v3-only` via `$WAI_HARNESS_MODE` — the switch exists; ceremonies/tools just aren't v4-path-aware (6 tools still read `WAI-Spoke/`, 6 read v4 `local/`).
+- `harness_mode.sh` already resolves `coexist|v4-only|v3-only` via `$WAI_HARNESS_MODE` — the switch exists; ceremonies/tools just aren't v4-path-aware (6 tools still read `WAI-Harness/spoke/`, 6 read v4 `local/`).
 - Hub stood up via **symlink-bridge** to the old folder (interim — must become a real copy).
 - `harness_init.py` + `v4_migrate.py` exist in `framework/tools` (greenfield/adopt/upgrade engines) but not yet in master managed.
 - Epic `epic-harness-v4-self-certifying-v1`: 26 [x] / 21 [~]. Harness VERSION `4.0.0-pre.2`.
@@ -33,7 +33,7 @@ Make session-start + every ceremony + every state tool **resolve its WAI root by
 - Port the **registered session-start/wakeup** to emit the `<wai-session-init>` briefing from the resolved root (native in v4-only, no `exec` of the v3 hook).
 - Port **closeout, savepoint, track** (and the 6 v3-path tools) to the resolver — write/read v4 `local/` in v4-only.
 - v3 trees are **read-only fallback**, never required in v4-only.
-**Gate:** set `WAI_HARNESS_MODE=v4-only` on a pilot (framework's own install) → full wakeup→work→closeout→track→savepoint cycle runs with **zero `WAI-Spoke/` access** (verify by temporarily renaming `WAI-Spoke/` — session still works). *(Owner: framework builds; Basher distributes hook edits.)*
+**Gate:** set `WAI_HARNESS_MODE=v4-only` on a pilot (framework's own install) → full wakeup→work→closeout→track→savepoint cycle runs with **zero `WAI-Harness/spoke/` access** (verify by temporarily renaming `WAI-Harness/spoke/` — session still works). *(Owner: framework builds; Basher distributes hook edits.)*
 
 ### Phase C — Hub independence (no old-folder dependency)
 Subsume the hub's **valuable data** (registry, advisors incl. Trainer/Assessor, parity, teachings, learnings, model-routing) as a **real copy** into the new hub location; drop the symlink; run all hub services from there. Secrets stay in env (never copied); cruft (git history, indexes, caches, logs) left behind.
@@ -42,7 +42,7 @@ Subsume the hub's **valuable data** (registry, advisors incl. Trainer/Assessor, 
 
 ### Phase D — Greenfield + Brownfield native engines
 Bring `harness_init.py` + `v4_migrate.py` into master managed and make each produce a **v4-only** spoke:
-- **Greenfield:** bootstrap a fresh spoke from the mywheel blueprint with **no `WAI-Spoke/`** — born v4-native.
+- **Greenfield:** bootstrap a fresh spoke from the mywheel blueprint with **no `WAI-Harness/spoke/`** — born v4-native.
 - **Brownfield upgrade:** v3 spoke → migrate state into v4 `local/` → flip `v4-only` (v3 retained as dormant fallback).
 - **Brownfield adopt:** existing non-WW repo → v4-native + gap report (closes **AC31**).
 **Gate:** all three scenarios yield a spoke that passes the Phase-B native-session check on a throwaway target. *(Owner: framework.)*
@@ -59,7 +59,7 @@ Basher convoy rolls the v4-only migration + `hub_path` repoint (→ new hub) acr
 ---
 
 ## New verification to BUILD (the done-detector)
-Extend `cutover_readiness.py` (or a new `v4_native_check.py`): for each registry spoke assert (a) session runs in `v4-only`, (b) zero `WAI-Spoke/` dependency (rename-test or static scan), (c) `hub_path` → new hub, (d) no ref to framework/old-hub. GREEN here = DONE.
+Extend `cutover_readiness.py` (or a new `v4_native_check.py`): for each registry spoke assert (a) session runs in `v4-only`, (b) zero `WAI-Harness/spoke/` dependency (rename-test or static scan), (c) `hub_path` → new hub, (d) no ref to framework/old-hub. GREEN here = DONE.
 
 ## Cross-cutting discipline (every phase)
 AP tests at birth · full suite green · **bump `mywheel/WAI-Harness/VERSION`** · canonicalize to master + recut MANIFEST + commit `wai-mywheel` · use **registry** for fleet paths (never fs-walk) · never touch `_archive` · changes to other spokes travel as lugs + notice.

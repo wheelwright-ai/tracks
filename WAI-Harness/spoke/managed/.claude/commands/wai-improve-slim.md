@@ -21,7 +21,7 @@ Step 5: Output as idea lug
 
 ## Step 0 — Load Spoke Context
 
-Read `WAI-Spoke/WAI-State.json`: `one_liner`, `success_looks_like`, `boundaries.*`, `current_phase`.
+Read `WAI-Harness/spoke/WAI-State.json`: `one_liner`, `success_looks_like`, `boundaries.*`, `current_phase`.
 No foundation lug at all → stop, run `/wai-foundation` first.
 
 ---

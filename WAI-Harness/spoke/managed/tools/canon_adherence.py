@@ -61,8 +61,28 @@ def _files(d):
     return out
 
 
+def _retired_names():
+    """Commands deliberately retired from canon — absence downstream is CORRECT.
+
+    FALSE POSITIVE FIXED (s138): a retired command still sitting in a spoke's
+    managed tree was reported as "NOT PROPAGATED" drift, i.e. as a capability the
+    adopter was missing. It is the opposite — it is something they should not have.
+    Four instruments this session produced confident, specific, wrong findings;
+    this was the fourth, and it would have fired during a live demo.
+    """
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import deploy_commands  # noqa: PLC0415
+        return set(deploy_commands.RETIRED)
+    except Exception:  # noqa: BLE001 — never fail a check on an optional import
+        return set()
+
+
 def _compare(root, a_rel, b_rel, label_a, label_b, only_ext=None):
     a, b = _files(os.path.join(root, a_rel)), _files(os.path.join(root, b_rel))
+    for name in _retired_names():
+        a.pop(name, None)
+        b.pop(name, None)
     if only_ext:
         a = {k: v for k, v in a.items() if k.endswith(only_ext)}
         b = {k: v for k, v in b.items() if k.endswith(only_ext)}

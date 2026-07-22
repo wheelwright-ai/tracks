@@ -12,7 +12,7 @@ Create `.claude/hooks/user-prompt-submit.sh`:
 #!/bin/bash
 # WAI Session Hook — thin trigger for wakeup protocol
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-STATE_FILE="$PROJECT_DIR/WAI-Spoke/WAI-State.json"
+STATE_FILE="$PROJECT_DIR/WAI-Harness/spoke/WAI-State.json"
 
 # Exit silently if not a WAI project
 [[ ! -f "$STATE_FILE" ]] && exit 0
@@ -78,7 +78,7 @@ This project uses Wheelwright for AI session continuity.
 
 **On session start:** Read `templates/commands/wai.md` and follow the wakeup protocol.
 **Available skills:** All `/wai-*` skills are in `templates/commands/`.
-**Session state:** `WAI-Spoke/WAI-State.json`
+**Session state:** `WAI-Harness/spoke/WAI-State.json`
 ```
 
 Gemini does not support hooks — the wakeup must be triggered manually via `/wai` or by reading this file on session start.
@@ -93,7 +93,7 @@ Place in `.cursorrules` or `CURSOR.md`:
 # WAI Session Protocol
 
 On every session start:
-1. Read WAI-Spoke/WAI-State.json for project state
+1. Read WAI-Harness/spoke/WAI-State.json for project state
 2. Follow templates/commands/wai.md wakeup protocol
 3. Show WAI Point briefing before responding
 
@@ -112,7 +112,7 @@ For any AI tool that reads a project context file:
 This project uses Wheelwright session continuity.
 
 MANDATORY on session start:
-1. Check if WAI-Spoke/WAI-State.json exists
+1. Check if WAI-Harness/spoke/WAI-State.json exists
 2. If yes: follow templates/commands/wai.md wakeup protocol
 3. Show WAI Point briefing (project status, active work, context health)
 4. Then respond to the user

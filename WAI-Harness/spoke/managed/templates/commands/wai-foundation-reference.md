@@ -115,16 +115,16 @@
 
 ### Current State
 ```
-ls WAI-Spoke/lugs/bytype/foundation/{open,in_progress,completed}/*.json | sort -t- -k4 | tail -1
+ls WAI-Harness/spoke/lugs/bytype/foundation/{open,in_progress,completed}/*.json | sort -t- -k4 | tail -1
 ```
 
 ### Evolution History
 ```
-ls WAI-Spoke/lugs/bytype/foundation/completed/*.json | sort  # by filename/date asc
+ls WAI-Harness/spoke/lugs/bytype/foundation/completed/*.json | sort  # by filename/date asc
 ```
 
 ### Why Did Scope Change?
 ```
 # Read each completed foundation lug and check v > 1 for rationale chain
-grep -l '"v": [2-9]' WAI-Spoke/lugs/bytype/foundation/completed/*.json
+grep -l '"v": [2-9]' WAI-Harness/spoke/lugs/bytype/foundation/completed/*.json
 ```

@@ -42,7 +42,7 @@ Secrets stay in env (never copied). Regenerable cruft (git history, caches, `__p
 
 ### 2b. NODE / spoke-identity data → `mywheel/WAI-Harness/spoke/local/` (and `spoke/advisors/`)
 **This is the stranded half. None of it is ported yet — targets defined here.**
-| Data class | Old (`wheelwright/hub/WAI-Spoke/…`) | New (`mywheel/WAI-Harness/spoke/local/…`) |
+| Data class | Old (`wheelwright/hub/WAI-Harness/spoke/…`) | New (`mywheel/WAI-Harness/spoke/local/…`) |
 |---|---|---|
 | Node identity state | `WAI-State.json` | `WAI-State.json` |
 | Lug queue — incoming (FLEET ROUTES HERE) | `lugs/incoming/` (7 active) | `lugs/incoming/` |
@@ -73,9 +73,9 @@ Two independent fixes; both required for a post-fix lug to land in mywheel.
 - This is the work tracked as `task-mywheel-registry-and-cutover-v1` — **HARD human gate on teardown**, but registration + repoint can land ahead of teardown.
 
 **3b. Delivery-path resolution (the address within the destination).**
-- Lug delivery currently hardcodes `{path}/WAI-Spoke/lugs/incoming/`. For a v4-only node (mywheel) that path does not exist.
+- Lug delivery currently hardcodes `{path}/WAI-Harness/spoke/lugs/incoming/`. For a v4-only node (mywheel) that path does not exist.
 - **Fix:** delivery must resolve the target's incoming via the same harness-mode resolver built this session — `tools/wai_paths.py` → `category(target_path, "lugs")/incoming`, yielding `mywheel/WAI-Harness/spoke/local/lugs/incoming/`.
-- Affected: `dispatcher.py` / any tool that composes a delivery path, and the CLAUDE.md/AGENTS.md "deliver to `{path}/WAI-Spoke/lugs/incoming/`" rule (update the doctrine string too).
+- Affected: `dispatcher.py` / any tool that composes a delivery path, and the CLAUDE.md/AGENTS.md "deliver to `{path}/WAI-Harness/spoke/lugs/incoming/`" rule (update the doctrine string too).
 - Owner: framework builds the resolver call into the delivery tools (`framework/tools/`); Basher distributes any `.claude` command that encodes the path. This is a direct extension of the Phase B port — **add `dispatcher.py` + delivery tools to the Phase B port list.**
 
 ---
@@ -88,7 +88,7 @@ The hub executes the port (rsync/cp per the map), then proves zero stranded oper
 # A. every NODE data class exists at the new home (non-empty where source was non-empty)
 for d in lugs/incoming lugs/outgoing lugs/completed lugs/processed lugs/bytype \
          lugs/epics lugs/inbox sessions savepoints initiatives; do
-  src="hub/WAI-Spoke/$d"; dst="mywheel/WAI-Harness/spoke/local/$d"
+  src="hub/WAI-Harness/spoke/$d"; dst="mywheel/WAI-Harness/spoke/local/$d"
   s=$(find "$src" -type f 2>/dev/null | wc -l); t=$(find "$dst" -type f 2>/dev/null | wc -l)
   [ "$s" -le "$t" ] && echo "OK   $d ($s→$t)" || echo "FAIL $d ($s→$t)  STRANDED"
 done
@@ -98,10 +98,10 @@ test -f mywheel/WAI-Harness/spoke/local/lugs/WAI-LugIndex.jsonl && echo "OK   Lu
 # B. routing proof — deliver a probe lug, confirm it lands in mywheel not framework/ or hub/
 #    (after 3a+3b land) deliver test-route-probe-v1 to the hub node; assert:
 #    test -f mywheel/WAI-Harness/spoke/local/lugs/incoming/test-route-probe-v1.json
-#    && ! test -f framework/WAI-Spoke/lugs/incoming/test-route-probe-v1.json
+#    && ! test -f framework/WAI-Harness/spoke/lugs/incoming/test-route-probe-v1.json
 
 # C. old tree holds no UN-PORTED operational data (identity/queue) — serving fallback may remain until Phase F
-echo "remaining active lugs in OLD hub node:"; find hub/WAI-Spoke/lugs/incoming -name '*.json' | wc -l
+echo "remaining active lugs in OLD hub node:"; find hub/WAI-Harness/spoke/lugs/incoming -name '*.json' | wc -l
 ```
 GREEN = every node class ported (A), probe routes to mywheel (B), and the old incoming is drained (C). Serving data in `wheelwright/hub` stays as a Phase-F fallback; node/operational data must be zero-stranded here.
 
@@ -123,14 +123,14 @@ GREEN = every node class ported (A), probe routes to mywheel (B), and the old in
 
 ## 7. Serving-CODE vs Operational-DATA classification (P1 boundary, epic-mywheel-complete-functionality-migration-v1)
 
-**Authored:** session-20260610-2217 P1-EVALUATION · **Companion artifact:** `WAI-Spoke/harness/boundary-map.json` (file-level census: every tracked file in framework + hub classified, `totals.unclassified = 0`).
+**Authored:** session-20260610-2217 P1-EVALUATION · **Companion artifact:** `WAI-Harness/spoke/harness/boundary-map.json` (file-level census: every tracked file in framework + hub classified, `totals.unclassified = 0`).
 
 §2 above mapped the hub's operational DATA. This section adds the missing half — the serving CODE boundary — so P2 migrates exactly one canonical copy of every functional asset and leaves data as data.
 
 **The rule (central split):**
 - **CODE = MANAGED** → version-controlled in the mywheel blueprint, distributed + MANIFEST-verified. A `.py` implementation, adapter, hook, skill/command prompt, schema, charter/prompt that *defines behavior*, test suite, or authored config (e.g. `work-classes.json`) is CODE — regardless of extension.
 - **DATA = OPERATIONAL-LOCAL** → `local/` trees, gitignored at distribution targets, ported once per §2 then accumulated in place. A `.json`/`.jsonl` cache, recommendation, learning, teaching file, session track, lug queue, registry state, parity snapshot, or *fetched* provider matrix is DATA — even when it sits next to code.
-- Two further classes complete the taxonomy: **SELF-BUILT-LOCAL** (per-spoke advisor *instances* under `WAI-Spoke/advisors/{name}/` — Phase-2.5 doctrine: each spoke's Ozi builds its own crew; only the advisor *framework* — `advisor_manager.py`, `evolution_engine.py`, `schema/advisor-schema-v1.yaml`, `coverage-model.yaml`, `departments.json` — is blueprint) and **DROP** (deprecated SIGNAL system 536 files, archives, stale mirrors, one-off migration/audit scripts, `__pycache__` — preserved only in archived repo git history).
+- Two further classes complete the taxonomy: **SELF-BUILT-LOCAL** (per-spoke advisor *instances* under `WAI-Harness/spoke/advisors/{name}/` — Phase-2.5 doctrine: each spoke's Ozi builds its own crew; only the advisor *framework* — `advisor_manager.py`, `evolution_engine.py`, `schema/advisor-schema-v1.yaml`, `coverage-model.yaml`, `departments.json` — is blueprint) and **DROP** (deprecated SIGNAL system 536 files, archives, stale mirrors, one-off migration/audit scripts, `__pycache__` — preserved only in archived repo git history).
 
 **Per-area MANAGED-code targets (old → mywheel):**
 
@@ -143,9 +143,9 @@ GREEN = every node class ported (A), probe routes to mywheel (B), and the old in
 | Spoke orchestration tools — 113 `.py` (87 MANAGED still stranded; 2 DROP: `v4_migrate.py`, `v4_skeleton.py`) + 7 root-level `wai_ozi*.py`/`wai_goal_queue.py` | `framework/tools/`, `framework/*.py` | `WAI-Harness/spoke/managed/tools/` |
 | Skills/commands blueprint — 105 canonical | `framework/templates/commands/` | `WAI-Harness/spoke/managed/.claude/commands/` (104 present — diff-refresh; `wai-track.md` superseded-in-progress, take post-rewrite version) |
 | Hooks — 11 | `framework/.claude/hooks/` | `WAI-Harness/spoke/managed/.claude/hooks/` |
-| Advisor-framework code (NOT instances) | `framework/WAI-Spoke/advisors/{advisor_manager.py,evolution_engine.py,schema/,coverage-model.yaml,departments.json}` | `WAI-Harness/spoke/managed/` |
+| Advisor-framework code (NOT instances) | `framework/WAI-Harness/spoke/advisors/{advisor_manager.py,evolution_engine.py,schema/,coverage-model.yaml,departments.json}` | `WAI-Harness/spoke/managed/` |
 | Shared serving code + tests + schemas + supabase migrations + scripts + wilbur code + crew/config | `framework/{shared,tests,schemas,supabase,scripts,wilbur,crew,config,wai,managed}/` | `WAI-Harness/spoke/managed/…` |
-| Harness-dev assets (benchmarks, test-bench, docs, examples, design docs incl. this map) | `framework/{benchmarks,test-bench,docs,examples}/`, `framework/WAI-Spoke/harness/` | `WAI-Harness/dev/…` (harness-dev home = mywheel) |
+| Harness-dev assets (benchmarks, test-bench, docs, examples, design docs incl. this map) | `framework/{benchmarks,test-bench,docs,examples}/`, `framework/WAI-Harness/spoke/harness/` | `WAI-Harness/dev/…` (harness-dev home = mywheel) |
 
 **Confirmation:** every data class enumerated in §2a/§2b is **OPERATIONAL-LOCAL** under this taxonomy — nothing in §2 is blueprint code, and the §2 targets (`hub/local/`, `spoke/local/`) stand unchanged.
 

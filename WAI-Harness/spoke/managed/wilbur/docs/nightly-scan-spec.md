@@ -28,7 +28,7 @@ Read `hub/hub-registry.json` to get all registered spoke paths. Filter to active
 ### Step 2: Archaeology Gate Check
 
 For each spoke:
-- Read `{spoke}/WAI-Spoke/PathGraph.json`
+- Read `{spoke}/WAI-Harness/spoke/PathGraph.json`
 - Check `metadata.archaeology_complete`
 - If `false`: skip the spoke, log reason
 - If `true` or missing: stop processing, error
@@ -38,7 +38,7 @@ Reason: Archaeology must run once per spoke before incremental scans can begin.
 ### Step 3: Find New Sessions
 
 For each eligible spoke:
-- Read sessions directory: `{spoke}/WAI-Spoke/sessions/`
+- Read sessions directory: `{spoke}/WAI-Harness/spoke/sessions/`
 - Compare each session's timestamp to `ScanState.json[spoke_id].last_scan_at`
 - Return only sessions newer than last_scan_at
 
@@ -55,7 +55,7 @@ For each new session:
 ### Step 5: Append to PathGraph
 
 For each spoke with new aspirations:
-- Read `{spoke}/WAI-Spoke/PathGraph.json`
+- Read `{spoke}/WAI-Harness/spoke/PathGraph.json`
 - Append new aspiration records to the `aspirations` array
 - **NEVER** overwrite or delete existing entries
 - Write updated file
@@ -211,13 +211,13 @@ python3 /home/mario/projects/wheelwright/framework/wilbur/tools/nightly_scan.py
 
 ```bash
 # Get original count
-BEFORE=$(jq '.aspirations | length' /path/to/spoke/WAI-Spoke/PathGraph.json)
+BEFORE=$(jq '.aspirations | length' /path/to/spoke/WAI-Harness/spoke/PathGraph.json)
 
 # Run scan
 python3 nightly_scan.py
 
 # Get new count
-AFTER=$(jq '.aspirations | length' /path/to/spoke/WAI-Spoke/PathGraph.json)
+AFTER=$(jq '.aspirations | length' /path/to/spoke/WAI-Harness/spoke/PathGraph.json)
 
 # Verify AFTER > BEFORE (never equal or less)
 if [ $AFTER -gt $BEFORE ]; then

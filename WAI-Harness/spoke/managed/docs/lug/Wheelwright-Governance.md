@@ -74,7 +74,7 @@ Every work session MUST end with explicit reconciliation:
 ## Signal Submission
 
 **When:** At session closeout  
-**Where:** WAI-Spoke/WAI-Signals.jsonl  
+**Where:** WAI-Harness/spoke/WAI-Signals.jsonl  
 **What:** Architectural decisions, learnings, patterns, completions
 
 **Signal Schema:**

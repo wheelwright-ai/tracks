@@ -28,7 +28,7 @@ Steps 2 and 3 are the fitting work. A lug that skips these steps is not fully pr
 
 ## Step 0: Load Spoke Context (Required)
 
-**0a.** Read `WAI-Spoke/WAI-State.json`: `_project_foundation.identity.one_liner`, `success_looks_like`, `boundaries.*`, `philosophy.core_principle`, `approach.stack_or_tools`, `context.current_phase`. Also check `lugs/bytype/other/open/` for foundation lugs.
+**0a.** Read `WAI-Harness/spoke/WAI-State.json`: `_project_foundation.identity.one_liner`, `success_looks_like`, `boundaries.*`, `philosophy.core_principle`, `approach.stack_or_tools`, `context.current_phase`. Also check `lugs/bytype/other/open/` for foundation lugs.
 
 **0b.** Foundation completeness check — if critical fields are missing (one_liner, in_scope, constraints, current_phase), ask rather than inventing. No foundation lug at all → **stop, run `/wai-foundation` first.** See `wai-improve-reference.md` for the completeness signal table.
 
@@ -55,7 +55,7 @@ Extract or prompt for:
 
 **2a.** Scan open lugs (`bytype/*/open/` and `*/in_progress/`). Assess similarity to incoming challenge and hypothesis. Classifications: Exact, Challenge overlap, Hypothesis overlap, Dependency, Conflict. Present any matches (one sentence each). See `wai-improve-reference.md` for similarity type definitions.
 
-**2b.** Scan `templates/commands/` and `WAI-Spoke/skills/` for existing coverage. Assess: Full / Partial / Terminology gap.
+**2b.** Scan `templates/commands/` and `WAI-Harness/spoke/skills/` for existing coverage. Assess: Full / Partial / Terminology gap.
 
 **2c.** Scan active signal lugs (impact >= 7) for decisions that already resolved the challenge.
 

@@ -71,7 +71,7 @@ Mode is stored in `WAI-State.json` at `_session_state.mode`.
 
 ```bash
 # Update WAI-State.json
-jq '._session_state.mode = "planning"' WAI-Spoke/WAI-State.json > tmp.json && mv tmp.json WAI-Spoke/WAI-State.json
+jq '._session_state.mode = "planning"' WAI-Harness/spoke/WAI-State.json > tmp.json && mv tmp.json WAI-Harness/spoke/WAI-State.json
 ```
 
 Or simply update the JSON field directly:

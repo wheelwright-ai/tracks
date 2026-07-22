@@ -93,4 +93,4 @@ Areas:
 
 ## Reference
 
-See `WAI-Spoke/advisors/tool-advisor/README.md` for detailed advisor documentation.
+See `WAI-Harness/spoke/advisors/tool-advisor/README.md` for detailed advisor documentation.

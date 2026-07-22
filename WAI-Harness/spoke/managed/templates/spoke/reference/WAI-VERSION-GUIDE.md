@@ -73,7 +73,7 @@ Wheelwright uses **four distinct version indicators** for different purposes:
 
 #### v2 (Current, 2025-2026)
 ```
-WAI-Spoke/
+WAI-Harness/spoke/
 ├── WAI-Guide.md
 ├── WAI-State.json
 ├── WAI-State.md
@@ -90,7 +90,7 @@ WAI-Spoke/
 - Determining upgrade path
 
 ### Migration Triggers:
-- **v1 → v2:** Rename .WAI/ → WAI-Spoke/, prefix files with WAI-*, create subdirectories
+- **v1 → v2:** Rename .WAI/ → WAI-Harness/spoke/, prefix files with WAI-*, create subdirectories
 - **v2 → v3:** (Future) TBD
 
 **AI Action:** Check this when file locations don't match expected paths.
@@ -125,7 +125,7 @@ WAI-Spoke/
 
 ## 4. Teaching File Version (`upgrade_plan_version`)
 
-**Location:** `WAI-Spoke/seed/ingest/manifest.json` → `upgrade_plan_version`
+**Location:** `WAI-Harness/spoke/seed/ingest/manifest.json` → `upgrade_plan_version`
 
 **Format:** Semantic versioning matching framework version
 
@@ -185,7 +185,7 @@ Else:
 ### Rule 2: Structure Version Governs File Locations
 ```
 If structure_version == "v2":
-    Files at: WAI-Spoke/WAI-*.{json,md,jsonl}
+    Files at: WAI-Harness/spoke/WAI-*.{json,md,jsonl}
 Else if structure_version == "v1":
     Files at: .WAI/*.{json,md,jsonl}
     ⚠️ Upgrade recommended
@@ -225,7 +225,7 @@ Else:
    - If v2: "Project structure is current."
 
 3. Check for pending teachings
-   - Look in WAI-Spoke/seed/ingest/ for *.teaching files
+   - Look in WAI-Harness/spoke/seed/ingest/ for *.teaching files
    - If present: "Pending teachings available. Run 'wai teach' to sync."
 ```
 
@@ -274,7 +274,7 @@ For parsing teachings → upgrade_plan_version
 
 **What changes:**
 - `structure_version`: "v1" → "v2"
-- Directory: `.WAI/` → `WAI-Spoke/`
+- Directory: `.WAI/` → `WAI-Harness/spoke/`
 - Filenames: `state.json` → `WAI-State.json`
 - File organization: flat → hierarchical
 
@@ -323,13 +323,13 @@ if wheelwright.version >= "3.1.0":
 ```
 # WRONG
 if wheelwright.version >= "3.0.0":
-    path = "WAI-Spoke/WAI-State.json"
+    path = "WAI-Harness/spoke/WAI-State.json"
 ```
 
 ```
 # CORRECT
 if structure_version == "v2":
-    path = "WAI-Spoke/WAI-State.json"
+    path = "WAI-Harness/spoke/WAI-State.json"
 elif structure_version == "v1":
     path = ".WAI/state.json"
 ```

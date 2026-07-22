@@ -563,6 +563,71 @@ def check_track_completeness(report: HealthReport, wai_spoke: Path):
                     f"All {total_sampled} sampled turn rows carry the full hook-owned envelope")
 
 
+def check_pathgraph_horizons(report: HealthReport, wai_spoke: Path):
+    """Category: PathGraph horizon completeness (full mode only, report-only).
+
+    wilbur/docs/pathgraph-spec.md defines 4 time horizons (history, current,
+    near-future, vision) as the generative substrate for design/spec/changelog
+    generation and the Historian's drift detection. Before
+    impl-pathgraph-horizons-generator-v1, only history.jsonl existed (written
+    passively by ozi_autopilot._append_trace) -- the other 3 had no producer,
+    so the spec was aspirational relative to disk. tools/pathgraph_generate.py
+    now builds all 4; this check asserts they stay present, non-empty, and
+    that index.json's declared counts still match the files on disk (a stale
+    index means the generator hasn't been rerun since the corpus changed)."""
+    cat = "pathgraph-horizons"
+    pathgraph_dir = wai_spoke / "pathgraph"
+    if not pathgraph_dir.exists():
+        report.add("pathgraph-horizons", cat, "FAIL", "pathgraph/ directory not found")
+        return
+
+    required = {
+        "index": "index.json",
+        "history": "history.jsonl",
+        "current": "current.json",
+        "near_future": "near-future.json",
+        "vision": "vision.jsonl",
+    }
+    missing = [name for name, fname in required.items() if not (pathgraph_dir / fname).exists()]
+    if missing:
+        report.add("pathgraph-horizons", cat, "FAIL",
+                    f"missing horizon file(s): {', '.join(missing)} — run tools/pathgraph_generate.py")
+        return
+
+    try:
+        index = json.loads((pathgraph_dir / "index.json").read_text())
+    except (OSError, json.JSONDecodeError):
+        report.add("pathgraph-horizons", cat, "FAIL", "index.json is not valid JSON")
+        return
+
+    declared = index.get("horizon_counts") or {}
+    actual = {}
+    for key, fname in (("history", "history.jsonl"), ("vision", "vision.jsonl")):
+        path = pathgraph_dir / fname
+        actual[key] = sum(1 for line in path.read_text().splitlines() if line.strip())
+    try:
+        actual["current"] = json.loads((pathgraph_dir / "current.json").read_text()).get("count", 0)
+        actual["near_future"] = json.loads((pathgraph_dir / "near-future.json").read_text()).get("count", 0)
+    except (OSError, json.JSONDecodeError):
+        report.add("pathgraph-horizons", cat, "FAIL", "current.json or near-future.json is not valid JSON")
+        return
+
+    empty = [k for k, v in actual.items() if v == 0]
+    if empty:
+        report.add("pathgraph-horizons", cat, "WARN", f"horizon(s) present but empty: {', '.join(empty)}")
+        return
+
+    stale = [k for k in actual if declared.get(k) != actual[k]]
+    if stale:
+        report.add("pathgraph-horizons", cat, "WARN",
+                    f"index.json counts stale vs disk for {stale} (declared {declared}, actual {actual}) "
+                    f"— rerun tools/pathgraph_generate.py")
+        return
+
+    report.add("pathgraph-horizons", cat, "PASS",
+                f"All 4 horizons present, non-empty, index fresh (counts: {actual})")
+
+
 def check_hub_connectivity(report: HealthReport, wai_spoke: Path):
     """Category 5: Hub path and connectivity (full mode only)."""
     cat = "hub"
@@ -838,6 +903,7 @@ def run_health_check(spoke_path: str, mode: str = "full") -> HealthReport:
         check_platform(report, wai_spoke)
         check_savepoint_freshness(report, wai_spoke)
         check_track_completeness(report, wai_spoke)
+        check_pathgraph_horizons(report, wai_spoke)
 
     return report
 

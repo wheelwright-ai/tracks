@@ -99,7 +99,7 @@ Score = number of tool areas that return `"pass"`. Maximum is 4 (Claude + Gemini
 ## Directory Structure
 
 ```
-WAI-Spoke/advisors/tool-advisor/
+WAI-Harness/spoke/advisors/tool-advisor/
 ├── scan_state.json          # Current state and scores
 ├── passes.jsonl            # Audit history  
 ├── vectors.jsonl           # Pattern tracking
@@ -124,7 +124,7 @@ The advisor classifies all changes into three tiers. This is encoded in `REMEDIA
 
 `--evaluate-only` flag shows what would change without writing files. A second run on an already-healthy repo produces `planned_fixes: []` (idempotency guarantee).
 
-Proposal items are written to `WAI-Spoke/advisors/tool-advisor/reports/proposals-latest.json` after each audit run.
+Proposal items are written to `WAI-Harness/spoke/advisors/tool-advisor/reports/proposals-latest.json` after each audit run.
 
 ## Migration Path
 

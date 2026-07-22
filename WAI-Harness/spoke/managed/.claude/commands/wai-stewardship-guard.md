@@ -6,7 +6,7 @@ Monitor for scope drift and enforce project boundaries as a responsible AI partn
 
 When invoked, or when detecting a request that may be out of scope:
 
-1. **Load boundaries** from `WAI-Spoke/WAI-State.json` → `_project_foundation.boundaries`
+1. **Load boundaries** from `WAI-Harness/spoke/WAI-State.json` → `_project_foundation.boundaries`
 2. **Evaluate request** against `in_scope` and `out_of_scope` lists
 3. **If drift detected**:
 

@@ -17,7 +17,7 @@ the git branch merge of worktree lanes only proceeds when **the main worktree is
 1. Resolve context:
    - `BASE` = `WAI-Harness/spoke/local` (v4) or `WAI-Spoke` (v3) — resolve via
      `python3 WAI-Harness/spoke/managed/tools/wai_paths.py --root . --json` (see
-     `wai-closeout.md` Step -1); never hardcode `WAI-Spoke/`.
+     `wai-closeout.md` Step -1); never hardcode `WAI-Harness/spoke/`.
    - `SID` = this session's wai-session id (the `sessions/<id>` dir name)
    - `REPO` = the main repo root (strip `/.worktrees/<name>`); `MY_WT` = this checkout
 2. Preview (read-only):

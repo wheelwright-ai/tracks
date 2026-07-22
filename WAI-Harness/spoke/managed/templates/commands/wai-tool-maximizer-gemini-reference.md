@@ -58,7 +58,7 @@ Location: `~/.gemini/settings.json` (global) or `.gemini/settings.json` (project
 Inside GEMINI.md, import other files:
 ```markdown
 @./style-guide.md
-@./WAI-Spoke/WAI-Guide.md
+@./WAI-Harness/spoke/WAI-Guide.md
 ```
 Keeps main context clean. Shared across projects.
 
@@ -73,8 +73,8 @@ node_modules/
 build/
 .env
 *.log
-WAI-Spoke/sessions/    # Don't scan session history
-WAI-Spoke/seed/        # Don't scan teaching archive
+WAI-Harness/spoke/sessions/    # Don't scan session history
+WAI-Harness/spoke/seed/        # Don't scan teaching archive
 ```
 
 ---
@@ -123,9 +123,9 @@ This project uses Wheelwright (WAI) for AI session continuity.
 
 ## Wakeup (First Turn)
 1. Read AGENTS.md — universal WAI bootstrap
-2. Read WAI-Spoke/WAI-State.json — project state
-3. Follow WAI-Spoke/commands/wai.md — wakeup protocol
-4. Check WAI-Spoke/seed/ingest/ — pending teachings
+2. Read WAI-Harness/spoke/WAI-State.json — project state
+3. Follow WAI-Harness/spoke/commands/wai.md — wakeup protocol
+4. Check WAI-Harness/spoke/seed/ingest/ — pending teachings
 
 ## Session Tracking
 After each turn, append to track.jsonl (see WAI-Guide.md for schema).
@@ -134,5 +134,5 @@ After each turn, append to track.jsonl (see WAI-Guide.md for schema).
 Before ending: reconcile lugs, capture session summary, commit.
 
 @./AGENTS.md
-@./WAI-Spoke/WAI-Guide.md
+@./WAI-Harness/spoke/WAI-Guide.md
 ```

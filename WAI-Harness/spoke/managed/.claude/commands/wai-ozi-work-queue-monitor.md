@@ -74,7 +74,7 @@ python3 tools/score_backlog.py ${SESSION_VIBE:-}
 
 For each department manager advisor (archie, expediter, clara), check if their synthesis output exists and is current. If `synthesis_prompt.md` exists for the manager:
 
-1. Check `WAI-Spoke/advisors/{manager_id}/synthesis_latest.json`
+1. Check `WAI-Harness/spoke/advisors/{manager_id}/synthesis_latest.json`
    - If missing or older than 7 days: prompt `Manager {manager_id} synthesis stale — [R]un synthesis now / [S]kip`
    - If **[R]**: execute `synthesis_prompt.md` as a sub-prompt; save structured JSON output to `synthesis_latest.json`
    - If **[S]**: skip for this session

@@ -47,6 +47,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+try:
+    import turn_insight as _turn_insight
+except Exception:
+    _turn_insight = None
+
 
 _ADDENDUM_FILENAME = "track-prompt-enrichment-addendum.md"
 
@@ -159,6 +165,34 @@ def _apply_enrichment(entry: dict, enrichment: dict) -> None:
     for key in ("insight", "open"):
         if key in enrichment and not entry.get(key):
             entry[key] = enrichment[key]
+
+
+def _apply_turn_insight(entry: dict, track: "Path", project_dir: str) -> None:
+    """Merge user_insight (generated at UserPromptSubmit, handed off via a
+    turn-numbered side file) and generate agent_insight (SONNET, from this turn's
+    assistant_text + recent prior insights) onto entry. USER-SESSIONS-ONLY;
+    fail-open -- a skip/timeout/error simply leaves the field absent, never raises.
+    Always-on (unlike _enrich_turn/WAI_TRACK_ENRICH, a separate opt-in feature)."""
+    if _turn_insight is None or _turn_insight.is_autopilot_session():
+        return
+    lane_dir = str(_lane_dir(project_dir))
+    turn_no = entry.get("turn")
+    if turn_no is not None and not entry.get("user_insight"):
+        try:
+            picked_up = _turn_insight.read_pending_user_insight(lane_dir, turn_no)
+        except Exception:
+            picked_up = None
+        if picked_up:
+            entry["user_insight"] = picked_up
+    if not entry.get("agent_insight"):
+        work_text = entry.get("assistant_text") or entry.get("thinking") or entry.get("action") or ""
+        try:
+            rewrite = _turn_insight.generate_agent_insight(
+                work_text, track_path=str(track), lane_dir=lane_dir)
+        except Exception:
+            rewrite = None
+        if rewrite:
+            entry["agent_insight"] = rewrite
 
 
 def _runtime_dir(project_dir):
@@ -692,6 +726,8 @@ def live(state_path, transcript_path, project_dir, buffer_was_present):
                                 last[field] = synth.get(field)
                         # Enrich model-authored entry with insight/open if missing.
                         _apply_enrichment(last, _enrich_turn(track, project_dir, last))
+                        # Per-turn user_insight/agent_insight rewrites (always-on, user-sessions-only).
+                        _apply_turn_insight(last, track, project_dir)
                         lines[-1] = json.dumps(last)
                         track.write_text("\n".join(lines) + "\n")
                         _append_provider_usage(project_dir, synth)
@@ -773,6 +809,10 @@ def live(state_path, transcript_path, project_dir, buffer_was_present):
     if not headless and to_write:
         last_entry = to_write[-1][0]
         _apply_enrichment(last_entry, _enrich_turn(track, project_dir, last_entry))
+        # Per-turn user_insight/agent_insight rewrites (always-on, user-sessions-only).
+        # Not applied to headless/sdk_session records -- those are another tool's
+        # one-shot, not a turn in an interactive user session.
+        _apply_turn_insight(last_entry, track, project_dir)
 
     with track.open("a") as f:
         for entry, correction in to_write:

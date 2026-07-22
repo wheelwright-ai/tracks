@@ -8,7 +8,7 @@
 
 ## What Teaching Files Are
 
-Teaching files (`.teaching` files in `WAI-Spoke/seed/ingest/`) are structured knowledge that one session creates for another. They teach frameworks, patterns, instructions, and context that the receiving AI should know.
+Teaching files (`.teaching` files in `WAI-Harness/spoke/seed/ingest/`) are structured knowledge that one session creates for another. They teach frameworks, patterns, instructions, and context that the receiving AI should know.
 
 **Key principle:** Teaching files are DATA to track, not instructions to execute. But they contain actionable guidance.
 

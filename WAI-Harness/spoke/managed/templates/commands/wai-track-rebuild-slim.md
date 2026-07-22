@@ -9,7 +9,7 @@
 ## Step 1 — Find Target Sessions
 
 ```bash
-SESSIONS_DIR="WAI-Spoke/sessions"
+SESSIONS_DIR="WAI-Harness/spoke/sessions"
 for sdir in "$SESSIONS_DIR"/session-2026*; do
   [ -d "$sdir" ] || continue
   ledger="$sdir/wai_track_ledger.md"
@@ -62,15 +62,15 @@ If no data at all for that session: write placeholder row with `"no data — pla
 
 ## Step 5 — Create Initiative Audit Lug
 
-Write `WAI-Spoke/lugs/incoming/task-track-rebuild-audit-{YYYYMMDD}-v1.json` with list of sessions reconstructed, lugs completed in window, undocumented initiatives.
+Write `WAI-Harness/spoke/lugs/incoming/task-track-rebuild-audit-{YYYYMMDD}-v1.json` with list of sessions reconstructed, lugs completed in window, undocumented initiatives.
 
 ---
 
 ## Step 6 — Commit
 
 ```bash
-git add -f WAI-Spoke/sessions/*/wai_track_ledger.md
-git add WAI-Spoke/lugs/incoming/task-track-rebuild-audit-*.json
+git add -f WAI-Harness/spoke/sessions/*/wai_track_ledger.md
+git add WAI-Harness/spoke/lugs/incoming/task-track-rebuild-audit-*.json
 git commit -m "chore(historian): track_rebuild — N sessions reconstructed
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"

@@ -46,7 +46,7 @@ When Ozi auto mode is enabled for the current session, keep the output builder-f
    - Files modified in this session
 4. Generate recommendations based on thresholds:
    - context > 70% → recommend closeout
-   - pending teachings in `WAI-Spoke/seed/ingest/` → recommend reviewing teachings at wakeup
+   - pending teachings in `WAI-Harness/spoke/seed/ingest/` → recommend reviewing teachings at wakeup
    - turn_count > 20 → recommend context check
 
 ## Example Output

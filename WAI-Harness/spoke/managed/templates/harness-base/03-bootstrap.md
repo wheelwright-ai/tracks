@@ -7,11 +7,11 @@ Run only if `02-detect.md` chose **greenfield**. Each step is "ensure this state
 Create the directory skeleton (idempotent — `mkdir -p`):
 
 ```bash
-mkdir -p WAI-Spoke/sessions WAI-Spoke/lugs/bytype WAI-Spoke/lugs/incoming/processed \
-         WAI-Spoke/bolts/bytype/work/recorded WAI-Spoke/bolts/bytype/freeform/recorded \
-         WAI-Spoke/bolts/bytype/ceremony/recorded WAI-Spoke/bolts/bytype/adoption/recorded \
-         WAI-Spoke/patterns/bytype/pattern WAI-Spoke/savepoints \
-         WAI-Spoke/seed/ingest/processed WAI-Spoke/runtime \
+mkdir -p WAI-Harness/spoke/sessions WAI-Harness/spoke/lugs/bytype WAI-Harness/spoke/lugs/incoming/processed \
+         WAI-Harness/spoke/bolts/bytype/work/recorded WAI-Harness/spoke/bolts/bytype/freeform/recorded \
+         WAI-Harness/spoke/bolts/bytype/ceremony/recorded WAI-Harness/spoke/bolts/bytype/adoption/recorded \
+         WAI-Harness/spoke/patterns/bytype/pattern WAI-Harness/spoke/savepoints \
+         WAI-Harness/spoke/seed/ingest/processed WAI-Harness/spoke/runtime \
          .claude/hooks .claude/commands
 ```
 
@@ -19,7 +19,7 @@ Lug type subdirs are created on demand as `bytype/{type}/{status}/`.
 
 ## 2. WAI-State.json
 
-Write `WAI-Spoke/WAI-State.json` with the minimum viable state, including the `_harness` ledger:
+Write `WAI-Harness/spoke/WAI-State.json` with the minimum viable state, including the `_harness` ledger:
 
 ```json
 {

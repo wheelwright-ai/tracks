@@ -16,7 +16,7 @@ BASE=$(python3 WAI-Harness/spoke/managed/tools/wai_paths.py --root . --json 2>/d
 v3/coexist (relative to the spoke root, so it works in both `open('{BASE}/...')` and
 git-diff path-prefix checks). Cross-spoke delivery (Step 9) uses `{target_base}` — the
 TARGET spoke's base, resolved the same way with `--root {target_path}`. Never hardcode
-`WAI-Spoke/`.
+`WAI-Harness/spoke/`.
 # WAI Closeout — Fast Path
 
 > Full protocol: load `wai-closeout.md` for delta ceremony detection, Wave 1/2 dispatch, teaching generation, telemetry, full step details.
@@ -152,7 +152,7 @@ If teaching-worthy changes: generate to `teachings/`. Run `test-bench/teaching-v
 ## Step 10. Skill Sync
 
 ```bash
-\cp templates/commands/*.md .claude/commands/
+D=WAI-Harness/spoke/managed/templates/commands; [ -d "$D" ] || D=templates/commands; \cp "$D"/*.md .claude/commands/
 ```
 
 ## Step 10b. Savepoint Complete Gate
@@ -318,3 +318,17 @@ fi
 ## Disruption Lug (if any step failed)
 
 If `DISRUPTIONS` is non-empty, create a task lug with `title: "Closeout disruption: {steps}"` before committing.
+
+## Step 12. EXIT SAFETY VERDICT (MANDATORY LAST OUTPUT)
+
+Final step — print verbatim, nothing after it but the statusline (full rule + NOT_SAFE loop:
+`wai-closeout.md` Step 14).
+
+```bash
+SESSION_ID=$(python3 -c "import json,os,sys; sys.path.insert(0,'WAI-Harness/spoke/managed/tools'); from worktree_guard import resolve_guard_path; print(json.load(open(resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID')))).get('session_id','unknown'))" 2>/dev/null || echo unknown)
+python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id "$SESSION_ID"
+```
+
+Not `SAFE TO EXIT`? Ceremony-scope commands only (scoped commit; push only if Step 0.5 resolved
+sole-owner, else surface it), re-run, max 2 iterations, then surface to the operator — never report
+closeout complete on NOT_SAFE. Quote the exact command whenever the block says `CONVERGE RECOMMENDED: yes`.

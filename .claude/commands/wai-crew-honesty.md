@@ -76,7 +76,7 @@ The advisor may act on its declared scope, BUT each acting session MUST
 produce two artifacts:
 - A `lug_completed` event on its own `track.jsonl`.
 - A notification lug (`type: work` or `task`) written to its own
-  `WAI-Spoke/lugs/incoming/` summarising what changed, written within the
+  `WAI-Harness/spoke/lugs/incoming/` summarising what changed, written within the
   same session as the action.
 
 The notification lug lets Dana scan inboxes during stand-down to confirm

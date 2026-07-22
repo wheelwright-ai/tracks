@@ -98,13 +98,13 @@ i = "4f1e687a652f"
   "tags": ["auth", "session"],
   "blocks": [],
   "blocked_by": [],
-  "perceive": "Read src/middleware/session.js — timeout logic at line ~45. Read WAI-Spoke/WAI-State.json for current session config.",
+  "perceive": "Read src/middleware/session.js — timeout logic at line ~45. Read WAI-Harness/spoke/WAI-State.json for current session config.",
   "execute": "Update session middleware to refresh token on any authenticated request. Add 15-minute sliding window.",
   "verify": "curl -H 'Authorization: Bearer {token}' /api/ping — token should refresh. Wait 10 minutes, repeat — should still be valid."
 }
 ```
 
-Write to `WAI-Spoke/lugs/bytype/{type}/open/{id}.json` (one JSON file per lug).
+Write to `WAI-Harness/spoke/lugs/bytype/{type}/open/{id}.json` (one JSON file per lug).
 
 ---
 
@@ -433,7 +433,7 @@ User requests "optimize wakeup for fast projects":
 
 ### Self-contained (good)
 ```json
-{"task_type": "configuration_change", "target_file": "WAI-Spoke/WAI-State.json", "change_description": "Add hub_analysis section with spoke_count and last_sync fields", "tracking_only": true}
+{"task_type": "configuration_change", "target_file": "WAI-Harness/spoke/WAI-State.json", "change_description": "Add hub_analysis section with spoke_count and last_sync fields", "tracking_only": true}
 ```
 
 ---

@@ -88,7 +88,7 @@ Patches are applied in order. If a section doesn't exist, it's created at the en
 
 ## Adoption Flow
 
-1. Hub distributes teachings to `WAI-Spoke/seed/ingest/`
+1. Hub distributes teachings to `WAI-Harness/spoke/seed/ingest/`
 2. At wakeup, spoke scans for new teachings
 3. If `safe_to_auto_adopt: true`: show summary, adopt after display
 4. If `safe_to_auto_adopt: false`: require explicit approval
@@ -118,7 +118,7 @@ Closeout Step 10c now loads the next ready item when `auto_chain: true` is set i
 
 ## Prerequisites
 
-- `WAI-Spoke/WAI-State.json` must exist
+- `WAI-Harness/spoke/WAI-State.json` must exist
 - `_work_queue.items` must have at least one ready item
 
 ## Change

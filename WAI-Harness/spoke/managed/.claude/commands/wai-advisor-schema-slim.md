@@ -62,4 +62,4 @@ new → piloting → promoted
 
 ## Schema Source
 
-`WAI-Spoke/advisors/schema/advisor-schema-v1.yaml`
+`WAI-Harness/spoke/advisors/schema/advisor-schema-v1.yaml`

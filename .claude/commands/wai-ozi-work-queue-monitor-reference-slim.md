@@ -16,7 +16,7 @@
   "needs_clarification": [...],     # blocked lugs with questions
   "stale_work": [...],              # in_progress > 4hrs no track activity
   "in_progress": [...],             # active (monitoring only)
-  "new_teachings": [...]            # WAI-Spoke/seed/ingest/*.teaching
+  "new_teachings": [...]            # WAI-Harness/spoke/seed/ingest/*.teaching
 }
 ```
 

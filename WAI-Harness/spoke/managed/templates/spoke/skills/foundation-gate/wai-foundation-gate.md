@@ -6,7 +6,7 @@ Ensure project foundation is complete before starting substantive work.
 
 When invoked, or at session start if foundation status is uncertain:
 
-1. **Check** `WAI-Spoke/WAI-State.json` → `_project_foundation.completed`
+1. **Check** `WAI-Harness/spoke/WAI-State.json` → `_project_foundation.completed`
 2. **If `completed: false`**:
 
 ```

@@ -2,11 +2,20 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|resume|clear|compact",
+        "matcher": "startup|resume|clear",
         "hooks": [
           {
             "type": "command",
             "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/compact-resume-inject.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
           }
         ]
       }
@@ -94,6 +103,17 @@
           {
             "type": "command",
             "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-create.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/post-tool-use.sh\"; [ -x \"$F\" ] && exec \"$F\"; true"
           }
         ]
       }

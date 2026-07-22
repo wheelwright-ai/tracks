@@ -15,7 +15,7 @@ Run from the spoke's project root (e.g., `/home/mario/projects/wheelwright/frame
 
 ```bash
 # Confirm you're in the right place
-ls WAI-Spoke/sessions/ | head -5
+ls WAI-Harness/spoke/sessions/ | head -5
 git log --oneline -3
 ```
 
@@ -26,7 +26,7 @@ git log --oneline -3
 Target: session directories where `track.jsonl` has ≤2 lines AND `wai_track_ledger.md` does not yet exist.
 
 ```bash
-SESSIONS_DIR="WAI-Spoke/sessions"
+SESSIONS_DIR="WAI-Harness/spoke/sessions"
 echo "Target sessions:"
 for sdir in "$SESSIONS_DIR"/session-2026*; do
   [ -d "$sdir" ] || continue
@@ -75,7 +75,7 @@ def in_window(ts_str):
     except: return False
 
 results = []
-for f in glob.glob('WAI-Spoke/lugs/bytype/*/*/*.json'):
+for f in glob.glob('WAI-Harness/spoke/lugs/bytype/*/*/*.json'):
     try:
         d = json.load(open(f))
         for field in ['created_at','started_at','completed_at']:
@@ -101,7 +101,7 @@ EOF
 ```bash
 python3 -c "
 import json
-with open('WAI-Spoke/runtime/spoke-changelog.jsonl') as f:
+with open('WAI-Harness/spoke/runtime/spoke-changelog.jsonl') as f:
     for line in f:
         try:
             d = json.loads(line)
@@ -139,9 +139,9 @@ git log \
 
 Filter corpus B (lug list) for timestamps between session_start and session_end.
 Filter corpus C (changelog) for timestamps in window.
-Check `WAI-Spoke/sessions/$SESSION_ID/track.jsonl` for any `session_end` event with a `summary` field — this is the highest-quality single source if present:
+Check `WAI-Harness/spoke/sessions/$SESSION_ID/track.jsonl` for any `session_end` event with a `summary` field — this is the highest-quality single source if present:
 ```bash
-cat WAI-Spoke/sessions/$SESSION_ID/track.jsonl 2>/dev/null
+cat WAI-Harness/spoke/sessions/$SESSION_ID/track.jsonl 2>/dev/null
 ```
 
 **3c. Determine content sources for the header note:**
@@ -154,7 +154,7 @@ cat WAI-Spoke/sessions/$SESSION_ID/track.jsonl 2>/dev/null
 **3d. Write the ledger:**
 
 ```bash
-cat > WAI-Spoke/sessions/$SESSION_ID/wai_track_ledger.md << 'LEDGER'
+cat > WAI-Harness/spoke/sessions/$SESSION_ID/wai_track_ledger.md << 'LEDGER'
 # WAI Track 0.34.1 — Live Ledger
 ## Session: SESSION_ID_HERE
 > RECONSTRUCTED — sources: SOURCES_HERE. Original track empty (autosave retired 2026-04-29).
@@ -207,7 +207,7 @@ Efficiency tip: build the full git corpus once in Step 2, then for each session 
 
 ## Step 5 — Emit handoff lug
 
-After all sessions processed, write to `WAI-Spoke/lugs/incoming/`:
+After all sessions processed, write to `WAI-Harness/spoke/lugs/incoming/`:
 
 ```python
 import json
@@ -241,7 +241,7 @@ lug = {
     }
 }
 
-with open(f"WAI-Spoke/lugs/incoming/{lug['id']}.json", 'w') as f:
+with open(f"WAI-Harness/spoke/lugs/incoming/{lug['id']}.json", 'w') as f:
     json.dump(lug, f, indent=2)
 ```
 
@@ -250,8 +250,8 @@ with open(f"WAI-Spoke/lugs/incoming/{lug['id']}.json", 'w') as f:
 ## Step 6 — Commit and push
 
 ```bash
-git add WAI-Spoke/sessions/*/wai_track_ledger.md \
-        WAI-Spoke/lugs/incoming/task-track-rebuild-audit-*.json
+git add WAI-Harness/spoke/sessions/*/wai_track_ledger.md \
+        WAI-Harness/spoke/lugs/incoming/task-track-rebuild-audit-*.json
 
 git commit -m "chore(historian): track_rebuild — $(echo $reconstructed_count) sessions reconstructed
 
@@ -265,9 +265,9 @@ fi
 git push origin main
 ```
 
-Note: `WAI-Spoke/sessions/` is gitignored — use `git add -f` if needed:
+Note: `WAI-Harness/spoke/sessions/` is gitignored — use `git add -f` if needed:
 ```bash
-git add -f WAI-Spoke/sessions/*/wai_track_ledger.md
+git add -f WAI-Harness/spoke/sessions/*/wai_track_ledger.md
 ```
 
 ---

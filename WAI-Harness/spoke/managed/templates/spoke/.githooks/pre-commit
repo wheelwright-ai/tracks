@@ -45,7 +45,20 @@ if [ -n "$health" ]; then
   python3 "$health" --spoke-path "$repo_root" || echo "WAI pre-commit: health gate reported drift (non-blocking)." >&2
 fi
 
+# Lug JSON parse gate (blocking): a conflicted/unparseable lugs/bytype/*.json must
+# never land on main — impl-lug-json-parse-gate-v1. Called standalone because the
+# health gate above is intentionally non-blocking and would otherwise swallow this.
+lug_parse_gate=""
+for cand in \
+  "$repo_root/WAI-Harness/spoke/managed/tools/lug_json_parse_gate.py" \
+  "$repo_root/tools/lug_json_parse_gate.py"; do
+  if [ -f "$cand" ]; then lug_parse_gate="$cand"; break; fi
+done
+if [ -n "$lug_parse_gate" ]; then
+  python3 "$lug_parse_gate" --root "$repo_root" || rc=1
+fi
+
 if [ "$rc" -ne 0 ]; then
-  echo "WAI pre-commit: commit blocked (secret scan and/or manifest integrity above). Bypass with --no-verify (sparingly)." >&2
+  echo "WAI pre-commit: commit blocked (secret scan and/or manifest integrity and/or lug parse gate above). Bypass with --no-verify (sparingly)." >&2
 fi
 exit "$rc"

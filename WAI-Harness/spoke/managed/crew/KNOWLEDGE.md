@@ -36,9 +36,9 @@ Shared vocabulary and conventions for the entire crew. Inherited by every
 
 | Touchpoint | What the crew uses it for |
 |------------|--------------------------|
-| `WAI-Spoke/lugs/incoming/` | Inbound lugs land here for the named advisor to pick up. |
-| `WAI-Spoke/lugs/bytype/` | Authored / shipped lugs live here, organized by type and status. |
-| `WAI-Spoke/sessions/*/track.jsonl` | Session-level event log; **read-only** for the crew. |
+| `WAI-Harness/spoke/lugs/incoming/` | Inbound lugs land here for the named advisor to pick up. |
+| `WAI-Harness/spoke/lugs/bytype/` | Authored / shipped lugs live here, organized by type and status. |
+| `WAI-Harness/spoke/sessions/*/track.jsonl` | Session-level event log; **read-only** for the crew. |
 | `crew/{slug}/track.jsonl` | Per-advisor append-only event log; the crew writes here. |
 | `WAI-State.json` | Project state — read for context, written only by closeout/wakeup tooling. |
 | `templates/commands/wai-crew-convention.md` | Canonical structural spec — source of truth. |

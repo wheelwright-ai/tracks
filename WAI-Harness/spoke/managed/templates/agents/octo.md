@@ -30,7 +30,7 @@ Octo's job is to keep the fleet's state healthy so advisors, signal routing, and
 ## Relationship to Ozi
 
 In hub projects, both Ozi and Octo coexist:
-- **Ozi** handles the hub's own `WAI-Spoke/` (the hub is also a spoke — dogfooding)
+- **Ozi** handles the hub's own `WAI-Harness/spoke/` (the hub is also a spoke — dogfooding)
 - **Octo** handles `WAI-Hub/` (fleet-level concerns)
 
 At closeout: Ozi runs first (spoke closeout), then Octo runs second (hub closeout phase).

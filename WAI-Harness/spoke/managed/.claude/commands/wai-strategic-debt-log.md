@@ -1,7 +1,7 @@
 # Strategic Debt Log — deferred design cautions
 
 **Status:** Living protocol.
-**Schema:** `WAI-Spoke/reference/caution.schema.json`
+**Schema:** `WAI-Harness/spoke/reference/caution.schema.json`
 
 This protocol captures intentional speed-over-purity trade-offs in a
 structured form so they remain discoverable and actionable instead of
@@ -28,7 +28,7 @@ If you can name (a) what you skipped, (b) why skipping was correct now, and
 ## Storage
 
 ```
-WAI-Spoke/<module>/cautions/caution-<slug>.json
+WAI-Harness/spoke/<module>/cautions/caution-<slug>.json
 ```
 
 One file per caution. `<module>` is the subsystem where the caution lives
@@ -60,7 +60,7 @@ gives the human reader the *why*.
 ## Wakeup Integration
 
 At session start, the wakeup protocol scans
-`WAI-Spoke/**/cautions/caution-*.json`. For each caution with `status:
+`WAI-Harness/spoke/**/cautions/caution-*.json`. For each caution with `status:
 "open"`:
 
 1. If `revisit_at` is a date and now >= that date → surface in the brief.

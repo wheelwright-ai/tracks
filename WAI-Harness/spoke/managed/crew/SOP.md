@@ -23,7 +23,7 @@ A phase closes when its lead writes a `phase_close` event with an outcome.
 ## Lug messages
 
 Work between crew members travels as lugs. A lug routed to an advisor lands
-in `WAI-Spoke/lugs/incoming/` for that advisor to pick up at next activation.
+in `WAI-Harness/spoke/lugs/incoming/` for that advisor to pick up at next activation.
 Replies are new lugs, not edits to the original.
 
 When an advisor cannot complete the requested work, they reply with a lug of
@@ -64,6 +64,6 @@ inherit silently on the next read.
 ## Boundaries
 
 - Advisors do not edit other advisors' folders directly.
-- Advisors do not edit `WAI-Spoke/sessions/*/track.jsonl` (immutable record).
+- Advisors do not edit `WAI-Harness/spoke/sessions/*/track.jsonl` (immutable record).
 - The parent SOP and parent KNOWLEDGE are the only files Dana edits without
   raising a proposal.

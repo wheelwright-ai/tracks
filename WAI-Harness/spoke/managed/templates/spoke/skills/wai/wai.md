@@ -31,7 +31,7 @@ Reduces wakeup from ~46k to ~8k tokens. Use for quick cross-project handoffs.
 
 ## Step 1: Load Integration File
 
-Detect environment and read: Claude Code → `CLAUDE.md` | Gemini → `GEMINI.md` | Copilot → `WAI-Spoke/copilot-instructions.md` | Other → `AGENTS.md`.
+Detect environment and read: Claude Code → `CLAUDE.md` | Gemini → `GEMINI.md` | Copilot → `WAI-Harness/spoke/copilot-instructions.md` | Other → `AGENTS.md`.
 
 If wakeup was started from one of those integration files, treat that initial read as satisfying this step. Do NOT reopen the same integration file during wakeup. Continue with the custom-file scan below.
 
@@ -42,8 +42,8 @@ Check for custom AI personality files (`ls *.md | grep -viE "^(README|CLAUDE|GEM
 ## Step 2: Load State
 
 ```bash
-cat WAI-Spoke/WAI-State.json
-cat WAI-Spoke/WAI-State.md  # if exists
+cat WAI-Harness/spoke/WAI-State.json
+cat WAI-Harness/spoke/WAI-State.md  # if exists
 ```
 
 Key sections: `wheel` (identity, version, hub path), `_project_foundation` (project context), `_session_state` (last session, recommendations). Extended state (`WAI-State-extended.json`) — on-demand only.
@@ -53,7 +53,7 @@ Key sections: `wheel` (identity, version, hub path), `_project_foundation` (proj
 ## Step 3: Skills (Lazy-Load)
 
 ```bash
-wc -l < WAI-Spoke/skills/WAI-Skills.jsonl 2>/dev/null || echo 0
+wc -l < WAI-Harness/spoke/skills/WAI-Skills.jsonl 2>/dev/null || echo 0
 ```
 
 Count only — do NOT read the file. Skills load on-demand when invoked.
@@ -67,7 +67,7 @@ Count only — do NOT read the file. Skills load on-demand when invoked.
 Otherwise, check the PREVIOUS session's track (not the current one):
 
 ```bash
-LAST_TRACK="WAI-Spoke/sessions/$(ls -1t WAI-Spoke/sessions/ | sed -n '2p')/track.jsonl"
+LAST_TRACK="WAI-Harness/spoke/sessions/$(ls -1t WAI-Harness/spoke/sessions/ | sed -n '2p')/track.jsonl"
 LAST_LINE=$(tail -1 "$LAST_TRACK" 2>/dev/null)
 echo "$LAST_LINE" | jq -e '.completed == true or .event == "closeout"' >/dev/null 2>&1 \
     && echo "CLEAN" || echo "INTERRUPTED"
@@ -76,7 +76,7 @@ echo "$LAST_LINE" | jq -e '.completed == true or .event == "closeout"' >/dev/nul
 **If INTERRUPTED:** note it as `⚠ Prev session interrupted — recovery prompt shown pre-launch`. No action needed — recovery was handled by wai-enter.sh before launch.
 **If CLEAN or EMPTY:** continue.
 
-Session guard state lives in `WAI-Spoke/runtime/session-guard.json` (gitignored) — do NOT write to WAI-State.json.
+Session guard state lives in `WAI-Harness/spoke/runtime/session-guard.json` (gitignored) — do NOT write to WAI-State.json.
 
 ---
 
@@ -85,7 +85,7 @@ Session guard state lives in `WAI-Spoke/runtime/session-guard.json` (gitignored)
 Count active work — do NOT read individual lug files:
 
 ```bash
-for type_dir in WAI-Spoke/lugs/bytype/*/; do
+for type_dir in WAI-Harness/spoke/lugs/bytype/*/; do
     type=$(basename "$type_dir")
     open=$(ls "$type_dir/open/" 2>/dev/null | wc -l)
     ip=$(ls "$type_dir/in_progress/" 2>/dev/null | wc -l)
@@ -101,7 +101,7 @@ Stale detection: surface in_progress lugs with `updated_at` null or unchanged >4
 
 ## Step 4b: Historian Threshold Check
 
-If `WAI-Spoke/advisors/historian/` exists: compare session watermark to unreviewed sessions. If **unreviewed points >= 30**: surface: `"Historian: {N} points across {M} sessions. Run? (yes/skip)"`. Otherwise: silent.
+If `WAI-Harness/spoke/advisors/historian/` exists: compare session watermark to unreviewed sessions. If **unreviewed points >= 30**: surface: `"Historian: {N} points across {M} sessions. Run? (yes/skip)"`. Otherwise: silent.
 
 See `wai-reference.md` for the watermark comparison script.
 
@@ -109,7 +109,7 @@ See `wai-reference.md` for the watermark comparison script.
 
 ## Step 4c: Taste Bootstrap Check
 
-If `WAI-Spoke/taste.spoke.yaml` does NOT exist: copy from `templates/spoke/taste.spoke.yaml` or write defaults inline. Surface: "Initialized taste.spoke.yaml". Do NOT touch `taste.user.yaml`.
+If `WAI-Harness/spoke/taste.spoke.yaml` does NOT exist: copy from `templates/spoke/taste.spoke.yaml` or write defaults inline. Surface: "Initialized taste.spoke.yaml". Do NOT touch `taste.user.yaml`.
 
 ---
 
@@ -128,7 +128,7 @@ Convergence rules for all tools:
 - During wakeup, inspect teachings using filenames and lightweight header/frontmatter fields only. Do NOT read full teaching bodies unless the user explicitly asks to review them now.
 - If pending teachings exist, include them in the briefing under a compact "Pending Teachings" section, then ask what to do next.
 
-Scan `{hub_path}/teachings_repo/framework/current/*.teaching`. For each: check if already in `WAI-Spoke/seed/ingest/processed/`. New teachings split by `safe_to_auto_adopt` flag:
+Scan `{hub_path}/teachings_repo/framework/current/*.teaching`. For each: check if already in `WAI-Harness/spoke/seed/ingest/processed/`. New teachings split by `safe_to_auto_adopt` flag:
 
 - **true (Path A):** compact table + "Apply all / Skip all / Apply [specific]?" — wait for response. Check prerequisites before adopting. Move to `processed/`.
 - **false (Path B):** list + summary table — wait for explicit approval. Record `adoption_status` on lug; move to `seed/ingest/processed/`.
@@ -142,7 +142,7 @@ See `wai-reference.md` for teaching scan scripts and Path A/B adoption detail.
 
 ## Step 6: Detect External Tracks
 
-Check `WAI-Spoke/seed/ingest/WAI_Track-*.jsonl`. For valid files (first line: `{"event":"session_start",...}`): copy to `WAI-Spoke/sessions/`, move to `processed/`. Invalid: warn, leave in place.
+Check `WAI-Harness/spoke/seed/ingest/WAI_Track-*.jsonl`. For valid files (first line: `{"event":"session_start",...}`): copy to `WAI-Harness/spoke/sessions/`, move to `processed/`. Invalid: warn, leave in place.
 
 ---
 
@@ -198,15 +198,15 @@ Closeout readiness: <60% = Full, 60-79% = Standard, 80-89% = Essential, ≥90% =
 
 ## Step 8: Initialize Session
 
-Check `git status --short WAI-Spoke/WAI-State.json`. If modified (`M`): prompt "Stage and commit now? (yes/skip)".
+Check `git status --short WAI-Harness/spoke/WAI-State.json`. If modified (`M`): prompt "Stage and commit now? (yes/skip)".
 
 Session dir created by hook. If hook didn't run:
 ```bash
-SESSION_DIR="WAI-Spoke/sessions/session-$(date +%Y%m%d-%H%M)"
+SESSION_DIR="WAI-Harness/spoke/sessions/session-$(date +%Y%m%d-%H%M)"
 mkdir -p "$SESSION_DIR" && touch "$SESSION_DIR/track.jsonl"
 ```
 
-**Every turn:** The Stop hook (`stop-track-flush.sh`) automatically writes the autosave checkpoint to `WAI-Spoke/.autosave/turn-{N}.json` (rolling window of 3) and appends a synthesized track skeleton with objective git fields (commits, files changed). Agents **enrich, not originate**: write rich fields (`focus`, `action`, `thinking`, `decisions`, `insights`) to `WAI-Spoke/runtime/track-buffer.json` before stopping — the hook flushes it. Never skip track writes because the buffer failed; the synthesizer is the guaranteed floor. See `wai-reference.md` for schemas.
+**Every turn:** The Stop hook (`stop-track-flush.sh`) automatically writes the autosave checkpoint to `WAI-Harness/spoke/.autosave/turn-{N}.json` (rolling window of 3) and appends a synthesized track skeleton with objective git fields (commits, files changed). Agents **enrich, not originate**: write rich fields (`focus`, `action`, `thinking`, `decisions`, `insights`) to `WAI-Harness/spoke/runtime/track-buffer.json` before stopping — the hook flushes it. Never skip track writes because the buffer failed; the synthesizer is the guaranteed floor. See `wai-reference.md` for schemas.
 
 ---
 
@@ -216,7 +216,7 @@ Ask: `Vibe? (build / fix / think / grind / ship) [skip]`
 
 Store vibe in session state for ROI tiebreaking. Can be changed mid-session.
 
-Check `WAI-Spoke/runtime/spoke-changelog.jsonl` for recent completions (last 5). Surface tagged next lug from `_session_state.next_session_recommendation`.
+Check `WAI-Harness/spoke/runtime/spoke-changelog.jsonl` for recent completions (last 5). Surface tagged next lug from `_session_state.next_session_recommendation`.
 
 ```
 ┌─ WAI WAKEUP Session-{N} [{track_name}] {timestamp}
@@ -234,7 +234,7 @@ After the banner, read _work_queue from WAI-State.json and display the queue sta
 
 ```python
 import json, os
-wai_state_path = 'WAI-Spoke/WAI-State.json'
+wai_state_path = 'WAI-Harness/spoke/WAI-State.json'
 if os.path.exists(wai_state_path):
     with open(wai_state_path, 'r') as f:
         wai_state = json.load(f)
@@ -259,18 +259,18 @@ if os.path.exists(wai_state_path):
     # If queue is completely empty, do nothing (silent).
 ```
 
-**[W] Lug gate:** Before starting work on the selected item, confirm the lug file exists at `WAI-Spoke/lugs/bytype/{type}/open/{id}.json` and has `perceive`, `execute`, and `verify` (or `acceptance_criteria`) fields. If `verify` is absent: surface `Lug {id} has no verify steps -- [A]dd now / [S]kip gate`. Do not silently start work on an unverifiable lug.
+**[W] Lug gate:** Before starting work on the selected item, confirm the lug file exists at `WAI-Harness/spoke/lugs/bytype/{type}/open/{id}.json` and has `perceive`, `execute`, and `verify` (or `acceptance_criteria`) fields. If `verify` is absent: surface `Lug {id} has no verify steps -- [A]dd now / [S]kip gate`. Do not silently start work on an unverifiable lug.
 
 **[A]uto-chain:** Set `auto_chain: true` as a session-local flag. After completing each item, closeout Step 10c writes the next ready item id to `wakeup-brief.json` `chain_target_lug` field so the next session loads it with minimal context. See `wai-chain-load.md`.
 
 **Model Intelligence (conditional — suppressed entirely if no data):**
 
-After displaying the Work Queue, if `WAI-Spoke/assessor-matrix.json` exists and has recommendations, display one compact block for the top queue item:
+After displaying the Work Queue, if `WAI-Harness/spoke/assessor-matrix.json` exists and has recommendations, display one compact block for the top queue item:
 
 ```python
 import json, os, datetime
 
-matrix_path = "WAI-Spoke/assessor-matrix.json"
+matrix_path = "WAI-Harness/spoke/assessor-matrix.json"
 if os.path.exists(matrix_path):
     matrix = json.load(open(matrix_path))
     recs = matrix.get("recommendations", [])

@@ -33,7 +33,7 @@ Forge is Minder's Knowledge Enablement Module — a knowledge base for capturing
 - `web/routes_forge.py` — 9+ endpoints including: `/forge`, `/forge/api/stats`, `/forge/api/lanes`, `/forge/api/nodes`, `/forge/api/ask`, `/forge/api/ingest`, `/forge/api/review-queue`, `/forge/api/classify`, `/forge/api/conversation`, `/forge/api/deploy-lug`
 - `web/templates/forge.html` — 4-section UI: Overview (KB pulse + recent nodes + trending tags), Review (two-pane: queue list + inline conversation), Search (lane sidebar + Ask/Browse/Digest sub-tabs), Sources (feed management)
 - `web/static/css/forge.css` — Forge stylesheet
-- `WAI-Spoke/advisors/Minder/Forge/config/lanes.json` — 13 lanes with goal fields
+- `WAI-Harness/spoke/advisors/Minder/Forge/config/lanes.json` — 13 lanes with goal fields
 
 **Operational capabilities:**
 - URL ingestion → node creation → LLM assessment → review queue entry
@@ -48,7 +48,7 @@ Forge is Minder's Knowledge Enablement Module — a knowledge base for capturing
 - Triage filter tab + Top Picks strip (sorted by spoke-opportunity priority tier)
 - 64/64 tests passing (as of S66)
 
-**Data location:** `WAI-Spoke/advisors/Minder/Forge/` — nodes index, lanes, review queue
+**Data location:** `WAI-Harness/spoke/advisors/Minder/Forge/` — nodes index, lanes, review queue
 
 ---
 
@@ -57,7 +57,7 @@ Forge is Minder's Knowledge Enablement Module — a knowledge base for capturing
 Forge was designed in S66 (session-20260415-1703) as a **knowledge enablement layer** running in parallel to IdeaBank. Key design decisions:
 
 1. **No vectors in Phase 1–3** — explicitly decided; on-demand refresh not automated crawl
-2. **Code in src/minder/forge/, data in WAI-Spoke/advisors/Minder/Forge/** — parallel to IdeaBank in MVP
+2. **Code in src/minder/forge/, data in WAI-Harness/spoke/advisors/Minder/Forge/** — parallel to IdeaBank in MVP
 3. **Gemini 2.0-flash for normalization** — with Z.AI fallback
 4. **Conversation-first lug drafting** — not deploy-button analysis; full mini-chat to refine before deploying
 5. **WAI assessor** — post-ingest analysis surfaces spoke deployment opportunities; "Deploy Lug" is always conversation-mediated
@@ -71,7 +71,7 @@ The longer-term vision (from S116 Wilbur context): Forge feeds PathGraph. Captur
 ## Verified Gap List
 
 - **AI classifier endpoint `/forge/api/classify`** — added in S97; verify it is fully integrated with the folder import modal routing (S97 closeout confirmed this, but cross-check that file-type routing to forge/ideas/tracks is accurate and tested)
-- **Lane goals in all 13 lanes** — added in S66 session; verify `WAI-Spoke/advisors/Minder/Forge/config/lanes.json` has goal field on all lanes (session track says "all 13 lanes" but no count verification)
+- **Lane goals in all 13 lanes** — added in S66 session; verify `WAI-Harness/spoke/advisors/Minder/Forge/config/lanes.json` has goal field on all lanes (session track says "all 13 lanes" but no count verification)
 - **GitHub crawler coverage** — currently metadata+README+tree+key files; no issues/PRs/code analysis. Intended for enriching WAI assessment of GitHub repos but limited to public repos and README-level content.
 - **Forge as PathGraph seed source** — the design connection between Forge nodes and PathGraph is stated in Wilbur vision but no integration spec exists yet. Forge data is currently self-contained.
 - **No Forge tests post-S66** — test suite was 64/64 at S66; subsequent additions (classifier, folder import, conversation persistence) may not have corresponding tests.

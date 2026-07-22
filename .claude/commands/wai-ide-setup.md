@@ -94,7 +94,7 @@ After setup, verify:
 If briefing doesn't appear:
 - Check hook file exists and is executable: `chmod +x .claude/hooks/user-prompt-submit.sh`
 - Check settings.json has correct hook path
-- Verify WAI-Spoke/WAI-State.json exists
+- Verify WAI-Harness/spoke/WAI-State.json exists
 - **CRLF errors?** See troubleshooting in `wai-ide-setup-reference.md`
 
 ---

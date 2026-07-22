@@ -6,13 +6,13 @@ Prevents missteps by codifying scope, responsibility, methodology.
 ## 1. SCOPE: Framework vs Spokes
 
 NEVER Modify:
-  - WAI-Spoke/ folders (actual wheel session state)
+  - WAI-Harness/spoke/ folders (actual wheel session state)
   - Individual wheel configurations
 
 ALWAYS Modify (Framework):
   - wai/ directory (core code)
   - templates/commands/ (skills)
-  - templates/WAI-Spoke/ (spoke template)
+  - templates/WAI-Harness/spoke/ (spoke template)
 
 Pattern: Framework changes in templates, then teach distributes to spokes
 
@@ -85,7 +85,7 @@ All checked = ready to teach
 
 ## 10. MISSTEP RECOVERY
 
-If you modify WAI-Spoke/ directly:
+If you modify WAI-Harness/spoke/ directly:
   1. Note it
   2. Undo
   3. Redo in templates

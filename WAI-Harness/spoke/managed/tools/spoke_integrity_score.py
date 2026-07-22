@@ -216,7 +216,16 @@ def hook_freshness_check(spoke: Path, framework_dir: Path = None) -> dict:
     if framework_dir is None:
         framework_dir = Path(__file__).parent.parent
 
-    canonical_dir = framework_dir / "templates" / "spoke" / ".claude" / "hooks"
+    # The canonical hook source is managed/.claude/hooks — the ONE directory that
+    # harness_init deploys from and harness_upgrade re-deploys from on every pull.
+    # This used to read templates/spoke/.claude/hooks, which POINTER.md retired in
+    # July: it still holds stale copies (session-start.sh there is missing the
+    # AP-dispatch guard), so freshness was being measured against a dead reference
+    # and every correctly-updated spoke could read as drifted. Fall back to the old
+    # path only if managed/ is absent, so a v3-shaped tree still answers.
+    canonical_dir = framework_dir / ".claude" / "hooks"
+    if not canonical_dir.exists():
+        canonical_dir = framework_dir / "templates" / "spoke" / ".claude" / "hooks"
     spoke_hooks_dir = spoke / ".claude" / "hooks"
 
     if not canonical_dir.exists() or not spoke_hooks_dir.exists():

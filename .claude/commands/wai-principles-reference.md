@@ -90,7 +90,7 @@ The user has granted permission for routine operations. Do not ask for confirmat
 
 ## P11: Lug-First Memory — Extended Guidance
 
-Lugs are JSON files at `WAI-Spoke/lugs/bytype/{type}/{status}/{id}.json`. Active lugs (open or in_progress) are what the wakeup protocol reads at session start — it scans `bytype/*/open/` and `bytype/*/in_progress/`. When a session ends or is interrupted, lugs survive. Everything else is gone.
+Lugs are JSON files at `WAI-Harness/spoke/lugs/bytype/{type}/{status}/{id}.json`. Active lugs (open or in_progress) are what the wakeup protocol reads at session start — it scans `bytype/*/open/` and `bytype/*/in_progress/`. When a session ends or is interrupted, lugs survive. Everything else is gone.
 
 **Claude Code Task tools (TaskCreate, etc.) do not survive session ends.** They are not read on wakeup and are invisible to any future agent or tool.
 

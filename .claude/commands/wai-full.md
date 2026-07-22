@@ -13,12 +13,12 @@ Output contract for all tools:
 
 Before running shell commands for lug counts / teaching status / expediter stats, check for pre-computed briefs:
 
-**Ozi Brief:** Check if `WAI-Spoke/ozi-brief.json` exists and is fresh (`generated_at` within 8 hours):
+**Ozi Brief:** Check if `WAI-Harness/spoke/ozi-brief.json` exists and is fresh (`generated_at` within 8 hours):
 
 ```bash
 python3 -c "
 import json, datetime, os, sys
-bp = 'WAI-Spoke/ozi-brief.json'
+bp = 'WAI-Harness/spoke/ozi-brief.json'
 if not os.path.isfile(bp):
     print('OZI_BRIEF=MISSING'); sys.exit(0)
 b = json.load(open(bp))
@@ -41,14 +41,14 @@ else:
 - **If FRESH:** Use brief data for lug counts, teaching status, expediter stats. Skip the shell commands in Steps 4/5 that compute these. Display: `State: from Ozi brief ({N}min ago)`
 - **If STALE or MISSING:** Run shell commands as normal. Display: `State: live scan`
 
-**Wakeup Brief:** Check if `WAI-Spoke/wakeup-brief.json` exists and is fresh. Freshness uses smart staleness: STALE only if commits since generation touched files the brief data depends on. Irrelevant commits (advisor logs, session tracks, hook events) do not stale the brief.
+**Wakeup Brief:** Check if `WAI-Harness/spoke/wakeup-brief.json` exists and is fresh. Freshness uses smart staleness: STALE only if commits since generation touched files the brief data depends on. Irrelevant commits (advisor logs, session tracks, hook events) do not stale the brief.
 
-Relevant files that stale the brief: `WAI-Spoke/WAI-State.json`, `WAI-Spoke/lugs/bytype/`, `WAI-Spoke/seed/ingest/processed/`, `templates/commands/wai`.
+Relevant files that stale the brief: `WAI-Harness/spoke/WAI-State.json`, `WAI-Harness/spoke/lugs/bytype/`, `WAI-Harness/spoke/seed/ingest/processed/`, `templates/commands/wai`.
 
 ```bash
 python3 -c "
 import json, subprocess, os, sys
-bp = 'WAI-Spoke/wakeup-brief.json'
+bp = 'WAI-Harness/spoke/wakeup-brief.json'
 if not os.path.isfile(bp):
     print('WAKEUP_BRIEF=MISSING'); sys.exit(0)
 try:
@@ -62,9 +62,9 @@ if current_sha == gen_sha:
     stale_reason = ''
 else:
     RELEVANT = [
-        'WAI-Spoke/WAI-State.json',
-        'WAI-Spoke/lugs/bytype/',
-        'WAI-Spoke/seed/ingest/processed/',
+        'WAI-Harness/spoke/WAI-State.json',
+        'WAI-Harness/spoke/lugs/bytype/',
+        'WAI-Harness/spoke/seed/ingest/processed/',
         'templates/commands/wai',
     ]
     try:
@@ -97,11 +97,11 @@ else:
 
 **Step 4.2 — Fleet Health Aggregation (hub only; no-op if `node_type != "hub"`):**
 
-1. Scan `WAI-Spoke/seed/ingest/spoke-health-*.json` — health reports spokes emit at closeout (Step 9d).
+1. Scan `WAI-Harness/spoke/seed/ingest/spoke-health-*.json` — health reports spokes emit at closeout (Step 9d).
 2. Aggregate scores → fleet status: `healthy` / `degraded` / `critical`.
 3. Surface a **Fleet Health** table in the briefing (spoke · score · status).
-4. Append a `fleet-health` lug to `WAI-Spoke/WAI-Lugs.jsonl` (snapshot of the aggregate).
-5. Move processed reports to `WAI-Spoke/seed/ingest/processed/`.
+4. Append a `fleet-health` lug to `WAI-Harness/spoke/WAI-Lugs.jsonl` (snapshot of the aggregate).
+5. Move processed reports to `WAI-Harness/spoke/seed/ingest/processed/`.
 
 This gives the hub operator an immediate fleet snapshot without inspecting each spoke by hand. On non-hub nodes the step is skipped silently.
 
@@ -125,8 +125,8 @@ Needs You: {M} items
 - Stale in_progress lugs (if any)
 - Pending teachings: if current → one line; if actionable → compact table from filenames/frontmatter only
 - Context health (git, hub, integrity, context budget)
-- Navigator: if `WAI-Spoke/advisors/navigator/recommendations-current.json` exists — check TTL via `catalog-cache.json`→`recommendations_valid_through`. Infer work type from active lugs using Cartographer rules: bug→debugging, task/build/grind→coding, epic/feature→planning, default→analysis. Pick the best-matching profile key (`coding_high`, `planning_high`, `debugging_medium`, etc.) and use its `default` sub-key. Display one line: `Navigator: {model_id} for {profile_id} (score={score}, local_fit={dimension_scores.local_success_fit}) [{warnings joined with comma}]`. If `recommendations_valid_through` is in the past: show `Navigator: stale — hub sync due`. If file absent: silent.
-- Expediter: avg {q}/10 | {n} need refinement (one line, from `WAI-Spoke/advisors/expediter/scan_state.json`; omit if file missing)
+- Navigator: if `WAI-Harness/spoke/advisors/navigator/recommendations-current.json` exists — check TTL via `catalog-cache.json`→`recommendations_valid_through`. Infer work type from active lugs using Cartographer rules: bug→debugging, task/build/grind→coding, epic/feature→planning, default→analysis. Pick the best-matching profile key (`coding_high`, `planning_high`, `debugging_medium`, etc.) and use its `default` sub-key. Display one line: `Navigator: {model_id} for {profile_id} (score={score}, local_fit={dimension_scores.local_success_fit}) [{warnings joined with comma}]`. If `recommendations_valid_through` is in the past: show `Navigator: stale — hub sync due`. If file absent: silent.
+- Expediter: avg {q}/10 | {n} need refinement (one line, from `WAI-Harness/spoke/advisors/expediter/scan_state.json`; omit if file missing)
 - Advisors ready to fire: run `python3 tools/advisor_schedule_eval.py` — if any `should_fire: true`, surface as one line: `Advisors: {list} ready`. Omit if none ready or file missing.
 - Next actions from `_session_state.next_session_recommendation`
 
@@ -154,7 +154,7 @@ Closeout readiness: <60% = Full, 60-79% = Standard, 80-89% = Essential, ≥90% =
 
 ## Step 8: Initialize Session
 
-Check `git status --short WAI-Spoke/WAI-State.json`. If modified (`M`): prompt "Stage and commit now? (yes/skip)".
+Check `git status --short WAI-Harness/spoke/WAI-State.json`. If modified (`M`): prompt "Stage and commit now? (yes/skip)".
 
 **Unpushed commit check** — surface in CONTEXT HEALTH if prior session(s) did not push:
 
@@ -171,17 +171,17 @@ Surface as banner line: `{If UNPUSHED > 0: ⚠ Unpushed: N commit(s) from prior 
 
 Session dir created by hook. If hook didn't run:
 ```bash
-SESSION_DIR="WAI-Spoke/sessions/session-$(date +%Y%m%d-%H%M)"
+SESSION_DIR="WAI-Harness/spoke/sessions/session-$(date +%Y%m%d-%H%M)"
 mkdir -p "$SESSION_DIR" && touch "$SESSION_DIR/track.jsonl"
 ```
 
 **SHA Guard** (concurrent session safety — checked at closeout Step 11):
 ```bash
-WAI_STATE_SHA=$(git rev-parse HEAD:WAI-Spoke/WAI-State.json 2>/dev/null || echo "unknown")
+WAI_STATE_SHA=$(git rev-parse HEAD:WAI-Harness/spoke/WAI-State.json 2>/dev/null || echo "unknown")
 ```
 Store `WAI_STATE_SHA` in session context. If a concurrent session commits `WAI-State.json` before this session's closeout, the SHA mismatch triggers a warning before committing.
 
-**Every turn:** The Stop hook (`stop-track-flush.sh`) automatically writes the autosave checkpoint to `WAI-Spoke/.autosave/turn-{N}.json` (rolling window of 3) and appends a synthesized track skeleton with objective git fields (commits, files changed). Agents **enrich, not originate**: write rich fields (`focus`, `action`, `thinking`, `decisions`, `insights`) to `WAI-Spoke/runtime/track-buffer.json` before stopping — the hook flushes it. Never skip track writes because the buffer failed; the synthesizer is the guaranteed floor. See `wai-reference.md` for schemas.
+**Every turn:** The Stop hook (`stop-track-flush.sh`) automatically writes the autosave checkpoint to `WAI-Harness/spoke/.autosave/turn-{N}.json` (rolling window of 3) and appends a synthesized track skeleton with objective git fields (commits, files changed). Agents **enrich, not originate**: write rich fields (`focus`, `action`, `thinking`, `decisions`, `insights`) to `WAI-Harness/spoke/runtime/track-buffer.json` before stopping — the hook flushes it. Never skip track writes because the buffer failed; the synthesizer is the guaranteed floor. See `wai-reference.md` for schemas.
 
 ---
 
@@ -196,7 +196,7 @@ import json, glob, datetime
 STALE_TTL_HOURS = 8
 now = datetime.datetime.now(datetime.timezone.utc)
 sps = []
-for f in sorted(glob.glob('WAI-Spoke/savepoints/*.json')):
+for f in sorted(glob.glob('WAI-Harness/spoke/savepoints/*.json')):
     if '.gitkeep' in f: continue
     try:
         d = json.load(open(f))
@@ -268,7 +268,7 @@ d['claiming_session_id'] = '{current_session_id}'
 json.dump(d, open(f, 'w'), indent=2)
 "
 
-git add WAI-Spoke/savepoints/
+git add WAI-Harness/spoke/savepoints/
 git commit -m "savepoint: claim {sp_id} by {current_session_id}"
 if ! git push origin main; then
     # Race: another session may have pushed first. Re-read and surface.
@@ -332,7 +332,7 @@ If `ready_count > 0`, show top 3 ready items by ROI:
 
 ```python
 import json, os
-wai_state_path = 'WAI-Spoke/WAI-State.json'
+wai_state_path = 'WAI-Harness/spoke/WAI-State.json'
 if os.path.exists(wai_state_path):
     with open(wai_state_path, 'r') as f:
         wai_state = json.load(f)

@@ -18,7 +18,7 @@ on a v4-only spoke tools ship under `WAI-Harness/spoke/managed/tools`, not a top
 v3/coexist (relative to the spoke root, so it works in both `open('{BASE}/...')` and
 git-diff path-prefix checks). Cross-spoke delivery (Step 9) uses `{target_base}` — the
 TARGET spoke's base, resolved the same way with `--root {target_path}`. Never hardcode
-`WAI-Spoke/`.
+`WAI-Harness/spoke/`.
 
 ### 0.4 CSRP Notice Check (concurrent-session awareness — DO BEFORE COMMITTING)
 
@@ -613,17 +613,47 @@ Extract from WAI-State.json: `spoke_id`, `name`, `version`, `status`, `one_liner
 
 Sync canonical skill source to installed copy so the next session runs current skills:
 
+Source the managed mirror, never the top-level `templates/commands/` scaffold — that one
+froze on 2026-05-29 and syncing from it rolled 28 commands back two months in basher,
+`wai-closeout.md` included (`change-closeout-step10-syncs-from-stale-scaffold-v1`).
+
 ```bash
-\cp templates/commands/*.md .claude/commands/
+CMD_SRC="WAI-Harness/spoke/managed/templates/commands"   # v3 spokes fall back below
+[ -d "$CMD_SRC" ] || CMD_SRC="templates/commands"
+\cp "$CMD_SRC"/*.md .claude/commands/
 ```
 
-Verify: `diff templates/commands/wai.md .claude/commands/wai.md && diff templates/commands/wai-full.md .claude/commands/wai-full.md` — no output = clean.
+Verify: `diff "$CMD_SRC/wai.md" .claude/commands/wai.md && diff "$CMD_SRC/wai-full.md" .claude/commands/wai-full.md` — no output = clean.
 
-**Disruption capture (step 10):** If diff check shows divergence between `templates/commands/` and `.claude/commands/`:
+**Disruption capture (step 10):** If diff check shows divergence between `$CMD_SRC` and `.claude/commands/`:
 ```bash
 DISRUPTIONS+=("skill-sync")
 DISRUPTION_DETAILS+="[STEP 10] Skill sync diverged — .claude/commands/ out of date with templates/\n"
 ```
+
+### 10b-bis. Operator-Blocked Handoff (`blocked_on_human`)
+
+```bash
+python3 WAI-Harness/spoke/managed/tools/work_split.py --write-handoff
+```
+
+Writes `_session_state.blocked_on_human`: how many items are blocking the operator,
+how much work is runnable without him, how many are repairable by grooming, and the
+top 5 ranked by **unblock leverage** — how many otherwise-autonomous lugs each
+decision frees. The next wakeup reads this back.
+
+Why this step exists: only `chain_target_lug` used to cross the session boundary,
+and that is an *autonomous* target. Nothing carried the operator's blocking set
+forward, so every wakeup rediscovered it cold and lost the reasoning that produced
+it — reasoning an agent could only have had in the moment it hit the blocker.
+
+Then append any blocker this session **discovered** and could not resolve, with the
+reason in the agent's own words. A blocker recorded without its reasoning forces the
+next session to re-derive it, which is the exact cost this step exists to remove.
+
+**Do not silently omit this field when the tool is absent.** Write
+`blocked_on_human: {"status": "UNKNOWN", "reason": "work_split.py absent"}` so the
+next wakeup reports an unknown desk rather than an empty one.
 
 ### 10c. Work Queue Update
 
@@ -1231,6 +1261,41 @@ If the session was launched via a GUI tool (VS Code, Cursor) or directly without
 
 Skip if not production. Tag `v$VERSION`, push tag. If tag exists: stop and report conflict.
 
+### 14. EXIT SAFETY VERDICT (MANDATORY LAST OUTPUT)
+
+This is the ceremony's final instructional step — nothing produced by this ceremony may print after
+its block except the statusline. It exists so the operator never has to infer, from CSRP exit codes
+and git state scattered across Steps 0.4-13, whether walking away right now is actually safe
+(impl-exitclarity-2-ceremony-verdict-wiring-v1).
+
+```bash
+python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id {SESSION_ID}
+```
+
+`{SESSION_ID}` resolves exactly as in Step 11.5. Print the rendered block **verbatim** — do not
+summarize, trim, or paraphrase it.
+
+**NOT_SAFE / SAFE_AFTER loop (max 2 iterations) — the ceremony may not report itself complete until
+this resolves:**
+
+1. `SAFE TO EXIT` → print the block, end the ceremony.
+2. `SAFE AFTER` / `NOT SAFE` → execute only ceremony-scope findings (a scoped `git commit` per Step
+   11's convention, or a `git push` per PUSH RECONCILIATION below). Out-of-scope findings (lane
+   absorption, CSRP notices, savepoint re-validation) belong to Steps 0.4-0.6 and already ran — if
+   one still blocks, do not re-attempt it blindly; treat it as 3.
+3. Re-run. Repeat 2 at most twice. Still not `SAFE TO EXIT` → stop looping, print the block as-is and
+   surface it. The ceremony ends only on `SAFE TO EXIT` or an explicit operator override after
+   seeing the block — never on a silent NOT_SAFE.
+
+**PUSH RECONCILIATION (does not regress Step 11's no-push design):** Step 11 offloads `git push` to
+`wai-exit.sh` to avoid concurrent push races. Run a `git push` finding **only when Step 0.5 resolved
+`csrp_aware:false`** (sole owner). In concurrent mode, print it for the operator instead and say why:
+"push held back — CSRP-aware mode is active; run it yourself or let wai-exit.sh handle it."
+
+**CONVERGE RECOMMENDED:** the block always carries this line, yes or no. When it reads `CONVERGE
+RECOMMENDED: yes (...)`, quote the exact `$ ...` command from the block in your closing message —
+never leave a "yes" without the command attached.
+
 ---
 
 ## Automated Closeout Protocol
@@ -1293,6 +1358,7 @@ Applies to Tender and any automated agent that performs work on a spoke without 
 - Release tag applied (if production)
 - **All target_files for completed lugs were verified to exist on disk**
 - Disruption remediation lug created and committed (if any failures detected)
+- **EXIT SAFETY VERDICT block printed verbatim as the ceremony's last output (Step 14) — `SAFE TO EXIT`, or operator explicitly overrode a NOT_SAFE/SAFE_AFTER verdict**
 
 ---
 

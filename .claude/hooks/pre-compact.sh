@@ -105,4 +105,46 @@ if [[ -n "$LANE_DIR" ]]; then
   printf 'true' > "$LANE_DIR/compacted.flag" 2>/dev/null
 fi
 
+# ── Compaction-proof resume pointer (impl-compact-resume-wiring-v1) ──────────────────
+# Persist the facts a compacted session loses (session id, lane track path, active
+# initiative, savepoint status, in-progress lugs) so compact-resume-inject.sh can
+# restore them on SessionStart source=compact. Best-effort + presence-guarded; a
+# failure here NEVER blocks compaction (|| true). Python does the JSON write so free
+# text never hits shell encoding. Prefer the lane track, fall back to the shared track.
+CR_TRACK="${LANE_TRACK:-$TRACK_PATH}"
+python3 - "$STATE_FILE" "$BASE" "$RUNTIME_DIR/compact-resume.json" "${_PC_SID:-}" "${CR_TRACK:-}" 2>>"$ERR_LOG" <<'CRPY' || true
+import json, sys, glob, os, datetime
+state_file, base, out, sid, track = sys.argv[1:6]
+try:
+    st = json.loads(open(state_file).read())
+except Exception:
+    st = {}
+sp = st.get('_savepoint', {}) or {}
+init = sp.get('initiative_id') \
+    or (st.get('_strategic_initiatives', {}) or {}).get('governing_initiative', '') \
+    or ''
+# Bound the injection: most-recently-touched first, cap the list, keep an honest
+# total. A compacted session re-orients on the CURRENT few, not every stale lug.
+_paths = glob.glob(os.path.join(base, 'lugs', 'bytype', '*', 'in_progress', '*.json'))
+def _mtime(p):
+    try: return os.path.getmtime(p)
+    except OSError: return 0.0
+_paths.sort(key=_mtime, reverse=True)
+in_prog_total = len(_paths)
+in_prog = [os.path.basename(p)[:-5] for p in _paths[:10]]
+rec = {
+    'ts': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'session_id': sid,
+    'lane_track_path': track,
+    'base': base,
+    'active_initiative_id': init,
+    'focus_lock': sp.get('focus_directive') or '',
+    'savepoint_status': sp.get('status') or '',
+    'in_progress_lug_ids': in_prog,
+    'in_progress_total': in_prog_total,
+}
+os.makedirs(os.path.dirname(out), exist_ok=True)
+open(out, 'w').write(json.dumps(rec, indent=2))
+CRPY
+
 exit 0

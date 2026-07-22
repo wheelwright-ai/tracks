@@ -21,7 +21,7 @@ It should avoid broad user-interaction prompts because this session is acting as
 
 ## Protocol
 
-> **Runtime base** is the active harness: `WAI-Harness/spoke/local/runtime/` on v4 spokes (legacy v3 spokes only: `WAI-Spoke/runtime/`). Never write the v3 path on a v4 spoke — it resurrects a `WAI-Spoke/` phantom (P12 savepoint-circuit breaker).
+> **Runtime base** is the active harness: `WAI-Harness/spoke/local/runtime/` on v4 spokes (legacy v3 spokes only: `WAI-Harness/spoke/runtime/`). Never write the v3 path on a v4 spoke — it resurrects a `WAI-Harness/spoke/` phantom (P12 savepoint-circuit breaker).
 
 1. Read the current session runtime config from `WAI-Harness/spoke/local/runtime/ozi-sessions/<session-key>.json`.
 2. Show:

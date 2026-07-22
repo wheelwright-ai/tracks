@@ -6,13 +6,13 @@ Read `AGENTS.md` for universal WAI instructions. This file covers Qwen Code spec
 ## Wakeup (MANDATORY — First Turn)
 
 1. Read `AGENTS.md` — universal WAI bootstrap and key paths
-2. Read `WAI-Spoke/WAI-State.json` — project state and session history
+2. Read `WAI-Harness/spoke/WAI-State.json` — project state and session history
 3. Use the first wakeup file that exists:
-   - `WAI-Spoke/commands/wai.md`
-   - `WAI-Spoke/skills/wai/wai.md`
+   - `WAI-Harness/spoke/commands/wai.md`
+   - `WAI-Harness/spoke/skills/wai/wai.md`
 4. Treat this `QWEN.md` read as already satisfying the wakeup protocol's integration-file step
 5. Do not re-read `QWEN.md` or rescan parent `QWEN.md` files while executing wakeup unless the user explicitly asks
-6. Check `WAI-Spoke/seed/ingest/` — surface any pending teachings in the briefing first
+6. Check `WAI-Harness/spoke/seed/ingest/` — surface any pending teachings in the briefing first
 7. During wakeup, summarize teachings from filenames/frontmatter only. Do not read full teaching bodies unless the user explicitly asks
 8. Finish the WAI Point briefing before asking for approval on teachings or other side actions
 9. Then respond to the user's message

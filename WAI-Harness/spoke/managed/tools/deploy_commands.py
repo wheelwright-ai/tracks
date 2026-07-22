@@ -62,12 +62,35 @@ def deploy(spoke_root: str, dry_run: bool = True) -> dict:
         if not dry_run:
             shutil.copy2(src, dst)
 
+    # RETIRED files are removed from BOTH trees, and from managed FIRST.
+    #
+    # THE BUG THIS FIXES (s138, caught rehearsing basher's upgrade). A retired
+    # command that still exists in a spoke's MANAGED tree was deployed by the loop
+    # above and deleted by this one in the same run — net zero, reported as
+    # "2 synced, 2 pruned". An upgrade that changed nothing announced success.
+    # Distribution copies files IN but never removes files that should be GONE, so
+    # the contradiction persisted on every spoke that had ever received them.
+    #
+    # Removing from managed too is what makes an upgrade actually DROP deprecated
+    # elements rather than carry them forever. It is also safe: managed is
+    # regenerated from the master cut, so a wrong removal is one distribution away
+    # from being undone.
     for name in RETIRED:
-        dst = active / name
-        if dst.exists():
+        removed = False
+        for tree in (managed, active):
+            dst = tree / name
+            if dst.exists():
+                removed = True
+                if not dry_run:
+                    dst.unlink()
+        # Report the bare NAME once, not once per tree: both directories are
+        # called "commands", so a tree-qualified label was both ambiguous and a
+        # silent break of this function's existing contract (caught by
+        # test_ceremony_deploy_and_drift).
+        if removed:
             pruned.append(name)
-            if not dry_run:
-                dst.unlink()
+    # A file cannot be both synced and pruned in one run.
+    copied = [c for c in copied if c not in RETIRED]
 
     # active-only local commands (preserved, never touched)
     active_only = sorted(

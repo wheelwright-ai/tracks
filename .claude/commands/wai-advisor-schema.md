@@ -2,7 +2,7 @@
 > Fast path: load `wai-advisor-schema-slim.md` first. Load this file only when deep protocol is needed.
 
 **Version:** 1.0.0
-**Source of truth:** `WAI-Spoke/advisors/schema/advisor-schema-v1.yaml`
+**Source of truth:** `WAI-Harness/spoke/advisors/schema/advisor-schema-v1.yaml`
 **Skill trigger:** Read this file when authoring, reviewing, or activating a WAI advisor.
 
 ---
@@ -188,7 +188,7 @@ pilot_contract:
 
 **`shadow: true` on a pattern means:** the pattern evaluates and logs what it would surface, but produces no visible finding for the user.
 
-Shadow log entries are written to `WAI-Spoke/advisors/{id}/findings-log.jsonl` with these fields:
+Shadow log entries are written to `WAI-Harness/spoke/advisors/{id}/findings-log.jsonl` with these fields:
 
 ```jsonl
 {"ts": "2026-05-24T10:00:00Z", "pattern": "similar_situation_present", "score": 0.91, "surfaced": false, "shadow": true, "would_have_surfaced": true}

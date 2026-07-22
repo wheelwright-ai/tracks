@@ -35,7 +35,7 @@ Trigger lug format:
 | Spoke work queue | Open lugs, recent completions, stale in-progress | — |
 | Scout libraries | `scouts/spoke_local/ready/` + `scouts/hub_universal/ready/` | New scouts in `spoke_local/draft/` |
 | Advisor wishlists | `advisors/{id}/schedule.yaml` `bespoke_need` + `priorities` | — |
-| Work pattern library | `WAI-Spoke/reference/work-patterns/` (if present) | — |
+| Work pattern library | `WAI-Harness/spoke/reference/work-patterns/` (if present) | — |
 | Run log | — | Activity events row at Hub (post-run) |
 | Findings | — | Bug lugs (`type: bug`, scout finding fields set) |
 | Cycle-completion | — | Review-solicitation lug to Ozi at end of cycle |
@@ -69,14 +69,14 @@ Before any new work, review what prior expeditions found.
 Before filling the queue, read the spoke's current state.
 
 1. Read WAI-State.json: current phase, active epics, last session date
-2. Read all advisor `schedule.yaml` files (schema: `WAI-Spoke/reference/advisor-schedule.schema.yaml`):
+2. Read all advisor `schedule.yaml` files (schema: `WAI-Harness/spoke/reference/advisor-schedule.schema.yaml`):
    - Skip advisors with `enabled: false` — do not create scouts for paused advisors
    - Extract `bespoke_need`, `concerns`, P1/P2 items for priority composition
    - Check `cadence.interval_minutes` or `cadence.cron` — skip advisor if last run is within cadence window (compare against `schedule-index.json` `last_run_at`)
    - Check `cadence.on_event` — include advisor even if within cadence window when current session trigger matches a listed event (e.g. `post_closeout`, `feat_commit_since_last_run`)
    - Note `budget.max_cost_usd_per_run` — Wayfinder stops scheduling new scouts for this advisor at 90% of this cap
    - Note `allowed_models` — restrict Navigator model class selection to listed values for this advisor's scouts (empty list = no restriction)
-3. Check work pattern library (`WAI-Spoke/reference/work-patterns/` — skip if absent)
+3. Check work pattern library (`WAI-Harness/spoke/reference/work-patterns/` — skip if absent)
 4. Check recency of recurring scouts (last `run_log_ref` timestamps on open scout-finding bugs)
 5. Compose a priority stack: P1 advisor requests → stale recurring checks → P2 advisor requests → general quality
 
@@ -209,7 +209,7 @@ After each scout run (pass or fail), post to Hub activity_events:
 }
 ```
 
-*Delivery: POST to Hub activity_events endpoint, or write to `WAI-Spoke/runtime/activity-events-queue.jsonl` for batch delivery at session end when Hub is unavailable.*
+*Delivery: POST to Hub activity_events endpoint, or write to `WAI-Harness/spoke/runtime/activity-events-queue.jsonl` for batch delivery at session end when Hub is unavailable.*
 
 ---
 

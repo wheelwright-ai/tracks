@@ -553,10 +553,20 @@ _wai_dupguard_decide() {
     for _a in "${_TOOL_ARGS[@]}"; do
         if [[ "$_a" == "-p" || "$_a" == "--print" ]]; then _DUP_WHY="headless (-p)"; return 0; fi
     done
+    local _st
     for _pd in /proc/[0-9]*; do
         _dp="${_pd#/proc/}"
         [[ "$_dp" == "$$" ]] && continue
         [[ "$(cat "$_pd/comm" 2>/dev/null)" == "claude" ]] || continue
+        # LIVENESS: a ZOMBIE claude (exited, parent never reaped it) still has
+        # comm=claude and a cwd link, so the old check counted it as a running session
+        # and blocked a fresh launch with "a live Claude session already runs" when there
+        # was NONE (operator, 2026-07-20: dead pid 630438 reported as live). Skip anything
+        # not runnable; `kill -0` does NOT catch this — it succeeds for zombies too. Parse
+        # the state robustly: comm is parenthesised and may contain spaces, so split on the
+        # LAST ')' and take the next field, never awk $3.
+        _st=$(cat "$_pd/stat" 2>/dev/null); _st="${_st##*) }"; _st="${_st%% *}"
+        case "$_st" in Z|X|x|"") continue ;; esac
         [[ "$(readlink "$_pd/cwd" 2>/dev/null)" == "$PROJECT_DIR" ]] || continue
         tr '\0' ' ' < "$_pd/cmdline" 2>/dev/null | grep -qE ' -p( |$)| --print' && continue
         _dup_pids+=("$_dp")
@@ -848,7 +858,23 @@ fi
 # Runs Phase 0 + 0.5 (groom) + 1.5 only — populates needs_attention and ready
 # counts in the activity-log before the menu reads metrics. Skipped in continue
 # mode (-c) to avoid resume noise. Never blocks launch on failure.
-if [[ "$IS_SPOKE" == "true" && "$_CONTINUE_MODE" == "false" ]]; then
+# OPERATOR KILL SWITCH — advisors/disabled.json is the single, discoverable place
+# to pause an advisor without editing code. Checked here so a disabled autopilot
+# costs nothing at launch; remove the entry to re-enable. Fails OPEN (runs the
+# pre-scan) if the file is missing or unparseable — a broken kill switch must not
+# silently disable the harness.
+_PRESCAN_DISABLED=$(python3 -c "
+import json
+try:
+    d = json.load(open('$PROJECT_DIR/WAI-Harness/spoke/advisors/disabled.json'))
+    print('yes' if 'autopilot' in d.get('disabled', {}) else 'no')
+except Exception:
+    print('no')
+" 2>/dev/null || echo "no")
+
+if [[ "$_PRESCAN_DISABLED" == "yes" ]]; then
+    printf '  Ozi pre-scan: DISABLED via advisors/disabled.json (remove the autopilot entry to re-enable)\n'
+elif [[ "$IS_SPOKE" == "true" && "$_CONTINUE_MODE" == "false" ]]; then
     # Resolve Ozi HARNESS-FIRST. The legacy tree read from WAI-State
     # `wheelwright.framework_path` is deprecated and is a fallback ONLY — it
     # self-retires the moment canon grows `--pre-scan`, with no edit here.

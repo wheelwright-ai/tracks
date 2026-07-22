@@ -143,6 +143,11 @@ def _find_lug_by_id(root, lug_id):
 _RECEIPT_TYPES = {
     "ack", "notice", "report", "signal", "notation",
     "completion", "receipt", "addendum",
+    # "upgrade-report" is emitted by harness_upgrade on the spoke that took the
+    # cut: a machine's validation result, not a plan. Demanding PEV of it blocked
+    # the very first real feed from being archived (2026-07-22) — the work it
+    # implies is opened as separate bug/impl lugs by the intake ceremony.
+    "upgrade-report", "upgrade_report",
 }
 
 # Any one of these, non-empty, satisfies "this receipt actually says something".

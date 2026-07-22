@@ -6,14 +6,17 @@ Read `AGENTS.md` for universal WAI instructions. This file covers Claude Code sp
 ## Wakeup (MANDATORY — First Turn)
 
 1. Read `AGENTS.md` — universal WAI bootstrap and key paths
-2. Read `WAI-Spoke/WAI-State.json` — project state and session history
+2. Read `WAI-Harness/spoke/local/WAI-State.json` — project state and session history
+   *(v3 coexist spokes: `WAI-Harness/spoke/WAI-State.json`)*
 3. Follow the first wakeup file that exists:
-   - `WAI-Spoke/commands/wai.md`
-   - `WAI-Spoke/skills/wai/wai.md`
+   - `.claude/commands/wai.md` (v4 — invoke `/wai`)
+   - `WAI-Harness/spoke/commands/wai.md` (v3 coexist fallback)
+   - `WAI-Harness/spoke/skills/wai/wai.md` (v3 coexist fallback)
 4. Produce the WAI Point briefing before asking for approval on teachings or side actions
 5. If teachings are pending, summarize them compactly in the briefing first
 6. Do not read full teaching bodies during wakeup unless the user explicitly asks to review them now
 7. Then respond to the user's message
+8. After compaction: invoke `/wai-compact-resume`; live pointers in `WAI-Harness/spoke/local/runtime/compact-resume.json`
 
 The hook at `.claude/hooks/user-prompt-submit.sh` injects this directive automatically on session start.
 
@@ -29,8 +32,9 @@ The hook at `.claude/hooks/user-prompt-submit.sh` injects this directive automat
 
 ## Session Tracking
 
-After each turn, append a point to: `WAI-Spoke/session-YYYYMMDD-HHMM/track.jsonl`
-See `WAI-Spoke/commands/` for the track-encapsulation schema.
+After each turn, append a point to: `WAI-Harness/spoke/local/sessions/session-YYYYMMDD-HHMM/track.jsonl`
+*(v3 coexist spokes: `WAI-Harness/spoke/session-YYYYMMDD-HHMM/track.jsonl`)*
+See the track-encapsulation schema in `/wai-track`.
 
 ## Complexity Gate
 

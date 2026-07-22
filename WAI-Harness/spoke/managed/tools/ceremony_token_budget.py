@@ -23,15 +23,65 @@ import os
 import sys
 
 # line-count ceilings (post-P0-P2). Ratchet DOWN as ceremonies shrink further.
+#
+# WHAT THIS BUDGET IS FOR, and what it is NOT for (operator-stated 2026-07-19,
+# after a session compressed the savepoint protocol twice to fit and lost real
+# content both times): the ceiling exists to stop ceremonies ACCRETING —
+# restating themselves, keeping dead steps, inlining scripts that belong in
+# tools. It does NOT license removing content a resuming session needs.
+#
+# A ceremony doc is a durable protocol, not a message. Terseness in a record
+# costs a future session the reasoning it needs to act correctly. So when a
+# genuinely necessary step will not fit:
+#   1. Extract its mechanics into a tool (the fix that took closeout 1389 -> 1299).
+#   2. Delete anything the doc says twice.
+#   3. Only then raise the ceiling, and record why beside the number.
+# Never trade protocol correctness for line count.
 BUDGETS = {
     "wai.md": 720,
     "wai-full.md": 500,
     "wai-full-slim.md": 60,
     "wai-reference.md": 360,
     "wai-reference-slim.md": 80,
-    "wai-savepoint.md": 430,
-    "wai-closeout.md": 1300,
-    "wai-closeout-slim.md": 320,
+    # 430 -> 470 (2026-07-19). Was 426 with four lines of headroom, so the resume
+    # guarantee could not land at all without a raise.
+    #
+    # Raised TWICE: first to 440 by compressing Step 0.9 to fit, which silently
+    # dropped the precondition framing ("--verify CLEAN is required for a valid
+    # savepoint", the orphan-thread rationale, and where to source the thread ids).
+    # The operator caught it. Those lines are what make a resuming agent enforce
+    # the step rather than skim past it, so they were restored and the ceiling
+    # moved to fit the protocol instead of the protocol trimmed to fit the ceiling.
+    # Mechanics are already extracted into thread_materialize.py; what remains here
+    # is contract and rationale, which is exactly what must not be compressed.
+    "wai-savepoint.md": 470,
+    # 1300 -> 1330 (2026-07-19). The file sat at 1299 with ONE line of headroom, so
+    # any new step broke the guard regardless of merit.
+    #
+    # First raised to 1305 by squeezing the operator-blocked handoff down to three
+    # lines, which dropped why the step exists (nothing carried the operator's
+    # blocking set across sessions), what the field actually contains, and the
+    # instruction to record UNKNOWN rather than omit when the tool is missing. A
+    # resuming agent needs all three to execute the step correctly instead of
+    # skimming it. Restored, and the ceiling moved to fit.
+    #
+    # Mechanics are already extracted into work_split.py --write-handoff; what lives
+    # here is contract and rationale, which is what must never be compressed.
+    # 1330 -> 1370 and 320 -> 336 (2026-07-22). The EXIT SAFETY VERDICT step
+    # (impl-exitclarity-2-ceremony-verdict-wiring-v1) is a MANDATORY final step:
+    # the ceremony may not report itself complete until the verdict resolves, so
+    # the operator never has to infer from scattered git state whether walking
+    # away is safe. A new mandatory step legitimately changes the ceiling.
+    #
+    # The block WAS compressed first, not raised first — the {SESSION_ID} recipe
+    # was cut in favour of a pointer to Step 11.5, and the loop prose was more
+    # than halved. What is left is the contract: which findings are in scope,
+    # the 2-iteration cap, the never-report-safe-on-NOT_SAFE rule, and the push
+    # rule that keeps concurrent sessions from racing. Same judgement recorded
+    # twice above: compress mechanics, never the rationale, then move the ceiling
+    # to fit the protocol rather than trimming the protocol to fit the ceiling.
+    "wai-closeout.md": 1370,
+    "wai-closeout-slim.md": 336,
     "wai-closeout-reference.md": 140,
 }
 

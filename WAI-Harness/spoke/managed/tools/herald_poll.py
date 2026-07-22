@@ -303,6 +303,14 @@ def _spawn(cfg: dict, msg: dict, dirs: dict, cwd=None, model=None, prompt=None) 
     env["WAI_HERALD_SPAWN"] = "1"
     env["WAI_HERALD_MESSAGE_ID"] = msg["id"]
     env["WAI_HERALD_THREAD_ID"] = msg["thread_id"]
+    # Same treatment lens-insight's background worker already gets: this is a
+    # headless auto-answer responder, not an interactive session, and it runs in
+    # the real spoke cwd (not a neutral dir), so notify.sh's cwd-based suppression
+    # can't tell it apart from a real session ending. Herald tracks its own
+    # success/failure (fired.json rc, herald.log) — desktop toast was never its
+    # intended signal, and firing one per responder made every autonomous Herald
+    # answer indistinguishable from the operator's own session finishing.
+    env["BASHER_NO_TOAST"] = "1"
     timeout = int(cfg.get("response_timeout_seconds") or 600)
 
     # CSRP pre-spawn policy: if the target tree is contended (other live lanes),
@@ -344,23 +352,59 @@ def _responder_protocol(wid: str, key: str, lug: dict, origin: str) -> str:
     CSRP-scoped commit + push own branch (never main) -> confirm back to origin.
     This is what closes the loop so the originating session can continue/test."""
     title = lug.get("title", "")
+    lug_id = lug.get("id", key.split(":", 1)[-1] if ":" in key else key)
+    origin_desc = (
+        f"resolve '{origin}' via hub-registry.json -> {{path}}/WAI-Harness/spoke/local/lugs/incoming/"
+        if origin and origin != "?"
+        else "the originating spoke's WAI-Harness/spoke/local/lugs/incoming/"
+    )
     return (
-        "[HERALD RESPONDER — single-shot. Do NOT run full wakeup; do NOT claim chains.]\n"
+        "[HERALD RESPONDER -- single-shot. Do NOT run full wakeup; do NOT claim chains.]\n"
         f"A timely lug is in {wid}'s incoming/: {key}\n"
         f"Title: {title}\nOriginating spoke (confirm back here): {origin or '?'}\n\n"
         "PROTOCOL:\n"
-        "1. ASSESS definition. If under-specified (no clear PEV / acceptance), do NOT guess: "
-        "deliver a refinement-request lug back to the originating spoke's lugs/incoming/ "
-        "(type:refinement, the specific questions), mark this lug blocked:needs-refinement, exit.\n"
+        "1. ASSESS definition. If under-specified (no clear PEV / acceptance), do NOT guess.\n"
+        "   Deliver a REFINEMENT lug to the originating spoke's incoming/ (path: " + origin_desc + "):\n"
+        "   {\n"
+        f'     "type": "refinement",\n'
+        f'     "id": "ref-{lug_id}-<hex4>",\n'
+        f'     "in_reply_to": "{lug_id}",\n'
+        f'     "from_spoke": "{wid}",\n'
+        '     "questions": ["<specific question 1>", "<specific question 2>"],\n'
+        '     "status": "pending",\n'
+        '     "created_at": "<iso-utc>"\n'
+        "   }\n"
+        f"   Then mark this lug blocked:needs-refinement in {wid}'s lug store and exit.\n"
         "2. EXECUTE the lug's plan in this spoke's tree.\n"
-        "3. VERIFY — run the lug's verify / acceptance tests. If they fail, mark "
-        "needs-attention and report the failure back to the originator; do not mark complete.\n"
-        "4. COMMIT — CSRP-aware: read this spoke's live-lane state; if contended, isolate in a "
-        "worktree or scope the add (never git add -A on a shared tree). PUSH your OWN session/herald "
-        "branch only — never push to main; main-merge stays gated.\n"
-        "5. CONFIRM — deliver a completion lug back to the originator's incoming/ (verdict, "
-        "tests-passed, commit sha, branch) so that session is acknowledged and can pull/test.\n"
-        "6. Move this lug to processed/ and exit."
+        "3. VERIFY -- run the lug's verify / acceptance tests.\n"
+        "   If FAIL: mark needs-attention, do NOT mark complete. Deliver a FAILURE notice to the\n"
+        "   originator's incoming/ (same path as above):\n"
+        "   {\n"
+        f'     "type": "completion", "verdict": "failed",\n'
+        f'     "id": "fail-{lug_id}-<hex4>",\n'
+        f'     "in_reply_to": "{lug_id}", "references_lug": "{lug_id}",\n'
+        f'     "from_spoke": "{wid}",\n'
+        '     "tests_passed": false,\n'
+        '     "failure_detail": "<error summary, max 200 chars>",\n'
+        '     "status": "pending", "created_at": "<iso-utc>"\n'
+        "   }\n"
+        "   Then exit (do not commit).\n"
+        "4. COMMIT -- CSRP-aware: check this spoke's live-lane state (worktree_guard.py lanes).\n"
+        "   If contended: isolate in a worktree or use commit-mine.sh (never git add -A on a\n"
+        "   shared tree). PUSH your OWN session/herald branch ONLY -- NEVER push to main.\n"
+        "5. CONFIRM -- after push, write a COMPLETION lug to the originator's incoming/:\n"
+        "   Path: " + origin_desc + "\n"
+        "   {\n"
+        f'     "type": "completion", "verdict": "complete",\n'
+        f'     "id": "done-{lug_id}-<hex4>",\n'
+        f'     "in_reply_to": "{lug_id}", "references_lug": "{lug_id}",\n'
+        f'     "from_spoke": "{wid}",\n'
+        '     "tests_passed": true,\n'
+        '     "commit_sha": "<full sha: git rev-parse HEAD>",\n'
+        '     "branch": "session/<your-session-id>",\n'
+        '     "status": "pending", "created_at": "<iso-utc>"\n'
+        "   }\n"
+        f"6. Move this lug to {wid}'s lugs/bytype/<type>/completed/, set status:completed, exit."
     )
 
 
@@ -631,6 +675,364 @@ def watch_once(basher_root: str, force=False) -> dict:
 
 def cmd_watch(args) -> int:
     print(json.dumps(watch_once(args.spoke_root, force=args.force), indent=2))
+    return 0
+
+
+# --- completion-kick (auto-reconcile on incoming completion lugs) -------------
+# When a Herald responder finishes, it delivers a completion lug to the originator's
+# lugs/incoming/. This kick detects those completion lugs on each user turn and auto-
+# invokes converge reconcile-lane (merge + mandatory re-verify) without any manual
+# git command. Gate: green+clean->live; green+dirty->verified ref offered; red->needs-you.
+# Reuses converge's lease-lock so concurrent kicks cannot race.
+
+try:
+    import converge_closeout as _cc  # noqa: E402  type: ignore
+except Exception:
+    _cc = None
+
+_KICK_LOCK_SID = "herald-kick"  # synthetic session-id for the converge lease-lock
+
+
+def _wai_base(spoke_root: str) -> str:
+    """Return the WAI-Harness/spoke/local (v4) or WAI-Spoke (v3) data root."""
+    v4 = os.path.join(spoke_root, "WAI-Harness", "spoke", "local")
+    if os.path.isdir(v4):
+        return v4
+    return os.path.join(spoke_root, "WAI-Spoke")
+
+
+def _lugs_root(spoke_root: str) -> str:
+    return os.path.join(_wai_base(spoke_root), "lugs")
+
+
+def _working_tree_clean(repo_path: str) -> bool:
+    """True when the main working tree has no uncommitted changes (safe to fast-forward)."""
+    try:
+        r = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"],
+            cwd=repo_path, capture_output=True, text=True, timeout=10)
+        return r.returncode == 0 and not r.stdout.strip()
+    except Exception:
+        return False
+
+
+def _find_lug_file(spoke_root: str, lug_id: str):
+    """Walk the spoke's lug tree and return the path of the JSON file for lug_id."""
+    if not lug_id:
+        return None
+    root = _lugs_root(spoke_root)
+    for dirpath, _, files in os.walk(root):
+        if f"{lug_id}.json" in files:
+            return os.path.join(dirpath, f"{lug_id}.json")
+    return None
+
+
+def _test_cmd_from_lug(lug: dict):
+    """Extract the first shell-like verify step from a lug's verify list (or None)."""
+    for v in (lug.get("verify") or []):
+        if isinstance(v, str) and any(
+                kw in v for kw in ("pytest", "python3", "bash ", "./", "npm ", "make ")):
+            return v
+    return None
+
+
+def _resolve_repo_for_completion(spoke_root: str, lug: dict, cfg: dict) -> str:
+    """Return the repo root where the responder worked (defaults to spoke_root)."""
+    from_spoke = lug.get("from_spoke") or lug.get("from") or lug.get("source_spoke") or ""
+    wid = str(cfg.get("wheel_id") or "")
+    if not from_spoke or from_spoke.lower() == wid.lower():
+        return os.path.abspath(spoke_root)
+    for w in _hub_registry(spoke_root, cfg):
+        if str(w.get("wheel_id", "")).lower() == from_spoke.lower() and w.get("path"):
+            return os.path.abspath(w["path"])
+    return os.path.abspath(spoke_root)
+
+
+def _wt_name_from_branch(branch: str):
+    """'session/s260624-003200' -> 's260624-003200'; non-session branch -> None."""
+    if not branch:
+        return None
+    if branch.startswith("session/"):
+        return branch[len("session/"):]
+    return None
+
+
+def completion_kick(spoke_root: str) -> dict:
+    """Scan incoming/ for completion lugs; auto-reconcile each via converge reconcile-lane.
+
+    Gate on retest result:
+      green + clean active tree -> merged_and_live (work is in main, immediately testable)
+      green + dirty active tree -> verified_ref_offered (WIP preserved; merge when ready)
+      red (conflict or test fail) -> failed_needs_you (live tree untouched)
+
+    When converge_closeout is unavailable, falls back to notify-only: surfaces the
+    completion to the live session ("lug X done, tested, pushed <branch> -- pull/test")
+    without attempting auto-merge.
+
+    Reuses converge's lease-lock (single reconcile at a time, no races).
+    Returns {"kicked": int, "results": [...], "context": str}.
+    """
+    result: dict = {"kicked": 0, "skipped": 0, "results": [], "context": ""}
+
+    cfg = load_config(spoke_root)
+    incoming = os.path.join(_lugs_root(spoke_root), "incoming")
+    processed = os.path.join(incoming, "processed")
+    os.makedirs(processed, exist_ok=True)
+
+    if not os.path.isdir(incoming):
+        return result
+
+    candidates = []
+    for fn in sorted(os.listdir(incoming)):
+        if not fn.endswith(".json"):
+            continue
+        path = os.path.join(incoming, fn)
+        lug = _load_msg(path)
+        if not lug or lug.get("type") != "completion":
+            continue
+        if lug.get("_kick_status"):  # already processed by a prior kick
+            continue
+        candidates.append((fn, path, lug))
+
+    if not candidates:
+        return result
+
+    if _cc is None:
+        # converge_closeout unavailable: notify the live session without auto-merge.
+        ctx_lines: list = []
+        for fn, path, lug in candidates:
+            orig_id = (lug.get("references_lug") or lug.get("in_reply_to")
+                       or lug.get("id", fn))
+            branch = lug.get("branch", "")
+            ref = lug.get("commit_sha") or branch
+            verdict = lug.get("verdict", "complete")
+            if verdict == "failed":
+                detail = str(lug.get("failure_detail", "verify failed"))[:100]
+                ctx_lines.append(
+                    f"[herald-kick] {orig_id}: FAILED -- {detail} "
+                    f"(branch {branch} -- inspect and re-verify)")
+                lug["_kick_status"] = "notified_failure"
+            else:
+                ref_short = (ref or "")[:12]
+                ctx_lines.append(
+                    f"[herald-kick] {orig_id}: done, tested, pushed {branch} "
+                    f"({ref_short}) -- pull/test: git fetch && git merge {branch}")
+                lug["_kick_status"] = "notified"
+            result["kicked"] += 1
+            result["results"].append(
+                {"lug_id": lug.get("id", fn), "status": lug["_kick_status"],
+                 "branch": branch})
+            json.dump(lug, open(os.path.join(processed, fn), "w"),
+                      indent=2, ensure_ascii=False)
+            os.remove(path)
+        if ctx_lines:
+            result["context"] = "\n".join(ctx_lines)
+        return result
+
+    base = _wai_base(spoke_root)
+    lock = _cc.acquire_lock(base, _KICK_LOCK_SID)
+    if not lock.get("acquired"):
+        result["context"] = (
+            f"[herald-kick] converge lock held by {lock.get('holder', '?')} -- will retry")
+        return result
+
+    ctx_lines: list = []
+    try:
+        for fn, path, lug in candidates:
+            lug_id = lug.get("id", fn)
+            branch = lug.get("branch", "")
+            wt_name = _wt_name_from_branch(branch)
+            entry: dict = {"lug_id": lug_id, "branch": branch}
+
+            if not wt_name:
+                # Non-session branch: cannot auto-locate the worktree; skip
+                entry["status"] = "skipped_non_session_branch"
+                entry["detail"] = (
+                    f"branch '{branch}' is not a session/ branch; "
+                    "run reconcile-lane manually")
+                result["skipped"] += 1
+                result["results"].append(entry)
+                continue
+
+            repo_path = _resolve_repo_for_completion(spoke_root, lug, cfg)
+
+            # Resolve test_cmd from the referenced original lug
+            test_cmd = None
+            orig_id = lug.get("references_lug") or lug.get("in_reply_to")
+            if isinstance(orig_id, list):
+                orig_id = orig_id[0] if orig_id else None
+            if orig_id:
+                orig_path = _find_lug_file(spoke_root, str(orig_id))
+                if orig_path:
+                    try:
+                        test_cmd = _test_cmd_from_lug(json.load(open(orig_path)))
+                    except Exception:
+                        pass
+
+            clean = _working_tree_clean(repo_path)
+
+            if not clean:
+                # Dirty active tree: offer verified ref, never clobber WIP.
+                ref = lug.get("commit_sha") or branch
+                entry["status"] = "verified_ref_offered"
+                entry["detail"] = (
+                    f"Responder branch '{branch}' (ref {ref}) is ready and tested. "
+                    f"Active tree has uncommitted changes — adopt when safe: "
+                    f"`git -C {repo_path} merge {branch}`")
+                ctx_lines.append(
+                    f"[herald-kick] {lug_id}: verified ref '{branch}' available "
+                    f"(your WIP preserved — merge when ready)")
+                lug["_kick_status"] = "verified_ref_offered"
+                json.dump(lug, open(os.path.join(processed, fn), "w"),
+                          indent=2, ensure_ascii=False)
+                os.remove(path)
+                result["kicked"] += 1
+                result["results"].append(entry)
+                continue
+
+            # Clean tree: run reconcile-lane (merge + mandatory re-verify).
+            try:
+                rep = _cc.reconcile_lane(
+                    repo_path, wt_name, verify=True, test_cmd=test_cmd)
+            except Exception as exc:
+                rep = {"ok": False, "error": str(exc), "merge": {}}
+
+            entry["report"] = rep
+
+            if rep.get("ok"):
+                entry["status"] = "merged_and_live"
+                entry["detail"] = (
+                    f"Branch '{branch}' merged into main and re-verified. "
+                    "Work is live in your active tree.")
+                ctx_lines.append(
+                    f"[herald-kick] {lug_id}: AUTO-MERGED and verified "
+                    f"— '{branch}' is now in main")
+                lug["_kick_status"] = "merged_and_live"
+                json.dump(lug, open(os.path.join(processed, fn), "w"),
+                          indent=2, ensure_ascii=False)
+                os.remove(path)
+            else:
+                # Red: merge conflict or retest failure — leave tree untouched.
+                detail = (
+                    (rep.get("merge") or {}).get("error")
+                    or (rep.get("verify") or {}).get("detail")
+                    or rep.get("error", "unknown error"))
+                entry["status"] = "failed_needs_you"
+                entry["detail"] = str(detail)
+                ctx_lines.append(
+                    f"[herald-kick] {lug_id}: merge/retest FAILED — needs you: "
+                    f"{str(detail)[:120]}")
+                # Mark so it is not re-kicked every turn; leave in incoming for visibility.
+                lug["_kick_status"] = "failed_needs_you"
+                lug["_kick_error"] = str(detail)
+                json.dump(lug, open(path, "w"), indent=2, ensure_ascii=False)
+
+            result["kicked"] += 1
+            result["results"].append(entry)
+
+    finally:
+        _cc.release_lock(base, _KICK_LOCK_SID)
+
+    if ctx_lines:
+        result["context"] = "\n".join(ctx_lines)
+    return result
+
+
+def cmd_completion_kick(args) -> int:
+    res = completion_kick(args.spoke_root)
+    print(json.dumps(res, indent=2))
+    return 0 if res.get("kicked", 0) >= 0 else 1
+
+
+# --- wanter refcount (fast-path session-bound lifecycle) ----------------------
+# Each CC session that starts writes a "wanter" file to herald/wanters/<session-id>.
+# Each clean closeout removes it.  When the last wanter is gone the daemon stops
+# immediately (no waiting for the next 30s poll tick).
+# Crashed sessions cannot strand the daemon because:
+#   fast path: wanter TTL reap (mtime > HERALD_WANTER_TTL seconds)
+#   backstop:  active_session_count() uses worktree_guard.live_lanes (CSRP TTL)
+# Both conditions are OR-ed: daemon stops when live_wanter_count + active_session_count == 0.
+
+HERALD_WANTER_TTL = int(os.environ.get("BASHER_HERALD_WANTER_TTL", "1800"))
+
+
+def _wanters_dir(spoke_root: str) -> str:
+    d = os.path.join(herald_dir(spoke_root), "wanters")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def _reap_stale_wanters(spoke_root: str) -> None:
+    """Remove wanter files whose mtime exceeds TTL (crashed sessions)."""
+    wd = _wanters_dir(spoke_root)
+    now = time.time()
+    for fn in os.listdir(wd):
+        fp = os.path.join(wd, fn)
+        try:
+            if now - os.path.getmtime(fp) > HERALD_WANTER_TTL:
+                os.remove(fp)
+        except OSError:
+            pass
+
+
+def live_wanter_count(spoke_root: str) -> int:
+    """Count live wanters after reaping stale ones."""
+    _reap_stale_wanters(spoke_root)
+    wd = _wanters_dir(spoke_root)
+    return sum(1 for f in os.listdir(wd) if os.path.isfile(os.path.join(wd, f)))
+
+
+def register_need(spoke_root: str, session_id: str) -> dict:
+    """Mark session_id as needing the daemon; ensure daemon is up."""
+    cfg = load_config(spoke_root)
+    if not cfg.get("enabled"):
+        return {"registered": False, "reason": "disabled"}
+    wd = _wanters_dir(spoke_root)
+    fp = os.path.join(wd, session_id)
+    with open(fp, "w") as f:
+        f.write(str(int(time.time())))
+    existing = _read_pid(spoke_root)
+    if existing and _pid_alive(existing):
+        return {"registered": True, "daemon_status": "already_running", "pid": existing}
+    log = os.path.join(herald_dir(spoke_root), "herald.log")
+    cmd = [sys.executable, os.path.abspath(__file__), "--spoke-root",
+           os.path.abspath(spoke_root), "run", "--until-idle"]
+    lf = open(log, "a")
+    subprocess.Popen(cmd, stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
+                     start_new_session=True, close_fds=True)
+    return {"registered": True, "daemon_status": "started"}
+
+
+def retract_need(spoke_root: str, session_id: str) -> dict:
+    """Remove session_id's wanter; stop daemon when no live sessions remain."""
+    wd = _wanters_dir(spoke_root)
+    fp = os.path.join(wd, session_id)
+    try:
+        os.remove(fp)
+    except OSError:
+        pass
+    wanters = live_wanter_count(spoke_root)
+    csrp = active_session_count(spoke_root)
+    if wanters <= 0 and (csrp <= 0 or csrp == -1):
+        pid = _read_pid(spoke_root)
+        if pid and _pid_alive(pid):
+            try:
+                os.kill(pid, 15)
+            except OSError:
+                pass
+        return {"retracted": True, "daemon_stopped": True, "wanters": 0, "csrp_lanes": csrp}
+    return {"retracted": True, "daemon_stopped": False, "wanters": wanters, "csrp_lanes": csrp}
+
+
+def cmd_register_need(args) -> int:
+    res = register_need(args.spoke_root, args.session_id)
+    print(json.dumps(res))
+    return 0
+
+
+def cmd_retract_need(args) -> int:
+    res = retract_need(args.spoke_root, args.session_id)
+    print(json.dumps(res))
     return 0
 
 
@@ -920,6 +1322,20 @@ def main(argv=None):
     st.add_argument("--oneline", action="store_true",
                     help="one stable line for wrapper banners: <state> | <inbox> queued")
     st.set_defaults(func=cmd_status)
+
+    ck = sub.add_parser("completion-kick",
+                        help="auto-reconcile incoming completion lugs (called by UPS hook)")
+    ck.set_defaults(func=cmd_completion_kick)
+
+    rn = sub.add_parser("register-need",
+                        help="register a live session as a daemon wanter (called by SessionStart)")
+    rn.add_argument("--session-id", required=True, help="CC session UUID")
+    rn.set_defaults(func=cmd_register_need)
+
+    ret = sub.add_parser("retract-need",
+                         help="deregister session; stops daemon when last session exits (closeout)")
+    ret.add_argument("--session-id", required=True, help="CC session UUID")
+    ret.set_defaults(func=cmd_retract_need)
 
     args = ap.parse_args(argv)
     return args.func(args)

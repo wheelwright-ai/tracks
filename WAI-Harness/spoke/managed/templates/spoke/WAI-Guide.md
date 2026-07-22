@@ -30,7 +30,7 @@ Wheelwright builds AI wheels that remember everything. Instead of losing context
 
 ### Context Refresh Check (Do This First!)
 
-**Every session, check if the `WAI-Spoke/` folder has been updated since you last worked here:**
+**Every session, check if the `WAI-Harness/spoke/` folder has been updated since you last worked here:**
 
 ```python
 import json
@@ -77,7 +77,7 @@ WAI uses consistent prefixes to organize files and enable automation:
 
 | Prefix | Case | Purpose | Examples |
 |--------|------|---------|----------|
-| `WAI-` | UPPER | Core state and config files | WAI-State.json, WAI-Lugs.jsonl, WAI-Spoke/ |
+| `WAI-` | UPPER | Core state and config files | WAI-State.json, WAI-Lugs.jsonl, WAI-Harness/spoke/ |
 | `wai-` | lower | Commands and skills (executable) | wai-closeout.md, wai-learn.md |
 | `hub-` | lower | Hub-only files (excluded from spoke teach) | hub-registry.json, hub-security-policy.json |
 | `lug-` | lower | Ingestible lug files in seed/ingest/ | lug-wai-paths.jsonl |
@@ -94,7 +94,7 @@ WAI uses consistent prefixes to organize files and enable automation:
 
 - **UPPER case prefix** (`WAI-`) = State/config files that persist across sessions
 - **lower case prefix** (`wai-`) = Executable skills/commands
-- **Files in WAI-Spoke/** still use prefix - the redundancy helps when paths are truncated
+- **Files in WAI-Harness/spoke/** still use prefix - the redundancy helps when paths are truncated
 - **Never remove prefixes** - Automation depends on them
 
 ---
@@ -148,7 +148,7 @@ When discrepancy exists, lugs win.
 Every node has inbox and outbox directories:
 
 ```
-WAI-Spoke/
+WAI-Harness/spoke/
 └── lugs/
     ├── inbox/    ← Incoming lugs (to be processed)
     └── outbox/   ← Outgoing lugs (to be sent)
@@ -202,7 +202,7 @@ When a node teaches itself, delivery confirmations are skipped (no loop).
 import json
 from pathlib import Path
 
-state = json.loads(Path("WAI-Spoke/WAI-State.json").read_text())
+state = json.loads(Path("WAI-Harness/spoke/WAI-State.json").read_text())
 foundation = state.get("_project_foundation", {})
 
 if not foundation.get("completed"):
@@ -318,7 +318,7 @@ Which would you prefer?
 import json
 from pathlib import Path
 
-state = json.loads(Path("WAI-Spoke/WAI-State.json").read_text())
+state = json.loads(Path("WAI-Harness/spoke/WAI-State.json").read_text())
 session = state.get("_session_state", {})
 
 print(f"Last modified by: {session.get('last_modified_by')}")

@@ -66,7 +66,7 @@ process.
 
 6. Save the JSONL file in your project:
 
-   WAI-Spoke/seed/ingest/WAI_Track-YYYYMMDD-HHMM-Provider-Model.jsonl
+   WAI-Harness/spoke/seed/ingest/WAI_Track-YYYYMMDD-HHMM-Provider-Model.jsonl
 
    Example: WAI_Track-20260316-1304-ChatGPT-gpt4o.jsonl
 
@@ -76,7 +76,7 @@ process.
 ### What Happens Next
 
 - I validate the JSONL structure
-- Move the track to WAI-Spoke/sessions/
+- Move the track to WAI-Harness/spoke/sessions/
 - The historian picks it up on its next pattern-scan
 - Decisions, concepts, and architecture signals feed into vector analysis
 - Your external conversation is now part of your project's memory
@@ -86,7 +86,7 @@ process.
 
 ## Ingest Procedure (On Wakeup or On Demand)
 
-When a `WAI_Track-*.jsonl` file is found in `WAI-Spoke/seed/ingest/`:
+When a `WAI_Track-*.jsonl` file is found in `WAI-Harness/spoke/seed/ingest/`:
 
 ### Validate
 
@@ -96,8 +96,8 @@ When a `WAI_Track-*.jsonl` file is found in `WAI-Spoke/seed/ingest/`:
 
 ### Absorb
 
-1. Copy the file to `WAI-Spoke/sessions/`
-2. Move the original to `WAI-Spoke/seed/ingest/processed/`
+1. Copy the file to `WAI-Harness/spoke/sessions/`
+2. Move the original to `WAI-Harness/spoke/seed/ingest/processed/`
 3. Report:
 
 ```
@@ -106,7 +106,7 @@ When a `WAI_Track-*.jsonl` file is found in `WAI-Spoke/seed/ingest/`:
    Events: 47
    Decisions: 3
    Concepts: 7
-   → Now in WAI-Spoke/sessions/ — historian will scan on next pass
+   → Now in WAI-Harness/spoke/sessions/ — historian will scan on next pass
 ```
 
 ### If Invalid

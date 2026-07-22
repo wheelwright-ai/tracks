@@ -22,7 +22,7 @@ You are Ozi working on a single spoke. You are dispatched by the hub-level Ozi G
 python3 tools/spoke_health_check.py . --quick --json
 ```
 
-Then read `WAI-Spoke/advisors/tool-advisor/scan_state.json` if present. If `audit_pending: true` or the last audit is older than 7 days, run:
+Then read `WAI-Harness/spoke/advisors/tool-advisor/scan_state.json` if present. If `audit_pending: true` or the last audit is older than 7 days, run:
 
 ```bash
 python3 tools/tool_advisor.py --json
@@ -38,7 +38,7 @@ python3 tools/advisor_schedule_eval.py --json
 
 Parse the output array. For each entry where `should_fire: true`:
 
-1. Load the registry entry from `WAI-Spoke/advisors/registry.json` by `advisor_id`
+1. Load the registry entry from `WAI-Harness/spoke/advisors/registry.json` by `advisor_id`
 2. If `status == "stub"` OR `dispatch_command` is null:
    - Append `{"skipped": "<id>", "reason": "stub or no dispatch_command"}` to `advisors_skipped[]`
    - Continue
@@ -49,14 +49,14 @@ This step is non-blocking — advisor failures are logged but do not halt the wo
 
 ### Step 2: Inbound Processing
 
-1. Check `WAI-Spoke/seed/ingest/` for new teachings
+1. Check `WAI-Harness/spoke/seed/ingest/` for new teachings
 2. For each with `safe_to_auto_adopt: true`: adopt immediately (follow the teaching's instructions)
 3. For `false`: skip, log as "manual review needed"
-4. Check `WAI-Spoke/lugs/incoming/` for inbound deliveries — route to `bytype/`
+4. Check `WAI-Harness/spoke/lugs/incoming/` for inbound deliveries — route to `bytype/`
 
 ### Step 3: Signal Delivery
 
-Check `WAI-Spoke/lugs/bytype/signal/undelivered/` — if hub connected, copy to hub signals inbox.
+Check `WAI-Harness/spoke/lugs/bytype/signal/undelivered/` — if hub connected, copy to hub signals inbox.
 
 ### Step 4: Work Queue — Subagent Implementation Loop
 
@@ -83,7 +83,7 @@ while items_completed < SCOPE_BUDGET and context < CONTEXT_CEILING:
 
 #### pick_next_ready()
 
-Scan `WAI-Spoke/lugs/bytype/*/open/*.json` for lugs that are implementation-ready:
+Scan `WAI-Harness/spoke/lugs/bytype/*/open/*.json` for lugs that are implementation-ready:
 - Has `description` or `d` field (knows what to do)
 - Has PEV fields (`perceive`, `execute`, `verify`) OR has `acceptance_criteria`
 - Is NOT type `epic` (epics are decomposed, not directly implemented)
@@ -151,7 +151,7 @@ Use the Agent tool to spawn a subagent:
 
 1. Write session summary lug
 2. Update WAI-State.json (version bump, session count, next_session_recommendation)
-3. Write nightly report to `WAI-Spoke/runtime/ozi-nightly-reports/YYYY-MM-DD.json`:
+3. Write nightly report to `WAI-Harness/spoke/runtime/ozi-nightly-reports/YYYY-MM-DD.json`:
    ```json
    {
      "date": "YYYY-MM-DD",

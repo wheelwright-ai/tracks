@@ -134,6 +134,14 @@ def promotability(d, lid=None):
         return "already_ready"
     if cls in ("needs_you", "blocked"):
         return cls
+    if cls == "review":
+        # `disposition` can cache a stale "review" stamped before needs_attention
+        # was set or before a blocked_by landed -- re-derive off substance so a
+        # lug that's genuinely needs_you/blocked isn't mislabeled promotable.
+        probe = dict(d); probe.pop("disposition", None)
+        fresh = classify_lug(probe)
+        if fresh in ("needs_you", "blocked"):
+            return fresh
     if _is_advisory(d, lid):
         return "advisory_retire"
     has_targets = bool(file_targets(d))
@@ -163,7 +171,12 @@ def promote(d, lid=None):
         missing.append("file_targets")
     if not (new.get("execute") or new.get("perceive")):
         missing.append("execute|perceive")
-    became = classify_lug(new) == "auto_build"
+    # classify_lug caches on a pre-existing `disposition` (e.g. a stale "review"
+    # stamped before file_targets was fixed) -- probe on substance alone so a
+    # lug that's genuinely field-complete post-normalize can actually flip.
+    probe = dict(new)
+    probe.pop("disposition", None)
+    became = classify_lug(probe) == "auto_build"
     if became:
         new["disposition"] = "auto_build"
         new["status"] = new.get("status") if new.get("status") in ("open", "in_progress") else "open"

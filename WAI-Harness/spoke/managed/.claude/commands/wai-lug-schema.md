@@ -18,7 +18,7 @@
 
 **Folder hierarchy:**
 ```
-WAI-Spoke/lugs/
+WAI-Harness/spoke/lugs/
   incoming/                        — inbound deliveries (operational)
   outgoing/                        — outbound deliveries (operational)
   bytype/
@@ -35,12 +35,12 @@ WAI-Spoke/lugs/
 |------|-------|-------|
 | Active lugs | `lugs/bytype/*/open/` and `bytype/*/in_progress/` | Scanned at wakeup |
 | Completed lugs | `lugs/bytype/{type}/completed/` | One file per lug |
-| Signals (legacy) | `WAI-Spoke/signals/{inbound,processed}/` + `signals/registry.json` | **Deprecated** — old framework-patch mechanism. Do not create new signal lugs in spoke directories. |
+| Signals (legacy) | `WAI-Harness/spoke/signals/{inbound,processed}/` + `signals/registry.json` | **Deprecated** — old framework-patch mechanism. Do not create new signal lugs in spoke directories. |
 | User signals | `{hub_path}/WAI-Hub/signals/incoming/` | User-action-required alerts. Written by spokes or Ozi. Read by all sessions at startup. NOT actionable by agents. |
-| Lug index | `WAI-Spoke/WAI-LugIndex.jsonl` | Lightweight lookup — on-demand only |
-| Incoming/outgoing | `WAI-Spoke/lugs/incoming/` and `outgoing/` | Delivery channel only |
+| Lug index | `WAI-Harness/spoke/WAI-LugIndex.jsonl` | Lightweight lookup — on-demand only |
+| Incoming/outgoing | `WAI-Harness/spoke/lugs/incoming/` and `outgoing/` | Delivery channel only |
 | Hub bulletin | `WAI-Hub/signals/incoming/` | User-alert signals from spokes — read at every session start |
-| Reference docs | `WAI-Spoke/reference/` | Top-level, peer to lugs/sessions/skills |
+| Reference docs | `WAI-Harness/spoke/reference/` | Top-level, peer to lugs/sessions/skills |
 
 **Storage rules:**
 - **New lugs** → write to `lugs/bytype/{type}/open/{id}.json`
@@ -49,13 +49,13 @@ WAI-Spoke/lugs/
 - **Index** → regenerated at closeout
 - **Wakeup** → scans `bytype/*/open/` and `bytype/*/in_progress/` only
 
-`WAI-Spoke/WAI-Signals.jsonl` and `WAI-Spoke/WAI-Lugs.jsonl` are **retired** (pre-v3.0 flat lug stores). Use `lugs/bytype/` for all lug operations. Do not create or write to the retired paths.
+`WAI-Harness/spoke/WAI-Signals.jsonl` and `WAI-Harness/spoke/WAI-Lugs.jsonl` are **retired** (pre-v3.0 flat lug stores). Use `lugs/bytype/` for all lug operations. Do not create or write to the retired paths.
 
 ---
 
 ## What Is A Lug
 
-A lug is a JSON file at `WAI-Spoke/lugs/bytype/{type}/{status}/{id}.json`. The folder path tells you what it is and whether it needs attention. Lugs are the persistent memory of the session system — they carry work items, decisions, signals, and protocols across sessions, models, and projects.
+A lug is a JSON file at `WAI-Harness/spoke/lugs/bytype/{type}/{status}/{id}.json`. The folder path tells you what it is and whether it needs attention. Lugs are the persistent memory of the session system — they carry work items, decisions, signals, and protocols across sessions, models, and projects.
 
 **Lugs travel across contexts.** They must be unambiguous enough that ANY agent can interpret them correctly WITHOUT your current conversation history.
 
@@ -174,7 +174,7 @@ Spec lugs use a distinct 3-state lifecycle — they do NOT use the standard open
 | `active` | Authoritative — impl lugs reference this; SpecIndex includes it |
 | `deprecated` | Behavior retired or replaced by another spec — kept for history |
 
-Spec lugs are stored at `WAI-Spoke/lugs/bytype/spec/{draft,active,deprecated}/{id}.json`.
+Spec lugs are stored at `WAI-Harness/spoke/lugs/bytype/spec/{draft,active,deprecated}/{id}.json`.
 
 ---
 
@@ -229,9 +229,9 @@ A `chain` lug coordinates multi-session work with distributed claiming. Unlike e
   - `deferred_children`: child lug IDs deferred to next session
   - `file_scope`: files this session will touch (conflict lock)
 
-**Claim registry:** Supabase `wai_claims` table (primary) or `WAI-Spoke/runtime/claims-local.json` (fallback for single-Ozi spokes without Supabase). PRIMARY KEY on `chain_id` makes claiming atomic — PK collision rejects a second concurrent claim.
+**Claim registry:** Supabase `wai_claims` table (primary) or `WAI-Harness/spoke/runtime/claims-local.json` (fallback for single-Ozi spokes without Supabase). PRIMARY KEY on `chain_id` makes claiming atomic — PK collision rejects a second concurrent claim.
 
-**Storage:** `WAI-Spoke/lugs/bytype/chain/{open,in_progress,completed}/{id}.json`
+**Storage:** `WAI-Harness/spoke/lugs/bytype/chain/{open,in_progress,completed}/{id}.json`
 
 ## Contract Fields (Lease + Verify + Provenance)
 
@@ -502,7 +502,7 @@ CREATE → DOGFOOD → DISCUSS → IMPLEMENT → VERIFY → CELEBRATE → ARCHIV
 ```python
 import json, os, datetime
 
-nav_rec_path = "WAI-Spoke/advisors/navigator/recommendations-current.json"
+nav_rec_path = "WAI-Harness/spoke/advisors/navigator/recommendations-current.json"
 
 PROFILE_MAP = {
     "implementation": lambda effort: "coding_high" if effort >= 3 else "coding_low",
@@ -706,9 +706,9 @@ Cross-spoke lugs are **compose-and-send**: deliver immediately after creation. D
 If any check fails: fix the lug. Do not deliver a draft.
 
 **Delivery action** (after checklist passes):
-1. Write lug to `WAI-Spoke/lugs/outgoing/{id}.json` (local audit record)
+1. Write lug to `WAI-Harness/spoke/lugs/outgoing/{id}.json` (local audit record)
 2. Read hub-registry.json → resolve `destination_wheel_id` to spoke path
-3. `\cp WAI-Spoke/lugs/outgoing/{id}.json {target_path}/WAI-Spoke/lugs/incoming/{id}.json`
+3. `\cp WAI-Harness/spoke/lugs/outgoing/{id}.json {target_path}/WAI-Harness/spoke/lugs/incoming/{id}.json`
 4. Set `delivered_at: {iso_timestamp}` and `status: delivered` in the outgoing copy
 
 **Closeout Step 9 is a sweep backstop**, not the primary delivery path. Lugs that reach closeout undelivered are considered delivery failures — they were created but not sent.
@@ -735,7 +735,7 @@ When you are working in spoke A and observe work that belongs elsewhere, use thi
 | Situation | Correct Action | Wrong Action |
 |-----------|---------------|-------------|
 | You observe spoke B has a bug or improvement while working in spoke A | Write a lug to `{hub_path}/WAI-Hub/lugs/incoming/{spoke_b_id}/` (`routed_to: "SPOKE/{spoke_b_id}"`) | Routing to hub incoming (hub never relays to spokes) |
-| Improvement to framework schemas, skills, or protocols | Framework impl/task lug to `framework/WAI-Spoke/lugs/incoming/` (`routed_to: "FRAMEWORK"`) | Writing a signal lug |
+| Improvement to framework schemas, skills, or protocols | Framework impl/task lug to `framework/WAI-Harness/spoke/lugs/incoming/` (`routed_to: "FRAMEWORK"`) | Writing a signal lug |
 | Something the USER must decide or act on (not agent-resolvable) | Signal lug (`type: "signal"`) → write to `{hub_path}/WAI-Hub/signals/incoming/` | Creating an impl/task lug (user won't see it at startup) |
 | Architectural decision owned by one spoke | Lug to that spoke's inbox (`routed_to: "SPOKE/{id}"`) | Any broadcast mechanism |
 | Work only relevant to the spoke you are currently in | Local lug (`routed_to: "LOCAL"`) | Any of the above |
@@ -799,12 +799,12 @@ The old "fleet-wide patch via signal" mechanism is retired. Emit a framework imp
 
 ### Migration Note (v2 → v3 Signal Semantics)
 
-Existing signal lugs in `WAI-Spoke/lugs/bytype/signal/` are **legacy**. Do not create new ones there.
+Existing signal lugs in `WAI-Harness/spoke/lugs/bytype/signal/` are **legacy**. Do not create new ones there.
 
 | Old pattern | New pattern |
 |------------|------------|
 | `type: "signal"`, `routed_to: "FRAMEWORK"` (fleet patch) | `type: "task"` or `"implementation"`, `routed_to: "FRAMEWORK"` |
-| `WAI-Spoke/signals/inbound/` patch files | Deprecated — do not create new patch files there |
+| `WAI-Harness/spoke/signals/inbound/` patch files | Deprecated — do not create new patch files there |
 | `WAI-Hub/signals/incoming/framework/` | Deprecated path — no new files |
 | New user alert to human | `type: "signal"` → write to `{hub_path}/WAI-Hub/signals/incoming/{id}.json` |
 
@@ -828,7 +828,7 @@ When a lug is created by an advisor (not directly by the user or Ozi), it must c
 
 ### Advisor Run record schema
 
-Appended to `WAI-Spoke/advisors/{advisor_id}/runs.jsonl` after each advisor execution.
+Appended to `WAI-Harness/spoke/advisors/{advisor_id}/runs.jsonl` after each advisor execution.
 
 ```json
 {
@@ -853,7 +853,7 @@ Appended to `WAI-Spoke/advisors/{advisor_id}/runs.jsonl` after each advisor exec
 
 ### Lifecycle event schema
 
-Appended to `WAI-Spoke/advisors/lifecycle.jsonl` on structural advisor changes.
+Appended to `WAI-Harness/spoke/advisors/lifecycle.jsonl` on structural advisor changes.
 
 ```json
 {

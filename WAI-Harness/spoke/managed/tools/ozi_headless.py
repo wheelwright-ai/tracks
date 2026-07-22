@@ -641,11 +641,25 @@ class OziHeadlessRunner:
                 continue
             eligible.append(lug)
 
+        def _as_int(val, default):
+            try:
+                return int(val)
+            except (TypeError, ValueError):
+                return default
+
+        def _as_float(val, default):
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return default
+
+        # Sort keys tolerate non-numeric lug data (e.g. wave labels like "A"/"w1",
+        # missing/garbage urgency_tier or roi) — coerce or fall back, never crash.
         eligible.sort(
             key=lambda l: (
-                int(l.get("urgency_tier", 3)),
-                -float(l.get("roi") or 0),
-                int(l.get("wave") or 99),
+                _as_int(l.get("urgency_tier", 3), 3),
+                -_as_float(l.get("roi") or 0, 0.0),
+                _as_int(l.get("wave") or 99, 99),
             )
         )
         return eligible

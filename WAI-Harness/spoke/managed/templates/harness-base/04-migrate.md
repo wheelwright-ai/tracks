@@ -6,8 +6,8 @@ Run only if `02-detect.md` chose **brownfield**. The strategy is **idempotent fu
 
 | Found | Action |
 |---|---|
-| Flat or `active/` lugs | Move into `WAI-Spoke/lugs/bytype/{type}/{status}/`. Preserve ids + content. |
-| Old bolts/patterns | Move under `WAI-Spoke/bolts/bytype/**` and `patterns/bytype/**`. |
+| Flat or `active/` lugs | Move into `WAI-Harness/spoke/lugs/bytype/{type}/{status}/`. Preserve ids + content. |
+| Old bolts/patterns | Move under `WAI-Harness/spoke/bolts/bytype/**` and `patterns/bytype/**`. |
 | Prior `seed/ingest/processed/` teaching files | Keep — they record what was already adopted. |
 | Pre-base teachings still "pending" | They are **subsumed by this base** — do not adopt them one by one. Move to an `archive/` and note `absorbed_in_base_version: 3.0.0`. |
 | Non-standard / unknown files | If unsure whether they hold live data, **write a notation lug** and leave them in place. Do not clobber. |
@@ -16,7 +16,7 @@ Run only if `02-detect.md` chose **brownfield**. The strategy is **idempotent fu
 
 Run the same "ensure this state" operations as `03-bootstrap.md` §1–§3. Because they are idempotent, existing-and-correct components are untouched; missing or drifted ones are repaired:
 
-- Ensure all `WAI-Spoke/**` and `.claude/**` directories exist.
+- Ensure all `WAI-Harness/spoke/**` and `.claude/**` directories exist.
 - **Install the base payload from this bundle's `payload/`** (self-contained): `payload/tools/verify_engine.py` → `tools/`, `payload/schemas/*.json` → `schemas/`, `payload/commands/*.md` → `.claude/commands/`. These are harness-owned — overwrite. (A spoke on a *newer* lineage keeps its own newer skills; only the v3 base files in the payload are asserted.)
 
 ## 3. Add / upgrade the `_harness` ledger

@@ -10,6 +10,15 @@
 #   1. Rich layer  — if the model wrote <runtime>/track-buffer.json, flush it.
 #   2. Safety net  — synthesize a baseline entry from the CC transcript (transcript_path
 #                    on stdin) when no buffer existed this turn. A cursor file dedups.
+#
+# Both layers are augmented by synthesize_turn.py (called below, regardless of which
+# layer wrote the point) with two more fields (feature-track-per-turn-insight-rewrites-v1):
+#   user_insight  — picked up from a side file the UserPromptSubmit hook's background
+#                   generation wrote for this turn (may be absent -- fail-open).
+#   agent_insight — generated synchronously here (bounded timeout, SONNET) from this
+#                   turn's assistant_text. Both are USER-SESSIONS-ONLY: the
+#                   WAI_AP_DISPATCH guard below already keeps autopilot/dispatched
+#                   agents from reaching this point at all.
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 
@@ -123,6 +132,21 @@ print(track)
 PYEOF
 )
 fi
+# A DISPATCHED AGENT IS NOT A SESSION.
+#
+# Autopilot children inherit the environment and would otherwise fire this hook,
+# minting a session directory and a one-turn track apiece. Sixteen phantom
+# sessions appeared in one afternoon and the shared turn counter reset, which is
+# how the operator noticed his track statusline had stopped rendering. Telemetry
+# that fragments under load is worse than none: a busy wheel reads as a string of
+# one-turn sessions that achieved nothing.
+#
+# The dispatched agent's WORK is recorded by the lug and its commit; it does not
+# need a session record of its own.
+if [ -n "${WAI_AP_DISPATCH:-}" ]; then
+  exit 0
+fi
+
 [[ -z "$TRACK" ]] && exit 0
 [[ -z "$LANE_DIR" ]] && LANE_DIR="$RUNTIME"
 

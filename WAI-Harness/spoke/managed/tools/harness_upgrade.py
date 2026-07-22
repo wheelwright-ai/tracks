@@ -35,6 +35,7 @@ import os
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 MANIFEST_NAME = "MANIFEST.json"
@@ -333,8 +334,9 @@ def apply(master_managed, target_managed, manifest, report=None):
     return written
 
 
-def upgrade(master_managed, target_managed, dry_run=False, expect_version=None):
-    """The full verify-apply-verify loop. Returns a structured report.
+def upgrade(master_managed, target_managed, dry_run=False, expect_version=None,
+            validate=True, spoke_root=None):
+    """The full verify-apply-validate loop. Returns a structured report.
 
     Safety: the master must self-verify (every file's md5 matches its own MANIFEST)
     BEFORE anything is applied — a corrupt/half-cut master is never distributed.
@@ -384,10 +386,183 @@ def upgrade(master_managed, target_managed, dry_run=False, expect_version=None):
         report["verify_post"] = None
         report["ok"] = True   # a preview always "succeeds"; it asserts nothing applied
         return report
+
+    # DOES IT STILL WORK — the question md5 cannot ask (operator model 2026-07-22:
+    # validation runs at upgrade time and is validated by the spoke that took it).
+    # verify_post proves the bytes landed; it cannot notice that they landed broken.
+    # A cut this week rolled 28 command files back two months and verify_post would
+    # have passed it, because those were exactly the bytes it meant to copy.
+    #
+    # THE GATE IS A REGRESSION LEDGER, NOT A HEALTH BAR. Baseline first, then compare.
+    # Every spoke in this fleet carries pre-existing failures — the shipped spoke-side
+    # suite is red everywhere today — so a gate that fails on absolute health would
+    # block every upgrade from the first day and be routed around by the second.
+    # What an upgrade is answerable for is what it BROKE: a check that passed before
+    # it and fails after. Pre-existing failures are still reported, never hidden, and
+    # they simply are not this upgrade's crime.
+    spoke = spoke_root or _spoke_root_of(target_managed)
+    baseline = run_validation(spoke) if validate else None
+
     report["applied"] = apply(master_managed, target_managed, manifest, report=report)
     report["verify_post"] = verify(target_managed, manifest)
     report["ok"] = report["verify_post"]["ok"]
+
+    if validate:
+        after = run_validation(spoke)
+        before_status = {c.get("check"): c.get("status") for c in (baseline or {}).get("checks", [])}
+        regressions = [c["check"] for c in after.get("checks", [])
+                       if c.get("status") == "fail" and before_status.get(c["check"]) == "pass"]
+        preexisting = [c["check"] for c in after.get("checks", [])
+                       if c.get("status") == "fail" and before_status.get(c["check"]) != "pass"]
+        after["baseline_outcome"] = (baseline or {}).get("outcome")
+        after["regressions"] = regressions
+        after["preexisting_failures"] = preexisting
+        after["verdict"] = ("regressed" if regressions
+                            else "clean-with-preexisting" if preexisting
+                            else after.get("outcome", "skip"))
+        report["validation"] = after
+        if regressions:
+            report["ok"] = False
+            report["aborted"] = ("upgrade BROKE validation on the receiving spoke: "
+                                 + ", ".join(regressions))
     return report
+
+
+def _spoke_root_of(managed_dir):
+    """<root>/WAI-Harness/spoke/managed -> <root>. The spoke that took the upgrade."""
+    return str(Path(managed_dir).resolve().parents[2])
+
+
+def run_validation(spoke_root):
+    """Run the validation suite, or say honestly that it could not run.
+
+    Never raises and never reports `pass` for a suite that did not execute — the
+    entire reason this exists is that something was reporting success on evidence
+    that could not support it.
+    """
+    try:
+        import harness_validate
+    except Exception as exc:
+        return {"outcome": "skip", "summary": f"validator unavailable: {exc}",
+                "checks": [], "failed": [], "skipped": ["*"]}
+    try:
+        return harness_validate.validate(spoke_root)
+    except Exception as exc:
+        return {"outcome": "fail", "summary": f"validator raised: {type(exc).__name__}: {exc}",
+                "checks": [], "failed": ["validator"], "skipped": []}
+
+
+def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
+    """The receiving spoke writes its own upgrade report, and posts it to master.
+
+    THE PRODUCER HALF OF THE CIRCLE. The consumer — the upgrade-report intake
+    ceremony — has been fully built and wired into wakeup for months, and has
+    never once received input, because the only thing that wrote a report was a
+    copy-paste JSON template inside an adoption ceremony, on v3 paths, addressed
+    to a repo that is deprecated. Half a circle looks exactly like a whole one
+    from the half that works.
+
+    Two writes, deliberately:
+      LOCAL   the receiving spoke keeps its own record — it took the upgrade, so
+              the evidence lives where the consequences do.
+      MASTER  a copy into master's lugs/incoming/, the sanctioned cross-spoke
+              channel, so master learns a spoke broke WITHOUT having to ask.
+
+    Returns {local, delivered, ok}. Never raises: a report that cannot be written
+    must not turn a successful upgrade into a failed one, and must not be silent
+    about failing either — the error is returned.
+    """
+    validation = rep.get("validation") or {}
+    # The report grades what the UPGRADE did, which is why it reads `verdict` (the
+    # regression comparison) rather than `outcome` (absolute health). A spoke that
+    # arrived broken and left equally broken did not have a failed upgrade — and
+    # saying it did would train everyone to ignore the report.
+    outcome = {
+        "regressed": "fail",
+        "clean-with-preexisting": "partial",
+        "pass": "pass",
+        "fail": "fail",
+        "skip": "partial",
+    }.get(validation.get("verdict") or validation.get("outcome"), "partial")
+    if not rep.get("ok"):
+        outcome = "fail"
+
+    spoke_id = os.path.basename(os.path.abspath(spoke_root))
+    stamp = datetime.now(timezone.utc)
+    lug_id = f"upgrade-report-{spoke_id}-{stamp.strftime('%Y%m%dT%H%M%S')}-v1"
+    failed_checks = [c for c in validation.get("checks", []) if c.get("status") == "fail"]
+
+    lug = {
+        "id": lug_id,
+        "type": "upgrade-report",
+        "status": "open",
+        "routed_to": "SIGNAL" if outcome == "fail" else "LOCAL",
+        "title": (f"Upgrade to {master_version or 'unknown'} on {spoke_id} — "
+                  f"validation {outcome.upper()}"),
+        "created_at": stamp.isoformat(),
+        "created_by": "harness_upgrade.emit_upgrade_report",
+        "spoke_id": spoke_id,
+        "spoke_path": str(Path(spoke_root).resolve()),
+        "harness_version": master_version,
+        "outcome": outcome,
+        "applied": rep.get("applied", 0),
+        "retired": rep.get("retired", []),
+        "verify_post_ok": bool((rep.get("verify_post") or {}).get("ok")),
+        "aborted": rep.get("aborted"),
+        "validation": validation,
+        # An upgrade that ABORTED before validation and one that RAN validation and
+        # failed it are different failures with different owners — the first is
+        # usually a bad or mid-edit master, the second a bad cut. The first live
+        # report this circle ever produced was the aborted kind and read as
+        # "validation not run — no detail", which names neither.
+        "summary": (
+            f"{rep.get('applied', 0)} file(s) applied; "
+            f"bytes {'verified' if (rep.get('verify_post') or {}).get('ok') else 'MISMATCHED'}; "
+            + (f"ABORTED before validation: {rep['aborted']}" if rep.get("aborted") and not validation
+               else f"validation {validation.get('verdict') or validation.get('outcome') or 'did not run'}"
+                    f" — {validation.get('summary', 'no detail')}")),
+        "friction_points": [
+            {"step": c.get("check"), "issue": c.get("detail"),
+             "suggestion": "; ".join(c.get("evidence") or []) or "see validation detail"}
+            for c in failed_checks
+        ],
+        "impact": 9 if outcome == "fail" else 3,
+        "effort": 2,
+    }
+
+    result = {"local": None, "delivered": None, "ok": True, "errors": []}
+    local_dir = Path(spoke_root) / "WAI-Harness" / "spoke" / "local" / \
+        "lugs" / "bytype" / "upgrade-report" / "open"
+    try:
+        local_dir.mkdir(parents=True, exist_ok=True)
+        local_path = local_dir / f"{lug_id}.json"
+        local_path.write_text(json.dumps(lug, indent=2), encoding="utf-8")
+        result["local"] = str(local_path)
+    except OSError as exc:
+        result["ok"] = False
+        result["errors"].append(f"local write failed: {exc}")
+
+    # Delivering into a sibling's incoming/ is the sanctioned cross-spoke channel.
+    # Skipped when the spoke IS master — master does not post itself mail.
+    try:
+        # master_root arrives BOTH ways in this codebase: as a repo root and as a
+        # <repo>/WAI-Harness dir (resolve_master returns the latter). Normalising is
+        # not cosmetic — the first live run wrote to <repo>/WAI-Harness/WAI-Harness/...,
+        # a path nothing reads, so the report was "delivered" to nobody.
+        master_repo = Path(master_root)
+        if master_repo.name == "WAI-Harness":
+            master_repo = master_repo.parent
+        master_incoming = master_repo / "WAI-Harness" / "spoke" / "local" / "lugs" / "incoming"
+        if master_repo.resolve() != Path(spoke_root).resolve():
+            master_incoming.mkdir(parents=True, exist_ok=True)
+            delivered = master_incoming / f"{lug_id}.json"
+            delivered.write_text(json.dumps(lug, indent=2), encoding="utf-8")
+            result["delivered"] = str(delivered)
+    except OSError as exc:
+        result["ok"] = False
+        result["errors"].append(f"delivery to master failed: {exc}")
+
+    return result
 
 
 def _receipts_dir(master_root):
@@ -608,7 +783,7 @@ def _write_receipt(spoke_root, master_root, status, ok, master_version, master_s
 
 
 def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_version=None,
-         branch=None, sha=None):
+         branch=None, sha=None, validate=True):
     """Pull-on-spin-up entry point — the session-start self-update.
 
     branch/sha (optional, G5): the distributing master's git branch + HEAD sha,
@@ -675,15 +850,34 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
                 # when already correct), so this is what SELF-HEALS a spoke that pulled
                 # before the stamp existed -- without it, "current" spokes stay lying.
                 "version_stamped": _stamp_harness_version(spoke_root, master_version),
+                # Same self-heal argument, applied to LOCAL DATA. Gating migrations on
+                # files-changed means a spoke that pulled the code before a migration
+                # existed -- or whose migration failed once -- would never correct
+                # itself, because it is "current" forever after. Migrators are
+                # idempotent and no-op fast when nothing is out of shape, so an upgrade
+                # becomes a standing migration + health + correction pass rather than a
+                # one-shot that only fires on the cut that introduced it.
+                "local_migrations": _post_upgrade_local_migrations(spoke_root, master_managed),
                 "master_version": master_version}
     if dry_run:
         return {"pulled": 0, "status": "behind", "pending": pending,
                 "current": False, "dry_run": True, "home_map": hm,
                 "master_version": master_version}
-    rep = upgrade(master_managed, target_managed, dry_run=False, expect_version=expect_version)
+    rep = upgrade(master_managed, target_managed, dry_run=False, expect_version=expect_version,
+                  validate=validate, spoke_root=spoke_root)
+    # The spoke that TOOK the upgrade writes the report — automatically, on v4 paths,
+    # to master. Not from a paragraph of copy-paste instructions in a ceremony, and
+    # not to the deprecated framework repo. Exactly one producer, and this is it.
+    report_out = None
+    if validate:
+        try:
+            report_out = emit_upgrade_report(spoke_root, master_root, rep, master_version)
+        except Exception as exc:  # a report is evidence, never a gate on the upgrade
+            report_out = {"ok": False, "errors": [f"emit raised: {exc}"]}
     out = {"pulled": rep.get("applied", 0),
            "status": "upgraded" if rep.get("ok") else "failed",
            "current": bool(rep.get("ok")), "ok": rep.get("ok"),
+           "validation": rep.get("validation"), "upgrade_report": report_out,
            "verify_post": rep.get("verify_post"), "aborted": rep.get("aborted"),
            # what master retired on this pull (and any unlink that failed) — surfaced
            # so a retirement is reported, never a silent disappearance
@@ -949,6 +1143,24 @@ def _deploy_active_settings(spoke_root):
         return {"ok": False, "merged": False, "created": False, "error": str(e)[:120]}
 
 
+# LOCAL MIGRATORS — the upgrade's self-running migration, health and correction pass.
+#
+# Each entry is a tool in spoke/managed/tools/ honouring the shared contract:
+#   <tool> --root <spoke> --json            -> {"ok": bool, "errors": [...], ...}
+#   <tool> --root <spoke> --verify --json   -> {"clean": bool, ...}
+# and it MUST be idempotent — a no-op when nothing is out of shape.
+#
+# `summary_fields` are the counters lifted into the pull report so an operator can
+# see what an upgrade actually corrected without reading a subprocess log.
+_LOCAL_MIGRATORS = (
+    ("savepoint_migrate.py", ("relocated", "initiatives_created")),
+    # Stamps missing lug dispositions and refreshes the derived ready-queue cache,
+    # so the operator/Ozi work split is answerable on every spoke straight after an
+    # upgrade rather than only where someone happened to run the expediter.
+    ("disposition_migrate.py", ("stamped", "cache_refreshed")),
+)
+
+
 def _post_upgrade_local_migrations(spoke_root, master_managed):
     """Run idempotent LOCAL data migrations after a managed upgrade lands.
 
@@ -956,28 +1168,78 @@ def _post_upgrade_local_migrations(spoke_root, master_managed):
     gated step that brings a spoke's LOCAL data into the shape the freshly-applied
     managed code expects. Each migrator is idempotent (a no-op when nothing legacy
     remains) and isolated (one failure never blocks the others or the pull).
+
+    Registry-driven rather than one block per migrator: an upgrade is a migration,
+    health-check and correction pass, and adding a correction should mean adding a
+    row to _LOCAL_MIGRATORS, not copying twenty lines of subprocess plumbing.
     """
     results = {}
-    sp_migrate = Path(master_managed) / "tools" / "savepoint_migrate.py"
-    if sp_migrate.exists():
+    for tool_name, summary_fields in _LOCAL_MIGRATORS:
+        tool = Path(master_managed) / "tools" / tool_name
+        if not tool.exists():
+            continue
+        key = tool_name[:-3] if tool_name.endswith(".py") else tool_name
         try:
-            r = subprocess.run([sys.executable, str(sp_migrate),
-                                "--root", str(spoke_root), "--json"],
-                               capture_output=True, text=True, timeout=120)
-            rep = json.loads(r.stdout) if r.stdout.strip() else {"ok": False, "errors": ["no output"]}
-            ver = subprocess.run([sys.executable, str(sp_migrate),
+            run = subprocess.run([sys.executable, str(tool),
+                                  "--root", str(spoke_root), "--json"],
+                                 capture_output=True, text=True, timeout=300)
+            rep = json.loads(run.stdout) if run.stdout.strip() else {
+                "ok": False, "errors": ["no output"]}
+            ver = subprocess.run([sys.executable, str(tool),
                                   "--root", str(spoke_root), "--verify", "--json"],
-                                 capture_output=True, text=True, timeout=60)
-            rep["post_verify"] = json.loads(ver.stdout) if ver.stdout.strip() else None
-            results["savepoint_migrate"] = {
-                "relocated": rep.get("relocated"),
-                "initiatives_created": rep.get("initiatives_created"),
-                "clean": (rep.get("post_verify") or {}).get("clean"),
-                "ok": rep.get("ok"),
-            }
+                                 capture_output=True, text=True, timeout=120)
+            post = json.loads(ver.stdout) if ver.stdout.strip() else None
+
+            summary = {field: rep.get(field) for field in summary_fields}
+            summary["clean"] = (post or {}).get("clean")
+            summary["ok"] = rep.get("ok")
+            # Surface the reason, not just the verdict — a migration that failed
+            # silently during a fleet fan-out is indistinguishable from one that
+            # had nothing to do.
+            if rep.get("errors"):
+                summary["errors"] = rep["errors"][:3]
+            results[key] = summary
         except Exception as e:  # noqa: BLE001 — best-effort, must not break pull
-            results["savepoint_migrate"] = {"ok": False, "error": str(e)}
+            results[key] = {"ok": False, "error": str(e)}
+
+    # WAI-State.wheel.harness_version, stamped HERE and not in apply().
+    #
+    # A spoke that advertises the wrong version pulls the wrong migrations, so this
+    # is not cosmetic -- nurturator sat at VERSION 4.13.1 / WAI-State 1.1 after a
+    # green upgrade. _stamp_harness_version deliberately leaves it alone because
+    # pull() syncs managed-only and test_local_tree_never_touched pins that boundary.
+    #
+    # This function is the local-data step: it exists precisely to bring spoke/local
+    # into the shape the freshly-applied managed code expects, and already writes
+    # there via the migrators above. Stamping from here respects the boundary the
+    # test protects instead of widening apply()'s reach.
+    results["state_version"] = _stamp_state_version(spoke_root, master_managed)
     return results
+
+
+def _stamp_state_version(spoke_root, master_managed):
+    """Align WAI-State.wheel.harness_version with the harness the spoke now runs."""
+    try:
+        version = (Path(master_managed).parent.parent / VERSION_FILE)
+        if not version.exists():
+            version = Path(master_managed).parent / VERSION_FILE
+        target = str(version.read_text().strip())
+
+        state_path = Path(spoke_root) / "WAI-Harness" / "spoke" / "local" / "WAI-State.json"
+        if not state_path.exists():
+            state_path = Path(spoke_root) / "WAI-Spoke" / "WAI-State.json"
+        if not state_path.exists():
+            return {"ok": False, "error": "WAI-State.json not found"}
+
+        state = json.loads(state_path.read_text())
+        prior = (state.get("wheel") or {}).get("harness_version")
+        if str(prior) == target:
+            return {"ok": True, "unchanged": prior}
+        state.setdefault("wheel", {})["harness_version"] = target
+        state_path.write_text(json.dumps(state, indent=2) + "\n")
+        return {"ok": True, "from": prior, "to": target}
+    except Exception as e:  # noqa: BLE001 — reported, never fatal
+        return {"ok": False, "error": str(e)[:120]}
 
 
 # Lug taxonomy + core dirs for the EMPTY per-spoke local skeleton (mirrors
@@ -1113,6 +1375,8 @@ def main(argv):
         s.add_argument("--side", default="spoke", choices=["spoke", "hub"])
         if name == "upgrade":
             s.add_argument("--dry-run", action="store_true")
+            s.add_argument("--no-validate", action="store_true",
+                           help="skip post-apply validation (bytes-only, pre-4.14.4 behaviour)")
             s.add_argument("--expect-version", default=None,
                            help="abort (write nothing) if the master harness_version != this")
 
@@ -1122,12 +1386,17 @@ def main(argv):
                    help="master path; default resolves via $WAI_HARNESS_MASTER -> .harness-master -> built-in")
     p.add_argument("--side", default="spoke", choices=["spoke", "hub"])
     p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--no-validate", action="store_true",
+                   help="skip post-apply validation (bytes-only, pre-4.14.4 behaviour)")
     p.add_argument("--expect-version", default=None,
                    help="abort (write nothing) if the master harness_version != this — guards against a 'pull vX' silently bringing vY")
 
     v = sub.add_parser("verify", help="verify a managed root against its MANIFEST")
     v.add_argument("--managed", required=True)
     v.add_argument("--side", default="spoke", choices=["spoke", "hub"])
+
+    vd = sub.add_parser("validate", help="does this spoke still work (the check md5 cannot make)")
+    vd.add_argument("--spoke-root", default=".")
 
     i = sub.add_parser("install", help="non-destructively add WAI-Harness/ to a spoke")
     i.add_argument("--master", required=True, help="WAI-Harness master root")
@@ -1186,15 +1455,21 @@ def main(argv):
     if args.cmd == "upgrade":
         master = _resolve_managed(args.master, args.side)
         target = _resolve_managed(args.target, args.side)
-        rep = upgrade(master, target, dry_run=args.dry_run, expect_version=args.expect_version)
+        rep = upgrade(master, target, dry_run=args.dry_run, expect_version=args.expect_version,
+                      validate=not args.no_validate)
         print(json.dumps(rep, indent=2))
         return 0 if rep["ok"] else 1
 
     if args.cmd == "pull":
         rep = pull(args.spoke_root, args.master, side=args.side, dry_run=args.dry_run,
-                   expect_version=args.expect_version)
+                   expect_version=args.expect_version, validate=not args.no_validate)
         print(json.dumps(rep, indent=2))
         return 0 if rep.get("status") not in ("failed", "version-desync") else 1
+
+    if args.cmd == "validate":
+        r = run_validation(args.spoke_root)
+        print(json.dumps(r, indent=2))
+        return 0 if r.get("outcome") != "fail" else 1
 
     if args.cmd == "verify":
         managed = _resolve_managed(args.managed, args.side)

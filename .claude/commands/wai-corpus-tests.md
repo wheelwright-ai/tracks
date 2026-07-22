@@ -2,10 +2,10 @@
 > Fast path: load `wai-corpus-tests-slim.md` first. Load this file only when deep protocol is needed.
 
 **Scope:** Framework-wide  
-**Runner:** `WAI-Spoke/db/corpus_test_runner.py`  
-**Schema:** `WAI-Spoke/corpus-tests/schema/test-schema-v1.yaml`  
-**Test definitions:** `WAI-Spoke/corpus-tests/{category}/*.yaml`  
-**Finding lugs:** `WAI-Spoke/lugs/bytype/other/open/ct-fail-*.json`
+**Runner:** `WAI-Harness/spoke/db/corpus_test_runner.py`  
+**Schema:** `WAI-Harness/spoke/corpus-tests/schema/test-schema-v1.yaml`  
+**Test definitions:** `WAI-Harness/spoke/corpus-tests/{category}/*.yaml`  
+**Finding lugs:** `WAI-Harness/spoke/lugs/bytype/other/open/ct-fail-*.json`
 
 ---
 
@@ -37,22 +37,22 @@ When a corpus test fails, the data is wrong. When an advisor pattern fires, the 
             failure_action, grandfather_clause, enabled
 
 2. Validate (dry-run)
-   python3 WAI-Spoke/db/corpus_test_runner.py --dry-run
+   python3 WAI-Harness/spoke/db/corpus_test_runner.py --dry-run
    → Confirm test appears in the list with correct severity
 
 3. Run
-   python3 WAI-Spoke/db/corpus_test_runner.py [--category coverage]
+   python3 WAI-Harness/spoke/db/corpus_test_runner.py [--category coverage]
    → PASS = invariant holds; FAIL = violations found
 
 4. On failure
-   Runner creates finding lug at WAI-Spoke/lugs/bytype/other/open/ct-fail-{hash}.json
+   Runner creates finding lug at WAI-Harness/spoke/lugs/bytype/other/open/ct-fail-{hash}.json
    Finding lug contains: failure_count, failure_sample (up to 5), perceive/execute/verify
 
 5. Fix violations
    Address the issues identified in failure_sample
 
 6. Rerun to confirm
-   python3 WAI-Spoke/db/corpus_test_runner.py --category {category}
+   python3 WAI-Harness/spoke/db/corpus_test_runner.py --category {category}
    → All PASS = finding lug may be moved to completed/
 
 7. Promote test to scheduled runs
@@ -64,7 +64,7 @@ When a corpus test fails, the data is wrong. When an advisor pattern fires, the 
 ## Adding a New Test
 
 1. Choose a category (see Category Guide below).
-2. Copy `WAI-Spoke/corpus-tests/schema/test-schema-v1.yaml` to `WAI-Spoke/corpus-tests/{category}/{id}.yaml`.
+2. Copy `WAI-Harness/spoke/corpus-tests/schema/test-schema-v1.yaml` to `WAI-Harness/spoke/corpus-tests/{category}/{id}.yaml`.
 3. Fill in all required fields:
    - `id` — kebab-case, unique, version-suffixed (e.g. `ct-coverage-foundation-lug-v1`)
    - `name` — human-readable invariant statement (surfaced in finding lug title)
@@ -170,13 +170,13 @@ Use for:
 
 ```bash
 # Dry-run: load and list tests without evaluating
-python3 WAI-Spoke/db/corpus_test_runner.py --dry-run
+python3 WAI-Harness/spoke/db/corpus_test_runner.py --dry-run
 
 # Run all tests
-python3 WAI-Spoke/db/corpus_test_runner.py
+python3 WAI-Harness/spoke/db/corpus_test_runner.py
 
 # Run a specific category only
-python3 WAI-Spoke/db/corpus_test_runner.py --category coverage
+python3 WAI-Harness/spoke/db/corpus_test_runner.py --category coverage
 
 # Exit code: 0 = all passed, 1 = one or more failures
 ```
@@ -219,14 +219,14 @@ The `failure_sample` contains at most 5 examples. Check `failure_count` to know 
 
 - **Gardener:** Automatically runs all tests with `scheduled` in `run_on` each night.
 - **Pre-commit hook:** Runs P1 tests only (severity: P1, run_on includes pre_commit).
-- **On-demand:** `python3 WAI-Spoke/db/corpus_test_runner.py` from any session.
+- **On-demand:** `python3 WAI-Harness/spoke/db/corpus_test_runner.py` from any session.
 - **Supabase-backed tests:** Set `query_type: sql`; local runner skips these with a SKIP message. Hub executor runs them against the fleet database.
 
 ---
 
 ## Extending the Runner
 
-To add a new assertion type within an existing category, edit `WAI-Spoke/db/corpus_test_runner.py`:
+To add a new assertion type within an existing category, edit `WAI-Harness/spoke/db/corpus_test_runner.py`:
 
 1. Add a check branch inside the relevant `evaluate_{category}_test()` function.
 2. The check reads `test['assertion']` or a new field to dispatch to the right logic.

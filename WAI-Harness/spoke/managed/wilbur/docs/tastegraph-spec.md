@@ -4,7 +4,7 @@
 **Status:** Active
 **Lug ref:** lug-tastegraph-spec-v1
 **Schema:** `wilbur/schemas/tastegraph.schema.json`
-**Seed data:** `WAI-Spoke/tastegraph.json`
+**Seed data:** `WAI-Harness/spoke/tastegraph.json`
 
 ---
 
@@ -26,7 +26,7 @@ Without TasteGraph, agent execution is contextually correct but impersonally gen
 Hub TasteGraph (hub/tastegraph-org.json)
 └─ Fleet defaults — applies to all spokes as a base
 
-Wilbur TasteGraph (WAI-Spoke/tastegraph.json in Wilbur spoke)
+Wilbur TasteGraph (WAI-Harness/spoke/tastegraph.json in Wilbur spoke)
 └─ Authoritative Mario instance — the primary, most complete preference record
    Wilbur is the spoke whose mission is knowing Mario, so its TasteGraph is maintained
    most actively. Hub base derives FROM Wilbur's verified preferences, not the reverse.
@@ -144,7 +144,7 @@ Examples: SaaS prospect (SMB owner, non-technical), technical buyer (senior engi
 
 ## 4. File Format
 
-TasteGraph data lives in a JSON file at `WAI-Spoke/tastegraph.json` (default collab graph) or `WAI-Spoke/tastegraphs/<name>.json` (named graphs for additional interfaces).
+TasteGraph data lives in a JSON file at `WAI-Harness/spoke/tastegraph.json` (default collab graph) or `WAI-Harness/spoke/tastegraphs/<name>.json` (named graphs for additional interfaces).
 
 Top-level structure (v1.1.0):
 
@@ -177,7 +177,7 @@ Top-level structure (v1.1.0):
 
 The `interface` block is optional in v1.1.0 — files without it are assumed to be `parties: ["mario", "agent"]` for backward compatibility.
 
-**Named graph convention:** Additional graphs for specific contexts live in `WAI-Spoke/tastegraphs/<context>.json`. The default collab graph stays at `WAI-Spoke/tastegraph.json`.
+**Named graph convention:** Additional graphs for specific contexts live in `WAI-Harness/spoke/tastegraphs/<context>.json`. The default collab graph stays at `WAI-Harness/spoke/tastegraph.json`.
 
 The `preferences` array contains preference entries conforming to Section 2. No deduplication logic is applied at read time — advisors must treat the last entry with a given `id` as canonical if duplicates exist (this should not happen in practice).
 
@@ -248,7 +248,7 @@ Advisors read preferences from `tastegraph.json`. The interface is intentionally
 ```python
 import json
 
-with open("WAI-Spoke/tastegraph.json") as f:
+with open("WAI-Harness/spoke/tastegraph.json") as f:
     tg = json.load(f)
 
 preferences = {p["id"]: p for p in tg["preferences"]}
@@ -293,7 +293,7 @@ The initial TasteGraph seed is populated from:
 
 Seed preferences all have `confidence: "stated"` — they were explicitly documented by Mario or the framework author as accurate observations.
 
-The seed file is at `WAI-Spoke/tastegraph.json`. See that file for the full list of seed preferences.
+The seed file is at `WAI-Harness/spoke/tastegraph.json`. See that file for the full list of seed preferences.
 
 ---
 
@@ -305,8 +305,8 @@ A single user may maintain multiple TasteGraphs for different communication inte
 
 | File | Parties | Context | When loaded |
 |---|---|---|---|
-| `WAI-Spoke/tastegraph.json` | mario ↔ agent | personal-collaboration | Default: all development sessions |
-| `WAI-Spoke/tastegraphs/website-copy.json` | agent → prospect | website-copy | When generating marketing/copy content |
+| `WAI-Harness/spoke/tastegraph.json` | mario ↔ agent | personal-collaboration | Default: all development sessions |
+| `WAI-Harness/spoke/tastegraphs/website-copy.json` | agent → prospect | website-copy | When generating marketing/copy content |
 | `hub/tastegraph-org.json` | org ↔ agent | team-collab | Team baseline; individual graphs inherit from it |
 
 **Resolution order:** individual graph → parent_graph (org defaults) → hardcoded agent defaults.
@@ -317,10 +317,10 @@ Individual overrides are ADDITIVE. If an individual graph does not specify a cat
 
 ```python
 def load_tastegraph(context="personal-collaboration"):
-    named_path = f"WAI-Spoke/tastegraphs/{context}.json"
+    named_path = f"WAI-Harness/spoke/tastegraphs/{context}.json"
     if os.path.exists(named_path):
         return load_with_parent(named_path)
-    return load_with_parent("WAI-Spoke/tastegraph.json")
+    return load_with_parent("WAI-Harness/spoke/tastegraph.json")
 
 def load_with_parent(path):
     graph = json.load(open(path))
@@ -339,8 +339,8 @@ For multi-user teams, an org-level TasteGraph at `hub/tastegraph-org.json` sets 
 
 ```
 hub/tastegraph-org.json         ← team baseline (shared categories, defaults)
-  WAI-Spoke/tastegraph.json     ← mario's overrides (parent_graph → hub/tastegraph-org.json)
-  alice-spoke/WAI-Spoke/tastegraph.json  ← alice's overrides (e.g. locale: Spanish)
+  WAI-Harness/spoke/tastegraph.json     ← mario's overrides (parent_graph → hub/tastegraph-org.json)
+  alice-spoke/WAI-Harness/spoke/tastegraph.json  ← alice's overrides (e.g. locale: Spanish)
 ```
 
 **Org graph responsibilities:** define the `communication.register`, `risk_tolerance.default`, `cost_sensitivity.model_routing` defaults shared by all team members. Individual members override only what differs for them.

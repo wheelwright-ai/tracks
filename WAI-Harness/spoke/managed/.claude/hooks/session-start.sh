@@ -6,6 +6,25 @@
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 
+# _wai_detach: launch a background daemon that Claude Code will NOT count as an
+# active shell at session exit and that never flashes a terminal window. The old
+# `( cmd & )` subshell left the child in this shell's session + process group, so
+# CC still tracked it. setsid puts the child in a BRAND-NEW session with no
+# controlling terminal (full detach); nohup is the portable fallback where setsid
+# is absent (e.g. stock macOS). stdin is closed (</dev/null) so no piped-stdin
+# wait can hang startup, all FDs are redirected, and the job is disowned so bash
+# stops tracking it. Best-effort: a missing tool or failed spawn never breaks start.
+# Usage: _wai_detach <LOGFILE|/dev/null> <cmd> [args...]
+_wai_detach() {
+  local _log="$1"; shift
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "$@" </dev/null >>"$_log" 2>&1 &
+  else
+    nohup "$@" </dev/null >>"$_log" 2>&1 &
+  fi
+  disown 2>/dev/null || true
+}
+
 # --- Herald responder LIGHT-PATH (WAI_HERALD_SPAWN) ---------------------------
 # When Herald spawns a responder (claude -p) for ONE lug, load LIGHT: skip the upgrade,
 # the full wakeup briefing, and never claim chains. The responder gets its full
@@ -17,6 +36,13 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 # tells it to COMMIT AND PUSH. An unlaned session that writes git is INVISIBLE to
 # concurrent-session isolation: peers see one fewer live session and may blind-commit
 # over it. Skip the BRIEFING (cost), never the REGISTRATION (safety).
+# Autopilot-dispatched agents take the same LIGHT path as Herald responders: they
+# process one lug and exit, and must not run wakeup, claim chains, or mint a
+# session of their own.
+if [ -n "${WAI_AP_DISPATCH:-}" ]; then
+  exit 0
+fi
+
 if [ -n "${WAI_HERALD_SPAWN:-}" ]; then
   # Resolve the lane key from the SessionStart payload. `timeout` guards the read so a
   # spawn with no piped stdin can never hang startup.
@@ -91,7 +117,7 @@ fi
 # pattern below. Closeout + Ozi nightly are secondary/defense-in-depth seats — this
 # post-pull hook is the primary one (never the sole thing that has to work).
 _HYGIENE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/hygiene_run.py"
-[ -f "$_HYGIENE" ] && ( python3 "$_HYGIENE" --spoke-root "$PROJECT_DIR" >/dev/null 2>&1 & ) >/dev/null 2>&1
+[ -f "$_HYGIENE" ] && _wai_detach /dev/null python3 "$_HYGIENE" --spoke-root "$PROJECT_DIR"
 
 # v4 on-load trigger: notice the upgrade and, ONLY when WAI-Harness/ACTIVATE
 # exists, migrate. Dormant + idempotent + dry-run-first by design — safe to call
@@ -157,6 +183,45 @@ PY
 # wakeup output. ASCII separators only (no em-dash) to stay encoding-safe.
 [ "$HARNESS_V4" = "1" ] && echo "[v4 ACTIVE] managed current | mode=$HARNESS_MODE active=$HARNESS_ACTIVE"
 
+# --- Converge gate (operator directive 2026-07-22) ----------------------------
+# "First session to do work should attempt the converge if needed. This way we are
+# always reconciling before we create our own branch."
+#
+# Convergence was only ever asked about at the END of a session (/wai-converge,
+# closeout, savepoint). Nothing asked at the START, so a session forked its own
+# branch off a tree that still had another lane's committed work outside it —
+# which is how one lane sat unmerged for three days while later sessions branched
+# around it. Read-only, always exits 0, silent when there is nothing to reconcile.
+# It ANNOUNCES; it never merges: reconciling has a lease, a test gate and a safety
+# triple, and a hook that merged on its own would be a silent writer at the least
+# examined moment of a session.
+_CGATE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/converge_gate.py"
+[ -f "$_CGATE" ] && timeout 20 python3 "$_CGATE" --root "$PROJECT_DIR" 2>/dev/null
+
+# --- Auto-sync the RUNNING copy from canon (s138) -----------------------------
+# "Are we running the latest locally, all the time?" The honest answer used to be
+# no: managed/ is canon, but .claude/commands is what actually executes, and
+# nothing kept them in step. They matched only when somebody remembered to run
+# deploy_commands.py by hand.
+#
+# That gap is not theoretical. A mandatory adversarial plan-review gate sat
+# unexecuted for ten days in this repo because it was edited in a layer that
+# deploys nowhere, and later in the same session a fix I had just committed was
+# still not live until a deploy was run. Both were invisible: no error, clean
+# commit, everything reading as done.
+#
+# So the sync happens at session start, every session, before any work. Scoped to
+# commands (never a blanket copy), best-effort, and silent when already current
+# so a clean spoke costs nothing and says nothing.
+if [ "$HARNESS_V4" = "1" ] && [ -f "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/deploy_commands.py" ]; then
+  _DC_OUT="$(python3 "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/deploy_commands.py" \
+              --root "$PROJECT_DIR" 2>/dev/null | head -1)"
+  case "$_DC_OUT" in
+    *"0 synced"*) : ;;                       # already current: stay quiet
+    *synced*) echo "[v4 SYNC] running copy updated from canon: ${_DC_OUT#*synced }" ;;
+  esac
+fi
+
 # Surface the LAST-KNOWN hygiene verdict at entry (change-basher-surface-hygiene-verdict-at-
 # entry-v1, mywheel-authored managed half). hygiene_run.py above is backgrounded, so we read the
 # PREVIOUS session's spoke/local/maintenance/hygiene-latest.json (non-blocking, best-effort). Only
@@ -195,7 +260,7 @@ PY
 # delays the session. A Herald-spawned responder already exited on the LIGHT path above,
 # so this never recurses.
 _HERALD="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/herald_poll.py"
-[ -f "$_HERALD" ] && ( python3 "$_HERALD" --spoke-root "$PROJECT_DIR" start >/dev/null 2>&1 & ) >/dev/null 2>&1
+[ -f "$_HERALD" ] && _wai_detach /dev/null python3 "$_HERALD" --spoke-root "$PROJECT_DIR" start
 
 # v4-native wakeup: the single canonical path. wakeup-canonical.sh is mode-aware —
 # it renders the briefing from WAI-Harness/spoke/local (handles coexist + v4-only),

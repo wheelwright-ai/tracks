@@ -28,6 +28,30 @@ AUTO_FIELDS = ("schema_version", "rev", "created_at", "updated_at",
                "context_snapshot", "triggering_session", "origin")
 REQUIRED_CONTENT = ("situation",)  # title/id/type are positional; situation is the key content field
 
+# Tokens that mean a value is NOT a safe path segment: JSON-list punctuation/quoting
+# (someone passed json.dumps(list) or str(list) instead of the scalar inside it) or
+# an unexpanded shell command-substitution / embedded newline (e.g. a lug id built
+# from a literal 'session-$(date +%Y%m%d-%H%M)' string whose $() never ran).
+BAD_TOKENS = ("[", "]", "\n", "$(", '"')
+
+
+def _scalar_type(value):
+    """Coerce a single-element list to its scalar, then reject any value unsafe to
+    use as a path segment (bug-basher-literal-unexpanded-paths-in-writes-v1).
+
+    Raises ValueError on a multi/empty-element list, a non-string, or a string
+    containing a BAD_TOKENS artifact. Returns the scalar string otherwise.
+    """
+    if isinstance(value, list):
+        if len(value) != 1:
+            raise ValueError(f"expected a single-element list, got {value!r}")
+        value = value[0]
+    if not isinstance(value, str):
+        raise ValueError(f"expected a string, got {type(value).__name__}: {value!r}")
+    if any(tok in value for tok in BAD_TOKENS):
+        raise ValueError(f"unsafe path segment: {value!r}")
+    return value
+
 # origin (worktree/branch/sha) is stamped via lug_utils.resolve_worktree_origin so a
 # lug always records the worktree it lives in — see lug_worktree_map.py for the
 # cross-worktree reconciler that consumes it. Import is soft so new_lug stays usable

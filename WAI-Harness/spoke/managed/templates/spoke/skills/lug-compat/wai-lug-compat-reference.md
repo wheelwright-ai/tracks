@@ -100,7 +100,7 @@ After reviewing a lug, append these fields:
 }
 ```
 
-Write to `WAI-Spoke/lugs/outgoing/lug-review-{source_id}.jsonl`. Closeout Step 9 picks it up.
+Write to `WAI-Harness/spoke/lugs/outgoing/lug-review-{source_id}.jsonl`. Closeout Step 9 picks it up.
 
 **Hub merge rule:** Accept a `lug-review` return only if `review_fw_ver >= hub's current copy's fw_ver`. Older reviews do not overwrite newer ones.
 

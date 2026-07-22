@@ -117,6 +117,27 @@ def _prune_pending(spoke_root: str) -> int:
         return -1
 
 
+def _circle_quick(spoke_root: str) -> dict:
+    """Cheap-tier circle audit (epic-circle-audit-open-loops-and-orphans-v1).
+    Best-effort import of circle_audit; signal-only — never raises, never writes.
+    Includes the version-staleness signal that makes a version bump demand a deep audit."""
+    try:
+        import circle_audit
+        bindings = circle_audit.collect_bindings(spoke_root)
+        circles = circle_audit.audit_circles(spoke_root, bindings)
+        findings = circle_audit.enforcement_findings(spoke_root, bindings)
+        ver = circle_audit.version_staleness(spoke_root)
+        return {
+            "phantom": sum(1 for c in circles if c["verdict"] == "PHANTOM"),
+            "open": sum(1 for c in circles if c["verdict"] == "OPEN"),
+            "closed": sum(1 for c in circles if c["verdict"] == "CLOSED"),
+            "enforcement_findings": len(findings),
+            "audit_stale": ver.get("stale", True),
+        }
+    except Exception:
+        return {"phantom": -1, "open": -1, "closed": -1, "enforcement_findings": -1, "audit_stale": True}
+
+
 def run(spoke_root: str) -> dict:
     base, mode = wai_paths.resolve_wai_root(spoke_root)
     ts = _now_iso()
@@ -135,8 +156,10 @@ def run(spoke_root: str) -> dict:
     health = _health_quick(spoke_root)
     reap_pending = _reap_pending(spoke_root)
     prune_pending = _prune_pending(spoke_root)
+    circles = _circle_quick(spoke_root)
 
-    drift = (v3v > 0) or phantom or (health.get("failed", 0) > 0)
+    drift = (v3v > 0) or phantom or (health.get("failed", 0) > 0) \
+        or (circles.get("phantom", 0) > 0) or (circles.get("open", 0) > 0)
     verdict = "DRIFT" if drift else "CLEAN"
     if v3v < 0 or health.get("failed", 0) < 0:
         verdict = "UNKNOWN"
@@ -150,6 +173,7 @@ def run(spoke_root: str) -> dict:
         "health": health,
         "reaper_pending": reap_pending,
         "prune_pending": prune_pending,
+        "circles": circles,
         "verdict": verdict,
     }
 

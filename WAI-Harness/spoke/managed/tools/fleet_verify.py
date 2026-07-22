@@ -28,6 +28,7 @@ Exit: 0 = all installs intact (integrity ok everywhere), 1 = any integrity
 failure, 2 = error (e.g. master MANIFEST not found).
 """
 import argparse
+import importlib.util
 import json
 import os
 import sys
@@ -41,6 +42,20 @@ import manifest_build  # noqa: E402
 MANIFEST_REL = os.path.join("spoke", "managed", "MANIFEST.json")
 MANAGED_REL = os.path.join("spoke", "managed")
 ACTIVATED_REL = os.path.join("spoke", "local", ".activated")
+
+# impl-merge-capgraph-block-mining-to-main-v1 regression_monitor: these tools
+# were built+proven live on session/s260625-181719, then were absent from main
+# with nothing to catch it. MANIFEST parity above can't detect this class of
+# regression — the manifest is built FROM whatever's on master's disk, so if a
+# file vanishes from master the manifest silently regenerates without it and
+# every install still reports CURRENT. This list is the ground truth instead.
+PROVEN_CAPABILITY_TOOLS = [
+    "capgraph_blocks.py",
+    "capgraph_monitor.py",
+    "goal_planner.py",
+    "ap_cycle.py",
+    "goal_measure.py",
+]
 
 
 def load_manifest_files(manifest_path) -> dict:
@@ -123,6 +138,37 @@ def classify_install(install_dir, master_files: dict) -> dict:
     }
 
 
+def check_proven_capabilities(master_dir) -> dict:
+    """Presence + load-smoke-test for the CapabilitiesGraph block-mining tools.
+
+    Loads each file directly by path (spec_from_file_location), not via
+    sys.path import_module — that would silently hit an already-cached module
+    of the same name from elsewhere on sys.path instead of the file on disk.
+    """
+    tools_dir = Path(master_dir) / MANAGED_REL / "tools"
+    missing = [name for name in PROVEN_CAPABILITY_TOOLS
+               if not (tools_dir / name).exists()]
+
+    smoke_errors = {}
+    for name in PROVEN_CAPABILITY_TOOLS:
+        if name in missing:
+            continue
+        path = tools_dir / name
+        spec = importlib.util.spec_from_file_location(
+            f"_fleet_verify_smoke_{name[:-3]}", path)
+        module = importlib.util.module_from_spec(spec)
+        try:
+            spec.loader.exec_module(module)
+        except Exception as e:  # noqa: BLE001 — report exactly what broke
+            smoke_errors[name] = f"{type(e).__name__}: {e}"
+
+    return {
+        "ok": not missing and not smoke_errors,
+        "missing": missing,
+        "smoke_errors": smoke_errors,
+    }
+
+
 def find_installs(root, master_dir) -> list:
     """Every directory named WAI-Harness under root, excluding the master and
     anything under a trash_bin/ path. Sorted for stable output."""
@@ -150,6 +196,7 @@ def run(root, master_dir, now_iso=None) -> dict:
 
     installs = find_installs(root, master_dir)
     results = [classify_install(p, master_files) for p in installs]
+    capgraph_regression = check_proven_capabilities(master_dir)
 
     n = len(results)
     integ_pass = sum(1 for r in results if r["integrity"] == "PASS")
@@ -170,6 +217,7 @@ def run(root, master_dir, now_iso=None) -> dict:
             "activation_ready": ready,
         },
         "installs": results,
+        "capgraph_regression": capgraph_regression,
     }
 
 
@@ -182,6 +230,11 @@ def _print_human(report: dict) -> None:
     print(f"  currency:   CURRENT {s['currency_current']}/{s['installs']}")
     print(f"  activation: ACTIVE {s['activation_active']}/{s['installs']}")
     print(f"  activation-ready (integrity+current): {s['activation_ready']}/{s['installs']}")
+    cg = report.get("capgraph_regression", {})
+    cg_flag = "OK" if cg.get("ok") else "REGRESSED"
+    print(f"  capgraph proven-tools: {cg_flag}"
+          + (f"  (missing={cg.get('missing')}, smoke_errors={list(cg.get('smoke_errors', {}))})"
+             if not cg.get("ok") else ""))
     print()
     for r in report["installs"]:
         flags = []
@@ -222,7 +275,8 @@ def main(argv=None):
         _print_human(report)
 
     s = report["summary"]
-    return 0 if s["integrity_pass"] == s["installs"] else 1
+    ok = s["integrity_pass"] == s["installs"] and report["capgraph_regression"]["ok"]
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

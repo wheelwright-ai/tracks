@@ -1,208 +1,172 @@
 # WAI Upgrade Report Intake
 
-Process a single upgrade-report lug from `WAI-Spoke/lugs/bytype/upgrade-report/open/` into actionable improvement lugs for the framework.
+Turn upgrade-report lugs into work. Invoked from `wai.md` Step 2.5 for each report
+found in `WAI-Harness/spoke/local/lugs/bytype/upgrade-report/open/`.
 
-Invoked from wai.md Step 2.5 for each upgrade-report lug found in open/.
+## What changed, and why this ceremony was rewritten
+
+This ceremony has existed and run at every wakeup for months without ever
+receiving a single report, because the only thing that wrote one was a
+copy-paste JSON template in the adoption ceremony, on v3 paths, addressed to a
+deprecated repo. Half a circle looks exactly like a whole one from the half that
+works.
+
+Reports are now produced by `harness_upgrade.py` automatically, on the spoke that
+took the upgrade, and they answer a different question than the old ones did:
+
+| old (never arrived) | now |
+|---|---|
+| a human's adoption friction | a machine's validation result |
+| `teaching_id` + friction prose | `validation.checks[]` with evidence |
+| written by hand, sometimes | written by the engine, every upgrade |
+| graded on absolute outcome | graded on REGRESSION vs a pre-upgrade baseline |
+
+The grading distinction is the important one. `outcome: partial` means checks
+failed but they were failing before this upgrade too — the upgrade is not
+answerable for damage it did not cause. `outcome: fail` means a check that
+passed before the upgrade fails after it. Only `fail` is a defect in the cut.
 
 ---
 
-## Step 1 — Read the report lug
-
-Load the upgrade-report lug JSON from `WAI-Spoke/lugs/bytype/upgrade-report/open/`. Extract:
-- `id`, `spoke_id`, `teaching_id`, `outcome` (`pass`|`partial`|`fail`)
-- `friction_points[]` — each has `step`, `issue`, `suggestion`
-- `missing_prereqs[]`, `suggestions[]`
-
-Derive the teaching file path by stripping the trailing `-vN` version suffix from `teaching_id`:
+## Step 1 — Read the report
 
 ```python
-import json, os
+import glob, json, os
+
+BASE = "WAI-Harness/spoke/local"
+if not os.path.isdir(BASE):
+    BASE = "WAI-Spoke"          # v3 coexist spokes only
 
 report = json.load(open(report_path))
-report_id = report['id']
-spoke_id = report.get('spoke_id', 'unknown')
-teaching_id = report.get('teaching_id', '')
-
-# e.g. "wai-harness-adopt-v1" -> "wai-harness-adopt"
-base = teaching_id.rsplit('-v', 1)[0] if '-v' in teaching_id else teaching_id
-teaching_file = f"templates/commands/{base}.md"
+report_id  = report["id"]
+spoke_id   = report.get("spoke_id", "unknown")
+outcome    = report.get("outcome", "partial")          # pass | partial | fail
+validation = report.get("validation", {})
+regressions   = validation.get("regressions", [])
+preexisting   = validation.get("preexisting_failures", [])
+failed_checks = [c for c in validation.get("checks", []) if c.get("status") == "fail"]
 ```
 
----
+## Step 2 — `outcome: pass` → archive, no lugs
 
-## Step 2 — Check for existing improvement lugs (dedup guard)
+Nothing broke and nothing was already broken. Skip to Step 5.
 
-Before creating any new lug, check `WAI-Spoke/lugs/bytype/impl/open/` for an existing lug that already covers the same friction step. Skip any friction_point that already has an open improvement lug:
+## Step 3 — `outcome: fail` → one bug lug per REGRESSION
 
-```python
-import glob, re
-
-def slug(text):
-    return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')[:40]
-
-def lug_exists_for(keyword):
-    for path in glob.glob('WAI-Spoke/lugs/bytype/impl/open/*.json'):
-        try:
-            d = json.load(open(path))
-            if keyword.lower() in d.get('title', '').lower():
-                return True
-        except Exception:
-            pass
-    return False
-```
-
-For each item in `friction_points`, call `lug_exists_for(fp['step'])`. If True: skip (do not create a duplicate). If False: proceed to Step 3.
-
----
-
-## Step 3 — Create improvement lug per friction_point
-
-For each friction_point that passed the dedup check, write one impl lug to `WAI-Spoke/lugs/bytype/impl/open/`:
+A regression is a defect in the cut that master shipped. It gets a bug lug per
+broken check, at high urgency, because a spoke is broken right now.
 
 ```python
-import json, datetime
+import datetime, re
 
-state = json.load(open('WAI-Spoke/WAI-State.json'))
-session_id = state.get('_session', {}).get('id', 'unknown-session')
-now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+def slug(t): return re.sub(r"[^a-z0-9]+", "-", str(t).lower()).strip("-")[:40]
 
-improvement_count = 0
-for fp in report.get('friction_points', []):
-    step_slug = slug(fp.get('step', 'unknown-step'))
-    t_slug = slug(teaching_id)
-    lug_id = f"impl-improve-{t_slug}-{step_slug}-v1"
-
-    if lug_exists_for(fp['step']):
-        continue  # dedup guard
-
-    lug = {
-        "created_at": now,
-        "created_by": session_id,
-        "id": lug_id,
-        "type": "impl",
-        "status": "open",
-        "routed_to": "FRAMEWORK",
-        "title": f"Improve {teaching_id}: {fp['issue']}",
-        "one_liner": f"Address friction at step '{fp['step']}' reported by spoke {spoke_id}",
-        "summary": (
-            f"Spoke {spoke_id} reported friction at step '{fp['step']}': {fp['issue']}. "
-            f"Suggestion: {fp.get('suggestion', 'n/a')}"
-        ),
-        "perceive": [
-            f"Read {teaching_file} — locate the '{fp['step']}' step and understand current wording"
-        ],
-        "execute": [
-            fp.get('suggestion', f"Improve clarity and completeness of '{fp['step']}' in {teaching_file}")
-        ],
-        "verify": [
-            f"Re-read {teaching_file} — confirm '{fp['step']}' is clearer and the reported friction is resolved"
-        ],
-        "target_files": [teaching_file],
-        "model_fit": "haiku",
-        "urgency": 2,
-        "impact": 5,
-        "effort": "S",
-        "source_report": report_id,
-        "source_spoke": spoke_id
-    }
-
-    with open(f"WAI-Spoke/lugs/bytype/impl/open/{lug_id}.json", 'w') as f:
-        json.dump(lug, f, indent=2)
-    improvement_count += 1
-```
-
-### Step 3b — If outcome=fail, open a bug lug
-
-```python
+now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+version = report.get("harness_version", "unknown")
 bug_count = 0
-if report.get('outcome') == 'fail':
-    t_slug = slug(teaching_id)
-    s_slug = slug(spoke_id)
-    bug_id = f"bug-{t_slug}-adoption-fail-{s_slug}-v1"
-    bug = {
-        "created_at": now,
-        "created_by": session_id,
-        "id": bug_id,
-        "type": "bug",
-        "status": "open",
-        "routed_to": "FRAMEWORK",
-        "title": f"Bug: {teaching_id} adoption failed on spoke {spoke_id}",
-        "one_liner": f"Spoke {spoke_id} could not complete adoption of {teaching_id}",
-        "summary": (
-            f"Adoption outcome: fail. Spoke: {spoke_id}. "
-            f"Friction points: {len(report.get('friction_points', []))}. "
-            f"Missing prereqs: {report.get('missing_prereqs', [])}"
-        ),
-        "perceive": [
-            f"Read upgrade-report lug {report_id} in bytype/upgrade-report/completed/",
-            f"Read {teaching_file} — review all steps and prerequisites"
-        ],
-        "execute": [
-            "Identify the root cause of adoption failure from the friction_points and missing_prereqs",
-            f"Fix the blocking issue in {teaching_file} or its prerequisite documentation"
-        ],
-        "verify": [
-            f"Confirm the fixed step in {teaching_file} resolves the spoke's reported blocker",
-            "Re-check missing_prereqs — confirm all are now documented or satisfied by the fix"
-        ],
-        "target_files": [teaching_file],
-        "model_fit": "haiku",
-        "urgency": 4,
-        "impact": 7,
-        "effort": "M",
-        "source_report": report_id,
-        "source_spoke": spoke_id
-    }
-    os.makedirs('WAI-Spoke/lugs/bytype/bug/open', exist_ok=True)
-    with open(f"WAI-Spoke/lugs/bytype/bug/open/{bug_id}.json", 'w') as f:
-        json.dump(bug, f, indent=2)
-    bug_count = 1
+
+for check in [c for c in failed_checks if c["check"] in regressions]:
+    bug_id = f"bug-upgrade-{slug(version)}-broke-{slug(check['check'])}-on-{slug(spoke_id)}-v1"
+    path = f"{BASE}/lugs/bytype/bug/open/{bug_id}.json"
+    if os.path.exists(path):
+        continue                                   # dedup: same cut, same check, same spoke
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump({
+        "id": bug_id, "type": "bug", "status": "open", "routed_to": "LOCAL",
+        "created_at": now, "created_by": "wai-upgrade-report-intake",
+        "title": f"Harness {version} broke '{check['check']}' on {spoke_id}",
+        "summary": (f"Validation check '{check['check']}' PASSED before the upgrade to "
+                    f"{version} and FAILS after it on spoke {spoke_id}. {check.get('detail','')}"),
+        "perceive": [f"Read the upgrade report {report_id}",
+                     f"Evidence: {'; '.join(check.get('evidence') or []) or 'see report'}",
+                     "Reproduce: python3 tools/harness_upgrade.py validate --spoke-root <spoke>"],
+        "execute": [f"Fix the master file(s) responsible for the '{check['check']}' failure",
+                    "Recut MANIFEST and redistribute — do not patch the spoke directly"],
+        "verify": [f"python3 tools/harness_upgrade.py validate --spoke-root <spoke> => '{check['check']}' passes",
+                   "A fresh pull on a clean copy of the spoke reports outcome=pass or partial, never fail"],
+        "file_targets": ["WAI-Harness/spoke/managed/"],
+        "impact": 9, "effort": 2, "urgency": 5,
+        "model_fit": "sonnet",
+        "source_report": report_id, "source_spoke": spoke_id,
+    }, open(path, "w"), indent=2)
+    bug_count += 1
 ```
 
----
+## Step 4 — `outcome: partial` → ONE debt lug per pre-existing check
 
-## Step 4 — Archive the report
+Pre-existing failures are real and worth fixing, but they are not this cut's
+fault and they are usually identical across every spoke. One lug per check name,
+deduped — never one per spoke per upgrade, which would bury the queue in copies
+of the same finding.
 
-Move the processed report from `open/` to `completed/`:
+```python
+impl_count = 0
+for name in preexisting:
+    lug_id = f"impl-validation-debt-{slug(name)}-v1"
+    path = f"{BASE}/lugs/bytype/impl/open/{lug_id}.json"
+    if os.path.exists(path):
+        continue
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    check = next((c for c in failed_checks if c["check"] == name), {})
+    json.dump({
+        "id": lug_id, "type": "impl", "status": "open", "routed_to": "LOCAL",
+        "created_at": now, "created_by": "wai-upgrade-report-intake",
+        "title": f"Validation check '{name}' is failing on spokes before any upgrade touches them",
+        "summary": (f"'{name}' fails at upgrade time and was already failing beforehand, so no "
+                    f"single upgrade is answerable for it. First seen on {spoke_id}. "
+                    f"{check.get('detail','')}"),
+        "perceive": ["Reproduce: python3 tools/harness_upgrade.py validate --spoke-root <spoke>",
+                     f"Evidence: {'; '.join(check.get('evidence') or []) or 'see report'}",
+                     "Check whether this is fleet-wide or specific to one spoke before fixing"],
+        "execute": [f"Fix the underlying cause of the '{name}' failure at master"],
+        "verify": [f"python3 tools/harness_upgrade.py validate --spoke-root . => '{name}' passes"],
+        "file_targets": ["WAI-Harness/spoke/managed/"],
+        "impact": 6, "effort": 3,
+        "model_fit": "sonnet",
+        "source_report": report_id, "source_spoke": spoke_id,
+    }, open(path, "w"), indent=2)
+    impl_count += 1
+```
+
+## Step 5 — Archive the report
 
 ```python
 import shutil
-
-report_filename = os.path.basename(report_path)
-src = f"WAI-Spoke/lugs/bytype/upgrade-report/open/{report_filename}"
-dst = f"WAI-Spoke/lugs/bytype/upgrade-report/completed/{report_filename}"
-os.makedirs('WAI-Spoke/lugs/bytype/upgrade-report/completed', exist_ok=True)
-shutil.move(src, dst)
+dst_dir = f"{BASE}/lugs/bytype/upgrade-report/completed"
+os.makedirs(dst_dir, exist_ok=True)
+shutil.move(report_path, os.path.join(dst_dir, os.path.basename(report_path)))
 ```
 
----
-
-## Step 5 — Write track event
-
-After all lugs are written and the report is archived (not before):
+## Step 6 — Track event
 
 ```python
-import json, datetime
-
-state = json.load(open('WAI-Spoke/WAI-State.json'))
-track_path = state.get('_session', {}).get('track_path', '')
-
+state = json.load(open(f"{BASE}/WAI-State.json"))
+track_path = state.get("_session", {}).get("track_path", "")
 event = {
     "event": "upgrade_report_processed",
-    "ts": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+    "ts": now,
     "spoke_id": spoke_id,
-    "teaching_id": teaching_id,
-    "outcome": report.get("outcome"),
-    "friction_count": len(report.get("friction_points", [])),
-    "improvement_lugs_opened": improvement_count,
-    "bug_lugs_opened": bug_count
+    "harness_version": version,
+    "outcome": outcome,
+    "regressions": regressions,
+    "preexisting_failures": preexisting,
+    "bug_lugs_opened": bug_count,
+    "impl_lugs_opened": impl_count,
 }
-
 if track_path and os.path.isfile(track_path):
-    with open(track_path, 'a') as f:
-        f.write(json.dumps(event) + '\n')
+    with open(track_path, "a") as f:
+        f.write(json.dumps(event) + "\n")
 ```
 
----
+## Step 7 — Report to the operator
 
-*Intake complete. Improvement lugs are now in `bytype/impl/open/`. The framework work queue picks them up at next expediter run.*
+```
+Upgrade report from {spoke_id} ({version}): {outcome}
+  regressions      {n}  -> {n} bug lug(s) opened   [a spoke is broken NOW]
+  pre-existing     {n}  -> {n} debt lug(s) opened  [not this cut's fault]
+```
+
+Say nothing when there were no reports — an empty intake is the normal case. But
+if reports stop arriving entirely across a period in which upgrades DID happen,
+that is the producer half of this circle failing again, and it is worth saying so
+out loud rather than reading silence as health.

@@ -36,7 +36,7 @@ isolation: "worktree"
 run_in_background: true   (for all items except the last in the batch)
 prompt: |
   Implement lug `{lug_id}`.
-  1. Read the lug file from `WAI-Spoke/lugs/bytype/` (find it with: find WAI-Spoke/lugs/bytype -name '{lug_id}.json')
+  1. Read the lug file from `WAI-Harness/spoke/lugs/bytype/` (find it with: find WAI-Harness/spoke/lugs/bytype -name '{lug_id}.json')
   2. Execute the `execute` steps exactly as written.
   3. Run the `verify` steps to confirm the implementation works.
   4. Update the lug status to `completed` and move it from open/ to completed/.

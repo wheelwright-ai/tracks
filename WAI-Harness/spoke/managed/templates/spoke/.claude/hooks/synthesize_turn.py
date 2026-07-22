@@ -44,6 +44,7 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -176,13 +177,37 @@ def _lane_dir(project_dir):
     return Path(d) if d else _runtime_dir(project_dir)
 
 
+def _log_track_error(project_dir, message):
+    """Best-effort, visible breadcrumb for track-capture failure modes that would
+    otherwise be silently swallowed (bug-9c793efcb604: an unreadable transcript_path
+    — e.g. the CC session-transcript storage location relocating mid-session — used
+    to silently stall turn_count/session-guard.json updates for the rest of the
+    session, with no signal anywhere that it had happened). Never raises."""
+    try:
+        log_path = _runtime_dir(project_dir) / "track-errors.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        with log_path.open("a") as f:
+            f.write(f"{ts} {message}\n")
+    except Exception:
+        pass
+
+
 def _base_dir(project_dir):
     """Harness-resolved data base (env) or legacy v3 WAI-Spoke."""
     d = os.environ.get("WAI_BASE_DIR", "")
     return Path(d) if d else Path(project_dir) / "WAI-Spoke"
 
 
-def _load_jsonl(path):
+def _load_jsonl(path, project_dir=None):
+    """Read a JSONL file into a list of dicts, tolerating unreadable paths.
+
+    bug-9c793efcb604 follow-up (W1.5): the original blanket 'except OSError' could
+    not tell a genuinely-missing path apart from a directory-shaped one (observed:
+    the CC session-transcript storage location relocating mid-session — the flat
+    <session_id>.jsonl this hook is told about no longer exists; only a same-named
+    directory does). Distinguish the two so track-errors.log carries a legible
+    signal instead of one generic message. Still never raises; still returns []."""
     rows = []
     try:
         for line in Path(path).read_text().splitlines():
@@ -193,9 +218,57 @@ def _load_jsonl(path):
                 rows.append(json.loads(line))
             except json.JSONDecodeError:
                 continue
-    except OSError:
-        pass
+    except FileNotFoundError:
+        if project_dir is not None:
+            _log_track_error(project_dir, f"transcript path not found: {path!r}")
+    except IsADirectoryError:
+        if project_dir is not None:
+            _log_track_error(project_dir, f"transcript path is a directory: {path!r}")
+    except OSError as exc:
+        if project_dir is not None:
+            _log_track_error(project_dir, f"transcript path unreadable ({exc!r}): {path!r}")
     return rows
+
+
+def _diagnose_transcript_path(project_dir, transcript_path):
+    """Throwaway diagnostic probe (W1.5): fires when buffer_was_present=False and
+    the transcript could not be loaded. Dumps the path's type classification and,
+    if it is a directory, a recursive file-name+size listing of its contents
+    (never file content) to track-errors.log. Purely evidence-gathering for the
+    blocked seed lug impl-transcript-schema-probe-v1 — writes no reader/loader
+    behavior of its own. Never raises."""
+    try:
+        p = Path(transcript_path)
+        if p.is_file():
+            kind = "isfile"
+        elif p.is_dir():
+            kind = "isdir"
+        else:
+            kind = "missing"
+        _log_track_error(
+            project_dir,
+            f"diagnostic probe: transcript_path={transcript_path!r} type={kind}",
+        )
+        if kind == "isdir":
+            listing = []
+            for root, _dirs, files in os.walk(p):
+                for name in files:
+                    fp = Path(root) / name
+                    try:
+                        size = fp.stat().st_size
+                    except OSError:
+                        size = -1
+                    try:
+                        rel = fp.relative_to(p)
+                    except ValueError:
+                        rel = fp
+                    listing.append(f"{rel} ({size}b)")
+            _log_track_error(
+                project_dir,
+                f"diagnostic probe: transcript_path={transcript_path!r} contents={listing}",
+            )
+    except Exception:
+        pass
 
 
 def _is_typed_user(entry):
@@ -259,7 +332,14 @@ def _text_of(content):
 
 
 def _build_turn(rows, start_idx, end_idx, turn_no):
-    """Full-fidelity baseline entry for rows[start_idx:end_idx] (no truncation)."""
+    """Full-fidelity baseline entry for rows[start_idx:end_idx] (no truncation).
+
+    impl-w1-tssource-synthesized-rows-v1: every row this builds must carry the
+    full hook-owned envelope ({event, turn, source, ts, ts_source, model}), same
+    contract user-prompt-submit.sh pre-seeds on model-authored turns (ts_source=
+    'system_clock' there). Rows built here derive `ts` from the transcript's own
+    timestamp, never the system clock, so ts_source='transcript' here -- distinct
+    and honest, never reused across the two provenance kinds."""
     user = rows[start_idx]
     user_text = _text_of(user.get("message", {}).get("content"))
 
@@ -302,6 +382,7 @@ def _build_turn(rows, start_idx, end_idx, turn_no):
         "event": "turn",
         "turn": turn_no,
         "source": "transcript-synth",
+        "ts_source": "transcript",
         "synthesized": True,
         "completed": True,
         "session_id": user.get("sessionId", ""),
@@ -501,7 +582,7 @@ def backfill(state_path, transcript_path, project_dir):
     track = _track_path(state_path, project_dir)
     if track is None:
         return
-    rows = _load_jsonl(transcript_path)
+    rows = _load_jsonl(transcript_path, project_dir)
     if not rows:
         return
     starts = [i for i, e in enumerate(rows) if _is_typed_user(e)]
@@ -531,51 +612,68 @@ def live(state_path, transcript_path, project_dir, buffer_was_present):
     # Session is closing — do not append turns after the terminal closeout entry.
     if _session_closed(track):
         return
-    rows = _load_jsonl(transcript_path)
+
+    # transcript_path can legitimately fail to resolve to a readable file — e.g. the
+    # CC session-transcript storage location relocating mid-session (observed: the
+    # flat <session_id>.jsonl this hook is told about no longer exists; only a
+    # same-named directory does). bug-9c793efcb604: when that happens the
+    # turn-counter/cursor/autosave bookkeeping below must NOT silently stall for the
+    # rest of the session — only the *augmentation* content (assistant_text/tokens,
+    # which genuinely require the transcript) is allowed to degrade gracefully.
+    rows = _load_jsonl(transcript_path, project_dir)
     if not rows:
-        return
+        _log_track_error(
+            project_dir,
+            f"transcript unreadable/empty: {transcript_path!r} "
+            f"(buffer_was_present={buffer_was_present})",
+        )
+        if not buffer_was_present:
+            _diagnose_transcript_path(project_dir, transcript_path)
+            return
 
-    cursor_path = _lane_dir(project_dir) / "track-cursor.json"
-    last_uuid = ""
+    window = []
     last_sha = ""
-    try:
-        cursor_data = json.loads(cursor_path.read_text())
-        last_uuid = cursor_data.get("last_uuid", "")
-        last_sha = cursor_data.get("last_sha", "")
-    except Exception:
-        pass
+    if rows:
+        cursor_path = _lane_dir(project_dir) / "track-cursor.json"
+        last_uuid = ""
+        try:
+            cursor_data = json.loads(cursor_path.read_text())
+            last_uuid = cursor_data.get("last_uuid", "")
+            last_sha = cursor_data.get("last_sha", "")
+        except Exception:
+            pass
 
-    # Window = entries after the cursor. If cursor is unknown/stale, anchor to the
-    # last typed prompt so we never backfill the whole transcript on first run.
-    start_idx = 0
-    if last_uuid:
-        for i, e in enumerate(rows):
-            if e.get("uuid") == last_uuid:
-                start_idx = i + 1
-                break
-    if not last_uuid or start_idx == 0:
-        typed = [i for i, e in enumerate(rows) if _is_typed_user(e)]
-        start_idx = typed[-1] if typed else 0
+        # Window = entries after the cursor. If cursor is unknown/stale, anchor to the
+        # last typed prompt so we never backfill the whole transcript on first run.
+        start_idx = 0
+        if last_uuid:
+            for i, e in enumerate(rows):
+                if e.get("uuid") == last_uuid:
+                    start_idx = i + 1
+                    break
+        if not last_uuid or start_idx == 0:
+            typed = [i for i, e in enumerate(rows) if _is_typed_user(e)]
+            start_idx = typed[-1] if typed else 0
 
-    window = rows[start_idx:]
-    if not window:
-        return
-
-    # Always advance the cursor and store current HEAD SHA.
-    newest_uuid = next((e["uuid"] for e in reversed(window) if e.get("uuid")), "")
-    head_sha = _get_head_sha(project_dir)
-    try:
-        cursor_path.parent.mkdir(parents=True, exist_ok=True)
-        cursor_path.write_text(json.dumps({
-            "last_uuid": newest_uuid,
-            "last_sha": head_sha,
-        }))
-    except Exception:
-        pass
+        window = rows[start_idx:]
+        if window:
+            # Always advance the cursor and store current HEAD SHA.
+            newest_uuid = next((e["uuid"] for e in reversed(window) if e.get("uuid")), "")
+            head_sha = _get_head_sha(project_dir)
+            try:
+                cursor_path.parent.mkdir(parents=True, exist_ok=True)
+                cursor_path.write_text(json.dumps({
+                    "last_uuid": newest_uuid,
+                    "last_sha": head_sha,
+                }))
+            except Exception:
+                pass
 
     # Rich entry already written by the model this turn — augment it with
-    # conversation content + token data from the transcript, then write
-    # provider_usage, autosave, and session guard.
+    # conversation content + token data from the transcript when the transcript is
+    # readable, then write provider_usage, autosave, and session guard. The guard/
+    # autosave update runs unconditionally in this branch (it depends only on
+    # track.jsonl, which flush_buffer.py already wrote to) — never gated on `window`.
     if buffer_was_present:
         typed_in_window = [i for i, e in enumerate(window) if _is_typed_user(e)]
         if typed_in_window:

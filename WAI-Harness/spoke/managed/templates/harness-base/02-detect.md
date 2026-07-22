@@ -5,16 +5,16 @@ Probe the repository to choose your path. Do not assume.
 ## Probe
 
 ```bash
-test -f WAI-Spoke/WAI-State.json && echo "HAS_STATE" || echo "NO_STATE"
-test -d WAI-Spoke/lugs && echo "HAS_LUGS" || echo "NO_LUGS"
-python3 -c "import json;print(json.load(open('WAI-Spoke/WAI-State.json')).get('_harness',{}).get('base_version','none'))" 2>/dev/null || echo "none"
+test -f WAI-Harness/spoke/WAI-State.json && echo "HAS_STATE" || echo "NO_STATE"
+test -d WAI-Harness/spoke/lugs && echo "HAS_LUGS" || echo "NO_LUGS"
+python3 -c "import json;print(json.load(open('WAI-Harness/spoke/WAI-State.json')).get('_harness',{}).get('base_version','none'))" 2>/dev/null || echo "none"
 ```
 
 ## Decide
 
 | Probe result | Path | Go to |
 |---|---|---|
-| `NO_STATE` (no `WAI-Spoke/`) | **Greenfield** — establish from scratch | `03-bootstrap.md` |
+| `NO_STATE` (no `WAI-Harness/spoke/`) | **Greenfield** — establish from scratch | `03-bootstrap.md` |
 | `HAS_STATE`, `_harness.base_version` absent or `< 3.0.0` | **Brownfield** — migrate + re-assert | `04-migrate.md` |
 | `HAS_STATE`, `_harness.base_version == 3.0.0` | **Already current** — skip to verify | `06-verify.md` |
 
@@ -22,8 +22,8 @@ python3 -c "import json;print(json.load(open('WAI-Spoke/WAI-State.json')).get('_
 
 If brownfield, inventory what is already here so migration subsumes rather than destroys:
 
-- Existing lugs under `WAI-Spoke/lugs/` (any layout — flat, `active/`, `bytype/`).
-- Existing sessions/track under `WAI-Spoke/sessions/`.
+- Existing lugs under `WAI-Harness/spoke/lugs/` (any layout — flat, `active/`, `bytype/`).
+- Existing sessions/track under `WAI-Harness/spoke/sessions/`.
 - A prior `_savepoint` pointer, prior teaching-adoption files in `seed/ingest/processed/`.
 - Any non-standard files an earlier harness version created.
 

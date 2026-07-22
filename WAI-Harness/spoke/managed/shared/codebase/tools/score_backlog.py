@@ -13,6 +13,7 @@ Default: no vibe filter (pure ROI ordering).
 
 import argparse
 import json
+import math
 import os
 import sys
 from pathlib import Path
@@ -194,7 +195,21 @@ def score_lug(lug: dict, lug_type: str, status: str, vibe: str | None = None) ->
     if lug_type == "signal":
         roi = min(impact * 0.5, 5.0)  # cap at 5.0, scaled down
     else:
-        roi = (impact * leverage) / max(effort, 0.5)
+        # EFFORT DAMPENED, NOT DIVIDING (operator ruling 2026-07-22):
+        # "I need this behaviour to be solid and foundational, not flimsy and
+        # ineffectual but cheap."
+        #
+        # Dividing by raw effort makes cheap beat foundational permanently, at any
+        # impact. Measured on the external-pattern slate the same week: merge-based
+        # config distribution — impact 9, and its absence had just rolled 28 command
+        # files back two months in production — ranked SIXTH, below a terse-output
+        # text file, purely because its effort was 5.
+        #
+        # A square root keeps effort as a real signal for sequencing while stopping
+        # it from deciding worth: at equal impact, cheap still sorts first, but it
+        # takes roughly a 3x impact gap rather than a 1.4x one to overcome a 2x
+        # effort gap. Effort informs the order; it no longer sets the ceiling.
+        roi = (impact * leverage) / math.sqrt(max(effort, 0.5))
 
     # Vibe multiplier — reshapes ordering to match energy
     if vibe and vibe in VIBE_AFFINITY:

@@ -19,12 +19,12 @@ When the work queue auto-chain mode transitions to the next lug, load only the m
 
 ### Step 1: Load WAI-State Identity Subset
 
-Read `WAI-Spoke/WAI-State.json`. Extract these 7 fields only:
+Read `WAI-Harness/spoke/WAI-State.json`. Extract these 7 fields only:
 
 ```python
 import json
 
-with open('WAI-Spoke/WAI-State.json', 'r') as f:
+with open('WAI-Harness/spoke/WAI-State.json', 'r') as f:
     s = json.load(f)
 
 identity = {
@@ -46,7 +46,7 @@ identity = {
 
 Read the target lug JSON in full. The lug ID is provided by the chain invocation.
 
-Path pattern: `WAI-Spoke/lugs/bytype/{type}/{status}/{lug_id}.json`
+Path pattern: `WAI-Harness/spoke/lugs/bytype/{type}/{status}/{lug_id}.json`
 
 Read the full lug — PEV, acceptance criteria, and file targets are needed to execute.
 
@@ -84,7 +84,7 @@ No further reads are required before starting execution.
 - `tools/spoke_expediter.py`
 - Full wakeup briefing (`/wai`)
 - Hub teaching check
-- Wakeup brief (`WAI-Spoke/wakeup-brief.json`)
+- Wakeup brief (`WAI-Harness/spoke/wakeup-brief.json`)
 - Skills registry or capability registry scans
 
 ---

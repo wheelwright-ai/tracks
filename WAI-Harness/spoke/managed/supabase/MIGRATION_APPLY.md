@@ -48,4 +48,4 @@ EOF
 ## After applying
 
 Run `python3 tools/emit_activity_event.py --flush` to drain the 19 queued events
-from `WAI-Spoke/runtime/activity-events-queue.jsonl` into the new table.
+from `WAI-Harness/spoke/runtime/activity-events-queue.jsonl` into the new table.

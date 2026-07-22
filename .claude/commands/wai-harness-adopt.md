@@ -7,7 +7,7 @@ Stand up the Wheelwright harness on a new or existing repository.
 ## Overview
 
 The harness is a general AI session-continuity layer for any codebase. It provides:
-- Session tracking (WAI-Spoke/sessions/)
+- Session tracking (WAI-Harness/spoke/sessions/)
 - Work queue (lugs/bytype/)
 - Teaching distribution from hub
 - Agent behavior contracts (CLAUDE.md + hooks)
@@ -52,13 +52,13 @@ python3 tools/harness_init.py --target /path/to/repo --name "Name" --force
 |------|----------|
 | `CLAUDE.md` | Minimal harness instructions for Claude Code |
 | `AGENTS.md` | Universal wakeup instructions for all AI tools |
-| `WAI-Spoke/WAI-State.json` | Project state, session history, work queue |
-| `WAI-Spoke/sessions/` | Per-session track journals |
-| `WAI-Spoke/lugs/bytype/` | Work item store (epic/task/impl/spec/bug/...) |
-| `WAI-Spoke/teachings/` | Local teaching cache |
-| `WAI-Spoke/seed/ingest/processed/` | Teaching adoption tracker |
-| `WAI-Spoke/runtime/` | Hook runtime state |
-| `WAI-Spoke/savepoints/` | Session savepoints |
+| `WAI-Harness/spoke/WAI-State.json` | Project state, session history, work queue |
+| `WAI-Harness/spoke/sessions/` | Per-session track journals |
+| `WAI-Harness/spoke/lugs/bytype/` | Work item store (epic/task/impl/spec/bug/...) |
+| `WAI-Harness/spoke/teachings/` | Local teaching cache |
+| `WAI-Harness/spoke/seed/ingest/processed/` | Teaching adoption tracker |
+| `WAI-Harness/spoke/runtime/` | Hook runtime state |
+| `WAI-Harness/spoke/savepoints/` | Session savepoints |
 | `.claude/hooks/` | Session-start, prompt-submit, pre-compact, pre-tool-guard, stop hooks |
 | `.claude/settings.json` | Hook wiring + default permissions |
 | `.claude/commands/` | Core skills: wai, wai-closeout, wai-lug-schema, and ~40 others |
@@ -74,12 +74,12 @@ After the script runs:
    - Anti-patterns specific to this codebase
    - Any standing rules (e.g., never delete X, always lint before commit)
 
-2. **Check the hub path** — if you passed `--hub-path`, open `WAI-Spoke/WAI-State.json`
+2. **Check the hub path** — if you passed `--hub-path`, open `WAI-Harness/spoke/WAI-State.json`
    and confirm `wheel.hub_path` is set correctly.
 
 3. **Git status** — all new files are untracked. Commit the harness skeleton:
    ```bash
-   git add WAI-Spoke/ CLAUDE.md AGENTS.md .claude/
+   git add WAI-Harness/spoke/ CLAUDE.md AGENTS.md .claude/
    git commit -m "chore: add Wheelwright harness"
    ```
 
@@ -105,7 +105,7 @@ To receive hub-distributed teachings in this spoke:
 3. Commit to hub.
 
 Once registered, the hub gardener will deliver teachings to your spoke's
-`WAI-Spoke/lugs/incoming/` and the session-start hook will surface them.
+`WAI-Harness/spoke/lugs/incoming/` and the session-start hook will surface them.
 
 ---
 
@@ -115,7 +115,7 @@ After init, confirm:
 
 ```bash
 # WAI-State.json exists and has the right project name
-cat /path/to/repo/WAI-Spoke/WAI-State.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['wheel']['name'])"
+cat /path/to/repo/WAI-Harness/spoke/WAI-State.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['wheel']['name'])"
 
 # Hooks are executable
 ls -la /path/to/repo/.claude/hooks/*.sh
@@ -124,7 +124,7 @@ ls -la /path/to/repo/.claude/hooks/*.sh
 ls /path/to/repo/.claude/commands/wai.md
 
 # Lug structure created (spot check)
-ls /path/to/repo/WAI-Spoke/lugs/bytype/epic/open/
+ls /path/to/repo/WAI-Harness/spoke/lugs/bytype/epic/open/
 ```
 
 Open the repo in Claude Code and run `/wai`. You should see a WAI Point briefing with:
@@ -134,66 +134,46 @@ Open the repo in Claude Code and run `/wai`. You should see a WAI Point briefing
 
 ---
 
-## Step 4 — Send upgrade report to framework
+## Step 4 — The upgrade report (produced by the engine, not by hand)
 
-After successful adoption, document the upgrade experience and send a feedback report to the framework. This closes the teaching quality feedback loop and helps the framework maintainers improve the adoption process.
+Nothing to copy-paste here. `harness_upgrade.py` writes the upgrade report
+itself, on the spoke that took the upgrade, every time it applies one.
 
-### Create the upgrade report lug
+Two reasons this is no longer a manual step:
 
-If you have the framework spoke path available (set as `hub_path` in WAI-State.json), write an upgrade-report lug:
+- **It never fired.** This section used to carry a JSON template addressed to
+  the old v3 outgoing folder and delivered to the deprecated framework repo.
+  On a v4 spoke that folder does not exist and that repo is not the master, so
+  the intake ceremony on the other end waited months for input that could not
+  arrive.
+- **A human cannot answer the question it asks.** The report now carries a
+  VALIDATION result — does the spoke still compile, do its entrypoints import,
+  is its health verdict RED, did its own tests pass — measured at the moment of
+  the upgrade and compared against a baseline taken immediately before it.
 
-```bash
-# Template — save as WAI-Spoke/lugs/outgoing/upgrade-report-{SPOKE_ID}-v1.json
-{
-  "created_at": "ISO-8601 timestamp",
-  "created_by": "session-XXXXXXXX-XXXX",
-  "id": "upgrade-report-{SPOKE_ID}-v1",
-  "type": "upgrade-report",
-  "status": "ready_for_recheck",
-  "spoke_id": "{SPOKE_ID}",
-  "spoke_path": "/absolute/path/to/spoke",
-  "teaching_id": "wai-harness-adopt-v1",
-  "teaching_version": "2.0.262",
-  "completed_at": "ISO-8601 timestamp",
-  "outcome": "pass|partial|fail",
-  "friction_points": [
-    {"step": "Step name", "issue": "What went wrong", "suggestion": "How to fix it"}
-  ],
-  "missing_prereqs": ["item 1", "item 2"],
-  "suggestions": ["Suggestion 1 for improving the harness", "Suggestion 2"],
-  "time_to_complete_minutes": 12
-}
-```
-
-### Outcome guidance
-
-- **`outcome: pass`** — all verification steps passed without skipping or working around any issues
-- **`outcome: partial`** — any step was skipped, required a workaround, or was adapted for your project
-- **`outcome: fail`** — adoption did not complete or verification failed
-
-### Deliver the report
-
-Copy the lug to the framework's incoming queue:
+What the engine does on every `pull` / `upgrade`:
 
 ```bash
-# Copy to framework incoming (preferred when path is known)
-cp WAI-Spoke/lugs/outgoing/upgrade-report-{SPOKE_ID}-v1.json \
-  {FRAMEWORK_PATH}/WAI-Spoke/lugs/incoming/
+# validation runs automatically; --no-validate opts out (bytes-only, pre-4.14.4)
+python3 tools/harness_upgrade.py pull --spoke-root .
 
-# Framework path comes from hub-registry.json:
-# grep -A 5 'wheel_id.*wheelwright-framework' hub-registry.json | grep '"path"'
+# or ask the question on its own, any time:
+python3 tools/harness_upgrade.py validate --spoke-root .
 ```
 
-If the framework path is not resolvable (hub_path not set in WAI-State.json), this step is optional. The report can remain in your `WAI-Spoke/lugs/outgoing/` for manual forwarding later.
+- writes `WAI-Harness/spoke/local/lugs/bytype/upgrade-report/open/upgrade-report-<spoke>-<ts>-v1.json`
+- delivers a copy into the master's `WAI-Harness/spoke/local/lugs/incoming/`
+- `outcome: fail` reports route as SIGNAL at impact 9, so master learns a spoke
+  broke without having to ask
 
-### Update the outgoing copy with delivery metadata
+**Outcome grades what the UPGRADE did, not the spoke's absolute health:**
 
-After successful delivery, update the report file to mark it as delivered:
-
-```json
-"delivered_at": "ISO-8601 timestamp when copied",
-"delivery_status": "sent_to_framework"
-```
+- `pass` — nothing failed
+- `partial` — failures exist but they were failing BEFORE this upgrade too. The
+  upgrade is not answerable for damage it did not cause; the failures are still
+  listed in the report.
+- `fail` — a check that passed before the upgrade fails after it. The upgrade is
+  reported as failed and `ok` is false.
 
 ---
 

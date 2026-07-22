@@ -1,6 +1,6 @@
 # WAI KnowMe — Spoke Self-Portrait
 
-Generate `WAI-Spoke/KnowMe.md`: a cold-LLM-ready self-portrait of this spoke, written for a collaborating agent that has **no repo access and no session history**. One ~400-line file that bootstraps a fresh agent without traversing WAI-State, scanning lugs, or replaying tracks.
+Generate `WAI-Harness/spoke/KnowMe.md`: a cold-LLM-ready self-portrait of this spoke, written for a collaborating agent that has **no repo access and no session history**. One ~400-line file that bootstraps a fresh agent without traversing WAI-State, scanning lugs, or replaying tracks.
 
 ## When to run
 
@@ -11,9 +11,9 @@ The generation act is also a **drift check**: if KnowMe.md cannot be written cle
 
 ## Data sources (read-only)
 
-- `WAI-Spoke/WAI-State.json` — identity, version, `_harness`, foundation, work queue.
-- `WAI-Spoke/lugs/bytype/*/open/` + `*/in_progress/` — active work.
-- 3 most recent `WAI-Spoke/sessions/*/` summaries — recent trajectory.
+- `WAI-Harness/spoke/WAI-State.json` — identity, version, `_harness`, foundation, work queue.
+- `WAI-Harness/spoke/lugs/bytype/*/open/` + `*/in_progress/` — active work.
+- 3 most recent `WAI-Harness/spoke/sessions/*/` summaries — recent trajectory.
 - Context health (compaction state, last session status).
 
 ## Required sections (in order)
@@ -30,7 +30,7 @@ The generation act is also a **drift check**: if KnowMe.md cannot be written cle
 
 1. Read the data sources above.
 2. Synthesize a narrative (not a data dump) into the 7 sections.
-3. Write `WAI-Spoke/KnowMe.md` (overwrite previous).
+3. Write `WAI-Harness/spoke/KnowMe.md` (overwrite previous).
 4. Append a track event: `{ "event": "knowme_generated", "ts": "...", "lines": N }`.
 5. If any source was unreadable or empty, note it in the output AND report the drift to the user.
 

@@ -10,7 +10,7 @@ Generate a track file for the current conversation, with automatic predecessor l
 
 - **Nodes:** Any (spoke, hub, or standalone conversation)
 - **Exposure:** Universal (works in any environment)
-- **Paths Required:** None (generates output, doesn't require WAI-Spoke/)
+- **Paths Required:** None (generates output, doesn't require WAI-Harness/spoke/)
 
 ## When to Use
 
@@ -60,7 +60,7 @@ For each turn in THIS session (not including loaded predecessor), generate a tra
 
 **Format:** JSONL (one JSON object per line)
 
-**Delivery:** Code block for copy-paste, downloadable link if supported, or file write to `WAI-Spoke/sessions/` if available. See reference file for delivery option details.
+**Delivery:** Code block for copy-paste, downloadable link if supported, or file write to `WAI-Harness/spoke/sessions/` if available. See reference file for delivery option details.
 
 ### 5. Report Summary
 
@@ -81,7 +81,7 @@ Report: filename, turn count, phase distribution, duration, predecessor chain in
 
 ## Related Commands
 
-- `/wai-closeout` — Finalize session (includes automatic track writing if WAI-Spoke/ exists)
+- `/wai-closeout` — Finalize session (includes automatic track writing if WAI-Harness/spoke/ exists)
 
 ---
 

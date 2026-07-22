@@ -34,6 +34,15 @@ SOFT_REQUIRED = ["decisions", "insights", "open"]
 
 VALID_SOURCES = {"model", "transcript-synth", "stop-hook-transcript", "sdk-synth"}
 
+# Machine-generated per-turn rewrites (feature-track-per-turn-insight-rewrites-v1):
+# user_insight (UserPromptSubmit, SONNET rewrite of the submitted prompt) and
+# agent_insight (Stop, SONNET rewrite of what was done). Neither is required or
+# soft-required -- generation is USER-SESSIONS-ONLY and fail-open, so an absent field
+# is an expected, valid state (the consumer renders the explicit error/regenerate
+# case), not a validation gap. Documented here only so a round-trip test has one
+# canonical place to check the field names and type against.
+OPTIONAL_GENERATED = ["user_insight", "agent_insight"]
+
 
 def validate(entry: dict, spoke_name: str = "") -> dict:
     errors, warnings = [], []
@@ -53,6 +62,13 @@ def validate(entry: dict, spoke_name: str = "") -> dict:
     for field in SOFT_REQUIRED:
         if entry.get(field) is None:
             warnings.append(f"missing soft-required field: {field}")
+
+    # OPTIONAL_GENERATED: absence is a valid, expected state (fail-open generation) --
+    # only warn on the wrong TYPE, which would mean something wrote a malformed value.
+    for field in OPTIONAL_GENERATED:
+        val = entry.get(field)
+        if val is not None and (not isinstance(val, str) or not val.strip()):
+            warnings.append(f"malformed generated field: {field} (expected non-empty string)")
 
     # thinking: 3-8 sentences of why/tradeoffs.
     thinking = entry.get("thinking", "")

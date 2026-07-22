@@ -9,14 +9,14 @@
 When you first receive a message in this project directory, execute the session start protocol:
 
 1. **Load WAI Context**:
-   - Read `WAI-Spoke/WAI-Guide.md` (full AI instructions)
-   - Read `WAI-Spoke/WAI-State.json` (project state, decisions)
-   - Read `WAI-Spoke/WAI-State.md` (strategic vision)
+   - Read `WAI-Harness/spoke/WAI-Guide.md` (full AI instructions)
+   - Read `WAI-Harness/spoke/WAI-State.json` (project state, decisions)
+   - Read `WAI-Harness/spoke/WAI-State.md` (strategic vision)
 
 2. **Check Environment Sessions**:
-   - Scan `WAI-Spoke/sessions/` for other environment logs
+   - Scan `WAI-Harness/spoke/sessions/` for other environment logs
    - Note if other AI tools/machines have recent activity
-   - Your session is tracked in `WAI-Spoke/sessions/{tool}-{machine}.jsonl`
+   - Your session is tracked in `WAI-Harness/spoke/sessions/{tool}-{machine}.jsonl`
 
 3. **Brief the User**:
    - Project: {{PROJECT_NAME}}
@@ -30,7 +30,7 @@ When you first receive a message in this project directory, execute the session 
 
 ## Priority 1: Behavioral Guidelines
 
-Follow the guidelines in `WAI-Spoke/WAI-Guide.md` for:
+Follow the guidelines in `WAI-Harness/spoke/WAI-Guide.md` for:
 - Stewardship philosophy (AI as responsible partner)
 - Session state management
 - High-impact decision logging (impact >= 8)
@@ -69,7 +69,7 @@ If unsure whether a command like "Status" refers to WAI, ask: *"Did you mean WAI
 
 {{PROJECT_DESCRIPTION}}
 
-**See WAI-Spoke/ for complete project context and instructions.**
+**See WAI-Harness/spoke/ for complete project context and instructions.**
 
 ## Tool Ownership (author vs distribute)
 

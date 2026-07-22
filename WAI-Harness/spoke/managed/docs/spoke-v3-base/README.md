@@ -3,7 +3,7 @@
 Public spoke-side framework assets.
 
 This tree is for assets that help create or define a spoke, not for a live spoke.
-Live `WAI-Spoke/` state belongs in an actual spoke project created from the framework.
+Live `WAI-Harness/spoke/` state belongs in an actual spoke project created from the framework.
 
 Current contents:
 

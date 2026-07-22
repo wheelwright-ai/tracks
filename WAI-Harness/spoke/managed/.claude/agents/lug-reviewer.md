@@ -30,5 +30,5 @@ Report findings per lug. Fix gaps if asked.
 
 - Lug schema reference: `templates/commands/wai-lug-schema.md`
 - v4 schema + dual gate: `spec-lug-schema-v4-v1` (structural) + `spec-object-quality-v4-v1` (content); structural validator `tools/validate_lug_v4.py`; creation stamper `tools/new_lug.py`
-- Active lugs: `WAI-Spoke/lugs/bytype/{type}/{status}/*.json`
+- Active lugs: `WAI-Harness/spoke/lugs/bytype/{type}/{status}/*.json`
 - This spoke uses Wheelwright Framework conventions

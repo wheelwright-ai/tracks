@@ -26,7 +26,7 @@ git log --oneline --since="N days ago" | grep -E "^[a-f0-9]+ (feat|fix|chore|ref
 ```
 
 Also read:
-- `WAI-Spoke/WAI-State.json` → `wheel.name`, current `fw_version`
+- `WAI-Harness/spoke/WAI-State.json` → `wheel.name`, current `fw_version`
 - Hub registry at `{hub_path}/hub-registry.json` → list of active spokes and their paths (for installation checks)
 
 ---
@@ -55,9 +55,9 @@ For each feature, verify it is present on every expected spoke.
 
 **How to check installation:**
 - Hook-based features: `grep -l "<feature-pattern>" {spoke}/.claude/hooks/*.sh`
-- Advisor-based features: `ls {spoke}/WAI-Spoke/advisors/<name>/` exists
-- Skill-based features: `ls {spoke}/WAI-Spoke/skills/<name>/` or `templates/commands/<name>.md`
-- Teaching-delivered features: check `{spoke}/WAI-Spoke/WAI-State.json` for `taught_teachings` or scan teaching files
+- Advisor-based features: `ls {spoke}/WAI-Harness/spoke/advisors/<name>/` exists
+- Skill-based features: `ls {spoke}/WAI-Harness/spoke/skills/<name>/` or `templates/commands/<name>.md`
+- Teaching-delivered features: check `{spoke}/WAI-Harness/spoke/WAI-State.json` for `taught_teachings` or scan teaching files
 
 **Hub registry loop:**
 ```python
@@ -84,7 +84,7 @@ For features that emit logs or events, check whether activity is actually being 
 
 ```bash
 # Log exists and has entries?
-wc -l {spoke}/WAI-Spoke/advisors/{name}/logs/*.jsonl 2>/dev/null
+wc -l {spoke}/WAI-Harness/spoke/advisors/{name}/logs/*.jsonl 2>/dev/null
 
 # Entries in the last 7 days?
 python3 -c "
@@ -150,11 +150,11 @@ Independently of the feature window, scan the spoke for stale references to reti
 grep -rn "<pattern>" {spoke}/.claude/hooks/ --include="*.sh"
 
 # Templates and skills
-grep -rn "<pattern>" {spoke}/WAI-Spoke/skills/ {spoke}/WAI-Spoke/commands/ \
+grep -rn "<pattern>" {spoke}/WAI-Harness/spoke/skills/ {spoke}/WAI-Harness/spoke/commands/ \
   --include="*.md" --include="*.sh" --include="*.py"
 
 # Lugs (active only — open/in_progress)
-find {spoke}/WAI-Spoke/lugs/bytype -path "*/open/*.json" -o -path "*/in_progress/*.json" | \
+find {spoke}/WAI-Harness/spoke/lugs/bytype -path "*/open/*.json" -o -path "*/in_progress/*.json" | \
   xargs grep -l "<pattern>" 2>/dev/null
 ```
 
@@ -248,6 +248,6 @@ When historian runs this:
 ## Notes for Spoke Self-Audit
 
 When a spoke runs this on itself:
-- Use `{hub_path}` from `WAI-Spoke/WAI-State.json` to reach hub-registry for spoke list
+- Use `{hub_path}` from `WAI-Harness/spoke/WAI-State.json` to reach hub-registry for spoke list
 - Limit installation checks to: this spoke + any sibling spokes the feature was intended for
 - Focus accuracy scan on own hooks, templates, and skills — not hub or framework files

@@ -8,7 +8,7 @@
 
 ## Add a Test
 
-1. Copy schema: `cp WAI-Spoke/corpus-tests/schema/test-schema-v1.yaml WAI-Spoke/corpus-tests/{category}/{id}.yaml`
+1. Copy schema: `cp WAI-Harness/spoke/corpus-tests/schema/test-schema-v1.yaml WAI-Harness/spoke/corpus-tests/{category}/{id}.yaml`
 2. Fill required fields:
 
 | Field | Value |
@@ -25,8 +25,8 @@
 | `failure_action` | `lug` (recommended), `log`, `escalate` |
 | `enabled` | `true` |
 
-3. Dry-run: `python3 WAI-Spoke/db/corpus_test_runner.py --dry-run`
-4. Run: `python3 WAI-Spoke/db/corpus_test_runner.py --category {category}`
+3. Dry-run: `python3 WAI-Harness/spoke/db/corpus_test_runner.py --dry-run`
+4. Run: `python3 WAI-Harness/spoke/db/corpus_test_runner.py --category {category}`
 
 ---
 
@@ -34,26 +34,26 @@
 
 ```bash
 # All tests
-python3 WAI-Spoke/db/corpus_test_runner.py
+python3 WAI-Harness/spoke/db/corpus_test_runner.py
 
 # Specific category
-python3 WAI-Spoke/db/corpus_test_runner.py --category coverage
+python3 WAI-Harness/spoke/db/corpus_test_runner.py --category coverage
 
 # Dry run (confirm test loads)
-python3 WAI-Spoke/db/corpus_test_runner.py --dry-run
+python3 WAI-Harness/spoke/db/corpus_test_runner.py --dry-run
 ```
 
 ---
 
 ## On Failure
 
-Runner creates finding lug at `WAI-Spoke/lugs/bytype/other/open/ct-fail-{hash}.json`.
+Runner creates finding lug at `WAI-Harness/spoke/lugs/bytype/other/open/ct-fail-{hash}.json`.
 
 Finding lug contains: `failure_count`, `failure_sample` (≤5 examples), `perceive/execute/verify`.
 
 1. Check `failure_count` to understand scale
 2. Fix violations listed in `failure_sample`
-3. Rerun: `python3 WAI-Spoke/db/corpus_test_runner.py --category {category}`
+3. Rerun: `python3 WAI-Harness/spoke/db/corpus_test_runner.py --category {category}`
 4. On pass: move finding lug to `completed/`
 
 ---

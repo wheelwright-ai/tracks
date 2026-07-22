@@ -19,11 +19,11 @@ The core session loop is fully operational. Minder runs as a Flask web server (`
 - `src/minder/llm/` — GeminiClient + ZaiClient wrappers
 - `src/minder/scheduler/` — task scheduler stubs
 - `src/minder/logging/` — audit + minder loggers
-- `WAI-Spoke/` — full Wheelwright state (WAI-State.json, lugs, sessions, advisors)
+- `WAI-Harness/spoke/` — full Wheelwright state (WAI-State.json, lugs, sessions, advisors)
 - `scripts/tender.py` — multi-spoke tender runner (Pass 0 consistency audit → Pass 2 Claude/Gemini agent → Pass 2.5 completion verification); FallbackClient wraps Gemini with Z.AI fallback for remainder of run on any API error
 - `wai-enter.sh` / `wai-exit.sh` — session lifecycle hooks
 - `.env.local` — environment variables (GOOGLE_API_KEY, ZAI_API_KEY, TELEGRAM_BOT_TOKEN, HEALTH_CHECK_SECRET, TELEGRAM_CHAT_ID)
-- `WAI-Spoke/advisors/` — advisor registry including ozi, gardener, navigator, historian, octo, quartermaster, qa-guardian, cc-advisor, expediter, archie
+- `WAI-Harness/spoke/advisors/` — advisor registry including ozi, gardener, navigator, historian, octo, quartermaster, qa-guardian, cc-advisor, expediter, archie
 - Session count: 116 (as of session-20260524-2304)
 - Version: 0.2.73
 
@@ -35,7 +35,7 @@ The core session loop is fully operational. Minder runs as a Flask web server (`
 - Post-Claude completion verification (reopens lugs with missing target_files)
 - Tender nightly auto-commit per spoke after items_completed > 0
 - `scripts/health_monitor.py` — daily cron at 07:00 UTC probes spoke health endpoints
-- `WAI-Spoke/_hooks/` — session-start.sh, pre-tool-guard.sh, post-tool-use.sh hooks
+- `WAI-Harness/spoke/_hooks/` — session-start.sh, pre-tool-guard.sh, post-tool-use.sh hooks
 
 ---
 

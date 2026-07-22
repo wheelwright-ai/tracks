@@ -8,7 +8,7 @@ For each component in `00-manifest.json`, run its `check`. Collect results into 
 
 ```json
 [
-  {"component": "WAI-Spoke/WAI-State.json", "mode": "mechanical", "result": "pass", "note": "parses"},
+  {"component": "WAI-Harness/spoke/WAI-State.json", "mode": "mechanical", "result": "pass", "note": "parses"},
   {"component": ".claude/hooks", "mode": "mechanical", "result": "pass"},
   {"component": "_harness ledger", "mode": "mechanical", "result": "pass"}
 ]
@@ -32,7 +32,7 @@ python3 tools/verify_engine.py emit-adoption \
   --checks @/tmp/adoption-checks.json --spoke-path .
 ```
 
-The bolt lands in `WAI-Spoke/bolts/bytype/adoption/recorded/`. Its id is `bolt-{session}-adoption-base-3.0.0`. `certified` = every executed component passed; `partial` = something is still unverified (record what remains).
+The bolt lands in `WAI-Harness/spoke/bolts/bytype/adoption/recorded/`. Its id is `bolt-{session}-adoption-base-3.0.0`. `certified` = every executed component passed; `partial` = something is still unverified (record what remains).
 
 ## 4. Update the ledger
 

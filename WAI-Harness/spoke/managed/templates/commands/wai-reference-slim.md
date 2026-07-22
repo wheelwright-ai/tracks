@@ -9,7 +9,7 @@
 ## Track Integrity Check (Step 3b)
 
 ```bash
-LAST_TRACK="WAI-Spoke/sessions/$(ls -1t WAI-Spoke/sessions/ | sed -n '2p')/track.jsonl"
+LAST_TRACK="WAI-Harness/spoke/sessions/$(ls -1t WAI-Harness/spoke/sessions/ | sed -n '2p')/track.jsonl"
 if [ -f "$LAST_TRACK" ]; then
     LAST_LINE=$(tail -1 "$LAST_TRACK")
     if echo "$LAST_LINE" | jq -e '.completed == true or .event == "closeout"' >/dev/null 2>&1; then
@@ -29,7 +29,7 @@ fi
 ## Lug Folder Structure (Step 4)
 
 ```
-WAI-Spoke/lugs/bytype/
+WAI-Harness/spoke/lugs/bytype/
   epic/{open,in_progress,completed}/
   task/{open,in_progress,completed}/
   feature/{open,in_progress,completed}/

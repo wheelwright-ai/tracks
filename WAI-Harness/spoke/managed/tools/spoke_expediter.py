@@ -1351,8 +1351,23 @@ def main():
                     lug_full["execution_substrate"] = exec_substrate
                     if convoy_hint:
                         lug_full["gt_convoy_hint"] = convoy_hint
-                    lug_full["disposition"] = disp
-                    lug_full["disposition_reason"] = disp_reason
+                    # OPERATOR OVERRIDE WINS.
+                    #
+                    # Canon is that disposition is TRUTH on the lug, not a value
+                    # re-derived on every scan. Without this guard the expediter
+                    # recomputed it unconditionally, so a disposition the operator
+                    # set by hand was silently erased by the next run -- measured:
+                    # an operator-set `needs_you` on a fully specified lug came
+                    # back `auto_build`. A judgement that does not survive the next
+                    # scan is not a judgement, it is a suggestion.
+                    #
+                    # `disposition_locked: true` (or disposition_source: operator)
+                    # pins the value; everything unlocked stays derived as before.
+                    _locked = bool(lug_full.get("disposition_locked")) or \
+                        str(lug_full.get("disposition_source", "")).lower() == "operator"
+                    if not _locked:
+                        lug_full["disposition"] = disp
+                        lug_full["disposition_reason"] = disp_reason
                     _changed = any(
                         _before[k] != lug_full.get(k) for k in _before
                     )

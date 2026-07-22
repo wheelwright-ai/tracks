@@ -56,9 +56,9 @@ Steps 2 and 3 are the fitting work. They happen in conversation, before any lug 
 
 ### 0a. Read Foundation
 
-From `WAI-Spoke/WAI-State.json`, extract: `_project_foundation.identity.one_liner`, `success_looks_like`, `boundaries.in_scope`, `boundaries.out_of_scope`, `boundaries.constraints`, `philosophy.core_principle`, `approach.stack_or_tools`, `context.current_phase`.
+From `WAI-Harness/spoke/WAI-State.json`, extract: `_project_foundation.identity.one_liner`, `success_looks_like`, `boundaries.in_scope`, `boundaries.out_of_scope`, `boundaries.constraints`, `philosophy.core_principle`, `approach.stack_or_tools`, `context.current_phase`.
 
-Also check `WAI-Spoke/lugs/bytype/other/open/` for any `ty: "foundation"` lug — may be richer than WAI-State.json.
+Also check `WAI-Harness/spoke/lugs/bytype/other/open/` for any `ty: "foundation"` lug — may be richer than WAI-State.json.
 
 ### 0b. Foundation Completeness Check
 
@@ -107,7 +107,7 @@ Extract or prompt for four things:
 
 ### 2a. Scan Open Lugs
 
-Read active lugs from `WAI-Spoke/lugs/bytype/*/open/` and `*/in_progress/`. For each active lug, assess similarity to the incoming idea's **challenge** and **hypothesis**:
+Read active lugs from `WAI-Harness/spoke/lugs/bytype/*/open/` and `*/in_progress/`. For each active lug, assess similarity to the incoming idea's **challenge** and **hypothesis**:
 
 | Similarity Type | Definition | Action |
 |----------------|------------|--------|
@@ -121,7 +121,7 @@ Present any matches. One sentence per match is enough.
 
 ### 2b. Scan Existing Skills and Functionality
 
-Check `templates/commands/` and `WAI-Spoke/skills/` for skills that already address any part of the challenge. Also check `WAI-State.json` → `features[]` and `_project_foundation.in_scope[]`.
+Check `templates/commands/` and `WAI-Harness/spoke/skills/` for skills that already address any part of the challenge. Also check `WAI-State.json` → `features[]` and `_project_foundation.in_scope[]`.
 
 Assess: **Full coverage** / **Partial coverage** / **Terminology gap**.
 
@@ -173,7 +173,7 @@ Ask at most 3 questions at a time. The answers may change the fit classification
 
 ## Step 3b: Challenge Matching
 
-After Step 3, the challenge statement is in canonical form. Match it against `WAI-Spoke/WAI-Challenges.jsonl` to link to an existing problem or create a new one. If the file doesn't exist, create it as empty before proceeding.
+After Step 3, the challenge statement is in canonical form. Match it against `WAI-Harness/spoke/WAI-Challenges.jsonl` to link to an existing problem or create a new one. If the file doesn't exist, create it as empty before proceeding.
 
 **Normalization pipeline** (apply before comparison):
 1. Lowercase

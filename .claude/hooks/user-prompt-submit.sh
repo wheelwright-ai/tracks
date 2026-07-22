@@ -127,7 +127,73 @@ tmp.write_text(json.dumps(data, indent=2))
 tmp.replace(p)
 PYEOF
 
-  _TR_SL="Turn ${_TR_N} | ${_TR_DATE} | ${_TR_TIME} | ${_TR_MODEL} | Gold: +{count}"
+  # ── Per-turn user_insight kickoff (feature-track-per-turn-insight-rewrites-v1) ──
+  # Detached/async, fail-open, MUST NOT block the prompt: launched in the background
+  # and disowned. USER-SESSIONS-ONLY -- WAI_AP_DISPATCH/BASHER_AUTOPILOT dispatch never
+  # reaches this interactive surface in practice, but turn_insight.py re-checks anyway.
+  # Result lands in a turn-numbered side file (not the live buffer, which gets
+  # pre-seeded again next turn) that the Stop hook picks up for THIS turn's point.
+  _TI="$PROJECT_DIR/.claude/hooks/turn_insight.py"
+  if [[ -f "$_TI" && -z "${WAI_AP_DISPATCH:-}" && -z "${BASHER_AUTOPILOT:-}" ]]; then
+    _TI_PROMPT=$(printf '%s' "$_UPS_INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('prompt',''))" 2>/dev/null)
+    if [[ -n "$_TI_PROMPT" ]]; then
+      _TI_LANE="$BASE/runtime/lanes/${_UPS_SID:-nosid}"
+      mkdir -p "$_TI_LANE" 2>/dev/null
+      # Best-effort track path (current session's, per WAI-State.json) so the
+      # rewrite gets cumulative context; absent is fine (fail-open, no context).
+      _TI_TRACK_REL=$(jq -r '._session_state.track_path // ""' "$STATE_FILE" 2>/dev/null)
+      _TI_TRACK=""
+      [[ -n "$_TI_TRACK_REL" ]] && _TI_TRACK="$PROJECT_DIR/$_TI_TRACK_REL"
+      ( printf '%s' "$_TI_PROMPT" | python3 "$_TI" generate-user \
+          --turn "$_TR_N" --lane-dir "$_TI_LANE" --track-path "$_TI_TRACK" \
+          >/dev/null 2>&1 & disown ) 2>/dev/null
+    fi
+  fi
+
+  # Harness version in the statusline (operator request, s138). Knowing the
+  # running version is useful; knowing it is STALE is equally useful, so the
+  # marker is computed rather than just printed:
+  #   4.12.3      running the master cut
+  #   4.12.3*     DRIFTED — the deployed copy does not match managed canon,
+  #               i.e. an edit exists that is not actually running
+  #   4.12.3<4.13.0  behind the master cut
+  # Silent (empty) if the manifest is unreadable — a statusline must never fail
+  # a turn, and an absent marker is honest where a guessed one is not.
+  _TR_HV="$(python3 - "$CLAUDE_PROJECT_DIR" <<'HVEOF' 2>/dev/null || true
+import json, os, sys, hashlib
+root = sys.argv[1] if len(sys.argv) > 1 else "."
+try:
+    mf = os.path.join(root, "WAI-Harness/spoke/managed/MANIFEST.json")
+    ver = json.load(open(mf))["harness_version"]
+except Exception:
+    sys.exit(0)
+marker = ""
+try:
+    vf = os.path.join(root, "WAI-Harness/VERSION")
+    if os.path.exists(vf):
+        latest = open(vf).read().strip()
+        if latest and latest != ver:
+            marker = "<" + latest
+    if not marker:
+        # Deployed-vs-canon drift: an edit that is committed but not running is
+        # the failure mode that hid a dead gate for ten days (s138 audit).
+        canon = os.path.join(root, "WAI-Harness/spoke/managed/.claude/commands")
+        live = os.path.join(root, ".claude/commands")
+        if os.path.isdir(canon) and os.path.isdir(live):
+            for n in os.listdir(canon):
+                if not n.endswith(".md"):
+                    continue
+                a, b = os.path.join(canon, n), os.path.join(live, n)
+                if not os.path.exists(b) or open(a, "rb").read() != open(b, "rb").read():
+                    marker = "*"
+                    break
+except Exception:
+    marker = ""
+print("v" + ver + marker)
+HVEOF
+)"
+  [ -n "$_TR_HV" ] && _TR_HV=" | ${_TR_HV}"
+  _TR_SL="Turn ${_TR_N} | ${_TR_DATE} | ${_TR_TIME} | ${_TR_MODEL}${_TR_HV} | Gold: +{count}"
   printf '%s\n' "<wai-track-turn>"
   printf '%s\n' "WAI Track v2.0.2 per-turn obligations (an INSTRUCTION to act on, not a message to acknowledge):"
   printf '%s\n' "1. RICH ENTRY (Layer-1, full-feature): before your statusline, READ the pre-seeded ${_TR_BUF}"
@@ -258,16 +324,32 @@ jq '.protocol_completed = true | .protocol_last_run = (now | strftime("%Y-%m-%dT
 # ── v4: brief is owned by SessionStart. Inject ONLY post-compact recovery. ──
 if [[ "$MODE" == "v4" ]]; then
   if [[ "$POST_COMPACT" == "true" ]]; then
-    python3 - <<'PYEOF'
-import json
-ctx = ("<wai-post-compact>\n"
-       "Context compaction just occurred. Before responding to the user:\n"
-       "1. Re-read WAI-State.json (WAI-Harness/spoke/local) to restore session context.\n"
-       "2. If mid-closeout: re-read wai-closeout.md and resume from the step you were on.\n"
-       "3. Check recent track entries to understand what was in progress.\n"
-       "P1-Persist and P11-Lug-First are still active.\n"
-       "</wai-post-compact>")
-print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": ctx}}))
+    # Belt-and-braces for the SessionStart source=compact matcher (compact-resume-inject.sh):
+    # if that matcher does not fire in the installed CC version, this flag path still delivers
+    # the persisted pointers + names /wai-compact-resume. Reads the same compact-resume.json.
+    python3 - "$RUNTIME_DIR/compact-resume.json" <<'PYEOF'
+import json, sys
+from pathlib import Path
+cr = {}
+try:
+    cr = json.loads(Path(sys.argv[1]).read_text())
+except Exception:
+    pass
+lines = ["<wai-post-compact>",
+         "Context compaction just occurred — restoring WAI session awareness:"]
+if cr.get("session_id"):           lines.append(f'  Session:     {cr["session_id"]}')
+if cr.get("lane_track_path"):      lines.append(f'  Track:       {cr["lane_track_path"]}')
+if cr.get("base"):                 lines.append(f'  BASE:        {cr["base"]}')
+if cr.get("active_initiative_id"): lines.append(f'  Initiative:  {cr["active_initiative_id"]}')
+if cr.get("savepoint_status"):     lines.append(f'  Savepoint:   {cr["savepoint_status"]}')
+if not any(cr.get(k) for k in ("session_id","lane_track_path","active_initiative_id")):
+    lines.append("  (compact-resume.json absent — re-read WAI-State.json to restore context)")
+lines += [
+    "ACTION: Invoke /wai-compact-resume to run the post-compaction recovery protocol.",
+    "If mid-closeout: re-read wai-closeout.md and resume from the step you were on.",
+    "P1-Persist and P11-Lug-First are still active.",
+    "</wai-post-compact>"]
+print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": "\n".join(lines)}}))
 PYEOF
   fi
   exit 0
@@ -352,9 +434,9 @@ post_compact = os.environ.get('POST_COMPACT', 'false') == 'true'
 pcb = []
 if post_compact:
     pcb = ['', '<wai-post-compact>', 'Context compaction just occurred. Before responding to the user:',
-           '1. Re-read WAI-State.json to restore session context.',
-           '2. If mid-closeout: re-read wai-closeout.md and resume from the step you were on.',
-           '3. Check recent track entries to understand what was in progress.',
+           '1. Invoke /wai-compact-resume to run the post-compaction recovery protocol.',
+           '2. Re-read WAI-State.json to restore session context.',
+           '3. If mid-closeout: re-read wai-closeout.md and resume from the step you were on.',
            'P1-Persist and P11-Lug-First are still active.', '</wai-post-compact>']
 content_lines = ['<wai-session-init>', f'Wakeup brief: {status}'] + lines + pcb + [
     '', directive, 'EXCEPTION: If user message is a closeout command (/wai-closeout), skip briefing.', '</wai-session-init>']

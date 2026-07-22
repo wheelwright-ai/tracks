@@ -3,7 +3,7 @@
 ## Purpose
 
 At closeout, collect model usage telemetry from the current session, aggregate it
-into a session rollup, write it to `WAI-Spoke/telemetry/`, and deliver it to the
+into a session rollup, write it to `WAI-Harness/spoke/telemetry/`, and deliver it to the
 hub Assessor advisor inbox via the signal bulletin pipeline.
 
 ## Invocation Context
@@ -67,7 +67,7 @@ Runs after lug closeout and before any outgoing delivery.
    - `peak_hour_utc`: mode hour from turn timestamps
    - `total_turns`: sum of all turn_counts
    - `total_lugs_touched`: count distinct lug_ids in track entries
-5. Write rollup to `WAI-Spoke/telemetry/session-{session_id}-rollup.json`
+5. Write rollup to `WAI-Harness/spoke/telemetry/session-{session_id}-rollup.json`
 6. Deliver rollup to hub with `routed_to: ASSESSOR`:
    Write to `{hub_path}/WAI-Hub/advisors/assessor/inbox/{session_id}-rollup.json`
    If hub unreachable: note in session record, do not block closeout.

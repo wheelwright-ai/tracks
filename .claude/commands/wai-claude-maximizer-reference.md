@@ -304,7 +304,7 @@ echo '{"decision":"allow"}'
 #!/bin/bash
 # Save critical in-flight context to WAI-State before compaction
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-STATE_FILE="$PROJECT_DIR/WAI-Spoke/WAI-State.json"
+STATE_FILE="$PROJECT_DIR/WAI-Harness/spoke/WAI-State.json"
 echo "PreCompact: saving state before context compaction"
 ```
 

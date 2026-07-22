@@ -36,7 +36,7 @@ Reference implementation: pathfinder's `tests/critical_paths.sh` (81 real determ
 1. **Detect:** `python3 tools/spoke_health_check.py --spoke-path .` → read the drift report.
 2. **Validate:** `python3 tools/wai_validate.py` → confirm JSON/lug/state integrity.
 3. **Report:** summarize findings as PASS / drift items.
-4. **Remediate (with care):** for each drift item, apply the canonical fix — create missing `bytype/` dirs, patch absent `WAI-State.json` fields, move misplaced `session-*` dirs into `WAI-Spoke/sessions/`. **Never delete project data** — migrate it (no signal/lug data lost).
+4. **Remediate (with care):** for each drift item, apply the canonical fix — create missing `bytype/` dirs, patch absent `WAI-State.json` fields, move misplaced `session-*` dirs into `WAI-Harness/spoke/sessions/`. **Never delete project data** — migrate it (no signal/lug data lost).
 5. Re-run step 1; confirm 0 drift items.
 
 ## Notes

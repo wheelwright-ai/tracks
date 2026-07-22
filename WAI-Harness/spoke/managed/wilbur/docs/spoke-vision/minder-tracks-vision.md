@@ -35,7 +35,7 @@ The tracks module is Minder's session track ingestion, storage, and exploration 
 - `web/routes_tracks_auto_routing.py` — auto-routing logic
 - `src/minder/telegram/track_receiver.py` — WAI-CHUNK N/M bot-side reception
 - `src/minder/telegram/track_upload.py` — Telegram file upload handling
-- `WAI-Spoke/lugs/bytype/feature/completed/feature-minder-track-auto-routing-v1.json` — auto-routing feature completed
+- `WAI-Harness/spoke/lugs/bytype/feature/completed/feature-minder-track-auto-routing-v1.json` — auto-routing feature completed
 
 **Track format support (Track Explorer):**
 - WAI format: event/phase/turn/ts/summary fields

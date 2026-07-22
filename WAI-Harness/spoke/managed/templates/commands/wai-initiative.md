@@ -27,7 +27,7 @@ Initiatives in `lifecycle_state: approved | active | measuring` are **Tier 0 (ti
 - `focus_lock=true`: controls which Tier 0 initiative sorts first (3× ROI boost on focus-locked lugs, still within Tier 0)
 - When all Tier 0 work is blocked or stalled: Ozi proceeds to Tier 1 automatically
 
-**Tuning:** The qualifying lifecycle states are configured in `WAI-Spoke/lugs/bytype/spec/open/spec-initiative-priority-v1.json` → `config.tier0_lifecycle_states`. Edit that file to change tier rules — do not edit the Python tools directly.
+**Tuning:** The qualifying lifecycle states are configured in `WAI-Harness/spoke/lugs/bytype/spec/open/spec-initiative-priority-v1.json` → `config.tier0_lifecycle_states`. Edit that file to change tier rules — do not edit the Python tools directly.
 
 **Prerequisite for Tier 0 promotion:** Every epic lug must have `initiative_id` set to its parent initiative's `id`. Epics without this field land in Tier 1 regardless of the initiative's lifecycle state.
 
@@ -39,7 +39,7 @@ Initiatives in `lifecycle_state: approved | active | measuring` are **Tier 0 (ti
 
 For each theme: `id | label | description (brief) | score (or "unscored") | last_graded (or "never")`
 
-Read from `WAI-Spoke/health/themes.json` (canonical). Fallback: `WAI-Spoke/initiatives/index.json` → `themes[]` if `health/themes.json` absent.
+Read from `WAI-Harness/spoke/health/themes.json` (canonical). Fallback: `WAI-Harness/spoke/initiatives/index.json` → `themes[]` if `health/themes.json` absent.
 
 - Highlight themes with `score: null` as **needing grading**
 - Highlight themes with no active epic coverage as **neglected dimension**
@@ -58,7 +58,7 @@ Theme Scorecard
 
 ### Initiative Groups
 
-For each initiative in `WAI-Spoke/initiatives/bytype/initiative/{lifecycle_state}/*.json` (per-file, canonical). The generated read-model `WAI-Spoke/initiatives/index.json` → `initiatives[]` may also be used as fallback.
+For each initiative in `WAI-Harness/spoke/initiatives/bytype/initiative/{lifecycle_state}/*.json` (per-file, canonical). The generated read-model `WAI-Harness/spoke/initiatives/index.json` → `initiatives[]` may also be used as fallback.
 
 ```
 Initiatives
@@ -72,7 +72,7 @@ Initiatives
     epic-f5678ab  Navigator advisor rollout          [open]
 ```
 
-Epic statuses are read from `WAI-Spoke/lugs/bytype/epic/`. Cross-reference `initiative_id` on each epic lug.
+Epic statuses are read from `WAI-Harness/spoke/lugs/bytype/epic/`. Cross-reference `initiative_id` on each epic lug.
 
 ### Coverage Gaps
 
@@ -109,9 +109,9 @@ Scores are 1-10. Grade a theme by reviewing all epics tagged to it and the outco
 
 | Data | Source |
 |------|--------|
-| Theme definitions + scores | `WAI-Spoke/health/themes.json` (canonical) |
-| Initiative groups | `WAI-Spoke/initiatives/bytype/initiative/{lifecycle_state}/*.json` (per-file canonical); `index.json` is the generated read-model |
-| Epic statuses | `WAI-Spoke/lugs/bytype/epic/{status}/*.json` |
+| Theme definitions + scores | `WAI-Harness/spoke/health/themes.json` (canonical) |
+| Initiative groups | `WAI-Harness/spoke/initiatives/bytype/initiative/{lifecycle_state}/*.json` (per-file canonical); `index.json` is the generated read-model |
+| Epic statuses | `WAI-Harness/spoke/lugs/bytype/epic/{status}/*.json` |
 | Epic theme tags | `themes` field on each epic lug |
 | Epic initiative membership | `initiative_id` field on each epic lug |
 
@@ -125,11 +125,11 @@ Cross-reference: for each theme, collect all epics whose `themes` array includes
 
 Record a new score for a theme.
 
-1. Read `WAI-Spoke/health/themes.json`
+1. Read `WAI-Harness/spoke/health/themes.json`
 2. Find the theme by `id`
 3. Set `score` to the provided integer (1-10)
 4. Set `last_graded` to today's date (ISO 8601)
-5. Write back to `WAI-Spoke/health/themes.json`
+5. Write back to `WAI-Harness/spoke/health/themes.json`
 6. Confirm: `"quality scored 7.5 — graded 2026-05-25"`
 
 Validation: score must be 1-10. Reject anything outside range.
@@ -138,7 +138,7 @@ Validation: score must be 1-10. Reject anything outside range.
 
 Add theme tags to an epic lug.
 
-1. Find the epic lug file at `WAI-Spoke/lugs/bytype/epic/{status}/{epic-id}.json`
+1. Find the epic lug file at `WAI-Harness/spoke/lugs/bytype/epic/{status}/{epic-id}.json`
 2. Read current `themes` field (may be missing or empty)
 3. Merge new themes into existing list (deduplicate)
 4. Validate all themes against the 7 valid values
@@ -197,7 +197,7 @@ summary; non-zero exit = failure. If the engine CLI changes, update THIS file (B
 
 ## Implementation Notes
 
-- If `WAI-Spoke/initiatives/index.json` does not exist: display `"No initiatives index found — create WAI-Spoke/initiatives/index.json to use this skill."` and stop.
+- If `WAI-Harness/spoke/initiatives/index.json` does not exist: display `"No initiatives index found — create WAI-Harness/spoke/initiatives/index.json to use this skill."` and stop.
 - An initiative is complete only when **all** its epics reach `completed` status.
 - An epic with 4+ theme tags likely has unclear scope — surface as a note, not a hard error.
 - Theme imbalance threshold: any single theme with 3x more active epics than another non-zero theme is worth flagging.

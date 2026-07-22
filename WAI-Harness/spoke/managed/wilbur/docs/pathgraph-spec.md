@@ -97,10 +97,10 @@ Ephemeral because it exists to drive one specific action — once adopted into a
 
 ## Multi-File Structure
 
-PathGraph is a directory of files within each spoke's `WAI-Spoke/pathgraph/`:
+PathGraph is a directory of files within each spoke's `WAI-Harness/spoke/pathgraph/`:
 
 ```
-WAI-Spoke/pathgraph/
+WAI-Harness/spoke/pathgraph/
   index.json          — meta: file list, last rebuild, version, spoke_id
   history.jsonl       — completed lugs + closed epics (append-only)
   current.json        — open + in-progress lugs (rebuilt on change)
@@ -132,7 +132,7 @@ def generate(artifact_type: str, module: str = None, horizon: str = "all") -> st
     horizon:       "history" | "current" | "near-future" | "vision" | "all"
 
     Returns the generated artifact as a markdown string.
-    Writes to WAI-Spoke/pathgraph/generated/{artifact_type}.md if called with save=True.
+    Writes to WAI-Harness/spoke/pathgraph/generated/{artifact_type}.md if called with save=True.
     """
 ```
 
@@ -434,7 +434,7 @@ Wilbur's PathGraph has one capability no other spoke's PathGraph has: it reads f
 
 **How it works:**
 
-1. At session start (or on demand), Wilbur reads each registered spoke's `WAI-Spoke/pathgraph/index.json` via hub-registry paths
+1. At session start (or on demand), Wilbur reads each registered spoke's `WAI-Harness/spoke/pathgraph/index.json` via hub-registry paths
 2. Aggregates aspirations across spokes, grouped by team membership and dependency
 3. Applies team priority weights (see Team Relationship Model below)
 4. Produces a ranked recommendation: which spoke, which work, in what order, for Mario's next involvement

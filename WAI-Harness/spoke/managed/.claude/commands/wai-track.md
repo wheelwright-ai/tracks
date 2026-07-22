@@ -2,8 +2,8 @@
 
 Session governance protocol — per-turn JSONL ledger, behavioral overlays, and export format.
 
-**Spec source:** `WAI-Spoke/reference/wai-track-v1.0.2.yaml`  
-**TasteGraph override:** load `WAI-Spoke/tastegraph.json` — overrides embedded defaults
+**Spec source:** `WAI-Harness/spoke/reference/wai-track-v1.0.2.yaml`  
+**TasteGraph override:** load `WAI-Harness/spoke/tastegraph.json` — overrides embedded defaults
 
 ---
 
@@ -20,14 +20,14 @@ WAI Track is simultaneously:
 ## Ledger Location
 
 ```
-WAI-Spoke/sessions/{session_id}/track.jsonl
+WAI-Harness/spoke/sessions/{session_id}/track.jsonl
 ```
 
 One JSONL line per structural event. Per-turn entries are written via the staging buffer:
 
 ```
-WAI-Spoke/runtime/track-buffer.json   ← Claude writes here
-WAI-Spoke/sessions/{id}/track.jsonl   ← Stop hook commits it here
+WAI-Harness/spoke/runtime/track-buffer.json   ← Claude writes here
+WAI-Harness/spoke/sessions/{id}/track.jsonl   ← Stop hook commits it here
 ```
 
 The Stop hook reads `track-buffer.json` after each tool use and appends its contents to `track.jsonl`, then deletes the buffer. Writing to the buffer (not directly to `track.jsonl`) is more reliable: if a response ends without a direct append, the buffer survives until the next tool call.
@@ -37,7 +37,7 @@ The Stop hook reads `track-buffer.json` after each tool use and appends its cont
 ## Per-Turn Append
 
 **When:** After completing the response — before the next user turn.  
-**How:** Write the entry to `WAI-Spoke/runtime/track-buffer.json` as a single JSON object (not JSONL).  
+**How:** Write the entry to `WAI-Harness/spoke/runtime/track-buffer.json` as a single JSON object (not JSONL).  
 **Skip condition:** Plan mode only — tool calls are blocked. Resume normal appends when plan mode exits.
 
 ### Schema
@@ -193,7 +193,7 @@ Non-turn entries written directly to `track.jsonl` (not via buffer):
 
 When `track-buffer.json` write fails or buffer is not picked up by the Stop hook:
 
-1. Write directly to `WAI-Spoke/sessions/{session_id}/track.jsonl` using Edit/Write tools
+1. Write directly to `WAI-Harness/spoke/sessions/{session_id}/track.jsonl` using Edit/Write tools
 2. Add `"degraded": true` to the entry
 3. Note the failure in `open` field: `"Stop hook did not consume buffer"`
 
@@ -208,4 +208,4 @@ Sessions in this range have empty `track.jsonl` (≤2 lines). The Historian's `t
 **Reconstructed entry rules:**
 - Set `"reconstructed": true` in each entry
 - 2–5 entries per session covering major activity groups — not real per-turn rows
-- Source reference: `WAI-Spoke/advisors/historian/context_prompt.md`
+- Source reference: `WAI-Harness/spoke/advisors/historian/context_prompt.md`

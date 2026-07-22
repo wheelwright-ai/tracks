@@ -4,11 +4,11 @@
 
 Quick start:
 - Read this `AGENTS.md`
-- Read `WAI-Spoke/WAI-State.json`
+- Read `WAI-Harness/spoke/WAI-State.json`
 - Do not read `CLAUDE.md` by default.
 - If the user explicitly asks for `/wai` or wakeup behavior, load the smallest relevant file only:
-  - `WAI-Spoke/commands/wai.md`
-  - `WAI-Spoke/skills/wai/wai.md`
+  - `WAI-Harness/spoke/commands/wai.md`
+  - `WAI-Harness/spoke/skills/wai/wai.md`
 - During wakeup, finish the WAI Point briefing before asking for teaching approval.
 - Do not read full teaching bodies during wakeup unless the user explicitly asks to review them now.
 - During `/wai`, output the briefing directly instead of narrating the bootstrap steps you ran.
@@ -20,7 +20,7 @@ If any of those files are missing, ask the user to initialize Wheelwright for th
 Default optimization rules:
 - Do not read `CLAUDE.md` unless the task touches Claude-specific hooks or config.
 - Do not preload large WAI history/runtime files.
-- Prefer targeted file reads over scanning entire `WAI-Spoke/` trees.
+- Prefer targeted file reads over scanning entire `WAI-Harness/spoke/` trees.
 - **Tool ownership (author vs distribute)** — Distributed tool/config — everything under `WAI-Harness/spoke/managed/**` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings) plus `MANIFEST.json`, `.mcp.json`, and provider files — has two roles. The **canonical master source is authored at the hub / canonical home (mywheel)**. **Basher owns distribution** — managed→live redeploy, fleet fan-out, and the re-cut mechanics. A spoke does NOT edit the distributed source locally: it proposes a change via a lug (to the hub to author, and/or to Basher to distribute). Apply changes directly **only when purely local** — files under `WAI-Harness/spoke/local/**` (state, lugs, sessions, savepoints, runtime). When in doubt, route it. This is how we maintain the wheel.
 ## Codex Wakeup Output
 

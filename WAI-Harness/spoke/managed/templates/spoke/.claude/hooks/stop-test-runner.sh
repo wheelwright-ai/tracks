@@ -26,37 +26,125 @@ ALL_CHANGED="${CHANGED}${STAGED}"
 # Detect test framework and run
 cd "$PROJECT_DIR" || exit 0
 
+# Count Python test files under a directory.
+_count_py_tests() {
+  find "$1" -type f \( -name 'test_*.py' -o -name '*_test.py' \) 2>/dev/null | wc -l
+}
+
+# --- Python suite discovery --------------------------------------------------
+# This hook ships to every spoke, and spokes disagree about where the suite
+# lives. Most keep it at ./tests. Some keep only scripts there and hold the
+# real suite in a nested package (mywheel: ./tests holds a single .sh, while
+# the 147-file suite lives under WAI-Harness/spoke/managed/tests). Hardcoding
+# a second path would just relocate the narrow-surface bug, so DISCOVER the
+# suite instead.
+#
+# Rule: a "suite root" is a directory named tests/ or test/ that actually
+# contains Python test files — the old `[[ -d tests ]]` guard checked only
+# that the directory EXISTS, which is why mywheel's script-only ./tests
+# sailed through it. Prefer ./tests or ./test when it qualifies (the common
+# case, and cheap). Otherwise take the DOMINANT root: most test files wins,
+# ties broken by shallowest, then by the sorted order of find — so the pick
+# is deterministic rather than filesystem-order-dependent.
+#
+# Deliberately NOT "run every test root found": a repo can vendor a foreign
+# component whose tests are not this project's suite and do not run here
+# (mywheel vendors WAI-Harness/hub/managed/tests, which is red on collection
+# by itself). Dragging those in would block every edit for reasons the editor
+# cannot fix. The dominant root is this project's suite.
+discover_python_suite() {
+  local d count depth best="" best_count=0 best_depth=99
+
+  for d in tests test; do
+    if [[ -d "$d" ]] && (( $(_count_py_tests "$d") > 0 )); then
+      printf '%s\n' "$d"
+      return 0
+    fi
+  done
+
+  # The VENDORED-HARNESS exclusion. WAI-Harness/*/managed/tests is the harness's own
+  # suite. On the harness MASTER (mywheel, is_master:true) that suite IS this project's
+  # suite and must be discovered. In a CONSUMING SPOKE it is vendored — master's tests,
+  # shipped in, testing master's tools against a tree that has no hub. It is red there by
+  # construction and is not the spoke's to fix, so running it would block every edit in
+  # that spoke for a failure its author cannot repair.
+  #
+  # Found 2026-07-14 the hard way: 4.6.7 armed this gate fleet-wide, and 6 registered
+  # spokes have no ./tests of their own — they would have discovered the vendored suite
+  # (97 failed / 23 errors there vs 1204/0 on master) and blocked on every .py edit.
+  #
+  # is_master is the exact discriminator and already exists in the MANIFEST. No new state.
+  local _vendor_prune=()
+  if [[ -f WAI-Harness/spoke/managed/MANIFEST.json ]] \
+     && ! grep -q '"is_master"[[:space:]]*:[[:space:]]*true' WAI-Harness/spoke/managed/MANIFEST.json 2>/dev/null; then
+    _vendor_prune=( -not -path './WAI-Harness/*' )
+  fi
+
+  while IFS= read -r d; do
+    count=$(_count_py_tests "$d")
+    (( count > 0 )) || continue
+    depth=$(awk -F/ '{print NF}' <<<"$d")
+    if (( count > best_count )) || { (( count == best_count )) && (( depth < best_depth )); }; then
+      best="$d"; best_count=$count; best_depth=$depth
+    fi
+  done < <(find . -maxdepth 6 -type d \( -name tests -o -name test \) \
+             -not -path '*/.git/*' -not -path '*/node_modules/*' \
+             -not -path '*/.venv/*' -not -path '*/venv/*' \
+             -not -path '*/site-packages/*' -not -path '*/.worktrees/*' \
+             "${_vendor_prune[@]}" \
+             2>/dev/null | sort)
+
+  [[ -n "$best" ]] && printf '%s\n' "$best"
+}
+
+FAIL_MSG="Tests failed after your last change. Fix before continuing."
+
 if [[ -f "package.json" ]] && echo "$ALL_CHANGED" | grep -qE '\.(js|ts|jsx|tsx)$'; then
   # Node.js project with JS/TS changes
   if command -v bun &>/dev/null && [[ -f "bun.lock" ]]; then
-    RESULT=$(bun test 2>&1) || true
+    RESULT=$(bun test 2>&1); EXIT_CODE=$?
   elif command -v npm &>/dev/null; then
-    RESULT=$(npm test 2>&1) || true
+    RESULT=$(npm test 2>&1); EXIT_CODE=$?
   else
     exit 0
   fi
 elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
   # Python project with Python changes
-  [[ -d "tests" ]] || exit 0
-  RESULT=$(python3 -m pytest tests/ -x -q --tb=short 2>&1) || true
+  SUITE=$(discover_python_suite)
+  [[ -n "$SUITE" ]] || exit 0   # no Python suite in this repo — nothing to gate
+  RESULT=$(python3 -m pytest "$SUITE" -x -q --tb=short 2>&1); EXIT_CODE=$?
+
+  # pytest exit codes:
+  #   0 all passed | 1 tests failed | 2 collection error / interrupted
+  #   3 internal error | 4 usage error | 5 no tests collected
+  #
+  # 5 is NOT a failure. "Nothing to run here" is not "the suite is red", and
+  # blocking on it would brick every .py edit in a repo whose discovered dir
+  # holds no COLLECTIBLE tests (files can match test_*.py yet define no tests).
+  # This cannot mask a genuinely broken suite: a suite that is broken rather
+  # than absent fails during COLLECTION and exits 2 — which still blocks below.
+  # Distinguishing 2 from 5 is exactly what keeps "no tests" honest.
+  #
+  # 3 and 4 are pytest infrastructure/usage errors, not verdicts about the
+  # code. Per this hook's contract they must never block Claude.
+  case $EXIT_CODE in
+    5) exit 0 ;;
+    3|4) exit 0 ;;
+    2) FAIL_MSG="Test collection FAILED after your last change (pytest exit 2 — broken import or conftest). The suite could not run. Fix before continuing." ;;
+  esac
 elif echo "$ALL_CHANGED" | grep -qE '\.rs$'; then
   # Rust project
-  RESULT=$(cargo test 2>&1) || true
+  RESULT=$(cargo test 2>&1); EXIT_CODE=$?
 else
   exit 0
 fi
 
-EXIT_CODE=${PIPESTATUS[0]:-$?}
-
 if [[ $EXIT_CODE -ne 0 ]]; then
-  export _TEST_DETAIL
-  _TEST_DETAIL=$(echo "$RESULT" | tail -20)
-  python3 - <<'PYEOF'
-import json, os
-detail = os.environ.get('_TEST_DETAIL', '')
-content = f"<test-failure>\nTests failed after your last change. Fix before continuing.\n\n{detail}\n</test-failure>"
-print(json.dumps({"hookSpecificOutput": content}))
-PYEOF
+  echo "<test-failure>"
+  echo "$FAIL_MSG"
+  echo ""
+  echo "$RESULT" | tail -20
+  echo "</test-failure>"
   exit 1
 fi
 

@@ -11,7 +11,7 @@
 
 This hub is a **Wheelwright wheel** that coordinates all other wheels. It has:
 
-1. **WAI-Spoke/** structure (standard wheel files for self-tracking)
+1. **WAI-Harness/spoke/** structure (standard wheel files for self-tracking)
 2. **Hub-specific files** (registry, learnings, security policy)
 3. **Same update protocol** as spokes (receives framework updates via seed/ingest/)
 
@@ -67,7 +67,7 @@ cd <framework_path>
 **Step 2 - Route Hub Lugs to Spokes:**
 1. Open `hub/WAI-Hub/WAI-Lugs.jsonl`
 2. Find all entries where `destination_wheel_id = "<spoke-name>"`
-3. Append those lugs to `spoke/WAI-Spoke/WAI-Lugs.jsonl`
+3. Append those lugs to `spoke/WAI-Harness/spoke/WAI-Lugs.jsonl`
 4. Remove delivered lugs from hub's WAI-Lugs.jsonl
 5. Mark status → "delivered" with timestamp in WAI-State.md
 
@@ -81,7 +81,7 @@ cd <framework_path>
 **Spoke Side (Next WAI Wake):**
 - Receives upgrade-adoption-plan.json
 - Processes templates (same as before)
-- **NEW:** Processes new lugs in WAI-Spoke/WAI-Lugs.jsonl
+- **NEW:** Processes new lugs in WAI-Harness/spoke/WAI-Lugs.jsonl
 - Executes lug directives by category
 - Prepares response lugs (destination_wheel_id="hub")
 
@@ -93,7 +93,7 @@ cd <framework_path>
 
 **Step 1 - Collect Spoke Lugs:**
 ```python
-# Pull from spoke/WAI-Spoke/WAI-Lugs.jsonl
+# Pull from spoke/WAI-Harness/spoke/WAI-Lugs.jsonl
 # Find entries where source_wheel_id="<spoke>" AND destination_wheel_id="hub"
 spoke_lugs = [
     lug for lug in spoke_wailu gs.jsonl
@@ -226,7 +226,7 @@ result = processor.run_update()
 
 **Hub = Spoke + Hub Features**
 
-Hub uses the **same base structure** as spokes (WAI-Spoke/), enabling:
+Hub uses the **same base structure** as spokes (WAI-Harness/spoke/), enabling:
 - Identical update protocol (teach command works for both)
 - Self-tracking via WAI-State files
 - Session continuity and analytics
@@ -236,7 +236,7 @@ Hub uses the **same base structure** as spokes (WAI-Spoke/), enabling:
 
 ```
 ~/wheelwright-hub/
-├── WAI-Hub/                      ← Hub identity (parallel to spoke's WAI-Spoke/)
+├── WAI-Hub/                      ← Hub identity (parallel to spoke's WAI-Harness/spoke/)
 │   ├── WAI-State.json           (hub configuration + analytics)
 │   ├── WAI-State.md             (hub identity + operations)
 │   ├── WAI-Guide.md             (this file, generated)
@@ -262,7 +262,7 @@ Hub uses the **same base structure** as spokes (WAI-Spoke/), enabling:
 ### Lug Location Pattern
 
 ```
-Spoke: spoke/WAI-Spoke/WAI-Lugs.jsonl
+Spoke: spoke/WAI-Harness/spoke/WAI-Lugs.jsonl
   ├── Lugs with destination_wheel_id="hub"     → Pushed to hub during TEACH
   ├── Lugs with destination_wheel_id="<spoke>" → From hub (received during TEACH)
   └── Self-lugs (destination_wheel_id=null)    → Hub tasks for this spoke
@@ -341,7 +341,7 @@ Framework v3.1
 upgrade-adoption-plan.json
     (hub_files: ["hub-security-policy.json", ...])
     ↓
-hub/WAI-Spoke/seed/ingest/
+hub/WAI-Harness/spoke/seed/ingest/
     ↓
 Hub closeout processes ingest
     ↓
@@ -534,7 +534,7 @@ Update these metrics during hub operations:
 1. **Reconcile Lugs:**
    - Scan hub/WAI-Hub/WAI-Lugs.jsonl for pending deliveries
    - Route spoke-bound lugs (destination_wheel_id="<spoke-name>")
-   - Append to spoke/WAI-Spoke/WAI-Lugs.jsonl
+   - Append to spoke/WAI-Harness/spoke/WAI-Lugs.jsonl
    - Mark status → "delivered" with timestamp
    - Remove from hub's WAI-Lugs.jsonl (or archive)
    

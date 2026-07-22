@@ -17,7 +17,7 @@
 
 **Folder hierarchy:**
 ```
-WAI-Spoke/lugs/
+WAI-Harness/spoke/lugs/
   incoming/                        — inbound deliveries (operational)
   outgoing/                        — outbound deliveries (operational)
   bytype/
@@ -34,11 +34,11 @@ WAI-Spoke/lugs/
 |------|-------|-------|
 | Active lugs | `lugs/bytype/*/open/` and `bytype/*/in_progress/` | Scanned at wakeup |
 | Completed lugs | `lugs/bytype/{type}/completed/` | One file per lug |
-| Signals (v2) | `WAI-Spoke/signals/{inbound,processed}/` + `signals/registry.json` | Signal lugs use `routed_to: "FRAMEWORK"` — spokes never receive raw signals |
-| Lug index | `WAI-Spoke/WAI-LugIndex.jsonl` | Lightweight lookup — on-demand only |
-| Incoming/outgoing | `WAI-Spoke/lugs/incoming/` and `outgoing/` | Delivery channel only |
+| Signals (v2) | `WAI-Harness/spoke/signals/{inbound,processed}/` + `signals/registry.json` | Signal lugs use `routed_to: "FRAMEWORK"` — spokes never receive raw signals |
+| Lug index | `WAI-Harness/spoke/WAI-LugIndex.jsonl` | Lightweight lookup — on-demand only |
+| Incoming/outgoing | `WAI-Harness/spoke/lugs/incoming/` and `outgoing/` | Delivery channel only |
 | Hub bulletin | `WAI-Hub/signals/incoming/` | High-impact lugs copied here at closeout |
-| Reference docs | `WAI-Spoke/reference/` | Top-level, peer to lugs/sessions/skills |
+| Reference docs | `WAI-Harness/spoke/reference/` | Top-level, peer to lugs/sessions/skills |
 
 **Storage rules:**
 - **New lugs** → write to `lugs/bytype/{type}/open/{id}.json`
@@ -47,13 +47,13 @@ WAI-Spoke/lugs/
 - **Index** → regenerated at closeout
 - **Wakeup** → scans `bytype/*/open/` and `bytype/*/in_progress/` only
 
-`WAI-Spoke/WAI-Signals.jsonl`, `WAI-Spoke/WAI-Lugs.jsonl`, and `WAI-Spoke/lugs/active/` are all **retired**. Do not create or write to any of them.
+`WAI-Harness/spoke/WAI-Signals.jsonl`, `WAI-Harness/spoke/WAI-Lugs.jsonl`, and `WAI-Harness/spoke/lugs/active/` are all **retired**. Do not create or write to any of them.
 
 ---
 
 ## What Is A Lug
 
-A lug is a JSON file at `WAI-Spoke/lugs/bytype/{type}/{status}/{id}.json`. The folder path tells you what it is and whether it needs attention. Lugs are the persistent memory of the session system — they carry work items, decisions, signals, and protocols across sessions, models, and projects.
+A lug is a JSON file at `WAI-Harness/spoke/lugs/bytype/{type}/{status}/{id}.json`. The folder path tells you what it is and whether it needs attention. Lugs are the persistent memory of the session system — they carry work items, decisions, signals, and protocols across sessions, models, and projects.
 
 **Lugs travel across contexts.** They must be unambiguous enough that ANY agent can interpret them correctly WITHOUT your current conversation history.
 
@@ -106,7 +106,7 @@ Both short and full key forms are valid. Prefer short keys for storage efficienc
 | `review` | Something needing review or verification | No — add to tracker |
 | `epic` | Large multi-session effort (blocked until tasks clear) | No — add to tracker |
 | `implementation` | Execution-control lug for non-trivial planned work | No — add to tracker |
-| `signal` | Patch-now alert (impact >= 8) — `routed_to: "FRAMEWORK"` | No — write to `WAI-Spoke/signals/inbound/` |
+| `signal` | Patch-now alert (impact >= 8) — `routed_to: "FRAMEWORK"` | No — write to `WAI-Harness/spoke/signals/inbound/` |
 | `foundation` | Project identity, boundaries, approach | No — defines the project |
 | `session-summary` | Completed session record (autosaves reconciled) | No — archive only |
 | `autosave` | Crash-recovery checkpoint from mid-session | Reconcile at closeout |
@@ -436,7 +436,7 @@ See `wai-lug-schema-reference.md` for routing JSON example and worked test case.
 | Type | Purpose | AI Execution? |
 |------|---------|--------------|
 | `task` | Track work item | NO — add to tracker |
-| `signal` | Patch-now alert (impact >= 8) — `routed_to: "FRAMEWORK"` | NO — write to `WAI-Spoke/signals/inbound/` |
+| `signal` | Patch-now alert (impact >= 8) — `routed_to: "FRAMEWORK"` | NO — write to `WAI-Harness/spoke/signals/inbound/` |
 | `phone-home` | Request status | AUTO by learn |
 | `foundation` | Project identity | NO — defines project |
 

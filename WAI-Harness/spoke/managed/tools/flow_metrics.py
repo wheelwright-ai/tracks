@@ -41,6 +41,7 @@ _PATTERNS = _patterns_base()
 _DEFAULT_EVENTS = os.path.join(_PATTERNS, "gate-log.jsonl")
 _DEFAULT_FLOW_DEFS = os.path.join(_PATTERNS, "flow-definitions")
 _DEFAULT_OUT = os.path.join(_PATTERNS, "flow-metrics.jsonl")
+_DEFAULT_GROUNDED_LOOP_COVERAGE_OUT = os.path.join(_PATTERNS, "grounded-loop-coverage.jsonl")
 
 
 def _read_jsonl(path):
@@ -139,14 +140,68 @@ def run(events_path=_DEFAULT_EVENTS,
             "new_baselines": new_baselines, "flows": list(metrics.keys())}
 
 
+def record_grounded_loop_coverage(root=".", out_path=_DEFAULT_GROUNDED_LOOP_COVERAGE_OUT, now_iso=None):
+    """impl-grounded-loop-backfill-coverage-v1 regression_monitor: one row per ISO week
+    of (open+in_progress impl lugs with grounded_loop.metric_target) / (all such lugs),
+    via grounded_oracle_map.coverage(). Idempotent per week (a second call the same week
+    is a no-op) and NEVER regressed below the prior recorded week -- 'regressed' is a flag
+    on the returned dict for the caller to surface, not an exception; this function never
+    raises on a coverage drop, it only reports one.
+    """
+    from datetime import datetime, timezone
+    try:
+        import grounded_oracle_map
+    except ImportError:
+        return {"recorded": False, "reason": "grounded_oracle_map unavailable"}
+
+    cov = grounded_oracle_map.coverage(root)
+    if cov.get("total") is None or cov.get("ratio") is None:
+        return {"recorded": False, "reason": "no impl lugs to measure"}
+
+    now = datetime.fromisoformat(now_iso) if now_iso else datetime.now(timezone.utc)
+    iso_year, iso_week, _ = now.isocalendar()
+    week_key = f"{iso_year}-W{iso_week:02d}"
+
+    rows = _read_jsonl(out_path)
+    weekly_rows = [r for r in rows if r.get("kind") == "grounded_loop_coverage_weekly"]
+    if any(r.get("iso_week") == week_key for r in weekly_rows):
+        return {"recorded": False, "reason": f"already recorded for {week_key}"}
+
+    previous_ratio = weekly_rows[-1]["ratio"] if weekly_rows else None
+    regressed = previous_ratio is not None and cov["ratio"] < previous_ratio
+
+    row = {
+        "kind": "grounded_loop_coverage_weekly",
+        "iso_week": week_key,
+        "computed_at": now_iso or now.isoformat(),
+        "total": cov["total"],
+        "grounded": cov["grounded"],
+        "ratio": cov["ratio"],
+        "previous_ratio": previous_ratio,
+        "regressed": regressed,
+    }
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(row, separators=(",", ":")) + "\n")
+    return {"recorded": True, **row}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="compute per-flow gate metrics + baselines")
+    sub = ap.add_subparsers(dest="cmd")
+    gl = sub.add_parser("grounded-loop-coverage", help="record this week's grounded_loop coverage row")
+    gl.add_argument("--root", default=".")
+    gl.add_argument("--out-path", default=_DEFAULT_GROUNDED_LOOP_COVERAGE_OUT)
+    gl.add_argument("--now-iso", default=None)
     ap.add_argument("--events-path", default=_DEFAULT_EVENTS)
     ap.add_argument("--flow-defs-dir", default=_DEFAULT_FLOW_DEFS)
     ap.add_argument("--out-path", default=_DEFAULT_OUT)
     ap.add_argument("--now-iso", default=None)
     a = ap.parse_args(argv)
-    res = run(a.events_path, a.flow_defs_dir, a.out_path, a.now_iso)
+    if a.cmd == "grounded-loop-coverage":
+        res = record_grounded_loop_coverage(a.root, a.out_path, a.now_iso)
+    else:
+        res = run(a.events_path, a.flow_defs_dir, a.out_path, a.now_iso)
     print(f"[flow_metrics] {res}")
     return 0
 
