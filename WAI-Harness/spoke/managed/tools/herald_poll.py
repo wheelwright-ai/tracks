@@ -375,6 +375,14 @@ def _responder_protocol(wid: str, key: str, lug: dict, origin: str) -> str:
         '     "created_at": "<iso-utc>"\n'
         "   }\n"
         f"   Then mark this lug blocked:needs-refinement in {wid}'s lug store and exit.\n"
+        "1.5. CLAIM -- MANDATORY before executing (spec-lug-lifecycle-ownership-v1 RULE 1,\n"
+        "   claim-on-pickup): a Herald pickup and a native wakeup pickup must never both\n"
+        "   grab the same lug. Take a lug lease AND move the lug OUT of incoming/ into\n"
+        f"   {wid}'s lugs/bytype/<type>/in_progress/ before touching the plan:\n"
+        f'     python3 WAI-Harness/spoke/managed/tools/lug_lease.py claim {lug_id} herald-<your-session-id>\n'
+        "   If claim is refused (already leased), STOP -- do not execute, do not move the\n"
+        "   file, exit quietly (someone else already owns this lug). If claimed, stamp\n"
+        "   workflow.current_owner/lane on the lug JSON and move the file before step 2.\n"
         "2. EXECUTE the lug's plan in this spoke's tree.\n"
         "3. VERIFY -- run the lug's verify / acceptance tests.\n"
         "   If FAIL: mark needs-attention, do NOT mark complete. Deliver a FAILURE notice to the\n"

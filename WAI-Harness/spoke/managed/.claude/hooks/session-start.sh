@@ -94,11 +94,23 @@ _HM="$(dirname "${BASH_SOURCE[0]:-$0}")/harness_mode.sh"
 # Runs the MASTER's engine so a spoke carrying an old copy still self-updates.
 # Master path resolves PORTABLY (clone-and-run on any machine): $WAI_HARNESS_MASTER ->
 # per-spoke WAI-Harness/.harness-master -> built-in default. Unreachable -> pull no-ops.
+#
+# impl-dist-spoke-pullcheck-v1: prefer harness_pullcheck.py's `check` over a bare
+# `harness_upgrade.py pull`. It resolves this spoke's GROUP (hub-registry.json +
+# groups.json) and gates the pull to that group's hub-AVAILABLE (certified) version
+# instead of master's raw HEAD -- an uncertified cut is never pulled. It is
+# fail-open by design: no group resolved, or the group has no AVAILABLE version
+# recorded yet, falls straight through to today's unconditioned pull, so this is a
+# safe drop-in. Falls back to the bare pull when the newer tool isn't present yet
+# (older master pin) so self-heal never regresses mid-rollout.
 _WMASTER="${WAI_HARNESS_MASTER:-$(cat "$PROJECT_DIR/WAI-Harness/.harness-master" 2>/dev/null)}"
 [ -z "$_WMASTER" ] && _WMASTER="/home/mario/projects/wheelwright/mywheel/WAI-Harness"
 _HUP="$_WMASTER/spoke/managed/tools/harness_upgrade.py"
+_HPC="$_WMASTER/spoke/managed/tools/harness_pullcheck.py"
 if [ -d "$PROJECT_DIR/WAI-Harness" ]; then
-  if [ -f "$_HUP" ]; then
+  if [ -f "$_HPC" ]; then
+    python3 "$_HPC" check --spoke-root "$PROJECT_DIR" --master "$_WMASTER" >/dev/null 2>&1
+  elif [ -f "$_HUP" ]; then
     python3 "$_HUP" pull --spoke-root "$PROJECT_DIR" --master "$_WMASTER" >/dev/null 2>&1
   else
     # DEGRADED (visible, not silent): master resolution dangled — no reachable engine at

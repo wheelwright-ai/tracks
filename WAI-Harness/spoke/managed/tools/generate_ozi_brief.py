@@ -350,9 +350,12 @@ def generate_brief(skip_validation: bool = False) -> Dict[str, Any]:
     if state_path.exists():
         with open(state_path) as f:
             state = json.load(f)
-            session_id = state.get("_session_state", {}).get(
+            session_state = state.get("_session_state", {})
+            session_id = session_state.get("last_session_id") or session_state.get(
                 "current_session", "unknown"
             )
+            if session_id is None:
+                session_id = "unknown"
 
     brief = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

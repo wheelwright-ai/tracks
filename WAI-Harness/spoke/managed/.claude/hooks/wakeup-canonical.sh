@@ -356,7 +356,14 @@ elif [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
   done
 fi
 
-# ── 4b. Direct-delivery teachings (ingest/manual/ + ingest/incoming/) ─────────
+# ── 4b. Incoming lug count ───────────────────────────────────────────────────
+INCOMING_LUGS_COUNT=0
+INCOMING_DIR="$BASE/lugs/incoming"
+if [[ -d "$INCOMING_DIR" ]]; then
+  INCOMING_LUGS_COUNT=$(find "$INCOMING_DIR" -maxdepth 1 -name "*.json" -type f 2>/dev/null | wc -l | tr -d ' ')
+fi
+
+# ── 4c. Direct-delivery teachings (ingest/manual/ + ingest/incoming/) ─────────
 # These arrive from spoke-to-spoke delivery (not via hub teachings_repo).
 # Count pending ones that haven't been processed yet.
 DIRECT_TEACH_NEW=0
@@ -1011,6 +1018,7 @@ ACTIVE WORK
   Epics: ${EPICS_OPEN} open, ${EPICS_IP} in-progress
   Tasks: ${TASKS_OPEN} open | Bugs/Features in-progress: $((BUGS_IP + FEATURES_IP))
   Other open: ${OTHER_OPEN} | Signals undelivered: ${SIGNALS}
+$(if [[ $INCOMING_LUGS_COUNT -gt 0 ]]; then echo "  Incoming: ${INCOMING_LUGS_COUNT} lug(s) pending triage"; fi)
 
 EPICS
 ${EPIC_LIST}
@@ -1031,6 +1039,7 @@ CONTEXT HEALTH
   Prev session: ${PREV_SESSION_STATUS}$(if [[ -n "$PREV_SESSION_ID" ]]; then echo " (${PREV_SESSION_ID})"; fi)$(if [[ "$PREV_SESSION_STATUS" == "INTERRUPTED" ]]; then echo " ⚠ recovery prompt shown pre-launch"; fi)
 $(if [[ -n "$INTEGRITY_SCORE" ]]; then echo "$INTEGRITY_SCORE"; fi)
 $(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
+$(if [[ $TEACH_NEW -eq 0 ]]; then echo "  Harness: current"; else echo "  Harness: ⚠ ${TEACH_NEW} update(s) pending — Step 0.5 will adopt at session start"; fi)
 $(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)
 $(if [[ -n "$SAVEPOINT_STATUS" ]]; then echo "$SAVEPOINT_STATUS"; fi)
 $(if [[ -n "$STALE_LUGS_STATUS" ]]; then echo "$STALE_LUGS_STATUS"; fi)

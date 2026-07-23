@@ -2,12 +2,24 @@
 """OziScanner — bytype filesystem scanning and work queue assembly."""
 
 import json
+import os
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from wai_ozi_config import OziConfig
+
+# Lug leasing (optional -- graceful fallback if module absent). Same pattern as
+# ozi_autopilot.py: a lug held under a live lease is being actively worked and
+# must never be treated as unclaimed backlog by the scanner.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import lug_lease  # noqa: E402
+    _LEASE_AVAILABLE = True
+except ImportError:
+    _LEASE_AVAILABLE = False
 
 
 @dataclass
@@ -66,14 +78,33 @@ class OziScanner:
             return f"{minutes}min ago"
         return f"{minutes // 60}hr ago"
 
-    def _auto_close_ghost_lug(self, lug: Dict[str, Any]) -> None:
-        """Move a ghost in_progress lug (audit_outcome=shipped or status=completed) to completed/."""
+    @staticmethod
+    def _is_completion_marked(lug: Dict[str, Any]) -> bool:
+        """True if the lug carries direct evidence of committed, completed work
+        (commit_sha or completed_at) OR the ghost-lug audit_outcome/s marker.
+
+        spec-lug-lifecycle-ownership-v1 RULE 3: a lug found ANYWHERE (open/ or
+        in_progress/, any status field value) with a commit_sha but not in
+        completed/ is a RECONCILE case, never a REWORK case -- the exact
+        failure mode of the basher incident this closes (work committed, the
+        lug artifact left claiming status:open)."""
+        if lug.get("commit_sha") or lug.get("completed_at"):
+            return True
+        audit_outcome = lug.get("audit_outcome", "")
+        lug_s = str(lug.get("s", lug.get("status", "")))
+        return audit_outcome in ("shipped", "completed") or lug_s in ("c", "completed")
+
+    def reconcile_completed_lug(self, lug: Dict[str, Any], reason: str = "") -> bool:
+        """Stamp status:completed (+completed_at if missing) and move a
+        mis-filed-but-done lug to completed/. Idempotent no-op if the source
+        file is already gone (raced with another reconcile pass). Returns
+        True iff the lug was moved."""
         file_path = lug.get("_file_path")
         if not file_path:
-            return
+            return False
         src = Path(file_path)
         if not src.exists():
-            return
+            return False
 
         type_dir = src.parent.parent
         completed_dir = type_dir / "completed"
@@ -82,19 +113,33 @@ class OziScanner:
         clean_lug = {k: v for k, v in lug.items() if not k.startswith("_")}
         clean_lug["status"] = "completed"
         clean_lug["s"] = "completed"
-        clean_lug["close_reason"] = "auto-closed: audit_outcome=shipped"
-        clean_lug["auto_closed_at"] = datetime.now(timezone.utc).isoformat()
+        clean_lug.setdefault(
+            "completed_at", datetime.now(timezone.utc).isoformat()
+        )
+        clean_lug["close_reason"] = reason or "reconciled: completion marker present, lug was mis-filed"
+        clean_lug["reconciled_at"] = datetime.now(timezone.utc).isoformat()
 
         dest = completed_dir / src.name
         dest.write_text(json.dumps(clean_lug, indent=2) + "\n")
         src.unlink()
 
         lug_id = lug.get("id", src.stem)
-        audit_outcome = lug.get("audit_outcome", "?")
-        print(
-            f"[scanner] auto-closed ghost lug {lug_id} "
-            f"(audit_outcome={audit_outcome}, moved to completed/)"
-        )
+        print(f"[scanner] reconciled {lug_id} to completed/ ({clean_lug['close_reason']})")
+        return True
+
+    def _is_leased_elsewhere(self, lug_id: str) -> bool:
+        """True iff a live lease exists for this lug (held by ANY session).
+
+        RULE 1/3: a lug under a live lease is being actively worked -- the
+        scanner must never surface it as fresh ready-backlog just because it
+        is still sitting in open/ (e.g. a claim that hasn't yet moved the
+        file). Fails open (False) if the lease module is unavailable."""
+        if not _LEASE_AVAILABLE or not lug_id:
+            return False
+        try:
+            return bool(lug_lease.held_by(lug_id))
+        except Exception:
+            return False
 
     def scan_work_queue(self) -> Dict[str, List[Dict[str, Any]]]:
         queue: Dict[str, List[Dict[str, Any]]] = {
@@ -113,13 +158,14 @@ class OziScanner:
         all_lugs = self._scan_bytype_folders(["open", "in_progress"])
 
         for lug in all_lugs:
-            # --- Ghost auto-close: in_progress/ lugs that are already done ---
-            if lug.get("_fs_status") == "in_progress":
-                audit_outcome = lug.get("audit_outcome", "")
-                lug_s = str(lug.get("s", lug.get("status", "")))
-                if audit_outcome in ("shipped", "completed") or lug_s in ("c", "completed"):
-                    self._auto_close_ghost_lug(lug)
-                    continue  # skip — file moved to completed/
+            # --- Completion-aware reconcile: a lug carrying completion evidence
+            # (commit_sha/completed_at, or the ghost audit_outcome/s marker) is
+            # DONE regardless of which status folder it's sitting in -- reconcile
+            # it to completed/ instead of ever scoring/dispatching it as
+            # backlog (spec-lug-lifecycle-ownership-v1 RULE 3). ---
+            if lug.get("_fs_status") != "completed" and self._is_completion_marked(lug):
+                self.reconcile_completed_lug(lug)
+                continue  # skip — file moved to completed/
 
             status = lug.get("status", lug.get("s", lug.get("_fs_status", "open")))
             if status in ("o", "open"):
@@ -131,6 +177,13 @@ class OziScanner:
             owner = workflow.get("current_owner")
 
             if status == "open":
+                # RULE 1: a lug already under a live lease is being actively
+                # worked (claim taken but the in_progress/ move hasn't landed
+                # yet, or a status write raced this scan) -- never surface it
+                # as fresh ready-backlog.
+                if self._is_leased_elsewhere(lug.get("id", "")):
+                    queue["in_progress"].append(lug)
+                    continue
                 queue["ready"].append(lug)
                 continue
 

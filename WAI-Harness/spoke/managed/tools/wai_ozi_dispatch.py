@@ -4,11 +4,20 @@
 import json
 import os
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from wai_ozi_config import OziConfig
+
+# Lug leasing (optional — graceful fallback if module absent).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import lug_lease  # noqa: E402
+    _LEASE_AVAILABLE = True
+except ImportError:
+    _LEASE_AVAILABLE = False
 
 
 class OziDispatch:
@@ -193,7 +202,45 @@ class OziDispatch:
         status: str,
         workflow: Dict[str, Any],
         extra_fields: Optional[Dict[str, Any]] = None,
+        session_id: Optional[str] = None,
     ) -> bool:
+        # RULE 1 (spec-lug-lifecycle-ownership-v1, claim-on-pickup): this is
+        # the single sanctioned entry point both autopilot dispatch paths
+        # (ozi_autopilot.py _dispatch_subprocess and this module's
+        # auto_dispatch_work) funnel through to move a lug into in_progress/.
+        # Take the lease HERE, atomically with the status transition, so a
+        # second worker racing the same lug is refused instead of silently
+        # double-claiming it. The lease primitive already existed but was
+        # previously consulted only read-only at the dispatch gate — pickup
+        # itself never took one, which is the exact gap that let a Herald
+        # spawn and a native session both believe they owned the same lug.
+        if status == "in_progress" and _LEASE_AVAILABLE:
+            # Config may be a lightweight stand-in (tests, embedded callers) that
+            # carries paths but not the session API — leasing must degrade, never
+            # raise: an AttributeError here would brick every dispatch path.
+            _owner = getattr(self._config, "current_owner_name", None)
+            sid = session_id or (_owner() if callable(_owner) else "unknown-session")
+            try:
+                if not lug_lease.claim(lug_id, sid):
+                    return False  # live lease held by a different session
+            except Exception:
+                pass  # fail-open: leasing must never brick dispatch
+            workflow = dict(workflow)
+            workflow.setdefault("lane", sid)
+        elif status in ("completed", "open", "needs_attention") and _LEASE_AVAILABLE:
+            # Release on every terminal/rollback transition out of in_progress
+            # so the lug is free for the next worker immediately, rather than
+            # relying on the 4h TTL to age the lease out.
+            # Config may be a lightweight stand-in (tests, embedded callers) that
+            # carries paths but not the session API — leasing must degrade, never
+            # raise: an AttributeError here would brick every dispatch path.
+            _owner = getattr(self._config, "current_owner_name", None)
+            sid = session_id or (_owner() if callable(_owner) else "unknown-session")
+            try:
+                lug_lease.release(lug_id, sid)
+            except Exception:
+                pass
+
         lug_path = self._find_lug_file(lug_id)
         if not lug_path:
             return False

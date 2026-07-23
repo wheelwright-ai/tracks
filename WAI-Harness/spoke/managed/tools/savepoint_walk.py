@@ -50,9 +50,24 @@ SAVEPOINT_GLOB = "WAI-Harness/spoke/local/initiatives/savepoints/**/*.json"
 # A verification is re-runnable when we can turn it into a machine check without
 # interpreting prose. Anything else is honestly reported as uncheckable rather
 # than guessed at — a wrong STILL-HOLDS is worse than an admitted gap.
+#
+# TRIAGED (assurance-trail-unevidenced-2f9c4dd6-v1): this classifier disagreed
+# with validate_savepoint.py's _has_rerunnable_check on what counts — the
+# validator already accepts bash/sh commands, any tests/tools/scripts/WAI-Harness
+# path extension, but this walker only recognized python/pytest and a 4-extension
+# allowlist with no "scripts/" prefix. That gap silently reported real, already
+# write-time-validated evidence as UNCHECKABLE. The two MUST agree (same argument
+# the sha comment below already makes) — 23 of 48 false "uncheckable" verdicts
+# were entries like "bash tests/test_x.bash  (T39/T40; 40/40 pass)" that the
+# validator had already accepted and this walker alone refused to re-run.
 _PYTEST_RE = re.compile(r"(python3? -m pytest[^\n;|&]*)")
-_CMD_RE = re.compile(r"^\s*`?(python3? [^\n`]+|pytest [^\n`]+)`?\s*$")
-_PATH_RE = re.compile(r"((?:WAI-Harness|tools|tests)/[\w./-]+\.(?:py|sh|json|md))")
+_CMD_RE = re.compile(r"^\s*`?((?:python3?|pytest|bash|sh)\b[^\n`]+)`?\s*$")
+# Embedded (not whole-field) shell/pytest invocations, e.g. "bash tests/x.bash
+# (T39/T40; 40/40 pass)". Bounded to a bare word so trailing prose — which may
+# itself contain ";" from a human's parenthetical note — is never swept into a
+# string that later gets passed to shell=True.
+_EMBEDDED_CMD_RE = re.compile(r"((?:python3?|pytest|bash|sh)\s+[\w./-]+\.\w+)")
+_PATH_RE = re.compile(r"((?:WAI-Harness|tools|tests|scripts)/[\w./-]+\.\w+)")
 _SHA_RE = re.compile(r"\b(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b")
 
 
@@ -66,7 +81,12 @@ def _classify(verification):
     if not verification or not verification.strip():
         return None, None
     v = verification.strip()
-    m = _PYTEST_RE.search(v) or _CMD_RE.match(v)
+    # Order matters for safety: the two search-based patterns truncate at the
+    # first sign of trailing prose (so a parenthetical human note can never be
+    # swept into a string later run via shell=True) and must be tried before
+    # the anchored _CMD_RE, whose capture is greedy to end-of-string and is
+    # only safe when the ENTIRE field is nothing but the command itself.
+    m = _PYTEST_RE.search(v) or _EMBEDDED_CMD_RE.search(v) or _CMD_RE.match(v)
     if m:
         return "command", m.group(1).strip()
     m = _PATH_RE.search(v)

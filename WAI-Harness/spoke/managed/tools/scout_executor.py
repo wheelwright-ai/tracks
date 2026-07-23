@@ -7,6 +7,10 @@ per input_shape, renders prompt_template, routes through a provider adapter
 (default: NVIDIA), runs verification_gate, emits activity_events, and files bug
 lugs on failure with SOP-5 repeat-fire dedup.
 
+--promote [FILE_OR_DIR] validates newly-authored draft scouts (scouts/spoke_local/draft/)
+against SCHEMA_PATH and moves passing ones into spoke_local/ready/, the directory
+--all-ready globs. Without it, drafts silently rot and the run queue stays empty.
+
 Lives in tools/ alongside wayfinder_cycle_close.py and emit_activity_event.py.
 """
 
@@ -54,6 +58,7 @@ _SPOKE_ROOT = Path(os.environ.get("WAI_SPOKE_ROOT") or os.getcwd())
 _LOCAL = _lugs_base(_SPOKE_ROOT)
 SCOUTS_SPOKE_READY = _LOCAL / "scouts/spoke_local/ready"
 SCOUTS_HUB_READY = _LOCAL / "scouts/hub_universal/ready"
+SCOUTS_SPOKE_DRAFT = _LOCAL / "scouts/spoke_local/draft"
 SCHEMA_PATH = _REPO_ROOT / "reference/scout-job.schema.json"
 BUG_LUG_DIR = _LOCAL / "lugs/bytype/bug/open"
 EMIT_EVENT_CLI = _HERE / "emit_activity_event.py"
@@ -111,6 +116,60 @@ def list_ready_scouts() -> list[Path]:
     """All scout files in ready dirs, sorted by id."""
     paths = sorted(SCOUTS_SPOKE_READY.glob("*.json")) + sorted(SCOUTS_HUB_READY.glob("*.json"))
     return paths
+
+
+# ── Draft promotion ──────────────────────────────────────────────────
+
+
+def promote_one(path: Path) -> tuple[str, str]:
+    """Validate a single draft scout file and move it to ready/ on success.
+
+    Returns (status, message) with status in {PROMOTED, SKIPPED, ERROR}.
+    """
+    try:
+        scout = json.loads(path.read_text())
+    except Exception as e:
+        return "ERROR", f"{path.name}: invalid JSON ({e})"
+
+    ok, errs = _validate_scout(scout, str(SCHEMA_PATH))
+    if not ok:
+        return "ERROR", f"{path.name}: {'; '.join(errs[:5])}"
+
+    SCOUTS_SPOKE_READY.mkdir(parents=True, exist_ok=True)
+    dest = SCOUTS_SPOKE_READY / path.name
+    if dest.exists():
+        return "SKIPPED", f"{path.name}: already present at {dest}"
+
+    path.rename(dest)
+    return "PROMOTED", f"{path.name} -> {dest}"
+
+
+def promote(target: Optional[str]) -> dict:
+    """Promote draft scout(s) to ready/.
+
+    target: a single draft file path, a directory of draft files, or None
+    (defaults to all *.json files in scouts/spoke_local/draft/).
+    """
+    p = Path(target) if target else SCOUTS_SPOKE_DRAFT
+    if p.is_dir():
+        paths = sorted(p.glob("*.json"))
+    elif p.is_file():
+        paths = [p]
+    else:
+        print(f"[scout_executor] --promote target not found: {p}")
+        return {"promoted": 0, "skipped": 0, "errors": 1}
+
+    counts = {"promoted": 0, "skipped": 0, "errors": 0}
+    for draft_path in paths:
+        status, msg = promote_one(draft_path)
+        print(f"{status} {msg}")
+        if status == "PROMOTED":
+            counts["promoted"] += 1
+        elif status == "SKIPPED":
+            counts["skipped"] += 1
+        else:
+            counts["errors"] += 1
+    return counts
 
 
 # ── Input gathering ──────────────────────────────────────────────────
@@ -706,6 +765,12 @@ def main() -> int:
     p.add_argument("--scout", type=str, help="Run a single scout by id or path")
     p.add_argument("--all-ready", action="store_true", help="Run all ready scouts")
     p.add_argument("--validate", type=str, help="Validate a scout file against schema and exit")
+    p.add_argument(
+        "--promote", type=str, nargs="?", const="", metavar="FILE_OR_DIR",
+        help="Validate draft scout(s) and move passing ones from draft/ to ready/. "
+             "Accepts a single draft file or a directory; with no argument, promotes "
+             "all *.json files in scouts/spoke_local/draft/.",
+    )
     p.add_argument("--model", type=str, default=DEFAULT_MODEL)
     p.add_argument("--provider", type=str, default=DEFAULT_PROVIDER)
     p.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
@@ -716,6 +781,11 @@ def main() -> int:
     if args.validate:
         scout, path = load_scout(args.validate)
         print(f"OK · {path}")
+        return 0
+
+    if args.promote is not None:
+        counts = promote(args.promote or None)
+        print(json.dumps(counts, indent=2))
         return 0
 
     session_id = args.session_id or _resolve_session_id()

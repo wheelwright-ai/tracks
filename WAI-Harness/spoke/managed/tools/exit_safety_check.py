@@ -288,6 +288,41 @@ def check_savepoint(base, repo):
     return []
 
 
+def check_unstamped_completions(base):
+    """RULE 2 (spec-lug-lifecycle-ownership-v1, atomic completion): completing
+    an impl lug MEANS stamping status:completed + completed_at + commit_sha
+    AND moving it to completed/, never deferred to closeout. A lug that
+    carries a commit_sha/completed_at but is not physically in completed/ is
+    the canonical basher incident (work committed, artifact left claiming
+    status:open) -- flag it, never silently tolerate it."""
+    lugs = Path(base) / "lugs" / "bytype"
+    if not lugs.is_dir():
+        return []
+    offenders = []
+    try:
+        for status_dir in ("open", "in_progress", "needs_attention"):
+            for p in lugs.glob("*/%s/*.json" % status_dir):
+                try:
+                    data = json.loads(p.read_text())
+                except (OSError, ValueError):
+                    continue
+                if isinstance(data, dict) and (data.get("commit_sha") or data.get("completed_at")):
+                    offenders.append(data.get("id") or p.stem)
+    except OSError as e:
+        return [_finding("lug_completion", UNAVAILABLE, "could not scan lugs/bytype/: %s" % e)]
+    if not offenders:
+        return []
+    names = ", ".join(offenders[:3])
+    return [_finding(
+        "lug_completion.unstamped", REMEDIABLE,
+        "%d lug(s) carry a commit_sha/completed_at but are not in completed/ — "
+        "atomic-completion violation (RULE 2, spec-lug-lifecycle-ownership-v1): %s"
+        % (len(offenders), names),
+        "python3 WAI-Harness/spoke/managed/tools/ozi_autopilot.py --dry-run  "
+        "# the next real (non-dry-run) groom pass auto-reconciles these to completed/; "
+        "or move + stamp them by hand now")]
+
+
 def check_lugs(base):
     """INFORMATIONAL ONLY -- never affects the verdict.
 
@@ -337,6 +372,7 @@ def run_checks(repo, base, session_id):
     findings += check_track(base, repo)
     findings += check_savepoint(base, repo)
     findings += check_lugs(base)
+    findings += check_unstamped_completions(base)
     return findings
 
 

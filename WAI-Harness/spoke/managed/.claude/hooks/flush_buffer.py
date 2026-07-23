@@ -69,16 +69,42 @@ def main() -> None:
         # hook-owned envelope before the buffer is deleted below.
         _check_restamp(entry, buffer_path)
 
-        # ANNOTATE-don't-drop: run the buffer through the validator so an incomplete
-        # entry still LANDS, carrying a slim `_validation` note (never blocks a flush).
-        # Best-effort — a missing/broken validator must not prevent the write.
+        # VALIDATE AND REJECT on missing REQUIRED fields. Best-effort — if the
+        # validator is broken, log it and proceed (never block the turn).
+        validation_passed = True
         try:
             sys.path.insert(0, str(Path(__file__).resolve().parent))
             import validate_track_buffer as _vtb
             _res = _vtb.validate(entry, _vtb._spoke_from_state(state_path))
-            entry = _res.get("annotated_entry", entry)
-        except Exception:
-            pass
+
+            # Hard gate: reject writes with missing REQUIRED fields.
+            if _res.get("errors"):
+                validation_passed = False
+                # Log the rejection with full context for audit/backfill.
+                log_path = Path(buffer_path).resolve().parent / "track-validation-rejections.log"
+                ts = datetime.now(timezone.utc).isoformat()
+                session_id = "unknown"
+                try:
+                    state = json.loads(Path(state_path).read_text())
+                    session_id = state.get("_session_state", {}).get("session_id", "unknown")
+                except Exception:
+                    pass
+                turn_n = entry.get("turn", "?")
+                errors_str = "; ".join(_res.get("errors", []))
+                with log_path.open("a") as f:
+                    f.write(f"{ts} REJECTED session={session_id} turn={turn_n} errors=[{errors_str}] buffer={buffer_path}\n")
+                # Do NOT flush incomplete entries.
+                return
+
+            # Annotate with warnings even if valid (for soft-required fields).
+            if _res.get("warnings"):
+                entry = _res.get("annotated_entry", entry)
+        except Exception as e:
+            # Validator broken or missing — log and proceed (never block).
+            log_path = Path(buffer_path).resolve().parent / "track-validation-errors.log"
+            ts = datetime.now(timezone.utc).isoformat()
+            with log_path.open("a") as f:
+                f.write(f"{ts} validator-error {type(e).__name__}: {str(e)[:200]} buffer={buffer_path}\n")
 
         with track_path.open("a") as f:
             f.write(json.dumps(entry) + "\n")

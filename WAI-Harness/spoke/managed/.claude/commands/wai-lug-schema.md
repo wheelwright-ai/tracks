@@ -589,10 +589,58 @@ else:
 
 2. **DOGFOOD** — Run the naive agent test. Fix gaps before work begins.
 3. **DISCUSS** — (Optional) For high-impact lugs (impact >= 8), present strategy to user and refine.
-4. **IMPLEMENT** — Set `s: "p"`. Follow the `execute` steps. If reality diverges, update the lug first.
+4. **IMPLEMENT** — CLAIM first (see Ownership Rules below), then set `s: "p"`. Follow the `execute` steps. If reality diverges, update the lug first.
 5. **VERIFY** — Execute every `verify` step. No `TODO` or `FIXME` remaining.
 6. **CELEBRATE** — Present the Victory Briefing. Set `s: "c"`.
-7. **ARCHIVE** — Move to `completed/`. Index regenerated at closeout.
+7. **ARCHIVE** — Stamp + move to `completed/` ATOMICALLY with step 6 (see Ownership Rules below). Index regenerated at closeout.
+
+### Ownership Rules (claim-on-pickup, atomic completion, completion-aware automation)
+
+`spec-lug-lifecycle-ownership-v1` — root-caused from a real incident: a session did and
+committed a lug's work but left the artifact in `incoming/` with `status:open`; automated
+intake drained it and a groom/dispatch pass elevated it to `needs_attention`, because
+nothing connected the git commit to the lug's lifecycle. **The lug artifact is the single
+source of truth for its own lifecycle. The agent that does the work owns advancing it.**
+Automated intake/groom/dispatch may only ROUTE and FLAG — they must never substantively
+advance (open → in_progress → completed) a lug that shows evidence of an active owner
+(live lease) or completed work (`commit_sha`/`completed_at` present).
+
+**RULE 1 — CLAIM ON PICKUP (not completion).** When ANY agent — native wakeup or a
+Herald-spawned responder — starts a lug straight out of `incoming/` (or any `open/`), it
+FIRST takes a lug lease AND moves the lug to `bytype/<type>/in_progress/` with an
+owner+lane stamp, before doing any of the plan:
+
+```
+python3 WAI-Harness/spoke/managed/tools/lug_lease.py claim <lug_id> <your-session-id>
+```
+
+If the claim is refused (a live, unexpired lease is already held by someone else), STOP —
+do not execute, do not move the file. This removes the lug from `incoming/`/`open/` so no
+second worker double-grabs it; the lease has a 4h TTL and auto-releases on a dead session.
+This applies identically to a Herald responder (see `_responder_protocol` in
+`herald_poll.py`) and native `ozi_autopilot.py` dispatch (`OziDispatch.update_lug_status`
+takes the lease the moment it writes `status: in_progress` — the single sanctioned pickup
+entry point both dispatch paths funnel through). A lug sitting in `incoming/`/`open/` is
+NOT an "unclaimed" signal by itself; a live lease is what actually means unclaimed vs
+claimed, and the folder location must agree with it.
+
+**RULE 2 — DONE IS ATOMIC WITH THE COMMIT.** Completing an impl lug MEANS stamping the
+artifact (`status: completed` + `completed_at` + `commit_sha`) and moving it to
+`completed/`, in the same commit as the code or as an unskippable immediately-after step.
+Never "committed the code, will file the lug at closeout" — that deferral is the exact gap
+that caused the incident. `exit_safety_check.py`'s `check_unstamped_completions` runs at
+every closeout/CSRP pass and FLAGS (never silently tolerates) a lug that carries a
+`commit_sha`/`completed_at` but is not physically inside `completed/`.
+
+**RULE 3 — AUTOMATED PASSES ARE COMPLETION-AWARE + OWNERSHIP-RESPECTING.** Intake
+(`ozi_autopilot.py` `_phase0a_intake`), the scanner (`wai_ozi_scanner.py`
+`scan_work_queue`), and groom (`_groom_lugs`/`_score_lug`) all skip any lug carrying a
+live lease OR a completion marker (`commit_sha`/`completed_at` present) and reconcile it
+TOWARD `completed/` rather than re-dispatch or elevate it to `needs_attention`. A lug found
+ANYWHERE with a `commit_sha` but not in `completed/` is a RECONCILE case (stamp + move to
+`completed/`), never a REWORK case — this is what closes the incident for good: the tools
+were never fighting each other, each was correctly obeying an artifact left in a lying
+state, and the fix is to make every automated pass check for that lie before acting on it.
 
 ---
 

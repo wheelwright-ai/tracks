@@ -1233,7 +1233,7 @@ def write_ready_queue(spoke_path, scored, threshold, spoke_id):
         "spoke_id": spoke_id,
         "generated_at": now(),
         "priority_sequence": ["teachings", "work(initiative-scoped first)", "scouting", "refinement", "triage"],
-        "priority_source": "tastegraph engagement-inbox-first",
+        "priority_source": "WAI-Harness/spoke/local/tastegraph.json engagement-inbox-first",
         "columns": {
             "autonomous": autonomous,
             "needs_you": needs_you,

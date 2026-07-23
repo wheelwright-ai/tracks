@@ -2165,9 +2165,19 @@ class OziAutopilot:
                 continue
             # Status subfolder: signals live under undelivered; everything else
             # defaults to open unless it carries a recognized lifecycle status.
+            # RULE 3 (spec-lug-lifecycle-ownership-v1): a lug delivered with
+            # evidence of completed, committed work (commit_sha/completed_at)
+            # routes to completed/ regardless of its own status field -- never
+            # re-triaged as fresh work just because the artifact was left
+            # claiming status:open. This is the exact intake-side half of the
+            # canonical incident: a done-but-unstamped lug drained into open/
+            # and looked like fresh backlog forever.
             status = str(lug.get("status", "")).lower()
+            has_completion_marker = bool(lug.get("commit_sha") or lug.get("completed_at"))
             if folder == "signal":
                 sub = "undelivered" if status in ("", "open", "undelivered") else status
+            elif has_completion_marker:
+                sub = "completed"
             elif status in ("open", "in_progress", "completed", "needs_attention"):
                 sub = status
             else:
@@ -2188,7 +2198,21 @@ class OziAutopilot:
                 continue
             try:
                 dest_dir.mkdir(parents=True, exist_ok=True)
-                f.rename(dest)
+                if has_completion_marker and status != "completed":
+                    # Stamp atomically before landing in completed/ -- a
+                    # done-but-unstamped artifact must never look freshly-open.
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    lug["status"] = "completed"
+                    lug["s"] = "completed"
+                    lug.setdefault("completed_at", now_iso)
+                    lug["reconciled_at"] = now_iso
+                    lug["reconciled_reason"] = (
+                        "intake: commit_sha/completed_at present but status was not completed"
+                    )
+                    dest.write_text(json.dumps(lug, indent=2))
+                    f.unlink()
+                else:
+                    f.rename(dest)
                 summary["moved"] += 1
             except OSError:
                 summary["errors"] += 1
@@ -3145,6 +3169,27 @@ class OziAutopilot:
         eligible = []
         for lug in lugs:
             lug_id = lug.get("id", "unknown")
+
+            # RULE 3 (spec-lug-lifecycle-ownership-v1): never score/rework a
+            # lug that is either (a) DONE — carries a completion marker, in
+            # which case reconcile it to completed/ instead of treating it as
+            # backlog — or (b) actively owned under a live lease, in which
+            # case just leave it alone (ineligible this pass, not an error).
+            # This is a defensive second gate: the scanner already filters
+            # these out of the normal "ready" pool, but state.open_lugs is
+            # reassigned from other sources (manifest dispatch, scout
+            # generation) that bypass the scanner, so groom must re-check.
+            if lug.get("commit_sha") or lug.get("completed_at"):
+                if self._scanner.reconcile_completed_lug(lug):
+                    continue
+            if _LEASE_AVAILABLE:
+                try:
+                    if lug_lease.held_by(lug_id):
+                        result.ineligible.append(lug_id)
+                        continue
+                except Exception:
+                    pass
+
             lug = self._normalize_schema(lug)
             if lug.get("_was_normalized"):
                 result.normalized.append(lug_id)
@@ -3900,6 +3945,18 @@ class OziAutopilot:
             # --- Stall gate: skip lugs that have failed too many times ---
             lug_failures = (lug.get("workflow") or {}).get("autopilot_failures", 0)
             if lug_failures >= self.AUTOPILOT_STALL_THRESHOLD:
+                # RULE 3 (spec-lug-lifecycle-ownership-v1): a lug that failed
+                # dispatch retries but ALREADY carries completion evidence
+                # (commit_sha/completed_at) is not stalled -- it is DONE and
+                # mis-filed (the failures happened on stale re-dispatches
+                # after the real work already landed). Reconcile, never
+                # elevate to needs_attention.
+                if lug.get("commit_sha") or lug.get("completed_at"):
+                    if not self.dry_run:
+                        self._scanner.reconcile_completed_lug(
+                            lug, reason="reconciled: completion marker present at stall gate"
+                        )
+                    continue  # does NOT count against budget, does NOT elevate
                 print(
                     f"[autopilot]   ⏭ {lug_id} — stalled after {lug_failures} failures, elevating to needs_attention",
                     file=sys.stderr,
@@ -3913,7 +3970,7 @@ class OziAutopilot:
                     self._dispatch.update_lug_status(lug_id, "needs_attention", {
                         "needs_attention_reason": f"stalled: {lug_failures} autopilot failures with no resolution",
                         "needs_attention_at": datetime.now(timezone.utc).isoformat(),
-                    })
+                    }, session_id=self._session_id())
                 self._stalled_this_run.append(lug_id)
                 self._stalled_lug_snapshots.append({
                     "id": lug_id,
@@ -4018,7 +4075,7 @@ class OziAutopilot:
                     "autopilot_failures": current_failures + 1,
                     "last_autopilot_error": error_code,
                     "last_autopilot_error_at": datetime.now(timezone.utc).isoformat(),
-                })
+                }, session_id=self._session_id())
                 if _CAPGRAPH_AVAILABLE:
                     _rp = goal_planner.replan_on_block(
                         lug, "dispatch_failure", str(error_code or ""),
@@ -4172,8 +4229,12 @@ class OziAutopilot:
             k: lug[k] for k in ("predicted_roi", "urgency_tier", "sort_rank") if k in lug
         }
         if not self._dispatch.update_lug_status(
-            lug_id, "in_progress", workflow, extra_fields=_predicted_fields or None
+            lug_id, "in_progress", workflow, extra_fields=_predicted_fields or None,
+            session_id=self._session_id(),
         ):
+            # Covers both a stale/missing lug file AND a claim refused because
+            # another session holds a live lease — either way this lug is not
+            # ours to work this pass.
             return False, "dispatch_error"
         self._claimed_this_run.append(lug_id)  # track for SIGINT rollback
 
@@ -4334,7 +4395,7 @@ class OziAutopilot:
                               file=sys.stderr)
             except Exception as _gexc:
                 print(f"[autopilot]   grounded gate skipped for {lug_id}: {_gexc}", file=sys.stderr)
-            self._dispatch.update_lug_status(lug_id, _gl_status, _gl_extra)
+            self._dispatch.update_lug_status(lug_id, _gl_status, _gl_extra, session_id=self._session_id())
             print(f"[autopilot]   ✓ {lug_id} done ({_elapsed_lug}s, tokens={lug_tokens}) [{_gl_status}]", file=sys.stderr)
             return True, ""
         else:
@@ -5377,7 +5438,7 @@ class OziAutopilot:
                 "updated_at": datetime.now(timezone.utc).isoformat(),
                 "current_owner": None,
                 "rollback_reason": "sigint",
-            })
+            }, session_id=self._session_id())
         print(
             f"[autopilot] Rolled back {count} lug(s) to open/. Exiting with code 130.",
             file=sys.stderr,

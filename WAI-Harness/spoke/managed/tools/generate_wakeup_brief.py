@@ -281,6 +281,11 @@ PROJECT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import wai_paths  # noqa: E402  harness-mode root resolver (single source of truth)
 
+try:
+    import compile_tastegraph  # noqa: E402  TasteGraph producer (best-effort; brief must never break on it)
+except Exception:
+    compile_tastegraph = None
+
 # These are now determined after parsing args.
 # SPOKE is the working BASE (v3: <root>/WAI-Spoke ; v4-only: <root>/WAI-Harness/spoke/local).
 # PROJECT_ROOT is the spoke project dir that CONTAINS that base — it is NOT SPOKE.parent
@@ -658,6 +663,68 @@ def read_lug_staleness(spoke: "Optional[Path]") -> "Optional[dict]":
             "report_age_hours": None,
             "stale_report": True,
         }
+
+
+def read_insight_memory(spoke: "Optional[Path]", project_root: "Optional[Path]" = None,
+                         max_age_hours: float = 24.0) -> "Optional[dict]":
+    """feature-insight-memory-from-tracks-v1: top-line surface for the rolling
+    cross-session insight digest at <spoke>/memory/insight-memory.json (produced
+    by scripts/insight_memory.py -- a read-only consumer here; that producer is
+    currently basher-only, so a spoke that has not adopted it simply has no
+    digest to show). Returns None if the digest has never been generated on
+    this spoke. Best-effort fires a DETACHED background refresh when the digest
+    is stale or missing AND the producer script exists on this spoke, so the
+    digest self-warms across wakeups without ever blocking brief generation
+    (mirrors refresh_position_map's fire-and-check-next-time shape, but
+    detached since synthesis calls an LLM rather than a cheap local compute).
+    Degrades to a 'status: unreadable' shape on malformed JSON, mirroring
+    read_lug_staleness's convention. Never raises; never blocks brief
+    generation."""
+    if not spoke:
+        return None
+    digest_path = spoke / "memory" / "insight-memory.json"
+    root = project_root or _project_root_for(spoke)
+    script = root / "scripts" / "insight_memory.py"
+    stale = True
+    result = None
+    if digest_path.exists():
+        try:
+            data = json.loads(digest_path.read_text())
+            gen_at = data.get("generated_at")
+            age_hours = None
+            if gen_at:
+                gen_dt = datetime.datetime.fromisoformat(gen_at.replace("Z", "+00:00"))
+                now_dt = datetime.datetime.now(datetime.timezone.utc)
+                age_hours = round((now_dt - gen_dt).total_seconds() / 3600, 1)
+                stale = age_hours > max_age_hours
+            digest = data.get("digest") or {}
+            result = {
+                "status": "ok",
+                "generated_at": gen_at,
+                "age_hours": age_hours,
+                "stale": stale,
+                "sessions_covered": data.get("sessions_covered", 0),
+                "turns_covered": data.get("turns_covered", 0),
+                "themes": (digest.get("themes") or [])[:6],
+                "open_threads": (digest.get("open_threads") or [])[:6],
+                "degraded": digest.get("degraded", False),
+            }
+        except Exception:
+            result = {"status": "unreadable", "stale": True, "generated_at": None,
+                       "age_hours": None, "sessions_covered": 0, "turns_covered": 0,
+                       "themes": [], "open_threads": [], "degraded": True}
+    if stale and script.exists():
+        try:
+            subprocess.Popen(
+                [sys.executable, str(script), "refresh"],
+                cwd=str(root),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        except Exception:
+            pass
+    return result
 
 
 def refresh_position_map(spoke: "Optional[Path]", max_age_hours: float = 12.0) -> None:
@@ -1078,6 +1145,12 @@ def main() -> None:
     assurance_health_data = read_assurance_health(SPOKE)
     refresh_position_map(SPOKE)
     position_map_data = read_position_map(SPOKE)
+    insight_memory_data = read_insight_memory(SPOKE, PROJECT_ROOT)
+    if compile_tastegraph is not None:
+        try:
+            compile_tastegraph.compile_tastegraph(project_root=PROJECT_ROOT, mode=mode, hub_path=hub_path)
+        except Exception:
+            pass  # producer failure must never break the brief
     tastegraph_data = read_tastegraph_prefs(SPOKE, hub_path)
 
     brief = {
@@ -1109,6 +1182,7 @@ def main() -> None:
         "qa_health": qa_health_data,
         "lug_staleness": lug_staleness_data,
         "position_map": position_map_data,
+        "insight_memory": insight_memory_data,
         "tastegraph_prefs": tastegraph_data,
         "assurance_health": assurance_health_data,
     }
