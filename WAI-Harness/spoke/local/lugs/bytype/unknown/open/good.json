@@ -17,5 +17,13 @@
       "description": "d",
       "action": "echo x"
     }
-  ]
+  ],
+  "disposition": "needs_you",
+  "disposition_reason": "missing both file_targets and acceptance_criteria -- needs human scoping",
+  "disposition_at": "2026-07-22T20:10:06.415907+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00",
+  "execution_mode": "subagent",
+  "execution_substrate": null,
+  "gt_convoy_hint": "low-quality dispatch (absorbed: was tender, quality=0)"
 }

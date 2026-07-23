@@ -12,5 +12,10 @@
   "by": "Claude Code (claude-sonnet-4-6)",
   "description": "NEXTAUTH_URL must be the base domain only (e.g. https://www.wheelwright.ai) \u2014 NextAuth constructs /api/auth/callback/[provider] automatically. Setting the full callback path breaks all OAuth flows.",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "disposition": "review",
+  "disposition_reason": "advisory/churn type=signal -- collapse, deliver, or close; not implementation backlog",
+  "disposition_at": "2026-07-22T20:10:06.274004+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }

@@ -12,5 +12,10 @@
   "by": "Gemini CLI (via hub teaching)",
   "description": "GitHub Actions integration failures diagnosed: 126 lug status validation errors, 3 wai.md missing sections, 4 inbox routing doc gaps. Root cause: test schema out of sync with current lug lifecycle.",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "disposition": "review",
+  "disposition_reason": "advisory/churn type=signal -- collapse, deliver, or close; not implementation backlog",
+  "disposition_at": "2026-07-22T20:10:06.277680+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }

@@ -9,5 +9,10 @@
   "impact": 9,
   "rationale": "Silent failures across entire fleet. Health check was lying. Assertion-based verification pattern established.",
   "by": "claude-opus-4-6",
-  "target": "all-spokes"
+  "target": "all-spokes",
+  "disposition": "review",
+  "disposition_reason": "advisory/churn type=signal -- collapse, deliver, or close; not implementation backlog",
+  "disposition_at": "2026-07-22T20:10:06.269521+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }

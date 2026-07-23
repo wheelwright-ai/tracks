@@ -1,0 +1,93 @@
+{
+  "id": "upgrade-report-tracks-20260723T022604-v1",
+  "type": "upgrade-report",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "title": "Upgrade to 4.14.5 on tracks \u2014 validation PARTIAL",
+  "created_at": "2026-07-23T02:26:04.918746+00:00",
+  "created_by": "harness_upgrade.emit_upgrade_report",
+  "spoke_id": "tracks",
+  "spoke_path": "/home/mario/projects/wheelwright/tracks",
+  "harness_version": "4.14.5",
+  "outcome": "partial",
+  "applied": 915,
+  "retired": [],
+  "verify_post_ok": true,
+  "aborted": null,
+  "validation": {
+    "outcome": "fail",
+    "ran_at": "2026-07-23T02:26:04.918316+00:00",
+    "spoke_root": "/home/mario/projects/wheelwright/tracks",
+    "checks": [
+      {
+        "check": "syntax",
+        "status": "pass",
+        "detail": "224 tool(s) compile",
+        "evidence": []
+      },
+      {
+        "check": "paths",
+        "status": "skip",
+        "detail": "spoke has a WAI-Spoke tree (v3 coexist) \u2014 v3 paths are legitimate here",
+        "evidence": []
+      },
+      {
+        "check": "entrypoints",
+        "status": "pass",
+        "detail": "5 entrypoint(s) import cleanly",
+        "evidence": []
+      },
+      {
+        "check": "health",
+        "status": "fail",
+        "detail": "spoke health check reports RED",
+        "evidence": [
+          "Health: RED"
+        ]
+      },
+      {
+        "check": "selftest",
+        "status": "fail",
+        "detail": "distributed spoke tests failed",
+        "evidence": [
+          "9 failed, 66 passed in 1.47s"
+        ]
+      }
+    ],
+    "failed": [
+      "health",
+      "selftest"
+    ],
+    "skipped": [
+      "paths"
+    ],
+    "summary": "2/4 check(s) passed, 2 FAILED: health, selftest (1 skipped)",
+    "baseline_outcome": "fail",
+    "regressions": [],
+    "preexisting_failures": [
+      "health",
+      "selftest"
+    ],
+    "verdict": "clean-with-preexisting"
+  },
+  "summary": "915 file(s) applied; bytes verified; validation clean-with-preexisting \u2014 2/4 check(s) passed, 2 FAILED: health, selftest (1 skipped)",
+  "friction_points": [
+    {
+      "step": "health",
+      "issue": "spoke health check reports RED",
+      "suggestion": "Health: RED"
+    },
+    {
+      "step": "selftest",
+      "issue": "distributed spoke tests failed",
+      "suggestion": "9 failed, 66 passed in 1.47s"
+    }
+  ],
+  "impact": 3,
+  "effort": 2,
+  "disposition": "needs_you",
+  "disposition_reason": "missing both file_targets and acceptance_criteria -- needs human scoping",
+  "disposition_at": "2026-07-23T02:26:05.349313+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-23T02:26:05.321033+00:00"
+}

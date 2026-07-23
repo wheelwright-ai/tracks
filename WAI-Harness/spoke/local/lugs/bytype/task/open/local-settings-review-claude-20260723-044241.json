@@ -1,0 +1,18 @@
+{
+  "id": "local-settings-review-claude-20260723-044241",
+  "type": "task",
+  "status": "open",
+  "created_at": "2026-07-23T04:42:41.944301+00:00",
+  "title": "Review local-only Claude settings -- scope or absorb",
+  "description": "Tool advisor found 1 key(s) in .claude/settings.json that are not present in the master template: [\"hooks.PostToolUse\"]. Decide whether each is spoke-local (annotate in the file) or wheel-wide (send a lug to basher to absorb into the template).",
+  "steps": [
+    "1. Open .claude/settings.json",
+    "2. For each key listed: decide scope",
+    "3. spoke-local: add comment // spoke-local: <reason>",
+    "4. wheel-wide: write lug to /home/mario/projects/basher/WAI-Harness/spoke/local/lugs/incoming proposing template change",
+    "5. Run basher tools update to re-verify"
+  ],
+  "local_only_keys": [
+    "hooks.PostToolUse"
+  ]
+}

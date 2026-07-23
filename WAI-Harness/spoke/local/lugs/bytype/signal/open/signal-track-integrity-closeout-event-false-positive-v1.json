@@ -12,5 +12,10 @@
   "fw_ver": "2.0.137",
   "routed_to": "FRAMEWORK",
   "updated_at": "2026-06-03T09:04:36.712696+00:00",
-  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527"
+  "audit_note": "Confirmed delivered to hub WAI-Spoke/lugs/bytype/signal/delivered/ \u2014 closed by audit task-track-rebuild-audit-20260527",
+  "disposition": "review",
+  "disposition_reason": "advisory/churn type=signal -- collapse, deliver, or close; not implementation backlog",
+  "disposition_at": "2026-07-22T20:10:06.278157+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }

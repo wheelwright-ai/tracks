@@ -36,5 +36,10 @@
     "schedule-index.json has weekly entry for documentation",
     "ozi scan_state team_coverage gap[domain=documentation].proposal_status == 'provisioned'"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "disposition": "review",
+  "disposition_reason": "has AC but missing file_targets -- add targets to promote to auto_build",
+  "disposition_at": "2026-07-22T20:10:06.306078+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }

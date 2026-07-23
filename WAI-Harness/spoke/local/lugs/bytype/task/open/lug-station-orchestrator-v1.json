@@ -1,6 +1,6 @@
 {
   "i": "lug-station-orchestrator-v1",
-  "t": "Station Master Orchestrator \u2014 ingest() entry point wiring all station modules",
+  "t": "Station Master Orchestrator — ingest() entry point wiring all station modules",
   "ty": "task",
   "s": "o",
   "ca": "2026-03-25T09:31:01Z",
@@ -24,23 +24,26 @@
     "file": "src/lib/station/index.ts",
     "signature": "ingest(rawPayload: string | object, source: IngestSource, userId: string): Promise<StationReceipt>",
     "flow": [
-      "1. normalize(rawPayload, source) \u2192 StationRecord[]",
+      "1. normalize(rawPayload, source) → StationRecord[]",
       "2. Extract session_header",
-      "3. fork-detector(codename, turn1Record) \u2192 forkResult",
-      "4. line-manager(header, forkResult) \u2192 lineId",
+      "3. fork-detector(codename, turn1Record) → forkResult",
+      "4. line-manager(header, forkResult) → lineId",
       "5. Write session + records to DB",
-      "6. merge-handler(records, session) \u2192 mergeCandidates",
+      "6. merge-handler(records, session) → mergeCandidates",
       "7. Return StationReceipt"
     ],
     "receipt": "{ sessionId, lineId, forkId?, recordsStored, mergeCandidates[], ingestSource }"
   },
   "_behavior_directive": {
-    "what_this_is": "The orchestrator work item \u2014 wires all station modules together. TRACK in task graph, execute after all module tasks are complete.",
+    "what_this_is": "The orchestrator work item — wires all station modules together. TRACK in task graph, execute after all module tasks are complete.",
     "what_this_is_NOT": "An instruction to execute automatically. Only file that touches DB directly; all business logic lives in the modules it calls.",
     "processing_agent": "developer implements src/lib/station/index.ts",
     "expected_outcome": "Single ingest() function that accepts raw payload and returns a typed StationReceipt"
   },
-  "execution_mode": "tender",
+  "execution_mode": "subagent",
   "execution_substrate": null,
-  "gt_convoy_hint": "no model_fit"
+  "gt_convoy_hint": "low-quality dispatch (absorbed: was tender, quality=0)",
+  "disposition": "needs_you",
+  "disposition_reason": "missing both file_targets and acceptance_criteria -- needs human scoping",
+  "disposition_at": "2026-07-22T20:10:06.421224+00:00"
 }

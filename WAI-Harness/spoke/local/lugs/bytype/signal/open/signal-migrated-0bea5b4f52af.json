@@ -12,5 +12,10 @@
   "by": "Gemini CLI (via hub teaching)",
   "description": "Documentation sprawl cleanup pattern: Move reference-worthy files to WAI-Spoke/reference/, delete historical files, maintain single canonical docs location.",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "disposition": "review",
+  "disposition_reason": "advisory/churn type=signal -- collapse, deliver, or close; not implementation backlog",
+  "disposition_at": "2026-07-22T20:10:06.287579+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }

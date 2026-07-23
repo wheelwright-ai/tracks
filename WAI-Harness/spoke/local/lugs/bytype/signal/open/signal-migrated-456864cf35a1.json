@@ -12,5 +12,10 @@
   "by": "Claude Haiku 4.5",
   "description": "Station Master API production-ready after critical bug fixes \u2014 /api/tracks now successfully ingests and persists tracks with automatic Line assignment and fork awareness",
   "rescued_from_backup": true,
-  "rescued_at": "2026-03-26T03:10:12Z"
+  "rescued_at": "2026-03-26T03:10:12Z",
+  "disposition": "review",
+  "disposition_reason": "advisory/churn type=signal -- collapse, deliver, or close; not implementation backlog",
+  "disposition_at": "2026-07-22T20:10:06.266186+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }

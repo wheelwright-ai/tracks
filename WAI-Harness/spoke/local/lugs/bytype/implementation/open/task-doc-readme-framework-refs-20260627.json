@@ -29,5 +29,10 @@
   "file_targets": [
     "README.md"
   ],
-  "execution_substrate": "gastown"
+  "execution_substrate": "gastown",
+  "disposition": "auto_build",
+  "disposition_reason": "quality=9, complete spec (AC+targets+PEV)",
+  "disposition_at": "2026-07-22T20:10:06.301502+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-22T20:10:06.258505+00:00"
 }
