@@ -424,7 +424,16 @@ import json, os, glob
 state = json.load(open('{BASE}/WAI-State.json'))
 wheel_name = state.get('wheel', {}).get('name', '')
 hub_path = state.get('_hub', {}).get('path') or state.get('hub_path', '')
-inbox = os.path.join(hub_path, 'WAI-Hub/signals/incoming/framework') if hub_path else ''
+# mywheel/ is canonical; framework/ is the retired name, still read for one release;
+# flat incoming/ is where signals actually sit today. Naming only framework/ meant an
+# agent read an empty directory while four signals sat one level up.
+inbox = ''
+if hub_path:
+    for _c in ('WAI-Hub/signals/incoming/mywheel', 'WAI-Hub/signals/incoming/framework',
+               'WAI-Hub/signals/incoming'):
+        _p = os.path.join(hub_path, _c)
+        if os.path.isdir(_p) and glob.glob(os.path.join(_p, '*.json')):
+            inbox = _p; break
 
 # Build local signal ID index (all subdirs under bytype/signal/)
 local_ids = set()

@@ -265,13 +265,28 @@ def check_track(base, repo):
 def check_savepoint(base, repo):
     """If a savepoint exists, it must validate. No savepoint is not a failure."""
     tool = TOOLS / "validate_savepoint.py"
-    sp_dir = Path(base) / "savepoints"
-    if not sp_dir.is_dir():
-        return [_finding("savepoint", INFO, "no savepoints/ directory — nothing to validate")]
+    # Savepoints live under initiatives/savepoints/{initiative_id}/ — wai-savepoint.md
+    # explicitly RETIRES the loose {BASE}/savepoints/ home. This check read the retired
+    # path, found nothing, and reported "nothing to validate", which reads as a pass.
+    # Measured in mywheel at the time of the fix: the loose home held 0 savepoints while
+    # 320 lived in the initiative-scoped tree — so the exit gate was inert on every spoke
+    # that had migrated, which is all of them. A gate that cannot find its subject must
+    # never be indistinguishable from a gate that passed.
+    sp_roots = [Path(base) / "initiatives" / "savepoints", Path(base) / "savepoints"]
+    sps = []
+    for root in sp_roots:
+        if not root.is_dir():
+            continue
+        try:
+            sps.extend(root.rglob("*.json"))
+        except OSError as e:
+            return [_finding("savepoint", UNAVAILABLE, "cannot list savepoints: %s" % e)]
+    if not any(r.is_dir() for r in sp_roots):
+        return [_finding("savepoint", INFO, "no savepoints directory — nothing to validate")]
     try:
-        sps = sorted(sp_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+        sps = sorted(sps, key=lambda p: p.stat().st_mtime, reverse=True)
     except OSError as e:
-        return [_finding("savepoint", UNAVAILABLE, "cannot list savepoints: %s" % e)]
+        return [_finding("savepoint", UNAVAILABLE, "cannot stat savepoints: %s" % e)]
     if not sps:
         return [_finding("savepoint", INFO, "no savepoint recorded — nothing to validate")]
     if not tool.exists():

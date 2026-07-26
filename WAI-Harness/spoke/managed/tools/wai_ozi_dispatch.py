@@ -20,6 +20,77 @@ except ImportError:
     _LEASE_AVAILABLE = False
 
 
+# ── Builder taste block (impl-inject-tastegraph-into-autopilot-dispatch-prompt-v1)
+# The autonomous builders had the operator's steering wheel disconnected: TasteGraph
+# reached the interactive session via hooks, but a dispatched agent runs with
+# WAI_AP_DISPATCH=1, which short-circuits session-start before any injection, and this
+# prompt carried zero preference content. So the agents the operator worried would
+# "force busy work" decided how to proceed with no preference signal at all.
+#
+# We inject the EXECUTION vector (work_style/workflow prefs that fire DURING work) —
+# NOT presentation prefs a headless builder cannot act on. And we cap HARD: s138
+# measured that over-injection collapses compliance (the 33-cap / truncation finding).
+# A builder gets only the handful of highest-actionability prefs, phrased as rules.
+_BUILDER_TASTE_CAP = 8
+# The prefs a headless builder can actually obey, in priority order. Matched by id
+# substring against the execution vector so this survives pref-id churn.
+_BUILDER_TASTE_IDS = [
+    "taste-user-002",                    # surgical edits over rewrites
+    "work-style-verification-standard",  # verify to falsify; never "probably"
+    "taste-user-007",                    # complete PEV/acceptance before creating a lug
+    "work-style-scope-discipline",       # stay in the lug's scope
+    "taste-user-011",                    # obvious safe fix -> just fix it
+    "work-style-quality-bar-maintainable-performant-focused",
+    "risk-tolerance-claim-is-not-evidence",  # verified=true needs a re-runnable check
+    "taste-user-003",                    # highest-ROI action, don't ask for safe ops
+]
+
+
+def _builder_taste_block(spoke_root: Optional[str]) -> str:
+    """Return a short, capped TasteGraph block for a dispatched builder, or "".
+
+    Fully fail-safe: any error yields no block — a builder must never fail to
+    dispatch because preference selection hiccuped. Off unless
+    WAI_AP_TASTE=1 (default on; set WAI_AP_TASTE=0 to A/B against the baseline)."""
+    if os.environ.get("WAI_AP_TASTE", "1") == "0":
+        return ""
+    try:
+        tv = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tastegraph_vector.py")
+        if not os.path.isfile(tv):
+            return ""
+        # --spoke-path is a TOP-LEVEL arg (before the subcommand), not a select arg.
+        cmd = [sys.executable, tv]
+        if spoke_root:
+            cmd += ["--spoke-path", str(spoke_root)]
+        cmd += ["select", "--vector", "execution", "--format", "json"]
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+        if out.returncode != 0 or not out.stdout.strip():
+            return ""
+        data = json.loads(out.stdout)
+        prefs = data.get("selected") or data.get("prefs") or []
+        by_id = {p.get("id"): p for p in prefs if isinstance(p, dict)}
+        picked = []
+        for want in _BUILDER_TASTE_IDS:
+            p = by_id.get(want)
+            if p:
+                picked.append(p)
+            if len(picked) >= _BUILDER_TASTE_CAP:
+                break
+        if not picked:                                   # cap not matched — fall back to top N
+            picked = [p for p in prefs if isinstance(p, dict)][:_BUILDER_TASTE_CAP]
+        if not picked:
+            return ""
+        lines = ["\nHow the operator wants work done (TasteGraph — obey these):"]
+        for p in picked:
+            body = (p.get("value") or p.get("statement") or p.get("body")
+                    or p.get("summary") or p.get("text") or "").strip().replace("\n", " ")
+            if body:
+                lines.append(f"- {body[:200]}")
+        return "\n".join(lines) + "\n"
+    except Exception:
+        return ""
+
+
 class OziDispatch:
     """Handles subagent dispatch, lug status writes, and changelog logging."""
 
@@ -179,6 +250,7 @@ class OziDispatch:
             " or the user has stated it is blocking. Commits are fine; push is not your call.\n"
             "- Session ceremony: NEVER prompt the user to run savepoint, closeout, or any"
             " session-end protocol. They have those skills and will run them when ready.\n"
+            + _builder_taste_block(getattr(self._config, "spoke_path", None))
         )
 
     def _find_lug_file(self, lug_id: str) -> Optional[Path]:

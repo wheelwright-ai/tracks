@@ -20,7 +20,28 @@ from typing import Any, Dict, List, Optional, Tuple
 
 EXCLUDED_TYPES = {"epic", "idea", "policy", "audit", "directive", "session-summary", "signal"}
 DISPATCHABLE_EXEC_MODES = {"auto", "subagent", "gastown"}
+# LEGACY. Kept only so an external caller importing this name does not break; dispatch no
+# longer consults it. Exact-matching a routing literal is the defect this initiative fixes —
+# it made "mywheel" and "LOCAL" different destinations. Use _resolve_routing().
 DISPATCHABLE_ROUTING = {"LOCAL", "FRAMEWORK", "WHEELWRIGHT_FRAMEWORK"}
+
+try:
+    import routing_vocab as _routing_vocab
+except ImportError:                                    # pragma: no cover - defensive
+    _routing_vocab = None
+
+
+def _resolve_routing(routed_to):
+    """Canonical routing verdict for a lug, with a fail-safe when the resolver is absent.
+
+    Fallback mirrors the OLD exact-match behaviour rather than guessing: if the vocabulary
+    module cannot be imported, dispatch must not suddenly widen on an unverified mapping.
+    """
+    if _routing_vocab is not None:
+        return _routing_vocab.resolve(routed_to)
+    ok = (not routed_to) or routed_to in DISPATCHABLE_ROUTING
+    return {"value": "LOCAL" if ok else routed_to, "dispatchable": ok,
+            "deprecated": False, "note": "routing_vocab unavailable — legacy exact-match"}
 
 # Verify-before-action gate dependencies (optional — graceful fallback).
 _FW_ROOT = Path(__file__).resolve().parent.parent
@@ -622,9 +643,22 @@ class OziHeadlessRunner:
             # Skip tender-mode lugs (meant for Minder/Tender system)
             if lug.get("execution_mode") and lug.get("execution_mode") not in DISPATCHABLE_EXEC_MODES:
                 continue
-            # Skip cross-spoke routed lugs (only dispatch LOCAL/FRAMEWORK targets)
+            # Skip cross-spoke routed lugs. RESOLVED, not exact-matched: the old
+            # `routed_to not in DISPATCHABLE_ROUTING` test made spelling load-bearing, so a
+            # lug that said "mywheel" instead of "LOCAL" was skipped silently — 185 live
+            # lugs at the last audit. Unresolvable values are still skipped, but they are
+            # recorded as an event rather than vanishing.
             routed_to = lug.get("routed_to", "LOCAL")
-            if routed_to and routed_to not in DISPATCHABLE_ROUTING:
+            routing = _resolve_routing(routed_to)
+            if routing["value"] is None:
+                self.events.append({
+                    "type": "routing_unresolvable",
+                    "lug_id": lug.get("id", ""),
+                    "routed_to": routed_to,
+                    "reason": routing.get("note") or "unrecognised routed_to",
+                })
+                continue
+            if not routing["dispatchable"]:
                 continue
             blocked_by = lug.get("blocked_by") or []
             if any(b for b in blocked_by if not self._is_resolved(b)):

@@ -229,8 +229,17 @@ def materialize(root=".", dry_run=False):
     digest_path = _digest_path(root)
     digest = _read_json(digest_path)
     if digest is None:
-        return {"ok": False, "errors": ["no resident digest at %s" % digest_path],
-                "created": 0, "linked": 0, "ts": _now_iso()}
+        # Same key set as the success return below. These two returns drifted:
+        # this one omitted `already`/`dry_run`/`details`, and main()'s non-JSON
+        # print reads report["already"] unconditionally — so the no-digest path
+        # died with `KeyError: 'already'` instead of printing the actionable
+        # message it had ready. The traceback fired exactly where the operator
+        # most needed the message: on a spoke whose digest was never bootstrapped.
+        return {"ok": False,
+                "errors": ["no resident digest at %s — run: "
+                           "python3 resident_digest.py bootstrap" % digest_path],
+                "created": 0, "already": 0, "linked": 0,
+                "details": [], "ts": _now_iso(), "dry_run": bool(dry_run)}
 
     threads = digest.get("open_threads") or digest.get("threads") or []
     spoke_id = os.path.basename(os.path.abspath(root))
@@ -281,10 +290,24 @@ def materialize(root=".", dry_run=False):
 
 
 def verify_all_threads_have_lugs(root="."):
-    """Post-check: is every open thread backed by a lug on disk?"""
+    """Post-check: is every open thread backed by a lug on disk?
+
+    FAILS CLOSED when the digest is absent. "No digest" means the thread corpus
+    is UNKNOWN, not empty, and those two must never share an exit code — the
+    savepoint ceremony treats a CLEAN here as a hard precondition for ejecting.
+
+    Measured on sound-sails-website (2026-07-25): the digest had never been
+    bootstrapped, so this returned clean=True over zero threads and the eject
+    gate passed by knowing nothing. Bootstrapping the digest then surfaced 9
+    genuinely open threads, one of them a month-old unanswered question. The
+    gate would have certified a spoke that was losing every thread it had.
+    """
     digest = _read_json(_digest_path(root))
     if digest is None:
-        return {"clean": True, "reason": "no digest — nothing to carry", "orphans": []}
+        return {"clean": False, "status": "unknown", "threads": None, "orphans": [],
+                "reason": "no resident digest at %s — thread corpus is UNKNOWN, not "
+                          "empty. Run: python3 resident_digest.py bootstrap"
+                          % _digest_path(root)}
     threads = digest.get("open_threads") or digest.get("threads") or []
     orphans = [t.get("id") for t in threads
                if isinstance(t, dict) and t.get("text")
@@ -303,9 +326,17 @@ def main():
 
     if args.verify:
         result = verify_all_threads_have_lugs(args.root)
-        print(json.dumps(result, indent=2) if args.json else
-              ("CLEAN — every open thread has a lug" if result["clean"]
-               else "ORPHAN THREADS (no lug): %s" % ", ".join(result["orphans"])))
+        if args.json:
+            print(json.dumps(result, indent=2))
+        elif result.get("status") == "unknown":
+            # Distinct from both CLEAN and ORPHAN: we did not fail to find a lug,
+            # we failed to find the corpus. Saying "ORPHAN THREADS: " with an empty
+            # list here would be as misleading as the CLEAN this replaced.
+            print("UNKNOWN — %s" % result.get("reason", "thread corpus unreadable"))
+        elif result["clean"]:
+            print("CLEAN — every open thread has a lug")
+        else:
+            print("ORPHAN THREADS (no lug): %s" % ", ".join(result["orphans"]))
         return 0 if result["clean"] else 1
 
     report = materialize(args.root, dry_run=args.dry_run)

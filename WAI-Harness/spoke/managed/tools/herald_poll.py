@@ -31,6 +31,7 @@ Spec: spec-herald-daemon-v1, spec-intra-agent-comms-v1.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -537,6 +538,18 @@ def _load_fired(basher_root: str) -> dict:
         return {}
 
 
+def _file_hash(path: str):
+    """Content hash of a lug file, used to tell a genuine re-delivery (body/subject
+    actually changed) apart from a self-inflicted mtime bump -- e.g. Herald's own
+    prior responder (or another automated process) touching the file as a side
+    effect of working it, which is NOT a new delivery. Returns None if unreadable."""
+    try:
+        with open(path, "rb") as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except OSError:
+        return None
+
+
 def _incoming_dir(wheel_path: str) -> str:
     return os.path.join(wheel_path, "WAI-Harness", "spoke", "local",
                         "lugs", "incoming")
@@ -595,7 +608,7 @@ def watch_once(basher_root: str, force=False) -> dict:
     hygiene_cooldown_h = float(cfg.get("hygiene_cooldown_hours", 6))
     spawned = 0
 
-    def _fire(wid, wpath, kind, subject, body, ref, model=None):
+    def _fire(wid, wpath, kind, subject, body, ref, model=None, content_hash=None):
         nonlocal spawned
         spawned += 1
         msg = {"id": ref, "thread_id": ref, "from_spoke": "herald", "to_spoke": wid,
@@ -604,7 +617,10 @@ def watch_once(basher_root: str, force=False) -> dict:
             rc, _ = _spawn(cfg, msg, dirs, cwd=wpath, model=model, prompt=body)
         except subprocess.TimeoutExpired:
             rc = 124
-        fired[ref] = {"fired_at": _iso(_now()), "rc": rc, "kind": kind}
+        entry = {"fired_at": _iso(_now()), "rc": rc, "kind": kind}
+        if content_hash is not None:
+            entry["content_hash"] = content_hash
+        fired[ref] = entry
         res["items"].append({"key": ref, "kind": kind, "rc": rc})
         return rc
 
@@ -638,18 +654,29 @@ def watch_once(basher_root: str, force=False) -> dict:
                 res["skipped_low"] += 1
                 continue
             key = f"{wid}:{lug.get('id', fn)}"
+            lug_path = os.path.join(inbox, fn)
+            cur_hash = _file_hash(lug_path)
             if key in fired:
                 # Re-pick on RE-DELIVERY: a refinement round-trip rewrites the lug
-                # (the originator answered the questions and re-delivered it). If the
-                # file changed after we last fired, clear the fired-set entry so Herald
-                # re-fires the now-complete lug instead of skipping it as already-fired.
-                _last = _parse_iso(fired[key].get("fired_at"))
-                try:
-                    _mtime = datetime.fromtimestamp(
-                        os.path.getmtime(os.path.join(inbox, fn)), timezone.utc)
-                except OSError:
-                    _mtime = None
-                if _last and _mtime and _mtime > _last:
+                # (the originator answered the questions and re-delivered it). Content
+                # hash is the source of truth — a prior responder (or another automated
+                # process) can bump the file's mtime as a side effect of working it
+                # without changing a single byte, and that must NOT look like a fresh
+                # delivery. Only fall back to the old mtime heuristic for fired-set
+                # entries stamped before content-hash tracking existed; the fresh fire
+                # below stamps a hash so later checks never need the fallback again.
+                prior_hash = fired[key].get("content_hash")
+                if prior_hash is not None:
+                    repick = cur_hash is not None and cur_hash != prior_hash
+                else:
+                    _last = _parse_iso(fired[key].get("fired_at"))
+                    try:
+                        _mtime = datetime.fromtimestamp(
+                            os.path.getmtime(lug_path), timezone.utc)
+                    except OSError:
+                        _mtime = None
+                    repick = bool(_last and _mtime and _mtime > _last)
+                if repick:
                     del fired[key]
                     res["repicked"] = res.get("repicked", 0) + 1
                 else:
@@ -659,23 +686,44 @@ def watch_once(basher_root: str, force=False) -> dict:
             rc = _fire(wid, wpath, "priority:" + str(lug.get("type", "?")),
                        lug.get("title", ""),
                        _responder_protocol(wid, key, lug, origin),
-                       key, model=lug.get("model_fit"))  # lug's model_fit wins, else sonnet
+                       key, model=lug.get("model_fit"),  # lug's model_fit wins, else sonnet
+                       content_hash=cur_hash)
             if rc == 0:
                 res["fired"] += 1
                 fired_here += 1
 
-        # 2. hygiene — backlog of (mostly low-priority) lugs over threshold, on cooldown
+        # 2. hygiene — backlog of (mostly low-priority) lugs over threshold, on cooldown.
+        # Give-up policy: a target whose responder keeps failing (e.g. permanently
+        # timing out) must never retry forever at a flat cadence — each consecutive
+        # non-zero rc widens the cooldown exponentially, and after
+        # hygiene_max_attempts straight failures the key is flagged needs_attention
+        # and Herald stops firing it (until the fired-set entry is cleared).
         if spawned < limit and fired_here == 0 and len(pending) >= backlog_threshold:
             hkey = f"{wid}:__hygiene__"
-            if _cooldown_ok(fired.get(hkey, {}).get("fired_at"), hygiene_cooldown_h):
-                rc = _fire(wid, wpath, "hygiene",
-                           f"drain backlog ({len(pending)} pending)",
-                           (f"Your incoming/ has {len(pending)} pending lugs — a backlog. "
-                            "Triage and process/close what you can to keep the queue clean "
-                            "(hygiene sweep). Low-priority is fine to batch. Respect CSRP."),
-                           hkey)
-                if rc == 0:
-                    res["hygiene_fired"] += 1
+            hentry = fired.get(hkey, {})
+            if hentry.get("needs_attention"):
+                res.setdefault("needs_attention", []).append(hkey)
+            else:
+                attempts = int(hentry.get("attempts", 0))
+                backoff_cap = int(cfg.get("hygiene_backoff_cap", 6))
+                effective_cooldown_h = hygiene_cooldown_h * (2 ** min(attempts, backoff_cap))
+                if _cooldown_ok(hentry.get("fired_at"), effective_cooldown_h):
+                    rc = _fire(wid, wpath, "hygiene",
+                               f"drain backlog ({len(pending)} pending)",
+                               (f"Your incoming/ has {len(pending)} pending lugs — a backlog. "
+                                "Triage and process/close what you can to keep the queue clean "
+                                "(hygiene sweep). Low-priority is fine to batch. Respect CSRP."),
+                               hkey)
+                    if rc == 0:
+                        res["hygiene_fired"] += 1
+                        fired[hkey]["attempts"] = 0
+                    else:
+                        hygiene_max_attempts = int(cfg.get("hygiene_max_attempts", 5))
+                        new_attempts = attempts + 1
+                        fired[hkey]["attempts"] = new_attempts
+                        if new_attempts >= hygiene_max_attempts:
+                            fired[hkey]["needs_attention"] = True
+                            res.setdefault("needs_attention", []).append(hkey)
 
     json.dump(fired, open(_fired_path(basher_root), "w"), indent=2, ensure_ascii=False)
     return res

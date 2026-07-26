@@ -34,6 +34,37 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wai_paths  # noqa: E402  harness-mode root resolver (single source of truth)
 
 
+# ─── ONE re-runnable-evidence grammar ────────────────────────────────────────
+# validate_savepoint decides whether re-runnable evidence EXISTS; savepoint_walk
+# decides how to RE-RUN it. They must never disagree — a gate that accepts what the
+# auditor rejects creates records that look valid and audit as empty. They HAVE
+# disagreed before: savepoint_walk's own comment records 23 of 48 false "uncheckable"
+# verdicts from a divergent copy of these patterns. So the grammar is defined once,
+# here, and imported there. Never redefine it.
+#
+# The verb and root lists were Python-only, which made the rule backwards on any
+# JS/TS spoke: `npx vitest run lib/x.test.ts` — a genuinely re-runnable command — was
+# rejected as prose, pressuring authors to either downgrade honest verified=true
+# claims or reword real evidence to satisfy a regex. Both degrade the trail the rule
+# exists to protect. (Reported from pathfinder, bug-savepoint-ceremony-tooling-gaps-v1.)
+RERUNNABLE_VERBS = (
+    r"python3?|pytest|bash|sh|make|"
+    r"npx|npm|pnpm|yarn|bun|node|deno|vitest|jest|"
+    r"go|cargo|dotnet|mvn|gradle|"
+    r"ruff|mypy|tsc|eslint|curl|git"
+)
+
+# Source roots a re-runnable path may live under. Python-shaped repos keep evidence
+# in tools/tests/scripts; JS/TS spokes keep it in app/lib/components/src.
+SOURCE_ROOTS = (
+    r"WAI-Harness|tools|tests|test|spec|scripts|"
+    r"src|lib|app|apps|components|pages|api|packages|cmd|internal|bin"
+)
+
+PATH_PATTERN = r"(?:%s)/[\w./-]+\.\w+" % SOURCE_ROOTS
+SHA_PATTERN = r"\b(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b"
+
+
 def _has_rerunnable_check(item):
     """Does this work_done entry record something a machine can re-run LATER?
 
@@ -50,9 +81,9 @@ def _has_rerunnable_check(item):
     if not blob.strip():
         return False
     return bool(
-        re.search(r"\b(python3?|pytest|bash|sh)\b[^\n]{3,}", blob)
-        or re.search(r"(?:WAI-Harness|tools|tests|scripts)/[\w./-]+\.\w+", blob)
-        or re.search(r"\b(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b", blob)  # commit sha — ancestry is checkable
+        re.search(r"\b(?:%s)\b[^\n]{3,}" % RERUNNABLE_VERBS, blob)
+        or re.search(PATH_PATTERN, blob)
+        or re.search(SHA_PATTERN, blob)  # commit sha — ancestry is checkable
     )
 
 

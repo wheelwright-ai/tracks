@@ -51,6 +51,29 @@ failed_checks = [c for c in validation.get("checks", []) if c.get("status") == "
 
 Nothing broke and nothing was already broken. Skip to Step 5.
 
+## Step 2.6 — `outcome: fail` but it's a TRANSIENT FREEZE → archive, no bug
+
+Not every FAIL is a regression. When master's own self-verification aborts on a
+dirty `managed/` working tree, EVERY spoke that pulls in that window emits
+`outcome: fail` with an empty validation block and a summary like "self-verification
+… corrupt master" / "bytes MISMATCHED; ABORTED before validation". The spoke was
+never broken — the master was briefly un-shippable — and it self-heals on the next
+pull. Opening a regression bug per such report buries the queue in phantom "spoke
+broke" bugs (18 in one day, 2026-07-22). Detect the freeze signature and archive as
+transient instead.
+
+```python
+_freeze_sig = ("self-verification", "corrupt master", "bytes mismatched", "aborted before validation")
+_summary = str(report.get("summary", "")).lower()
+if outcome == "fail" and any(s in _summary for s in _freeze_sig) and not regressions:
+    report["_disposition"] = {"verdict": "transient master-freeze, not a regression — archived, no bug",
+                              "detail": "master self-verification aborted on a dirty managed/ tree; "
+                                        "the spoke self-heals on the next pull. See managed_sentinel.py."}
+    # Skip to Step 5 (archive). Do NOT open a bug.
+    failed_checks = []
+    regressions = []
+```
+
 ## Step 3 — `outcome: fail` → one bug lug per REGRESSION
 
 A regression is a defect in the cut that master shipped. It gets a bug lug per

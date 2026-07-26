@@ -210,6 +210,26 @@ PY
 _CGATE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/converge_gate.py"
 [ -f "$_CGATE" ] && timeout 20 python3 "$_CGATE" --root "$PROJECT_DIR" 2>/dev/null
 
+# --- Git hygiene ACT seat (git_hygiene.py, impl-git-hygiene-act-arm-v1) --------
+# The ACTIONABLE counterpart to hygiene_run's read-only signal and converge_gate's
+# announce. A session that auto-ejects or crashes leaves carryover: self-owned runtime
+# churn uncommitted (247+ files is normal here) and the session branch drifted ahead of a
+# now-stale main. Nothing healed it until the next CLEAN closeout -- the exact path a crash
+# skips -- so it piled up for days. This heals it at the next start, on the QUIET tree
+# (last session's leftovers, before this session mutates anything).
+# SAFE BY CONSTRUCTION: only self-owned runtime state is committed; .claude/**,
+# **/managed/**, and authored source are NEVER committed (surfaced only); reunify is
+# FAST-FORWARD ONLY (a diverged main is surfaced, never force-pushed) and is skipped while
+# another session holds the CSRP converge.lock lease. Runs SYNCHRONOUSLY (never backgrounded
+# -- a git-writing job racing the session is exactly what concurrency isolation forbids) and
+# best-effort (always exits 0) so it can never block launch; self-gates to a no-op when the
+# tree is clean and main is already current (no commit, no network round-trip).
+_GHYG="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/git_hygiene.py"
+if [ "$HARNESS_V4" = "1" ] && [ -f "$_GHYG" ]; then
+  timeout 30 python3 "$_GHYG" heal --base WAI-Harness/spoke/local --root "$PROJECT_DIR" \
+    --session-id "session-start-heal" --best-effort >/dev/null 2>&1 || true
+fi
+
 # --- Auto-sync the RUNNING copy from canon (s138) -----------------------------
 # "Are we running the latest locally, all the time?" The honest answer used to be
 # no: managed/ is canon, but .claude/commands is what actually executes, and

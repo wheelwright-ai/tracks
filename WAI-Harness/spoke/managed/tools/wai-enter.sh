@@ -886,20 +886,22 @@ elif [[ "$IS_SPOKE" == "true" && "$_CONTINUE_MODE" == "false" ]]; then
     # `claude` and commits. Running that from an interactive launcher would be
     # far worse than the stall this block was written to fix. So: only ever run
     # a copy that actually advertises --pre-scan, and skip entirely otherwise.
-    _PRESCAN_LEGACY=$(python3 -c "
-import json, sys
-try:
-    d = json.load(open('$WAI_LOCAL/WAI-State.json'))
-    print(d.get('wheelwright', {}).get('framework_path', '') or '')
-except Exception:
-    print('')
-" 2>/dev/null)
+    # RETIRED 2026-07-26 — the `wheelwright.framework_path` fallback candidate is GONE.
+    # It was written as fallback-only, self-retiring "the moment canon grows --pre-scan".
+    # The opposite happened: canon never grew the flag, the deprecated repo's copy DID
+    # have it, and the deprecated repo is still on disk — so the fallback stopped being a
+    # fallback and became the ONLY match. Measured live: every wai-enter pre-scan was
+    # running /wheelwright/framework/tools/ozi_autopilot.py, dead code, against the
+    # operator's current project, on his primary entry path.
+    #
+    # A self-retiring guard that never fires is a permanent redirect. Removing the
+    # candidate restores the intended behaviour stated above: if no copy advertises
+    # --pre-scan, skip the pre-scan entirely.
     _PRESCAN_OZI=""
     for _ozi_cand in \
         "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/ozi_autopilot.py" \
         "$SCRIPT_DIR/ozi_autopilot.py" \
-        "$CANON_ROOT/WAI-Harness/spoke/managed/tools/ozi_autopilot.py" \
-        "${_PRESCAN_LEGACY:+${_PRESCAN_LEGACY}/tools/ozi_autopilot.py}"; do
+        "$CANON_ROOT/WAI-Harness/spoke/managed/tools/ozi_autopilot.py"; do
         [[ -n "$_ozi_cand" && -f "$_ozi_cand" ]] || continue
         grep -q -- '"--pre-scan"' "$_ozi_cand" 2>/dev/null || continue
         _PRESCAN_OZI="$_ozi_cand"
@@ -947,7 +949,7 @@ except Exception:
         # SAFETY note above for why we never fall back to a flagless invocation.
         _wai_info "Ozi" "pre-scan: skipped (no ozi with --pre-scan support)"
     fi
-    unset _PRESCAN_LEGACY _PRESCAN_OZI
+    unset _PRESCAN_OZI
 fi
 
 if [[ "$IS_SPOKE" == "true" ]]; then
@@ -1386,7 +1388,18 @@ print(ip, has_prio)
         _SP_LETTERS="cdegjklnopstvwyz"; _li=0
         _print_child_sp() {   # $1 = savepoint index into _SP_* arrays
             local _m="$1" _ltr="${_SP_LETTERS:$_li:1}"
-            _li=$(( _li + 1 )); _SP_LETTER_TO_IDX[$_ltr]=$_m
+            # The letter pool is 16 wide; the savepoint count is not bounded by it.
+            # Past the end, ${_SP_LETTERS:_li:1} is EMPTY, and `_SP_LETTER_TO_IDX[""]=`
+            # is a hard 'bad array subscript' error (observed 2026-07-23 with 17
+            # savepoints) — and an empty key is an unreachable hotkey anyway. Degrade
+            # instead: only consume a letter (and map it) while one is available;
+            # beyond that, show the savepoint with a '·' marker so it stays VISIBLE,
+            # just not directly selectable. Never assign an empty subscript.
+            if [[ -n "$_ltr" ]]; then
+                _li=$(( _li + 1 )); _SP_LETTER_TO_IDX[$_ltr]=$_m
+            else
+                _ltr="·"
+            fi
             printf "          ${_W_DIM}└─${_W_RST} ${_W_BOLD}[%s]${_W_RST}  %-30s%s${_W_DIM}%s${_W_RST}\n" \
                 "$_ltr" "${_SP_TITLES[$_m]}" "$(_sp_silo_tag "${_SP_SILOS[$_m]}")" "${_SP_NOTES[$_m]:+  — ${_SP_NOTES[$_m]}}"
         }
@@ -2298,6 +2311,37 @@ printf "\n  ${_W_DIM}Launching %s...${_W_RST}\n\n" "$TOOL"
 # instead of resuming it, which is not what any of these callers asked for.
 # Gating on _IS_CONTINUATION retires that whole class: wcl-c, wcl-cc, and the
 # duplicate --resume.
+#
+# Phase 1 runs headless (`claude -p`) and prints NOTHING until it exits — for a
+# large survey prompt (e.g. basher TUI's "Do it all") that can be several minutes
+# of real tool-call latency with zero operator-visible feedback, indistinguishable
+# from a hang (bug-tui-doall-claude-p-stalls-no-feedback-v1: reproduced 4m23s and
+# 90s runs, both 0 bytes of output before timeout). _wai_seed_headless_run wraps
+# phase 1 with a live elapsed-time line and a hard ceiling (WAI_SEED_TIMEOUT,
+# default 180s) so silence is never mistaken for a stall and a genuinely stuck
+# call can never trap the operator — phase 2 (--resume) always runs after, and
+# attaches to whatever the pinned session-id has even if phase 1 was killed.
+_wai_seed_headless_run() {
+    printf "  ${_W_DIM}Sending your prompt to Claude — this can take a minute or two on a large survey. Working...${_W_RST}\n"
+    "$@" &
+    local _swpid=$! _swelapsed=0 _swtimeout="${WAI_SEED_TIMEOUT:-180}"
+    while kill -0 "$_swpid" 2>/dev/null; do
+        sleep 1
+        _swelapsed=$((_swelapsed + 1))
+        printf "\r  ${_W_DIM}...still working (%ds elapsed)${_W_RST}" "$_swelapsed"
+        if (( _swelapsed >= _swtimeout )); then
+            printf "\n  ${_W_YLW}◇${_W_RST}  survey is taking longer than expected (${_swelapsed}s) — moving on; the session below picks up wherever it got to\n"
+            kill "$_swpid" 2>/dev/null
+            wait "$_swpid" 2>/dev/null
+            unset _swpid _swelapsed _swtimeout
+            return 124
+        fi
+    done
+    wait "$_swpid"; local _swrc=$?
+    printf "\r  %*s\r" 60 ""
+    unset _swpid _swelapsed _swtimeout
+    return $_swrc
+}
 if [[ -n "${_OPEN_PROMPT:-}" && "$TOOL" == "claude" && "$_IS_CONTINUATION" == "false" ]]; then
     # A positional prompt does NOT auto-submit in Claude Code 2.1.x (it lands in an
     # empty composer). Deliver it the reliable way — the SINGLE path shared by wcl and
@@ -2309,11 +2353,11 @@ if [[ -n "${_OPEN_PROMPT:-}" && "$TOOL" == "claude" && "$_IS_CONTINUATION" == "f
         _we_sid="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null \
                    || python3 -c 'import uuid;print(uuid.uuid4())' 2>/dev/null)"
         if [[ -n "$_we_sid" ]]; then
-            claude --session-id "$_we_sid" -p "$_OPEN_PROMPT" "${_TOOL_ARGS[@]}"
+            _wai_seed_headless_run claude --session-id "$_we_sid" -p "$_OPEN_PROMPT" "${_TOOL_ARGS[@]}"
             printf "\n  ${_W_DIM}── new session · continuing interactively (Ctrl-D to return) ──${_W_RST}\n"
             claude --resume "$_we_sid" "${_TOOL_ARGS[@]}"
         else
-            claude -p "$_OPEN_PROMPT" "${_TOOL_ARGS[@]}"; claude -c "${_TOOL_ARGS[@]}"
+            _wai_seed_headless_run claude -p "$_OPEN_PROMPT" "${_TOOL_ARGS[@]}"; claude -c "${_TOOL_ARGS[@]}"
         fi
     else
         claude -p "$_OPEN_PROMPT" "${_TOOL_ARGS[@]}"

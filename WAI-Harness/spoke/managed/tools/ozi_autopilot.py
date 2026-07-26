@@ -45,6 +45,27 @@ except Exception:  # never let a missing/broken tool break AP
     _CAPGRAPH_AVAILABLE = False
 from wai_paths import resolve_wai_root, advisors_dir  # noqa: E402  (v3/v4 resolver)
 
+try:
+    import routing_vocab as _routing_vocab
+except Exception:  # never let a missing/broken tool break AP
+    _routing_vocab = None
+
+
+def _routing_resolve(routed_to):
+    """Canonical routing verdict, falling back to the legacy literal test if unavailable.
+
+    The fallback deliberately reproduces the OLD behaviour rather than approximating the
+    new one: a resolver that is missing must not quietly change how work is routed.
+    """
+    if _routing_vocab is not None:
+        try:
+            return _routing_vocab.resolve(routed_to)
+        except Exception:
+            pass
+    ok = (not routed_to) or routed_to in ("LOCAL", None, "")
+    return {"value": "LOCAL" if ok else routed_to, "dispatchable": ok,
+            "deprecated": False, "note": "routing_vocab unavailable — legacy literal test"}
+
 
 # impl-spine-c10-human-owned-weights-v1: groom-gate eligibility threshold
 # source of truth moved to hub/local/config/weights.yaml (human-owned,
@@ -1562,14 +1583,35 @@ class OziAutopilot:
                 json.dump(candidate, fh, indent=2)
 
     def _write_challenge_report(self, lug_id: str, lug: Dict[str, Any]) -> None:
-        """Write a challenge_report outgoing lug for a completed migration lug."""
+        """Write a challenge_report outgoing lug for a completed migration lug.
+
+        EMPTY-PAYLOAD GUARD. A report with nothing to say must not be delivered — an
+        alive-looking channel carrying nothing is how a circle rots: the receiver sees
+        traffic, assumes the loop works, and stops checking. Empty here means no
+        challenges AND no version delta, or an unresolvable spoke_id ('unknown'),
+        because identity is part of a non-empty payload. Empty => log locally, return,
+        no file in anyone's delivery path.
+        """
         completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        spoke_id = self._get_wheel_id()
+        v_from = lug.get("harness_version_from", "unknown")
+        v_to = lug.get("harness_version_to", "unknown")
+        challenges = lug.get("challenges", []) or []
+
+        no_identity = not spoke_id or spoke_id == "unknown"
+        no_delta = (v_from == v_to) or (v_from == "unknown" and v_to == "unknown")
+        if no_identity or (not challenges and no_delta):
+            why = "unresolvable spoke_id" if no_identity else "no challenges and no version delta"
+            print(f"[challenge-report] {lug_id} NOT delivered — empty payload ({why})",
+                  file=sys.stderr)
+            return
+
         report = {
-            "spoke_id": self._get_wheel_id(),
-            "harness_version_from": lug.get("harness_version_from", "unknown"),
-            "harness_version_to": lug.get("harness_version_to", "unknown"),
+            "spoke_id": spoke_id,
+            "harness_version_from": v_from,
+            "harness_version_to": v_to,
             "completed_at": completed_at,
-            "challenges": lug.get("challenges", []),
+            "challenges": challenges,
         }
         outgoing_dir = self.spoke_wai / "lugs" / "outgoing"
         outgoing_dir.mkdir(parents=True, exist_ok=True)
@@ -3018,9 +3060,14 @@ class OziAutopilot:
         already exists it is left unchanged.
 
         Mutates `lug` in place; always safe to call (no-ops for LOCAL lugs).
+
+        Compares RESOLVED values, not literals. The old `routed_to in ("LOCAL", None, "")`
+        test treated every other spelling of this wheel as foreign, so lugs saying "local",
+        "mywheel" or "FRAMEWORK" were given cross-spoke delivery context they had no use
+        for — work addressed to itself, marked for somewhere else.
         """
         routed_to = lug.get("routed_to")
-        if not routed_to or routed_to in ("LOCAL", None, ""):
+        if _routing_resolve(routed_to).get("dispatchable"):
             return
         if "_routing_context" in lug:
             return
@@ -3585,6 +3632,50 @@ class OziAutopilot:
                     unmet.append(cond)
         return unmet
 
+    def _git_default_branch(self) -> str:
+        """This spoke's default branch — what 'landed' means here.
+
+        Prefers origin/HEAD's symbolic target; falls back to whichever of main/master
+        exists. Returns "" when it cannot be determined, which callers treat as
+        "do not gate" rather than blocking indexing entirely.
+        """
+        try:
+            p = subprocess.run(
+                ["git", "symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
+                cwd=str(self.spoke_root), capture_output=True, text=True, timeout=10,
+            )
+            if p.returncode == 0 and p.stdout.strip():
+                return p.stdout.strip().split("/", 1)[-1]
+            for cand in ("main", "master"):
+                v = subprocess.run(
+                    ["git", "rev-parse", "--verify", cand],
+                    cwd=str(self.spoke_root), capture_output=True, text=True, timeout=10,
+                )
+                if v.returncode == 0:
+                    return cand
+        except Exception:                                   # noqa: BLE001 — advisory only
+            pass
+        return ""
+
+    def _gitnexus_repo_name(self) -> str:
+        """This spoke's name in the GitNexus registry, resolved by PATH.
+
+        Previously hardcoded to "wai-framework" — so every spoke's blast-radius check
+        queried the framework repo's graph instead of its own, and kept doing so after
+        that repo was deprecated and its index deleted. Errors here are swallowed by the
+        caller, so the check silently answered "no risk" for everything. Resolve by path
+        and fall back to the directory name.
+        """
+        try:
+            reg = Path.home() / ".gitnexus" / "registry.json"
+            if reg.is_file():
+                for entry in json.loads(reg.read_text()):
+                    if Path(entry.get("path", "")).resolve() == self.spoke_root.resolve():
+                        return entry.get("name") or self.spoke_root.name
+        except Exception:                                   # noqa: BLE001 — advisory only
+            pass
+        return self.spoke_root.name
+
     def _gitnexus_freshness_check(self) -> bool:
         """Check whether the GitNexus index is fresh; reindex if stale. Returns True if check ran."""
         meta_path = self.spoke_root / ".gitnexus" / "meta.json"
@@ -3611,6 +3702,26 @@ class OziAutopilot:
 
             current_head = head_proc.stdout.strip()
 
+            # The index is a statement about the TRUTH of the codebase, so only
+            # landed work may move it. Reindexing on any HEAD move meant a session
+            # branch — uncommitted, unreviewed, possibly abandoned — rewrote the
+            # graph every other spoke's impact analysis reads. (Observed: basher's
+            # index was taken on branch session/ozi-ap-event-emit-260722.) Gate on
+            # being ON the default branch; work in progress waits until it lands.
+            branch_proc = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=str(self.spoke_root), capture_output=True, text=True, timeout=10,
+            )
+            branch = branch_proc.stdout.strip() if branch_proc.returncode == 0 else ""
+            default_branch = self._git_default_branch()
+            if branch and default_branch and branch != default_branch:
+                print(
+                    f"[ozi] gitnexus: on '{branch}', not '{default_branch}' — index left alone "
+                    "(only landed work moves the graph)",
+                    file=sys.stderr,
+                )
+                return True
+
             if last_commit == current_head:
                 print(f"[ozi] gitnexus: index fresh (SHA {current_head[:8]})", file=sys.stderr)
             else:
@@ -3624,7 +3735,12 @@ class OziAutopilot:
                             ["npx", "gitnexus", "analyze"],
                             cwd=str(self.spoke_root),
                             capture_output=True,
-                            timeout=120,
+                            # A full analyze on a large spoke takes well over 2 minutes;
+                            # the old 120s cap meant big repos timed out every run and
+                            # their index never actually refreshed, non-fatally and
+                            # silently. 30 min is generous but this runs at most once
+                            # per stale HEAD.
+                            timeout=1800,
                         )
                         print("[ozi] gitnexus: reindex complete", file=sys.stderr)
                     except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as exc:
@@ -3653,7 +3769,8 @@ class OziAutopilot:
             symbol = Path(target).stem
             try:
                 proc = subprocess.run(
-                    ["npx", "gitnexus", "impact", symbol, "--repo", "wai-framework", "--json"],
+                    ["npx", "gitnexus", "impact", symbol,
+                     "--repo", self._gitnexus_repo_name(), "--json"],
                     cwd=str(self.spoke_root),
                     capture_output=True,
                     text=True,

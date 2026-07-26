@@ -266,7 +266,15 @@ HUB_SIGNALS=0
 HUB_SIGNALS_HUB=0
 if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming" ]]; then
   # framework-targeted signals (exclude status=delivered — already absorbed)
-  if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/framework" ]]; then
+  # mywheel/ canonical, framework/ retired-but-readable for one release
+  # (impl-routing-gate-and-term-sunset-v1). Flat incoming/ fallback below is what runs today.
+  HUB_SIG_DIR=""
+  for _cand in mywheel framework; do
+    if [[ -d "$HUB_PATH/WAI-Hub/signals/incoming/$_cand" ]]; then
+      HUB_SIG_DIR="$HUB_PATH/WAI-Hub/signals/incoming/$_cand"; break
+    fi
+  done
+  if [[ -n "$HUB_SIG_DIR" ]]; then
     HUB_SIGNALS=$(python3 -c "
 import json, glob, os, sys
 count = 0
@@ -280,7 +288,7 @@ for f in sorted(glob.glob(sys.argv[1] + '/*.json')):
     except Exception:
         count += 1
 print(count)
-" "$HUB_PATH/WAI-Hub/signals/incoming/framework" 2>/dev/null || echo "0")
+" "$HUB_SIG_DIR" 2>/dev/null || echo "0")
   else
     # fallback: flat incoming/ (pre-subfolder layout)
     HUB_SIGNALS=$(ls "$HUB_PATH/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')

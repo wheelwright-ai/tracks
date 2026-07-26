@@ -606,6 +606,50 @@ def read_assurance_health(spoke: "Optional[Path]") -> "Optional[dict]":
     return out or None
 
 
+def read_integrity_probe(project_root: "Optional[Path]") -> "Optional[dict]":
+    """Standing silent-failure oracles, surfaced at wakeup instead of on request.
+
+    Operator, 2026-07-26: "too basic problems are not getting seen — that learning has to
+    get caught sooner than by the user." Every finding these probes cover was previously
+    found by a human happening to ask on the right day: hooks that never deployed while
+    restore said "current", a master that refused to distribute for four days in silence,
+    lugs the dispatcher ignored rather than rejected.
+
+    Deliberately excludes the slow fleet-wide probes (pending-deploys walks every spoke's
+    git remote) so wakeup stays fast — those run under the full `integrity_probe` command.
+    Failure to run yields None and the banner simply omits the line; it must never block
+    or slow a wakeup.
+    """
+    if project_root is None:
+        return None
+    tool = Path(project_root) / "WAI-Harness/spoke/managed/tools/integrity_probe.py"
+    if not tool.is_file():
+        return None
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("integrity_probe", tool)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        fast = [mod.probe_master_selfverify, mod.probe_routing, mod.probe_terminal_dirs]
+        results = []
+        for fn in fast:
+            try:
+                results.append(fn(str(project_root)))
+            except Exception as e:
+                results.append(mod._result(fn.__name__, mod.UNKNOWN,
+                                           f"probe crashed: {type(e).__name__}"))
+        results.sort(key=lambda r: mod.RANK.get(r["status"], 1))
+        return {
+            "verdict": results[0]["status"] if results else mod.UNKNOWN,
+            "lines": mod.render({"verdict": results[0]["status"], "probes": results,
+                                 "counts": {}}, brief=True),
+            "probes": results,
+            "note": "fast probes only — run integrity_probe for the fleet-wide checks",
+        }
+    except Exception:
+        return None
+
+
 def read_lug_staleness(spoke: "Optional[Path]") -> "Optional[dict]":
     """impl-w4-lug-staleness-wakeup-reader-v1: top-line surface for
     maintenance/lug-staleness-latest.json (produced by fleet_hygiene_scan.py's
@@ -1143,6 +1187,7 @@ def main() -> None:
     qa_health_data = read_qa_health(SPOKE)
     lug_staleness_data = read_lug_staleness(SPOKE)
     assurance_health_data = read_assurance_health(SPOKE)
+    integrity_probe_data = read_integrity_probe(PROJECT_ROOT)
     refresh_position_map(SPOKE)
     position_map_data = read_position_map(SPOKE)
     insight_memory_data = read_insight_memory(SPOKE, PROJECT_ROOT)
@@ -1185,6 +1230,7 @@ def main() -> None:
         "insight_memory": insight_memory_data,
         "tastegraph_prefs": tastegraph_data,
         "assurance_health": assurance_health_data,
+        "integrity_probe": integrity_probe_data,
     }
 
     # Atomic write

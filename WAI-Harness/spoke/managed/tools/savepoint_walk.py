@@ -60,15 +60,32 @@ SAVEPOINT_GLOB = "WAI-Harness/spoke/local/initiatives/savepoints/**/*.json"
 # the sha comment below already makes) — 23 of 48 false "uncheckable" verdicts
 # were entries like "bash tests/test_x.bash  (T39/T40; 40/40 pass)" that the
 # validator had already accepted and this walker alone refused to re-run.
+# ONE grammar, two tools — imported from validate_savepoint, never redefined here.
+# That divergence is exactly what produced the 23/48 false "uncheckable" verdicts
+# described above; keeping a second copy in this file would guarantee it recurs.
+try:
+    from validate_savepoint import RERUNNABLE_VERBS, SOURCE_ROOTS, SHA_PATTERN
+except ImportError:  # pragma: no cover — same-dir import, as lug_gate does with wai_assurance
+    import os as _os
+    import sys as _sys
+    _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    from validate_savepoint import RERUNNABLE_VERBS, SOURCE_ROOTS, SHA_PATTERN
+
 _PYTEST_RE = re.compile(r"(python3? -m pytest[^\n;|&]*)")
-_CMD_RE = re.compile(r"^\s*`?((?:python3?|pytest|bash|sh)\b[^\n`]+)`?\s*$")
+_CMD_RE = re.compile(r"^\s*`?((?:%s)\b[^\n`]+)`?\s*$" % RERUNNABLE_VERBS)
 # Embedded (not whole-field) shell/pytest invocations, e.g. "bash tests/x.bash
 # (T39/T40; 40/40 pass)". Bounded to a bare word so trailing prose — which may
 # itself contain ";" from a human's parenthetical note — is never swept into a
 # string that later gets passed to shell=True.
-_EMBEDDED_CMD_RE = re.compile(r"((?:python3?|pytest|bash|sh)\s+[\w./-]+\.\w+)")
-_PATH_RE = re.compile(r"((?:WAI-Harness|tools|tests|scripts)/[\w./-]+\.\w+)")
-_SHA_RE = re.compile(r"\b(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b")
+# Allows intermediate subcommand tokens before the path, so `npx vitest run
+# lib/x.test.ts` matches as one command. The token charset stays deliberately narrow
+# (\w . @ / -) — no ; | & $ ` — so trailing human prose can never be swept into a
+# string this module later runs with shell=True.
+_EMBEDDED_CMD_RE = re.compile(
+    r"((?:%s)(?:\s+[\w.@/-]+){0,4}\s+[\w./-]+\.\w+)" % RERUNNABLE_VERBS
+)
+_PATH_RE = re.compile(r"((?:%s)/[\w./-]+\.\w+)" % SOURCE_ROOTS)
+_SHA_RE = re.compile(SHA_PATTERN)
 
 
 def _classify(verification):

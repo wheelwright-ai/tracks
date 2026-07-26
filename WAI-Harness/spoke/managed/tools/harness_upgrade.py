@@ -255,6 +255,37 @@ def retire(target_managed, retire_set):
     return {"retired": retired, "errors": errors}
 
 
+def compute_clean_retire_set(master_files, target_managed, local_allow=None):
+    """CLEAN-REPLACE retire set: EVERY managed file the master manifest does not list,
+    not just the ones a prior manifest attested. This is the operator's 2026-07-24
+    model — managed/ is a transient install workspace, never a home for spoke-local
+    authoring — so a file the master does not ship is legacy cruft or a stranded local
+    edit, and either way it must not survive the update. That is the whole guarantee:
+    after a clean apply, managed == master exactly (modulo the two immunities below).
+
+    This is deliberately WIDER than compute_retire_set() (which is prior-manifest-minus-
+    new and refuses to touch never-attested files). It is only safe under the clean model,
+    where nothing legitimately spoke-local lives in managed/, so it is OPT-IN (apply
+    clean=True), not the default, until OQ1 relocates local files out of managed/.
+
+    TWO IMMUNITIES, never purged:
+      - _protected(rel): the spoke's own state (runtime/, .git/, MANIFEST).
+      - local_allow: caller-supplied pins (e.g. basher.json .live_hooks.local_allow[])
+        that are still legitimately local until their persistent home exists.
+    """
+    allow = set(local_allow or ())
+    target_root = Path(target_managed)
+    if not target_root.exists():
+        return []
+    out = []
+    for rel in sorted(_iter_files(target_managed)):
+        if rel in master_files or _protected(rel) or rel == MANIFEST_NAME or rel in allow:
+            continue
+        if _is_within(target_root, rel) and (target_root / rel).is_file():
+            out.append(rel)
+    return out
+
+
 def compute_home_map(master_managed, target_managed):
     """Diff the master MANIFEST against the target's current managed files.
     Returns {add, change, unchanged, orphan, retire} lists of relpaths. No writes."""
@@ -295,11 +326,18 @@ def verify(managed_root, manifest):
     return {"ok": not mismatches and not missing, "mismatches": mismatches, "missing": missing}
 
 
-def apply(master_managed, target_managed, manifest, report=None):
+def apply(master_managed, target_managed, manifest, report=None, clean=False,
+          local_allow=None):
     """Bring the target's managed root to the master manifest: copy every manifest
     file in, then RETIRE the files the target's previous manifest listed that this
     manifest does not. Only writes under target_managed; never touches a sibling
     local/ tree. Returns the count WRITTEN (retirements land in `report`).
+
+    clean=True switches the retire set from prior-manifest-minus-new (the default,
+    conservative, never touches never-attested files) to compute_clean_retire_set()
+    (EVERY orphan, so managed ends == master exactly). This is the operator's
+    clean-replace model; it is opt-in because it only becomes safe once nothing
+    spoke-local lives in managed/. local_allow pins survive either way.
 
     Retirement exists because apply() previously only ever copied, so master could
     not RETIRE a file: 4.6.6 dropped templates/claude/settings.json in master and
@@ -317,7 +355,11 @@ def apply(master_managed, target_managed, manifest, report=None):
     # Resolve the retire set BEFORE anything is written: the target's own
     # MANIFEST.json is the ONLY record of what a previous distribution attested,
     # and _write_neutralized_manifest() overwrites it at the end of this function.
-    retire_set = compute_retire_set(manifest["files"], target_managed)
+    if clean:
+        retire_set = compute_clean_retire_set(manifest["files"], target_managed,
+                                              local_allow=local_allow)
+    else:
+        retire_set = compute_retire_set(manifest["files"], target_managed)
     written = 0
     for rel in manifest["files"]:
         src, dst = master_root / rel, target_root / rel
@@ -335,7 +377,7 @@ def apply(master_managed, target_managed, manifest, report=None):
 
 
 def upgrade(master_managed, target_managed, dry_run=False, expect_version=None,
-            validate=True, spoke_root=None):
+            validate=True, spoke_root=None, clean=False, local_allow=None):
     """The full verify-apply-validate loop. Returns a structured report.
 
     Safety: the master must self-verify (every file's md5 matches its own MANIFEST)
@@ -349,11 +391,18 @@ def upgrade(master_managed, target_managed, dry_run=False, expect_version=None,
     """
     manifest = load_manifest(master_managed)
     home_map = compute_home_map(master_managed, target_managed)
+    # In clean-replace mode the effective retire set is EVERY orphan, not just the
+    # prior-manifest subset. Surface it (preview + change count) so a dry-run shows
+    # exactly what a clean apply would purge before anything is written.
+    if clean:
+        home_map["clean_retire"] = compute_clean_retire_set(
+            manifest["files"], target_managed, local_allow=local_allow)
+    effective_retire = home_map.get("clean_retire") if clean else home_map["retire"]
     # a pending retirement is a real pending change: if master retired a file and
     # changed nothing else, add+change is 0 while the target is genuinely NOT current.
-    report = {"dry_run": dry_run, "home_map": home_map,
+    report = {"dry_run": dry_run, "home_map": home_map, "clean": clean,
               "changes_pending": (len(home_map["add"]) + len(home_map["change"])
-                                  + len(home_map["retire"]))}
+                                  + len(effective_retire))}
 
     # version gate (beside the corruption gate; surfaced on dry-run too so a preview
     # reveals a version desync / premature adoption before anything is applied)
@@ -403,7 +452,8 @@ def upgrade(master_managed, target_managed, dry_run=False, expect_version=None,
     spoke = spoke_root or _spoke_root_of(target_managed)
     baseline = run_validation(spoke) if validate else None
 
-    report["applied"] = apply(master_managed, target_managed, manifest, report=report)
+    report["applied"] = apply(master_managed, target_managed, manifest, report=report,
+                              clean=clean, local_allow=local_allow)
     report["verify_post"] = verify(target_managed, manifest)
     report["ok"] = report["verify_post"]["ok"]
 
@@ -491,6 +541,22 @@ def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
     stamp = datetime.now(timezone.utc)
     lug_id = f"upgrade-report-{spoke_id}-{stamp.strftime('%Y%m%dT%H%M%S')}-v1"
     failed_checks = [c for c in validation.get("checks", []) if c.get("status") == "fail"]
+
+    # EMPTY-PAYLOAD GUARD. An upgrade report earns its delivery when something HAPPENED —
+    # files applied, an abort, a retirement, or a validation that actually ran. A report with
+    # none of those says only "the emitter fired", and a channel carrying that is worse than a
+    # silent one: it reads as a working circle. Identity counts too — a spoke that cannot name
+    # itself has not produced a non-empty payload. Empty => log locally, deliver nothing.
+    nothing_happened = (not rep.get("applied") and not rep.get("aborted")
+                        and not rep.get("retired") and not validation)
+    no_identity = not spoke_id or spoke_id in ("unknown", "", ".", "/")
+    if nothing_happened or no_identity:
+        why = "unresolvable spoke_id" if no_identity else \
+            "nothing applied, no abort, no retirement, validation did not run"
+        print(f"[upgrade-report] {lug_id} NOT written or delivered — empty payload ({why})",
+              file=sys.stderr)
+        return {"local": None, "delivered": None, "ok": True,
+                "errors": [], "skipped_empty": why}
 
     lug = {
         "id": lug_id,
@@ -1379,6 +1445,12 @@ def main(argv):
                            help="skip post-apply validation (bytes-only, pre-4.14.4 behaviour)")
             s.add_argument("--expect-version", default=None,
                            help="abort (write nothing) if the master harness_version != this")
+            s.add_argument("--clean", action="store_true",
+                           help="CLEAN-REPLACE: purge every managed file the master does not "
+                                "ship (not just prior-manifest orphans), so managed ends == "
+                                "master exactly. Protected state + local_allow pins survive. "
+                                "The operator's clean-replace model; opt-in until local files "
+                                "are relocated out of managed/.")
 
     p = sub.add_parser("pull", help="pull-on-spin-up: bring this spoke's managed current from master (cheap no-op when current)")
     p.add_argument("--spoke-root", default=".")
@@ -1456,7 +1528,7 @@ def main(argv):
         master = _resolve_managed(args.master, args.side)
         target = _resolve_managed(args.target, args.side)
         rep = upgrade(master, target, dry_run=args.dry_run, expect_version=args.expect_version,
-                      validate=not args.no_validate)
+                      validate=not args.no_validate, clean=args.clean)
         print(json.dumps(rep, indent=2))
         return 0 if rep["ok"] else 1
 

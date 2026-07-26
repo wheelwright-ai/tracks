@@ -32,8 +32,8 @@
   "session_id": "session-20260318-0315",
   "session_metadata": {
     "started_at": "2026-03-18T03:15:00Z",
-    "environment": "claude-web",
-    "model": "claude-opus-4-8",
+    "environment": "chatgpt-web",
+    "model": "gpt-4",
     "has_predecessor": true,
     "predecessor": {
       "session_id": "session-20260317-2100",

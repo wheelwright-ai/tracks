@@ -237,7 +237,13 @@ _write_state() {
      "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
 }
 if command -v flock >/dev/null 2>&1; then
-  ( flock 9; _write_state ) 9>"$BASE/runtime/.waistate.lock"
+  # Ensure the lock's PARENT DIR exists before the 9>… redirection. Same leak class as
+  # the skills read: `9>"$BASE/runtime/.waistate.lock"` fails at the shell with "No such
+  # file or directory" if runtime/ is absent (the `tracks` spoke has no runtime/ dir),
+  # leaking to stderr as a SessionStart hook error. mkdir first, and fall back to an
+  # unlocked write if the redirection still cannot open.
+  mkdir -p "$BASE/runtime" 2>/dev/null || true
+  ( flock 9; _write_state ) 9>"$BASE/runtime/.waistate.lock" 2>/dev/null || _write_state
 else
   _write_state
 fi
@@ -356,7 +362,14 @@ elif [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
   done
 fi
 
-# ── 4b. Direct-delivery teachings (ingest/manual/ + ingest/incoming/) ─────────
+# ── 4b. Incoming lug count ───────────────────────────────────────────────────
+INCOMING_LUGS_COUNT=0
+INCOMING_DIR="$BASE/lugs/incoming"
+if [[ -d "$INCOMING_DIR" ]]; then
+  INCOMING_LUGS_COUNT=$(find "$INCOMING_DIR" -maxdepth 1 -name "*.json" -type f 2>/dev/null | wc -l | tr -d ' ')
+fi
+
+# ── 4c. Direct-delivery teachings (ingest/manual/ + ingest/incoming/) ─────────
 # These arrive from spoke-to-spoke delivery (not via hub teachings_repo).
 # Count pending ones that haven't been processed yet.
 DIRECT_TEACH_NEW=0
@@ -380,7 +393,18 @@ HUB_SIGNALS=0
 HUB_SIGNALS_HUB=0
 if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming" ]]; then
   # framework-targeted signals (exclude status=delivered — already absorbed)
-  if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming/framework" ]]; then
+  # Signal inbox subfolder: mywheel/ is canonical, framework/ is the retired name kept
+  # readable for one release (impl-routing-gate-and-term-sunset-v1). Neither may exist —
+  # signals currently sit flat in incoming/, and the flat fallback below is what actually
+  # runs today. The protocol doc used to name framework/ ONLY, so an agent following it
+  # read an empty directory and reported no signals while four sat one level up.
+  HUB_SIG_DIR=""
+  for _cand in mywheel framework; do
+    if [[ -d "$HUB_DATA/WAI-Hub/signals/incoming/$_cand" ]]; then
+      HUB_SIG_DIR="$HUB_DATA/WAI-Hub/signals/incoming/$_cand"; break
+    fi
+  done
+  if [[ -n "$HUB_SIG_DIR" ]]; then
     HUB_SIGNALS=$(python3 -c "
 import json, glob, os, sys
 count = 0
@@ -394,7 +418,7 @@ for f in sorted(glob.glob(sys.argv[1] + '/*.json')):
     except Exception:
         count += 1
 print(count)
-" "$HUB_DATA/WAI-Hub/signals/incoming/framework" 2>/dev/null || echo "0")
+" "$HUB_SIG_DIR" 2>/dev/null || echo "0")
   else
     # fallback: flat incoming/ (pre-subfolder layout)
     HUB_SIGNALS=$(ls "$HUB_DATA/WAI-Hub/signals/incoming/"*.json 2>/dev/null | grep -v '.gitkeep' | wc -l | tr -d ' ')
@@ -998,7 +1022,14 @@ fi
 # ── Static data for fast-path briefing (zero tool calls in wai skill) ────────
 PROJECT_NAME=$(jq -r '.wheel.name // "Wheelwright"' "$STATE_FILE" 2>/dev/null || echo "Wheelwright")
 PROJECT_VERSION=$(jq -r '.wheel.version // "?"' "$STATE_FILE" 2>/dev/null || echo "?")
-SKILLS_COUNT=$(wc -l < "$BASE/skills/WAI-Skills.jsonl" 2>/dev/null | tr -d ' ' || echo 0)
+# GUARD the file existence BEFORE the input redirection. `wc -l < missing 2>/dev/null`
+# does NOT suppress the error: the `< missing` redirection fails at the SHELL level
+# before `2>/dev/null` takes effect, so "No such file or directory" leaks to stderr —
+# which surfaces as a hook error on every SessionStart in any spoke without a skills
+# index (observed on ezorg, s117 2026-07-24). Test -f first; wc never sees a missing file.
+SKILLS_COUNT=0
+[ -f "$BASE/skills/WAI-Skills.jsonl" ] && SKILLS_COUNT=$(wc -l < "$BASE/skills/WAI-Skills.jsonl" 2>/dev/null | tr -d ' ')
+SKILLS_COUNT=${SKILLS_COUNT:-0}
 WAISTATE_GIT=$(git -C "$PROJECT_DIR" status --short "$BASE_REL/WAI-State.json" 2>/dev/null | head -1 | awk '{print $1}' | xargs 2>/dev/null || echo "clean")
 CUSTOM_FILES=$(ls "$PROJECT_DIR"/*.md 2>/dev/null | grep -viE "/(README|CLAUDE|GEMINI|AGENTS|CHANGELOG)" | xargs -I{} basename {} 2>/dev/null | tr '\n' ' ' | xargs 2>/dev/null || echo "none")
 
@@ -1011,6 +1042,7 @@ ACTIVE WORK
   Epics: ${EPICS_OPEN} open, ${EPICS_IP} in-progress
   Tasks: ${TASKS_OPEN} open | Bugs/Features in-progress: $((BUGS_IP + FEATURES_IP))
   Other open: ${OTHER_OPEN} | Signals undelivered: ${SIGNALS}
+$(if [[ $INCOMING_LUGS_COUNT -gt 0 ]]; then echo "  Incoming: ${INCOMING_LUGS_COUNT} lug(s) pending triage"; fi)
 
 EPICS
 ${EPIC_LIST}
@@ -1031,6 +1063,7 @@ CONTEXT HEALTH
   Prev session: ${PREV_SESSION_STATUS}$(if [[ -n "$PREV_SESSION_ID" ]]; then echo " (${PREV_SESSION_ID})"; fi)$(if [[ "$PREV_SESSION_STATUS" == "INTERRUPTED" ]]; then echo " ⚠ recovery prompt shown pre-launch"; fi)
 $(if [[ -n "$INTEGRITY_SCORE" ]]; then echo "$INTEGRITY_SCORE"; fi)
 $(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
+$(if [[ $TEACH_NEW -eq 0 ]]; then echo "  Harness: current"; else echo "  Harness: ⚠ ${TEACH_NEW} update(s) pending — Step 0.5 will adopt at session start"; fi)
 $(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)
 $(if [[ -n "$SAVEPOINT_STATUS" ]]; then echo "$SAVEPOINT_STATUS"; fi)
 $(if [[ -n "$STALE_LUGS_STATUS" ]]; then echo "$STALE_LUGS_STATUS"; fi)

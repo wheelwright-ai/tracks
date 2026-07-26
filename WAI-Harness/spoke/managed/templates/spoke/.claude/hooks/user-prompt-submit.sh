@@ -205,6 +205,21 @@ HVEOF
   printf '%s\n' "</wai-track-turn>"
 fi
 
+# ── TASTE TIER A: always-on communication contract (per-turn, BINDING) ─────
+#
+# The two-tier taste fix (2026-07-24). TasteGraph was non-binding because the ONE
+# class that must always hold — how to speak to this operator — was sampled like
+# rotating domain trivia (the vector below). Tier A is the small stable set of
+# communication/accessibility prefs, rendered as an imperative contract on THIS
+# rail (the per-turn rail that provably binds, same as the track obligations).
+# Data-driven: taste.user.yaml entries flagged `binding: always_on`. Emits nothing
+# if none are flagged, so it can never inject noise.
+_TCON="${PROJECT_DIR}/WAI-Harness/spoke/managed/tools/taste_contract.py"
+if [ -f "$_TCON" ]; then
+  _TCON_OUT="$(python3 "$_TCON" 2>/dev/null)"
+  [ -n "$_TCON_OUT" ] && printf '%s\n' "$_TCON_OUT"
+fi
+
 # ── TASTEGRAPH PRESENTATION VECTOR (per-turn, unconditional) ────────────────
 #
 # s137 measured TasteGraph as near non-binding: preferences sourced ONLY from

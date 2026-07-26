@@ -112,7 +112,21 @@ elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
   # Python project with Python changes
   SUITE=$(discover_python_suite)
   [[ -n "$SUITE" ]] || exit 0   # no Python suite in this repo — nothing to gate
-  RESULT=$(python3 -m pytest "$SUITE" -x -q --tb=short 2>&1); EXIT_CODE=$?
+  # BOUNDED (2026-07-23, s117): a Stop hook that outruns Claude Code's per-hook budget
+  # surfaces as "Stop hook error: Failed with non-blocking status code" on EVERY turn —
+  # noise, not a verdict. basher's suite is ~43s and this hook was unbounded, so a slow
+  # run (or the same hook double-registered in project + global settings) blew the budget.
+  # Per this file's own contract ("never exit non-zero for infrastructure errors"), a
+  # timeout is infra: bound the run and treat a timeout as a NO-OP. The real gate is
+  # pre-commit-gate.sh (blocks red-on-main); this per-Stop pass is a fast-feedback bonus,
+  # so degrading it to silence under time pressure loses nothing. Raise STOP_TEST_TIMEOUT
+  # to re-widen. pytest never emits 124; only `timeout` does, so it can't mask a verdict.
+  # HEADROOM, NOT A TIGHT FIT (s117 2026-07-24). The bound was first set to 45s off a
+  # 43s measurement. The suite then grew to 47s and the gate began timing out on EVERY
+  # run — reporting success while never executing a single test. A bound sized to the
+  # CURRENT runtime is a gate with an expiry date; give it real headroom and make the
+  # timeout LOUD (below) so growth degrades visibly instead of silently.
+  RESULT=$(timeout "${STOP_TEST_TIMEOUT:-90}" python3 -m pytest "$SUITE" -x -q --tb=short 2>&1); EXIT_CODE=$?
 
   # pytest exit codes:
   #   0 all passed | 1 tests failed | 2 collection error / interrupted
@@ -130,6 +144,16 @@ elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
   case $EXIT_CODE in
     5) exit 0 ;;
     3|4) exit 0 ;;
+    124)
+      # A TIMEOUT MUST BE LOUD, NEVER SILENT. This was a bare `exit 0`, which meant a
+      # gate that had quietly stopped running still reported green — the exact
+      # green-washing hole pre-commit-gate.sh was written to close. Still exit 0 (the
+      # contract forbids blocking on infra), but SAY the suite did not run.
+      echo "<test-gate-not-run>"
+      echo "Test gate TIMED OUT after ${STOP_TEST_TIMEOUT:-90}s — the suite did NOT run; this turn is UNVERIFIED."
+      echo "Raise STOP_TEST_TIMEOUT or run: python3 -m pytest ${SUITE} -q"
+      echo "</test-gate-not-run>"
+      exit 0 ;;
     2) FAIL_MSG="Test collection FAILED after your last change (pytest exit 2 — broken import or conftest). The suite could not run. Fix before continuing." ;;
   esac
 elif echo "$ALL_CHANGED" | grep -qE '\.rs$'; then

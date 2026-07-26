@@ -343,9 +343,34 @@ def _aggregate_steps(items: List[Dict[str, Any]]) -> str:
     return "certified" if all(i.get("result") == "pass" for i in executed) else "partial"
 
 
+def _coerce_result(s: Dict[str, Any]) -> str:
+    """Read a step's outcome, accepting BOTH documented spellings.
+
+    wai-closeout.md Step 11.5 documents the payload as
+        --steps '[{"step_id":"commit","pass":true}]'
+    while this module only ever read `result`. A caller following the ceremony
+    doc therefore had every step silently normalise to "pending", and the bolt
+    was written certification_status="partial" no matter what actually ran —
+    with exit 0, so nothing looked wrong. Since wai-closeout calls the ceremony
+    bolt the durable record that a closeout completed, every spoke following the
+    documented interface has been recording "no closeout ever finished".
+
+    Accept both rather than picking a winner: `pass` is what the ceremony docs
+    promise and what spokes already emit, `result` is what the tests and callers
+    in-tree use. `result` wins when both are present, so existing callers are
+    bit-for-bit unaffected.
+    """
+    result = s.get("result")
+    if result is None and "pass" in s:
+        passed = s.get("pass")
+        if isinstance(passed, bool):
+            return "pass" if passed else "fail"
+    return result if result is not None else "pending"
+
+
 def _normalize_step(s: Dict[str, Any], id_key: str) -> Dict[str, Any]:
     """Coerce a raw step/component dict into a bolt-item (schema-valid)."""
-    result = s.get("result", "pending")
+    result = _coerce_result(s)
     skipped = bool(s.get("skipped", False))
     return {
         "lug_id": s.get(id_key) or s.get("lug_id") or s.get("step_id") or "step",

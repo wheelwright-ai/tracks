@@ -382,13 +382,14 @@ def _check_gate_consistency(lug, index):
 
 
 def gate_lug(lug_dict, index, root):
-    """Run all 5 checks. Empty list == PASS."""
+    """Run all 6 checks. Empty list == PASS."""
     findings = []
     findings += _check_schema(lug_dict)
     findings += _check_verify_runnability(lug_dict)
     findings += _check_reasoned_tiering(lug_dict)
     findings += _check_blocked_by(lug_dict, index, root)
     findings += _check_gate_consistency(lug_dict, index)
+    findings += check_routing_canonical(lug_dict, root)
     return findings
 
 
@@ -562,6 +563,36 @@ def _blockers_at_head(rel, root, index):
         return None
 
 
+def _blockers_at_head_by_id(lug_id, rel, root, index):
+    """Blocker count for the SAME lug at HEAD under a different status dir, or None.
+
+    Companion to _blockers_at_head, for the relocation case: bytype/<type>/<status>/<id>.json
+    moving between status dirs is a lifecycle event, not authorship, and must ratchet against
+    where the lug came FROM. Only sibling status dirs of the same type are searched, so this
+    cannot match an unrelated lug that happens to share an id.
+
+    Same FAIL-CLOSED contract: anything unverifiable returns None => full author-time bar.
+    """
+    if not lug_id:
+        return None
+    m = re.match(r'(.*/lugs/bytype/[^/]+)/[^/]+/[^/]+\.json$', rel)
+    if not m:
+        return None
+    type_dir = m.group(1)
+    try:
+        p = subprocess.run(["git", "ls-tree", "-r", "--name-only", "HEAD", type_dir + "/"],
+                           cwd=root, capture_output=True, text=True, timeout=15)
+        if p.returncode != 0:
+            return None
+        candidates = [l.strip() for l in (p.stdout or "").splitlines()
+                      if l.strip().endswith(f"/{lug_id}.json") and l.strip() != rel]
+    except Exception:
+        return None
+    if len(candidates) != 1:        # 0 = genuinely new; >1 = ambiguous => full bar
+        return None
+    return _blockers_at_head(candidates[0], root, index)
+
+
 def cmd_staged(root):
     try:
         p = subprocess.run(["git", "diff", "--cached", "--name-only"], cwd=root,
@@ -604,6 +635,16 @@ def cmd_staged(root):
         # the full bar (prior=None => any blocker fails), and a regression on any
         # lug still fails. Quality can only ratchet up.
         prior = _blockers_at_head(rel, root, index)
+
+        # A MOVE IS NOT AN AUTHORSHIP EVENT. _blockers_at_head looks the lug up by its NEW
+        # path, so relocating an existing lug (done/ -> completed/, open/ -> completed/)
+        # returns prior=None and the ratchet treats decade-old history as freshly authored.
+        # That is how the done/ -> completed/ consolidation hit the full author-time bar on
+        # 25 lugs finished months ago — work nobody can re-author. Fall back to the lug's
+        # id under any sibling status dir at HEAD before concluding it is new.
+        if prior is None:
+            prior = _blockers_at_head_by_id(lug.get("id"), rel, root, index)
+
         if prior is not None and len(blockers) <= prior:
             improved.append((rel, prior, len(blockers)))
             continue
@@ -629,9 +670,68 @@ def cmd_staged(root):
     return 0
 
 
+def check_routing_canonical(lug, root):
+    """AUTHOR-TIME GATE: routed_to must be a canonical destination.
+
+    Closes the compat window opened in wave 1. Until now `routed_to` accepted anything, so
+    one destination acquired 15 spellings and the dispatcher — which exact-matched literals —
+    silently ignored 68 live lugs rather than rejecting them. Resolution fixed the reading
+    side; this stops the writing side reintroducing the problem.
+
+    Deliberately gates on RESOLVABILITY, not on an exact string: a legacy spelling still
+    resolves and still passes, so this never blocks an author for using an old habit. Only a
+    value nothing can resolve — a lug type, an actor, a typo, an unregistered wheel — blocks.
+
+    Returns a findings list (possibly empty). Fails OPEN if routing_vocab is unavailable:
+    a missing resolver must not block every author in the fleet.
+    """
+    routed_to = lug.get("routed_to")
+    if routed_to is None:
+        return []
+    try:
+        sys.path.insert(0, os.path.join(root, "WAI-Harness", "spoke", "managed", "tools"))
+        import routing_vocab
+    except Exception:
+        return []
+    try:
+        r = routing_vocab.resolve(routed_to, root=root)
+    except Exception:
+        return []
+    if r.get("value") is None:
+        return [{"check": "routing", "error_class": "non-canonical-routed_to", "severity": "block",
+                 "msg": (f"routed_to {routed_to!r} is not a destination — {r.get('note')}. "
+                         f"Valid: LOCAL, SPOKE/<wheel_id> (from hub-registry), SIGNAL.")}]
+    if r.get("deprecated"):
+        return [{"check": "routing", "error_class": "deprecated-routed_to", "severity": "warn",
+                 "msg": f"routed_to {routed_to!r}: {r.get('note')} — use {r['value']}"}]
+    return []
+
+
+def scan_legacy_terminal_dirs(root):
+    """SCHEMA LINT: bytype/*/done/ must not exist — completed/ is the only terminal dir.
+
+    Two terminal directories means every reader has to believe the right one, and the ones
+    that believed completed/ reported 26 real lugs as never-finished for months. The split is
+    now migrated; this lint is what stops it silently coming back.
+
+    Returns a list of offending directories (empty = clean).
+    """
+    bytype = _bytype_dir(root)
+    if not bytype or not os.path.isdir(bytype):
+        return []
+    offenders = []
+    for d in sorted(glob.glob(os.path.join(bytype, "*", "done"))):
+        if os.path.isdir(d):
+            n = len(glob.glob(os.path.join(d, "*.json")))
+            offenders.append({"dir": d, "lugs": n})
+    return offenders
+
+
 def cmd_sweep(sweep_dir, root, as_json, initiative=None):
     lug_paths = glob.glob(os.path.join(sweep_dir, "**", "*.json"), recursive=True)
     index = build_index(_bytype_dir(root))
+
+    legacy_dirs = scan_legacy_terminal_dirs(root)
 
     total = 0
     compliant = 0
@@ -662,6 +762,7 @@ def cmd_sweep(sweep_dir, root, as_json, initiative=None):
             "compliant": compliant,
             "noncompliant": noncompliant,
             "mechanical_without_runnable": mech_without_runnable,
+            "legacy_terminal_dirs": legacy_dirs,
         }, indent=2))
     else:
         print(f"lug_gate --sweep {sweep_dir}")
@@ -671,8 +772,13 @@ def cmd_sweep(sweep_dir, root, as_json, initiative=None):
             print(f"  - {nc['lug']} ({nc['path']}):")
             for f in nc["findings"]:
                 print(f"      [{f['error_class']}] {f['msg']}")
+        if legacy_dirs:
+            print(f"  SCHEMA VIOLATION — legacy terminal dir(s) present "
+                  f"(completed/ is the only terminal dir):")
+            for d in legacy_dirs:
+                print(f"      [legacy-terminal-dir] {d['dir']} ({d['lugs']} lug(s))")
 
-    return 0 if len(noncompliant) == 0 else 1
+    return 0 if (len(noncompliant) == 0 and not legacy_dirs) else 1
 
 
 # ---------------------------------------------------------------------------

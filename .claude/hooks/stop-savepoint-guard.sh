@@ -154,6 +154,13 @@ if [[ -n "$_SPG_SID" && -f "$CC" ]]; then
       # leave the working tree exactly as-is for a scoped, human/session-owned commit.
       [[ -f "$WG" ]] && python3 "$WG" lane-unregister --base "$BASE" --session "$_SPG_SID" >/dev/null 2>&1
       emit "Converge request honored: lane unregistered. This lane runs in the SHARED tree (no private worktree), so it did NOT auto-commit — a blind 'git add -A' here would sweep other live sessions' in-flight files. Your savepoint is written; commit your own files scoped, or re-run this session in its own worktree (worktree_guard.py wt-new)."
+      # Durable audit trail (bug-herald-idle-only-gate-and-shared-tree-overwrite-v1):
+      # the hard gate above must be provable from a log, not just inferred from an
+      # absence of damage. herald.log is the fleet's existing convergence audit trail.
+      _SPG_HLOG="$BASE/runtime/herald/herald.log"
+      mkdir -p "$(dirname "$_SPG_HLOG")" 2>/dev/null
+      _SPG_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null)
+      echo "[$_SPG_TS] converge: skipped: active session in spoke — shared tree (no private worktree), self-commit refused ($_SPG_SID)" >> "$_SPG_HLOG" 2>/dev/null
     fi
   fi
 fi
