@@ -1162,18 +1162,18 @@ DISRUPTIONS+=("wakeup-brief")
 DISRUPTION_DETAILS+="[STEP 11c] generate_wakeup_brief.py failed — next session uses full wakeup path\n"
 ```
 
-### 11d. Generate Octo Brief (Hub Projects Only)
+### 11d. Generate Otto Brief (Hub Projects Only)
 
 **Skip if not a hub project.** Detect: `wheel.node_type == "hub"` in WAI-State.json OR `WAI-Hub/` directory exists.
 
-After Ozi brief, generate `WAI-Hub/octo-brief.json` — a pre-computed fleet snapshot.
+After Ozi brief, generate `WAI-Hub/otto-brief.json` — a pre-computed fleet snapshot.
 
 ```bash
 python3 -c "
 import json, datetime, os, glob
 
 if not os.path.isdir('WAI-Hub'):
-    print('Not a hub project — skipping Octo brief.')
+    print('Not a hub project — skipping Otto brief.')
     exit(0)
 
 fleet = {'green': 0, 'yellow': 0, 'red': 0, 'red_spoke_names': [], 'yellow_spoke_names': []}
@@ -1222,9 +1222,9 @@ brief = {
     'next_triumvirate_run': None
 }
 os.makedirs('WAI-Hub', exist_ok=True)
-with open('WAI-Hub/octo-brief.json', 'w') as f:
+with open('WAI-Hub/otto-brief.json', 'w') as f:
     json.dump(brief, f, indent=2)
-print('Octo brief written: WAI-Hub/octo-brief.json')
+print('Otto brief written: WAI-Hub/otto-brief.json')
 "
 ```
 

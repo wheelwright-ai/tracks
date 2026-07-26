@@ -93,7 +93,7 @@ else:
 - **If FRESH:** Use brief data for lug counts, queue snapshot, chain target. Skip Steps 2/4/4b/4c. If `chain_target_lug` is set, proceed directly to Step 9b with that lug (skip vibe/queue display). Display: `State: from Wakeup brief ({mode} mode, git {sha8})`
 - **If STALE or MISSING:** Run full scan. Display: `State: live scan`
 
-**Octo Brief (hub projects only):** Same freshness check on `WAI-Hub/octo-brief.json` for fleet section. If fresh, use `fleet_snapshot`, `priority_order`, `signal_pipeline` from the brief instead of re-scanning advisor state files. Display: `Fleet: from Octo brief ({N}min ago)` vs `Fleet: live scan`
+**Otto Brief (hub projects only):** Same freshness check on `WAI-Hub/otto-brief.json` for fleet section. If fresh, use `fleet_snapshot`, `priority_order`, `signal_pipeline` from the brief instead of re-scanning advisor state files. Compat (one release): if `otto-brief.json` is absent, read legacy `octo-brief.json`. Display: `Fleet: from Otto brief ({N}min ago)` vs `Fleet: live scan`
 
 **Step 4.2 — Fleet Health Aggregation (hub only; no-op if `node_type != "hub"`):**
 

@@ -115,6 +115,19 @@ def _v4_safe_root(spoke_path):
         return sp / "local"
     return Path(spoke_path) / "WAI-Spoke"
 
+
+def _otto_advisor_dir(hub_path):
+    """Hub Otto advisor dir (WAI-Hub/advisors/otto).
+
+    compat: one-release read fallback to the legacy 'octo' spelling so a
+    new spoke tool still reads a pre-rename hub (impl-otto-engine-rename-v1).
+    """
+    otto = Path(hub_path) / "WAI-Hub" / "advisors" / "otto"
+    if otto.is_dir():
+        return otto
+    legacy = Path(hub_path) / "WAI-Hub" / "advisors" / "octo"  # compat (one release)
+    return legacy if legacy.is_dir() else otto
+
 # Goal queue integration (optional — graceful fallback if module absent)
 try:
     from wai_goal_queue import queue_query, queue_depth_metric, QueueQueryParams  # noqa: E402
@@ -222,7 +235,7 @@ from collections import namedtuple
 HubIntel = namedtuple('HubIntel', [
     'urgency',              # int(0-5): hub spinner urgency for this spoke
     'shift_direction',      # str: maintain/growth/sunset/revenue
-    'priority_score',       # float: octo priority multiplier for ROI
+    'priority_score',       # float: otto priority multiplier for ROI
     'deep_audit',           # bool: filter to bug/implementation only
     'signal_overload',      # bool: phase 2 triaged signals before phase 3
     'stale_work',           # bool: quartermaster detected stale lugs
@@ -1159,7 +1172,7 @@ class OziAutopilot:
         signal_overload = defaults["signal_overload"]
 
         # --- Spinner: urgency for this spoke ---
-        # Resolved wheel_id (used later for Octo brief matching too)
+        # Resolved wheel_id (used later for Otto brief matching too)
         resolved_wheel_id: Optional[str] = None
         try:
             spinner_path = hub_path / "WAI-Hub" / "advisors" / "spinner" / "spoke_spinner.json"
@@ -1193,10 +1206,10 @@ class OziAutopilot:
         except (OSError, json.JSONDecodeError, TypeError, ValueError):
             pass
 
-        # --- Octo council_directives: deep_audit flag ---
+        # --- Otto council_directives: deep_audit flag ---
         try:
             directives_path = (
-                hub_path / "WAI-Hub" / "advisors" / "octo" / "council_directives.json"
+                _otto_advisor_dir(hub_path) / "council_directives.json"
             )
             raw = directives_path.read_text(encoding="utf-8")
             directives_data = json.loads(raw)
@@ -1207,14 +1220,14 @@ class OziAutopilot:
             check_ids = {id_ for id_ in (spoke_id, resolved_wheel_id) if id_}
             if check_ids & set(deep_audit_spokes):
                 deep_audit = True
-            if "octo-directives" not in sources:
-                sources.append("octo-directives")
+            if "otto-directives" not in sources:
+                sources.append("otto-directives")
         except (OSError, json.JSONDecodeError, TypeError):
             pass
 
-        # --- Octo strategic brief (latest): priority_score + signal_overload ---
+        # --- Otto strategic brief (latest): priority_score + signal_overload ---
         try:
-            reports_dir = hub_path / "WAI-Hub" / "advisors" / "octo" / "reports"
+            reports_dir = _otto_advisor_dir(hub_path) / "reports"
             if reports_dir.exists():
                 # Find the lexicographically latest strategic-brief JSON
                 brief_files = sorted(reports_dir.glob("strategic-brief-*.json"))
@@ -1243,7 +1256,7 @@ class OziAutopilot:
                     if int(inv_overload) > 0:
                         signal_overload = True
 
-                    sources.append("octo-brief")
+                    sources.append("otto-brief")
         except (OSError, json.JSONDecodeError, TypeError, ValueError):
             pass
 
@@ -1273,8 +1286,8 @@ class OziAutopilot:
     ) -> HubIntel:
         """Load hub advisory files and return HubIntel namedtuple.
 
-        Reads: spinner (urgency/shift), octo directives (deep_audit),
-        octo work queue (priority_score), quartermaster inventory (anomalies).
+        Reads: spinner (urgency/shift), otto directives (deep_audit),
+        otto work queue (priority_score), quartermaster inventory (anomalies).
         All reads wrapped in try/except for graceful fallback on missing files.
         """
         urgency = 3
@@ -1332,10 +1345,10 @@ class OziAutopilot:
         except (OSError, json.JSONDecodeError, TypeError, ValueError):
             pass
 
-        # --- Octo council_directives: deep_audit flag ---
+        # --- Otto council_directives: deep_audit flag ---
         try:
             directives_path = (
-                hub_path / "WAI-Hub" / "advisors" / "octo" / "council_directives.json"
+                _otto_advisor_dir(hub_path) / "council_directives.json"
             )
             raw = directives_path.read_text(encoding="utf-8")
             directives_data = json.loads(raw)
@@ -1348,9 +1361,9 @@ class OziAutopilot:
         except (OSError, json.JSONDecodeError, TypeError):
             pass
 
-        # --- Octo hub_work_queue: priority_score ---
+        # --- Otto hub_work_queue: priority_score ---
         try:
-            queue_path = hub_path / "WAI-Hub" / "advisors" / "octo" / "hub_work_queue.json"
+            queue_path = _otto_advisor_dir(hub_path) / "hub_work_queue.json"
             raw = queue_path.read_text(encoding="utf-8")
             queue_data = json.loads(raw)
             if isinstance(queue_data, list):
@@ -1724,12 +1737,12 @@ class OziAutopilot:
             "Re-determine what advisors this spoke has versus what its current goals and recent "
             "concerns require. Follow Ozi's Team Coverage Evaluation in "
             "WAI-Spoke/advisors/ozi/context_prompt.md. Roster: WAI-Spoke/advisors/registry.json. "
-            f"Hub scope patterns: {hub_path}/WAI-Hub/advisors/octo/advisor-recommendation-patterns.json."
+            f"Hub scope patterns: {hub_path}/WAI-Hub/advisors/otto/advisor-recommendation-patterns.json."
         )
         lug["execute"] = [
             "1. Read WAI-Spoke/advisors/registry.json (roster + last_run_at) and WAI-Spoke/advisors/departments.json (active departments).",
             "2. Read WAI-Spoke/WAI-State.json for project goals/identity and scan the last 30 open lugs' titles for recent concerns/keywords.",
-            f"3. Read {hub_path}/WAI-Hub/advisors/octo/advisor-recommendation-patterns.json; match active scopes against each scope_trigger's detection_signals.",
+            f"3. Read {hub_path}/WAI-Hub/advisors/otto/advisor-recommendation-patterns.json; match active scopes against each scope_trigger's detection_signals.",
             "4. For each matched scope_trigger whose advisor_ids_to_check are absent from the roster, record one gap object using the field name 'domain' (not 'scope') set to the scope_trigger string. Example gap: {\"domain\": \"deployment_automation\", \"suggested_template\": \"engineering-advisor\", \"priority\": 3, \"justification\": \"one line reason\", \"proposal_status\": \"pending\"}.",
             "5. Read WAI-Spoke/advisors/ozi/scan_state.json (create {} if absent). Write back the ENTIRE file with a top-level 'team_coverage' key — do NOT write last_coverage_eval_at, active_scopes, or gaps_detected at the root. Required structure: {\"team_coverage\": {\"last_coverage_eval_at\": \"<now ISO8601>\", \"active_scopes\": [<scope_trigger strings>], \"gaps_detected\": [<gap objects from step 4>]}, <...preserve other existing top-level keys...>}.",
             "6. Do NOT provision advisors here. Recommendations become user-review lugs on the next scouting pass.",
@@ -3305,7 +3318,7 @@ class OziAutopilot:
 
         hub_directive.priority_score is a global multiplier applied to the effective
         ROI of every lug before sorting.  A score of 1.0 (default) has no effect.
-        A score of 1.5 (Octo boosted) makes the ROI appear 50% higher, biasing
+        A score of 1.5 (Otto boosted) makes the ROI appear 50% higher, biasing
         dispatch toward higher-ROI lugs when the hub deems the spoke elevated.
         """
         URGENCY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "none": 4}

@@ -61,7 +61,7 @@
   "guidance_boundary": {
     "autonomous_column": "dispatcher freely drains Expediter's 'autonomous' ready-queue under the breakers",
     "attention_column": "needs-you / sign-off / escalation items are async-batched to the Attention surface, NEVER block the autonomous column",
-    "response_sla": "an Attention item unanswered for its SLA escalates (e.g. to Octo/Wilbur) rather than stalling silently (review MED)"
+    "response_sla": "an Attention item unanswered for its SLA escalates (e.g. to Otto/Wilbur) rather than stalling silently (review MED)"
   },
   "constraints": [
     "Routing is declarative data (table), not hardcoded — advisors register subscriptions",
@@ -82,7 +82,7 @@
     "Liveness: kill a running advisor → heartbeat silence >5m → its work requeued + Attention raised",
     "Dispatcher self-gate: every dispatch produces a dispatch-audit event; a Pattern Gate certifies dispatcher health",
     "Hub-down: make the hub unreachable → local dispatch/Autopilot/gates continue; hub-dependent work flagged hub_pending; spoke self-certifies with hub-unreachable marker",
-    "Attention SLA: an unanswered escalation past SLA escalates to Octo, does not stall silently"
+    "Attention SLA: an unanswered escalation past SLA escalates to Otto, does not stall silently"
   ],
   "impl_lugs": [],
   "health": {

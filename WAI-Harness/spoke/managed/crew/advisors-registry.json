@@ -2,7 +2,7 @@
   "registry": "advisor-system-v2",
   "version": "2.1.0",
   "established_at": "2026-06-03T01:40:00Z",
-  "note": "Canonical roster for the v2 advisor system. Spoke advisors run on-demand; hub advisors run on schedule. Communicate via structured lug-messages. HUB ROSTER reconciled 2026-06-11 to the actually-built advisor definitions in WAI-Harness/hub/managed/advisors/ (status 'exists') plus the 2 Wheel-Council roles still tools-only (status 'blueprint'). Wheel Council: octo(lead), gardener(expert), cartographer(director), spinner(hands), quartermaster(intel).",
+  "note": "Canonical roster for the v2 advisor system. Spoke advisors run on-demand; hub advisors run on schedule. Communicate via structured lug-messages. HUB ROSTER reconciled 2026-06-11 to the actually-built advisor definitions in WAI-Harness/hub/managed/advisors/ (status 'exists') plus the 2 Wheel-Council roles still tools-only (status 'blueprint'). Wheel Council: otto(lead), gardener(expert), cartographer(director), spinner(hands), quartermaster(intel).",
   "comms_model": "lug-message",
   "spoke_advisors": [
     {
@@ -71,7 +71,7 @@
   ],
   "hub_advisors": [
     {
-      "id": "octo",
+      "id": "otto",
       "tier": "hub",
       "role": "Hub orchestrator \u2014 leads the Wheel Council",
       "cadence": "scheduled",

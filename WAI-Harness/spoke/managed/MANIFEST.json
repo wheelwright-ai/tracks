@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.14.8",
+  "harness_version": "4.14.9",
   "is_master": false,
-  "generated_at": "2026-07-26T07:40:11.399135+00:00",
-  "master_sha": "33f23720222bfc150bb233dfd00482806effdf6f",
+  "generated_at": "2026-07-26T19:31:06.410159+00:00",
+  "master_sha": "6dc63699fe7a494631a747054471a88c21ef16c5",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -181,7 +181,7 @@
     },
     ".claude/commands/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "980436b2b4347694904a5f84cc472c01",
+      "md5": "839736c9d717d5eaee8d803392f1ea07",
       "owner": "basher"
     },
     ".claude/commands/wai-compact-resume.md": {
@@ -281,7 +281,7 @@
     },
     ".claude/commands/wai-full.md": {
       "version": "4.6.5",
-      "md5": "f706a4e4978136b743628c18c65ac375",
+      "md5": "3f2b37f4ceafe8a9425beb9a9355d54d",
       "owner": "basher"
     },
     ".claude/commands/wai-harness-adopt.md": {
@@ -591,7 +591,7 @@
     },
     ".claude/commands/wai-wayfinder.md": {
       "version": "4.6.5",
-      "md5": "95211c6fc0d52229ec15905cc776e940",
+      "md5": "a0196dc7bf8b59d2d3f0af3bc6e13322",
       "owner": "basher"
     },
     ".claude/commands/wai.md": {
@@ -946,7 +946,7 @@
     },
     "crew/advisors-registry.json": {
       "version": "4.6.5",
-      "md5": "35558bf1e5a018d543922734208c102a",
+      "md5": "dd94d2d6306a4aeb8450a4e7e5dda3b2",
       "owner": "basher"
     },
     "crew/phases/build.md": {
@@ -1001,7 +1001,7 @@
     },
     "docs/harness/HUB-DATA-PORT-MAP.md": {
       "version": "4.6.5",
-      "md5": "43b846a60891e197587eaf3c92284d3d",
+      "md5": "5982d30073e131170012e3edbf68fc3d",
       "owner": "basher"
     },
     "docs/harness/V4-COMPLETE-PLAN.md": {
@@ -1286,7 +1286,7 @@
     },
     "knowledge/spec/open/spec-observability-oversight-v1.json": {
       "version": "4.6.5",
-      "md5": "b89df3e38a133aa7f32511af98bcae9e",
+      "md5": "e78d4ef95b3cee98bffb3d63e96932f0",
       "owner": "basher"
     },
     "knowledge/spec/open/spec-savepoint-resume-contract-v1.json": {
@@ -1296,7 +1296,7 @@
     },
     "knowledge/spec/open/spec-scheduler-dispatcher-v1.json": {
       "version": "4.6.5",
-      "md5": "bc6addf3c8eea82ac7ab0873390f8c67",
+      "md5": "7c7dee14cd575ffd3276b432f74fa0d0",
       "owner": "basher"
     },
     "knowledge/spec/open/spec-sentinel-advisor-v1.json": {
@@ -2099,14 +2099,14 @@
       "md5": "e7e691bef66a367c4dc54f814d7a01d2",
       "owner": "basher"
     },
-    "templates/agents/octo.md": {
-      "version": "4.6.5",
-      "md5": "ffc81eec8127073ec9bd3d4a402a5135",
+    "templates/agents/otto.md": {
+      "version": "4.14.8",
+      "md5": "f431ee8ade35c94361124024c115a76f",
       "owner": "basher"
     },
     "templates/agents/ozi.md": {
       "version": "4.6.5",
-      "md5": "5ae91df0869f4d39944b97912f436dd9",
+      "md5": "758815c57b42bc712186aedf60180d59",
       "owner": "basher"
     },
     "templates/claude/CLAUDE.md": {
@@ -2236,7 +2236,7 @@
     },
     "templates/commands/wai-closeout.md": {
       "version": "4.6.5",
-      "md5": "980436b2b4347694904a5f84cc472c01",
+      "md5": "839736c9d717d5eaee8d803392f1ea07",
       "owner": "basher"
     },
     "templates/commands/wai-compact-resume.md": {
@@ -2336,7 +2336,7 @@
     },
     "templates/commands/wai-full.md": {
       "version": "4.6.5",
-      "md5": "f706a4e4978136b743628c18c65ac375",
+      "md5": "3f2b37f4ceafe8a9425beb9a9355d54d",
       "owner": "basher"
     },
     "templates/commands/wai-harness-adopt.md": {
@@ -2646,7 +2646,7 @@
     },
     "templates/commands/wai-wayfinder.md": {
       "version": "4.6.5",
-      "md5": "95211c6fc0d52229ec15905cc776e940",
+      "md5": "a0196dc7bf8b59d2d3f0af3bc6e13322",
       "owner": "basher"
     },
     "templates/commands/wai.md": {
@@ -3961,7 +3961,7 @@
     },
     "tools/ozi_autopilot.py": {
       "version": "4.6.5",
-      "md5": "463b74538e894d5dd4efb2097003da8f",
+      "md5": "924b9cd52110d33e4a6180ab891db39c",
       "owner": "basher"
     },
     "tools/ozi_headless.py": {
@@ -4371,7 +4371,7 @@
     },
     "tools/wai-enter.sh": {
       "version": "4.6.9",
-      "md5": "d4d2266db1f26f5bef962df12357021a",
+      "md5": "67b88b2c569760478bd1b4a34cd435e6",
       "owner": "basher"
     },
     "tools/wai_assurance.py": {
@@ -4551,7 +4551,7 @@
     },
     "wilbur/docs/spoke-vision/minder-core-vision.md": {
       "version": "4.6.5",
-      "md5": "3053e01c907f4856a82fbc3abdd6c882",
+      "md5": "97c4e767908d7ae5bbecba7a370c9fa0",
       "owner": "basher"
     },
     "wilbur/docs/spoke-vision/minder-fleet-vision.md": {

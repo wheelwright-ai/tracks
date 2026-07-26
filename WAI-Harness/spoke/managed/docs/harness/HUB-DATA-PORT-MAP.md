@@ -35,7 +35,7 @@ Secrets stay in env (never copied). Regenerable cruft (git history, caches, `__p
 | teachings_repo | `WAI-Hub/teachings_repo/` | `teachings_repo/` | done |
 | teachings (published) | `WAI-Hub/teachings/` | `teachings/` | done |
 | learnings | `WAI-Hub/learnings/` | `learnings/` | done |
-| Fleet advisors (Octo, Trainer, Assessor, Gardener, Spinner, Cartologist, Quartermaster, Navigator-hub) | `WAI-Hub/advisors/*` | `octo/` + advisor dirs | partial (octo done; verify Trainer/Assessor live) |
+| Fleet advisors (Otto, Trainer, Assessor, Gardener, Spinner, Cartologist, Quartermaster, Navigator-hub) | `WAI-Hub/advisors/*` | `otto/` + advisor dirs | partial (otto done; verify Trainer/Assessor live) |
 | model-routing / provider matrix | `WAI-Hub/model-routing/` | `model-routing/` | done |
 | parity state | `WAI-Hub/parity/` | under `WAI-Hub/` or `registry/` | verify |
 | hub scripts/tools | `WAI-Hub/scripts,tools/` | `scripts/`, `tools/` (HUB_DIR-converted) | done |
@@ -139,7 +139,7 @@ GREEN = every node class ported (A), probe routes to mywheel (B), and the old in
 | Hub-council advisor code (16 advisors: impls, adapters, scripts, skills, charters/prompts) — 55 files | `hub/WAI-Hub/advisors/*` | `WAI-Harness/hub/managed/advisors/{name}/` |
 | Hub serving tools — 46 files | `hub/tools/` + `hub/WAI-Hub/tools/` | `WAI-Harness/hub/managed/tools/` |
 | Hub model-routing code (`grab.py`, grabbers, `work-classes.json`) | `hub/model-routing/` | `WAI-Harness/hub/managed/model-routing/` (fetched `registry.json` + usage telemetry → `hub/local/model-routing/`) |
-| Hub skills, advisor-templates, design docs, launch, scripts, octo.py, tests, `.claude` | `hub/WAI-Hub/{skills,advisor-templates,docs}/`, `hub/{launch,scripts,octo,tests,.claude}/` | `WAI-Harness/hub/managed/{skills,advisor-templates,docs,launch,scripts,octo,tests,.claude}/` |
+| Hub skills, advisor-templates, design docs, launch, scripts, otto.py, tests, `.claude` | `hub/WAI-Hub/{skills,advisor-templates,docs}/`, `hub/{launch,scripts,otto,tests,.claude}/` | `WAI-Harness/hub/managed/{skills,advisor-templates,docs,launch,scripts,otto,tests,.claude}/` |
 | Spoke orchestration tools — 113 `.py` (87 MANAGED still stranded; 2 DROP: `v4_migrate.py`, `v4_skeleton.py`) + 7 root-level `wai_ozi*.py`/`wai_goal_queue.py` | `framework/tools/`, `framework/*.py` | `WAI-Harness/spoke/managed/tools/` |
 | Skills/commands blueprint — 105 canonical | `framework/templates/commands/` | `WAI-Harness/spoke/managed/.claude/commands/` (104 present — diff-refresh; `wai-track.md` superseded-in-progress, take post-rewrite version) |
 | Hooks — 11 | `framework/.claude/hooks/` | `WAI-Harness/spoke/managed/.claude/hooks/` |

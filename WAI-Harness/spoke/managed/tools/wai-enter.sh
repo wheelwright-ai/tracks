@@ -787,8 +787,15 @@ fi
 [[ "$IS_SPOKE" == "true" ]] && _wai_herald_status
 
 # ── 1. Generate fresh wakeup brief ──────────────────────────────────────────
-if [[ "$IS_HUB" == "true" && -f "$PROJECT_DIR/tools/octo_brief.py" ]]; then
-    if python3 "$PROJECT_DIR/tools/octo_brief.py" 2>/dev/null; then
+if [[ "$IS_HUB" == "true" && -f "$PROJECT_DIR/tools/otto_brief.py" ]]; then
+    if python3 "$PROJECT_DIR/tools/otto_brief.py" 2>/dev/null; then
+        _WAI_BRIEF_STATUS="ready"
+    else
+        _WAI_BRIEF_STATUS="failed (live scan)"
+    fi
+elif [[ "$IS_HUB" == "true" && -f "$PROJECT_DIR/tools/octo_brief.py" ]]; then  # compat: legacy pre-rename name
+    # compat: legacy pre-rename tool name, one release (impl-otto-engine-rename-v1)
+    if python3 "$PROJECT_DIR/tools/octo_brief.py" 2>/dev/null; then  # compat: legacy pre-rename name
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"

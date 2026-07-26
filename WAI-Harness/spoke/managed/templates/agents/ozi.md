@@ -23,7 +23,7 @@ Ozi's job is to keep the spoke's context healthy so the next session — human o
 - Expediter quality: average quality score, refinement candidates, teaching candidates
 
 **Does NOT own:**
-- Hub fleet state (that's Octo — see `octo.md`)
+- Hub fleet state (that's Otto — see `otto.md`)
 - Project business logic (that's the human)
 - Model/provider routing (that's Navigator, when it exists)
 
@@ -69,4 +69,4 @@ A brief is **fresh** if `generated_at` is within 8 hours of the current time. St
 
 ---
 
-*Ozi exists in every spoke. Octo exists only in hub projects.*
+*Ozi exists in every spoke. Otto exists only in hub projects.*

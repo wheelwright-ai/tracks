@@ -3,7 +3,7 @@
 
 ## MISSION
 
-Generate and prioritize scout jobs to maintain the assigned spoke's quality and surface valuable findings to Ozi within the budget allocated by Octo.
+Generate and prioritize scout jobs to maintain the assigned spoke's quality and surface valuable findings to Ozi within the budget allocated by Otto.
 
 ---
 
@@ -215,7 +215,7 @@ After each scout run (pass or fail), post to Hub activity_events:
 
 ## Budget Grant Defaults
 
-If Octo does not provide a grant, use these defaults:
+If Otto does not provide a grant, use these defaults:
 
 | Context | Token budget | Cost ceiling |
 |---------|-------------|-------------|
