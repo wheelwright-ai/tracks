@@ -10,3 +10,18 @@ Thumbs.db
 # IDE
 .vscode
 .idea
+
+# === WAI managed: regenerable advisor/runtime state (idempotent block) ===
+WAI-Harness/spoke/local/runtime/
+WAI-Harness/spoke/local/wakeup-brief.json
+WAI-Harness/spoke/advisors/*/scan_state.json
+WAI-Harness/spoke/advisors/*/passes.jsonl
+WAI-Harness/spoke/advisors/*/vectors.jsonl
+WAI-Harness/spoke/advisors/*/findings-log.jsonl
+WAI-Harness/spoke/advisors/*/context/snapshot-*
+WAI-Harness/hub/local/WAI-Hub/advisors/*/context/snapshot-*
+WAI-Harness/spoke/advisors/*/expeditions/*.json
+WAI-Spoke/runtime/
+WAI-Spoke/advisors/*/scan_state.json
+WAI-Spoke/advisors/*/context/snapshot-*
+# === end WAI managed block ===
