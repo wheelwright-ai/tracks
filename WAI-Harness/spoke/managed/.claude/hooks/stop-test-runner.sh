@@ -117,16 +117,26 @@ elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
   # noise, not a verdict. basher's suite is ~43s and this hook was unbounded, so a slow
   # run (or the same hook double-registered in project + global settings) blew the budget.
   # Per this file's own contract ("never exit non-zero for infrastructure errors"), a
-  # timeout is infra: bound the run and treat a timeout as a NO-OP. The real gate is
-  # pre-commit-gate.sh (blocks red-on-main); this per-Stop pass is a fast-feedback bonus,
-  # so degrading it to silence under time pressure loses nothing. Raise STOP_TEST_TIMEOUT
-  # to re-widen. pytest never emits 124; only `timeout` does, so it can't mask a verdict.
+  # timeout is infra: bound the run and treat a timeout as a NO-OP. Raise
+  # STOP_TEST_TIMEOUT to re-widen. pytest never emits 124; only `timeout` does, so it
+  # can't mask a verdict.
+  #
+  # THIS BLOCK USED TO SAY "the real gate is pre-commit-gate.sh (blocks red-on-main),
+  # so degrading to silence loses nothing". NO FILE OF THAT NAME EXISTS ANYWHERE IN THE
+  # TREE (verified 2026-07-30 — the only occurrences are this comment and its copies).
+  # A commit gate DOES exist: core.hooksPath=.githooks, and .githooks/pre-commit blocks
+  # on manifest drift, secrets, structure health and lug validity. It has NO test
+  # dimension — grep pytest there returns nothing. So the justification for degrading
+  # quietly was load-bearing on a gate that does not test, and this hook is in fact the
+  # ONLY thing between a red suite and nobody knowing. That is precisely how three real
+  # failures lived undetected. Do not re-weaken this on the assumption that something
+  # downstream catches it — see change-commit-time-test-gate-does-not-exist-v1.
   # HEADROOM, NOT A TIGHT FIT (s117 2026-07-24). The bound was first set to 45s off a
   # 43s measurement. The suite then grew to 47s and the gate began timing out on EVERY
   # run — reporting success while never executing a single test. A bound sized to the
   # CURRENT runtime is a gate with an expiry date; give it real headroom and make the
   # timeout LOUD (below) so growth degrades visibly instead of silently.
-  RESULT=$(timeout "${STOP_TEST_TIMEOUT:-90}" python3 -m pytest "$SUITE" -x -q --tb=short 2>&1); EXIT_CODE=$?
+  RESULT=$(timeout "${STOP_TEST_TIMEOUT:-420}" python3 -m pytest "$SUITE" -x -q --tb=short 2>&1); EXIT_CODE=$?
 
   # pytest exit codes:
   #   0 all passed | 1 tests failed | 2 collection error / interrupted
@@ -149,10 +159,23 @@ elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
       # gate that had quietly stopped running still reported green — the exact
       # green-washing hole pre-commit-gate.sh was written to close. Still exit 0 (the
       # contract forbids blocking on infra), but SAY the suite did not run.
-      echo "<test-gate-not-run>"
-      echo "Test gate TIMED OUT after ${STOP_TEST_TIMEOUT:-90}s — the suite did NOT run; this turn is UNVERIFIED."
-      echo "Raise STOP_TEST_TIMEOUT or run: python3 -m pytest ${SUITE} -q"
-      echo "</test-gate-not-run>"
+      # ...and LOUD means it reaches a READER. This block wrote to stdout and exited 0,
+      # which the harness discards entirely — so the third occurrence of this bug ran
+      # undetected: the bound was 90s against a 128s suite, meaning the gate timed out
+      # on EVERY turn and reported success while three real failures sat in the suite.
+      # Twice before (45s vs 43s, then vs 47s) the same undersized-bound failure was
+      # found and patched with a slightly bigger number; a bound sized to today's
+      # runtime always expires. MEASUREMENTS (2026-07-30): 138s on an idle machine, 214s
+      # while an autopilot round held the box. The bound must clear the LOADED figure,
+      # not the idle one — an earlier note here claimed 2.3x headroom by sizing against
+      # the idle number alone, which was really 1.4x. 420s is ~2x the loaded measurement.
+      # If this fires again, raise the bound AND record the new measurement here.
+      {
+        echo "<test-gate-not-run>"
+        echo "Test gate TIMED OUT after ${STOP_TEST_TIMEOUT:-420}s — the suite did NOT run; this turn is UNVERIFIED."
+        echo "Raise STOP_TEST_TIMEOUT or run: python3 -m pytest ${SUITE} -q"
+        echo "</test-gate-not-run>"
+      } | tee /dev/stderr
       exit 0 ;;
     2) FAIL_MSG="Test collection FAILED after your last change (pytest exit 2 — broken import or conftest). The suite could not run. Fix before continuing." ;;
   esac
@@ -164,11 +187,20 @@ else
 fi
 
 if [[ $EXIT_CODE -ne 0 ]]; then
-  echo "<test-failure>"
-  echo "$FAIL_MSG"
-  echo ""
-  echo "$RESULT" | tail -20
-  echo "</test-failure>"
+  # Emit on BOTH streams. Stop hooks that exit non-zero are reported to the
+  # operator as "Failed with non-blocking status code: No stderr output" and the
+  # stdout payload is discarded — so a red suite surfaced as an opaque hook error
+  # with the actual failing test nowhere in sight (measured s138: the suite had
+  # been red on a stranded command template and the message never reached anyone).
+  # A gate whose diagnostic does not reach a reader is a silent failure, which is
+  # the exact class this hook exists to prevent.
+  {
+    echo "<test-failure>"
+    echo "$FAIL_MSG"
+    echo ""
+    echo "$RESULT" | tail -20
+    echo "</test-failure>"
+  } | tee /dev/stderr
   exit 1
 fi
 

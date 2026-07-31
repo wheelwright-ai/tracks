@@ -37,6 +37,8 @@ import json
 import os
 import subprocess
 import sys
+import time
+import datetime as _dt
 
 GREEN, YELLOW, RED, UNKNOWN = "GREEN", "YELLOW", "RED", "UNKNOWN"
 
@@ -181,8 +183,218 @@ def probe_terminal_dirs(root="."):
     return _result("terminal-dirs", GREEN, "completed/ is the only terminal dir", cmd=cmd)
 
 
+ACTIVATION_MANIFEST = "WAI-Harness/hub/local/registry/activation-manifest.json"
+
+
+def probe_activation_liveness(root="."):
+    """A mechanism claimed ACTIVE must have RUN. Presence is not liveness.
+
+    WHY THIS PROBE EXISTS (session 139, and it is about the reporting layer, not
+    the code). The agent told the operator "Herald is already active" on the
+    evidence of a line in session-start.sh. Herald had 0 processes and 4 empty
+    queues — it had never moved a single message in its life. In the same reply
+    it reported the TasteGraph as "distributed to 16 spokes" on the evidence of
+    a receipt file, when the tool that wrote that receipt explicitly never copies
+    anything.
+
+    Both were the same error, and it is the error this whole file exists to
+    catch, committed by the thing doing the catching: EVIDENCE OF PRESENCE
+    ACCEPTED AS EVIDENCE OF FUNCTION. The wheel already wrote the correct rule
+    down — groups.json's propagation_contract requires "activation live
+    (crontab -l / process check, NEVER file presence)" — and nothing anywhere
+    enforced it. A rule stated once in a registry nobody executes is prose, and
+    the converge consent gate already taught us prose is not a gate.
+
+    So liveness here is only ever one of three OBSERVATIONS:
+      cron    — the schedule actually holds an active (non-comment) entry
+      process — something is running right now
+      artifact— a timestamped output exists and is fresher than max_age_days
+    Never "the tool file exists". A mechanism whose check cannot run is UNKNOWN,
+    never GREEN, per this file's contract.
+    """
+    cmd = "python3 WAI-Harness/spoke/managed/tools/integrity_probe.py --probe activation-liveness"
+    path = os.path.join(root, ACTIVATION_MANIFEST)
+    if not os.path.isfile(path):
+        return _result("activation-liveness", UNKNOWN,
+                       "no activation-manifest.json — nothing declares what is claimed ACTIVE",
+                       detail=[f"expected at {ACTIVATION_MANIFEST}"], cmd=cmd)
+    try:
+        entries = json.load(open(path)).get("mechanisms", [])
+    except Exception as e:
+        return _result("activation-liveness", UNKNOWN, f"unreadable manifest: {e}", cmd=cmd)
+
+    try:
+        crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True,
+                                 timeout=15).stdout
+    except Exception:
+        crontab = ""
+    active_cron = "\n".join(l for l in crontab.splitlines() if l.strip()
+                            and not l.strip().startswith("#"))
+
+    dead, unknown, live = [], [], 0
+    for m in entries:
+        name, kind, needle = m.get("name", "?"), m.get("evidence"), m.get("match", "")
+        if kind == "cron":
+            (live := live + 1) if needle in active_cron else dead.append(
+                f"{name}: claimed active, NO active cron entry matching '{needle}'")
+        elif kind == "process":
+            try:
+                ps = subprocess.run(["pgrep", "-fa", needle], capture_output=True,
+                                    text=True, timeout=15).stdout.strip()
+            except Exception:
+                unknown.append(f"{name}: cannot run pgrep"); continue
+            (live := live + 1) if ps else dead.append(
+                f"{name}: claimed active, NO running process matching '{needle}'")
+        elif kind == "artifact":
+            p = os.path.join(root, needle)
+            if not os.path.exists(p):
+                dead.append(f"{name}: claimed active, artifact never produced ({needle})"); continue
+            age_days = (time.time() - os.path.getmtime(p)) / 86400.0
+            maxage = float(m.get("max_age_days", 7))
+            (live := live + 1) if age_days <= maxage else dead.append(
+                f"{name}: last ran {age_days:.1f}d ago, stale past {maxage}d ({needle})")
+        else:
+            unknown.append(f"{name}: unknown evidence kind {kind!r}")
+
+    if dead:
+        return _result("activation-liveness", RED,
+                       f"{len(dead)} mechanism(s) claimed ACTIVE with no evidence of ever running",
+                       detail=dead + unknown, cmd=cmd)
+    if unknown:
+        return _result("activation-liveness", UNKNOWN,
+                       f"{len(unknown)} mechanism(s) could not be checked", detail=unknown, cmd=cmd)
+    return _result("activation-liveness", GREEN,
+                   f"{live} claimed-active mechanism(s) observed running", cmd=cmd)
+
+
+def emit_lugs(results, root="."):
+    """Turn every non-GREEN finding into a LUG, and close the lug when it clears.
+
+    THE OPEN CIRCLE THIS SHUTS. Until now these probes only PRINTED. A finding
+    reached the backlog when a human happened to read the output and happened to
+    write it up — so pending-deploys sat YELLOW across a whole session and became
+    work only because someone finally hand-authored a lug for it. Any control
+    whose last mile is "and then somebody notices" fails exactly when attention is
+    scarce, which is the same condition under which the finding matters most.
+    (operator, s139: "the continual misses are concerning and need to be
+    mitigated".)
+
+    Both directions, or it is not a circle:
+      non-GREEN -> ensure an open lug exists (idempotent; never duplicates)
+      GREEN     -> close that lug if it is open (the finding is genuinely gone)
+
+    The lug's `verify` is the probe's own `reproduce` command, so the landing
+    condition is the thing that raised the alarm — it cannot drift from it.
+    """
+    now = _dt.datetime.now(_dt.timezone.utc).isoformat()
+    base = os.path.join(root, "WAI-Harness/spoke/local/lugs/bytype/impl")
+    opened, closed = [], []
+    for r in results:
+        lug_id = f"impl-oracle-{r['probe']}-v1"
+        open_p = os.path.join(base, "open", f"{lug_id}.json")
+        done_p = os.path.join(base, "completed", f"{lug_id}.json")
+        in_prog = os.path.join(base, "in_progress", f"{lug_id}.json")
+
+        if r["status"] == GREEN:
+            # circle closes: the alarm cleared, so retire its lug.
+            if os.path.exists(open_p):
+                try:
+                    d = json.load(open(open_p))
+                    d["status"] = "completed"
+                    d["completed_at"] = now
+                    d["_closed_by"] = f"integrity_probe: {r['probe']} returned GREEN ({r['headline']})"
+                    os.makedirs(os.path.dirname(done_p), exist_ok=True)
+                    json.dump(d, open(done_p, "w"), indent=2)
+                    os.remove(open_p)
+                    closed.append(lug_id)
+                except Exception:
+                    pass
+            continue
+
+        if r["status"] == UNKNOWN and not r.get("detail"):
+            continue                      # nothing actionable to say yet
+        if os.path.exists(open_p) or os.path.exists(in_prog):
+            continue                      # already on the backlog — never duplicate
+
+        os.makedirs(os.path.dirname(open_p), exist_ok=True)
+        repro = r.get("reproduce") or ""
+        json.dump({
+            "id": lug_id, "type": "impl", "status": "open", "routed_to": "LOCAL",
+            "created_at": now, "created_by": "integrity_probe --emit-lugs",
+            "title": f"Standing oracle '{r['probe']}' is {r['status']}: {r['headline']}",
+            "one_liner": (f"Raised automatically by integrity_probe. {r['headline']}. "
+                          "This lug exists so the finding survives the log it was printed to."),
+            "impact": 8 if r["status"] == RED else 5,
+            "effort": "M", "effort_score": 3,
+            "urgency": 5 if r["status"] == RED else 3,
+            "model_fit": "sonnet",
+            "model_fit_reason": "Bounded remediation against a probe that states its own reproduce command.",
+            "va": "build", "execute_when": "now",
+            "perceive": [f"Probe {r['probe']} reported {r['status']}: {r['headline']}"]
+                        + [str(x) for x in (r.get("detail") or [])[:8]],
+            "execute": ["Fix the underlying condition the probe names.",
+                        "Re-run the probe; it must report GREEN.",
+                        "Do NOT close this lug by hand — a GREEN probe run closes it automatically."],
+            "verify": [f"cmd: {repro}" if repro else
+                       "cmd: python3 WAI-Harness/spoke/managed/tools/integrity_probe.py --root . --brief"],
+            "acceptance_criteria": [f"integrity_probe reports {r['probe']} as GREEN.",
+                                    "The closure is produced by a probe run, not by hand-editing status."],
+            "file_targets": ["WAI-Harness/spoke/managed/tools/integrity_probe.py"],
+            "_improvement_lenses": {
+                "skeptic": ("Auto-raised lugs can become noise. Mitigated three ways: one lug per PROBE "
+                            "(not per occurrence), never duplicated while open, and auto-closed the moment "
+                            "the probe goes GREEN — so a flapping condition does not accumulate."),
+                "architect": ("The probe already computes the landing condition (its reproduce command); "
+                              "reusing it as the lug's verify means the alarm and its definition of done "
+                              "cannot drift apart."),
+                "naive_reader": ("Something is wrong and it is on the backlog with the command that proves "
+                                 "it. I do not have to have read a log at the right moment."),
+            },
+            "_oracle": {"probe": r["probe"], "status": r["status"], "first_seen": now},
+        }, open(open_p, "w"), indent=2)
+        opened.append(lug_id)
+    return {"opened": opened, "closed": closed}
+
+
+DEPRECATED_ROOTS = ("/home/mario/projects/wheelwright/framework",
+                    "/home/mario/projects/wheelwright/hub")
+
+
+def probe_deprecated_repo_refs(root="."):
+    """Nothing scheduled may execute out of a DEPRECATED repo.
+
+    Both deprecated roots still exist on disk, which is precisely why 49 files
+    could point at them for months while every advisor run "succeeded" against
+    dead data. Deleting them was considered and REJECTED on inspection: they
+    hold 3,853 uncommitted files and 2 unpushed commits between them, and live
+    references remain outside mywheel (basher/tests/run.sh, minder tests,
+    ezorg/update_state.sh). Removing them would destroy work and break siblings.
+
+    So the risk is monitored instead of removed. The thing that actually hurts
+    is EXECUTION out of a dead repo — a daily cron entry was running
+    hub/tools/triumvirate_refresh.sh until 2026-07-27 — so that is what this
+    watches: the schedule. A file merely mentioning the path is not the defect.
+    """
+    cmd = "crontab -l | grep -v '^\\s*#' | grep -E 'wheelwright/(framework|hub)/'"
+    try:
+        crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True,
+                                 timeout=15).stdout
+    except Exception as e:
+        return _result("deprecated-repo-refs", UNKNOWN, f"cannot read crontab: {e}", cmd=cmd)
+    live = [l.strip() for l in crontab.splitlines()
+            if l.strip() and not l.strip().startswith("#")
+            and any(f"{d}/" in l for d in DEPRECATED_ROOTS)]
+    if live:
+        return _result("deprecated-repo-refs", RED,
+                       f"{len(live)} scheduled job(s) execute out of a DEPRECATED repo",
+                       [l[:120] for l in live[:5]], cmd)
+    return _result("deprecated-repo-refs", GREEN,
+                   "no scheduled job executes out of a deprecated repo", cmd=cmd)
+
+
 PROBES = (probe_master_selfverify, probe_routing, probe_live_hooks,
-          probe_pending_deploys, probe_terminal_dirs)
+          probe_pending_deploys, probe_terminal_dirs, probe_activation_liveness,
+          probe_deprecated_repo_refs)
 
 RANK = {RED: 0, UNKNOWN: 1, YELLOW: 2, GREEN: 3}
 
@@ -229,13 +441,26 @@ def main(argv=None):
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--brief", action="store_true",
                     help="only non-green lines, for the wakeup banner")
+    ap.add_argument("--emit-lugs", action="store_true",
+                    help="raise a lug for every non-GREEN finding and close it when the probe "
+                         "goes GREEN — so a finding survives the log it was printed to")
     a = ap.parse_args(argv)
     rep = run_all(a.root)
+    if a.emit_lugs:
+        rep["lugs"] = emit_lugs(rep["probes"], a.root)
     if a.json:
         print(json.dumps(rep, indent=2))
     else:
         for line in render(rep, brief=a.brief):
             print(line)
+        if a.emit_lugs:
+            lg = rep.get("lugs") or {}
+            if lg.get("opened"):
+                print(f"  lugs OPENED : {', '.join(lg['opened'])}")
+            if lg.get("closed"):
+                print(f"  lugs CLOSED : {', '.join(lg['closed'])}")
+            if not lg.get("opened") and not lg.get("closed"):
+                print("  lugs: no change (findings already on the backlog)")
     return 0 if rep["verdict"] in (GREEN, YELLOW) else 1
 
 

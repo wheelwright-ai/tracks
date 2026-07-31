@@ -223,6 +223,34 @@ def generate_session_resume_brief(session_dir: "Path") -> str:
     return "\n".join(lines_out)
 
 
+def read_ask_landing(spoke, project_root):
+    """W4, epic-close-the-presumption-gap-v1: did the thing he asked for land?
+
+    Surfaces ONLY when an ask has STALLED. A wakeup line that appears every
+    session stops being read within a week, so a clean audit is silent by
+    design and `stalled` is 0 with no line.
+
+    Producer failure must never break the brief -- an absent tool yields an
+    empty dict, exactly like the other optional feeds here.
+    """
+    try:
+        import ask_landing_audit
+        rep = ask_landing_audit.audit(str(spoke), str(project_root))
+        return {
+            "counts": rep["counts"],
+            "total": rep["total"],
+            "stalled": rep["counts"].get("STALLED", 0),
+            "line": ask_landing_audit.wakeup_line(rep),
+            "stalled_asks": [
+                {"id": e["id"], "verbatim": e.get("verbatim", "")[:200],
+                 "age_days": e.get("age_days"), "why": e.get("why", "")}
+                for e in rep.get("surface_at_wakeup", [])
+            ],
+        }
+    except Exception:
+        return {}
+
+
 def build_continuation_menu(spoke: "Path") -> dict:
     """Populate continuation_menu for the wakeup brief.
 
@@ -1197,6 +1225,7 @@ def main() -> None:
         except Exception:
             pass  # producer failure must never break the brief
     tastegraph_data = read_tastegraph_prefs(SPOKE, hub_path)
+    ask_landing_data = read_ask_landing(SPOKE, PROJECT_ROOT)
 
     brief = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -1227,6 +1256,7 @@ def main() -> None:
         "qa_health": qa_health_data,
         "lug_staleness": lug_staleness_data,
         "position_map": position_map_data,
+        "ask_landing": ask_landing_data,
         "insight_memory": insight_memory_data,
         "tastegraph_prefs": tastegraph_data,
         "assurance_health": assurance_health_data,

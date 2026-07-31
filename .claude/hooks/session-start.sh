@@ -103,11 +103,35 @@ _HM="$(dirname "${BASH_SOURCE[0]:-$0}")/harness_mode.sh"
 # recorded yet, falls straight through to today's unconditioned pull, so this is a
 # safe drop-in. Falls back to the bare pull when the newer tool isn't present yet
 # (older master pin) so self-heal never regresses mid-rollout.
+# --- Pull gate (change-autopilot-headless-dispatch-reverts-managed-edits-every-lug-v1) ---
+# Two guards run BEFORE the pull-on-spin-up, because the pull overwrites
+# WAI-Harness/spoke/managed/** from canon and used to do so silently:
+#   1. WAI_NO_HARNESS_PULL: a headless dispatched subprocess (autopilot / herald /
+#      certifier / measurer worker) must never self-upgrade the spoke mid-run — the
+#      parent process already resolved the harness version when it started. The
+#      dispatchers export this in the child env.
+#   2. Dirty managed/ tree: spoke-local edits under WAI-Harness/spoke/managed
+#      (tracked modifications, staged changes, or untracked files — git status
+#      --porcelain covers all three) mean a pull would clobber local work. Skip
+#      LOUDLY, naming the files: fail-LOUD, not fail-open. A spoke with local
+#      managed/ edits keeps them and is told why it is not updating.
+_WAI_PULL_SKIP=""
+if [ -n "${WAI_NO_HARNESS_PULL:-}" ]; then
+  echo "[WAI] pull-on-spin-up SKIPPED: WAI_NO_HARNESS_PULL is set (headless dispatch — parent session owns the harness version)." >&2
+  _WAI_PULL_SKIP=1
+elif [ -d "$PROJECT_DIR/WAI-Harness/spoke/managed" ]; then
+  _WAI_MANAGED_DIRTY="$(git -C "$PROJECT_DIR" status --porcelain -- WAI-Harness/spoke/managed 2>/dev/null)"
+  if [ -n "$_WAI_MANAGED_DIRTY" ]; then
+    echo "[WAI] pull-on-spin-up SKIPPED: spoke-local edits under WAI-Harness/spoke/managed — refusing to overwrite them. Dirty: $(printf '%s\n' "$_WAI_MANAGED_DIRTY" | cut -c4- | tr '\n' ' ')" >&2
+    _WAI_PULL_SKIP=1
+  fi
+fi
+
 _WMASTER="${WAI_HARNESS_MASTER:-$(cat "$PROJECT_DIR/WAI-Harness/.harness-master" 2>/dev/null)}"
 [ -z "$_WMASTER" ] && _WMASTER="/home/mario/projects/wheelwright/mywheel/WAI-Harness"
 _HUP="$_WMASTER/spoke/managed/tools/harness_upgrade.py"
 _HPC="$_WMASTER/spoke/managed/tools/harness_pullcheck.py"
-if [ -d "$PROJECT_DIR/WAI-Harness" ]; then
+if [ -z "$_WAI_PULL_SKIP" ] && [ -d "$PROJECT_DIR/WAI-Harness" ]; then
   if [ -f "$_HPC" ]; then
     python3 "$_HPC" check --spoke-root "$PROJECT_DIR" --master "$_WMASTER" >/dev/null 2>&1
   elif [ -f "$_HUP" ]; then
@@ -130,6 +154,16 @@ fi
 # post-pull hook is the primary one (never the sole thing that has to work).
 _HYGIENE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/hygiene_run.py"
 [ -f "$_HYGIENE" ] && _wai_detach /dev/null python3 "$_HYGIENE" --spoke-root "$PROJECT_DIR"
+
+# Standing silent-failure oracles, surfaced to STDERR at every session start.
+# Cron (07:15) writes them to a log nobody opens; this puts the non-green lines
+# in front of the agent BEFORE it can describe the spoke as healthy. Session 139:
+# the agent told the operator "Herald is already active" from a line in this very
+# file — Herald had never run. --brief prints ONLY non-green, so a clean wheel
+# stays silent and a real finding cannot be mistaken for noise. Best-effort and
+# presence-guarded; never delays or breaks session start.
+_IPROBE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/integrity_probe.py"
+[ -f "$_IPROBE" ] && timeout 90 python3 "$_IPROBE" --root "$PROJECT_DIR" --brief --emit-lugs 2>/dev/null >&2 || true
 
 # v4 on-load trigger: notice the upgrade and, ONLY when WAI-Harness/ACTIVATE
 # exists, migrate. Dormant + idempotent + dry-run-first by design — safe to call

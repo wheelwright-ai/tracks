@@ -228,7 +228,9 @@ Evaluate output with `eval $(python3 ... )` or source the exports.
 
 Document unfinished work to the **resume-contract bar** (`spec-savepoint-resume-contract-v1`, P12 Resumable Completeness): a fresh, no-context agent must resume and act asking the user **nothing knowable now**. That means the SAME field discipline as a savepoint — itemized `work_done` (with evidence), ordered `first_actions`, `pending_handoffs` (each with `how_to_verify` + `fallback_if_not_done`), `deferred` (each with a resolving `where_captured`), `honest_flags`, `blockers_and_human_gates`, `open_questions` — NOT a one-line summary. A closeout handoff is a savepoint + finality; it does not get to be thinner.
 
-Store the contract in the session-summary `incomplete_work` and the short one-liner (`first_actions[0].action`) in `_session_state.next_session_recommendation`. If you also write/refresh a savepoint at closeout, run the hard gate (I-4b: resolve the managed tools dir — `TOOLS=$([ -d WAI-Harness/spoke/managed/tools ] && echo WAI-Harness/spoke/managed/tools || echo tools)`): `python3 "$TOOLS/validate_savepoint.py" <sp_path>` — do not complete closeout past a failing resume contract.
+**Capture-then-exit, not recommend-then-exit** (impl-exitclarity-3): a *substantive recommendation* is any suggested future action this ceremony produced beyond a one-line resume pointer — a follow-up, a fix-later, a docs-sync suggestion, a divergence found while auditing. Each MUST land as a lug file in `bytype/{type}/open/` (type by content: impl/fix/review/notice) BEFORE Step 14 prints — never as prose in the final chat output. A captured lug carries complete PEV, `file_targets` where known, `model_fit`, `effort_score`, and the `_improvement_lenses` pass (`feedback-improve-lugs-at-creation`), same bar as any other lug — reuse `{TOOLS}/new_lug.py` to stamp the AUTO fields, then move `draft/` → `open/` once PEV/AC are filled. Can't fill PEV at close? Capture it anyway, never drop it: write `"tier": "seed"` (the sanctioned seed tier — `hub/local/contracts/object-contracts.json` § lug invariants) carrying the ask verbatim. **Violation:** closeout prose recommending future action with no backing lug id is an incomplete ceremony — capture it, then print Step 14. Track the captured ids as `CAPTURED_LUG_IDS` (comma-joined) for Step 14's `--captured` flag.
+
+Store the contract in the session-summary `incomplete_work`. `_session_state.next_session_recommendation` now holds ONLY a single resume pointer: `"resume: <highest-priority captured-lug-id> - <one line>"` (or the existing savepoint's `first_actions[0]` if nothing new was captured) — all other detail lives in the captured lug files. If you also write/refresh a savepoint at closeout, run the hard gate (I-4b: resolve the managed tools dir — `TOOLS=$([ -d WAI-Harness/spoke/managed/tools ] && echo WAI-Harness/spoke/managed/tools || echo tools)`): `python3 "$TOOLS/validate_savepoint.py" <sp_path>` — do not complete closeout past a failing resume contract.
 
 If a session track exists, also read `open` items from the last 3 track points (they seed `deferred` / `open_questions`).
 
@@ -275,7 +277,7 @@ Add `--dry-run` to preview without writing.
 Review the printed summary, then complete the remaining AI-only fields:
 
 **AI completes in WAI-State.json:**
-- `_session_state.next_session_recommendation` = what the next session should focus on
+- `_session_state.next_session_recommendation` = the single resume pointer (Step 3: `"resume: <lug-id> - <one line>"`) — never recommendation prose
 - `_session_state.track_path` = current session track path (if not passed via `--track-path`)
 
 **Capability check:** `test -d {BASE}/lugs/bytype && echo BYTYPE_OK || echo FLAT_LUG` — if FLAT_LUG, skip 5b and 5c entirely.
@@ -391,6 +393,7 @@ Wave 2 agents write to disjoint paths — no coordination needed. Dispatch in pa
 - **Agent B:** Step 9 (Outgoing lug delivery)
 - **Agent C:** Step 9c (User Signal Delivery)
 - **Agent D:** Step 9d (Spoke Registry Update)
+- **Agent E:** Step 6d (Net-Net Synopsis)
 
 > **Note:** Step 9b (Teaching Generation) is NOT in this wave — it depends on Step 8 (Dogfooding) completing first.
 
@@ -411,6 +414,14 @@ PII-free: captures only model IDs, provider names, tool names, work_type labels,
 
 ```bash
 python3 {TOOLS}/write_assay.py {track_path}
+```
+
+### 6d. Net-Net Synopsis
+
+One net-net line for the trajectory read (impl-exitclarity-6) — arcs with no resolving artifact ref are dropped, never written. Format + `--headline` note in `wai-closeout-reference.md`:
+
+```bash
+python3 {TOOLS}/write_netnet.py --base {BASE} --repo . write --session-id {session_id} --track-path {track_path}
 ```
 
 ### 7. Documentation Updates
@@ -504,7 +515,7 @@ Scan `{BASE}/lugs/outgoing/` for any `.json` file where `delivered_at` is absent
 4. In the local outgoing copy: set `"status": "delivered"`, add `"delivered_at": "{iso_timestamp}"`.
 5. Log: `Delivered: {lug_id} → {target_spoke}`.
 
-If hub registry is unreachable: note all undelivered lugs in `next_session_recommendation`. Do not block closeout.
+If hub registry is unreachable: the undelivered set is already lugs on disk (Step 3 capture-then-exit) — point `next_session_recommendation` at the highest-priority one, do not paste the list into the field. Do not block closeout.
 
 Report: `Outgoing sweep: N delivered, M blocked (quality), K already delivered.`
 
@@ -791,9 +802,9 @@ remain outstanding (no-op otherwise — Stop hook commits the marker).
 
 ### 10f. Auto-Savepoint on Next Action
 
-**Rule:** If `_session_state.next_session_recommendation` is non-empty and substantive, and no savepoint exists for this session (Step 10b found nothing) — create one automatically. The path the user was on must survive a full closeout.
+**Rule:** If `_session_state.next_session_recommendation` carries a resume pointer (Step 3 captured at least one lug this session), and no savepoint exists for this session (Step 10b found nothing) — create one automatically. The path the user was on must survive a full closeout.
 
-Run the same python block as `wai-closeout-slim.md Step 10c`. Skip if: `next_session_recommendation` is `"None"` / empty, or a savepoint already exists for this session.
+Run the same python block as `wai-closeout-slim.md Step 10c`. Skip if: `next_session_recommendation` is `"None"` / empty (no lug was captured), or a savepoint already exists for this session.
 
 ---
 
@@ -1269,11 +1280,21 @@ and git state scattered across Steps 0.4-13, whether walking away right now is a
 (impl-exitclarity-2-ceremony-verdict-wiring-v1).
 
 ```bash
-python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id {SESSION_ID}
+python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id {SESSION_ID} --captured "{CAPTURED_LUG_IDS}"
 ```
 
-`{SESSION_ID}` resolves exactly as in Step 11.5. Print the rendered block **verbatim** — do not
-summarize, trim, or paraphrase it.
+`{SESSION_ID}` resolves exactly as in Step 11.5. `{CAPTURED_LUG_IDS}` is the comma-joined list from
+Step 3 (`""` if nothing was captured this session — renders `CAPTURED: none`, not an omitted line).
+Print the rendered block **verbatim** — do not summarize, trim, or paraphrase it.
+
+**LANDED = ancestor of `origin/main`** — not committed, not pushed to a lane. One definition, in
+`{TOOLS}/landing.py` (`LANDED_DEFINITION`): cite it, never paraphrase — each ceremony wording its own
+"safe" is how three gates each answered a narrower question and their conjunction passed while 17
+pushed commits sat off main (2026-07-30). `exit_safety_check` reads it: `git.behind_canon` BLOCKS
+(`harness_upgrade` ships this tree, so behind serves the fleet pre-canon bytes); `git.unlanded`
+(ahead only) is REMEDIABLE — a live CSRP lane is legitimately ahead, so it is a landing DEBT, stated
+and retried, not a block. Never print an unqualified clear-to-exit while work is off canon: say
+**"work is not landed"**, and why.
 
 **NOT_SAFE / SAFE_AFTER loop (max 2 iterations) — the ceremony may not report itself complete until
 this resolves:**
@@ -1363,3 +1384,7 @@ Applies to Tender and any automated agent that performs work on a spoke without 
 ---
 
 *Closeout = Save game. Next agent continues the adventure.*
+
+## Compliance measurement (instrumentation — never blocks or prompts)
+
+    python3 {TOOLS}/tastegraph_compliance.py record --trigger closeout --session-id {session_id}

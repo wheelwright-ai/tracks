@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "wai://schemas/restore-contract.schema.json",
+  "title": "WAI spoke restore contract (lives IN basher.json)",
+  "description": "Validates WAI-Harness/spoke/basher.json including the extended restore block. The restore contract is the restore.items[] list INSIDE the existing spoke basher.json (two-canons guard: no separate restore-contract.json is ever created). Sibling keys of basher.json (spoke, environment, hooks, tooling, propagation, provenance, wiring, schema_version, ...) are allowed and passed through unvalidated beyond basic type shape, so the ~10 existing machine-layer consumers are unaffected. Tier semantics: tracked = delivered by git clone, verified against MANIFEST or git; regenerable = gitignored but derivable, restore RUNS the declared regen_cmd; external = machine-layer need the spoke cannot self-satisfy (secret values, ports, cron, symlinks, provider auth), restore REPORTS it (checklist + needs-lug), never silently skips; ephemeral = gitignored non-derivable history or self-healing runtime byproduct, declared and listed as accepted loss on restore. One artifact MAY span two tiers (canonical case: .env file shell = regenerable from .env.template, secret VALUES = external). Cross-item constraint not expressible in JSON Schema: item ids MUST be unique per contract — enforced by spoke_restore.py --verify.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "spoke", "restore"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "spoke": {
+      "type": "object",
+      "required": ["wheel_id"],
+      "properties": { "wheel_id": { "type": "string", "minLength": 1 } }
+    },
+    "environment": { "type": "object" },
+    "hooks": { "type": "array" },
+    "tooling": { "type": "object" },
+    "propagation": { "type": "object" },
+    "provenance": { "type": "object" },
+    "wiring": { "type": "object" },
+    "restore": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["items"],
+      "properties": {
+        "priority": { "type": "number" },
+        "restore_order": { "type": "array" },
+        "verify_cmd": { "type": "string" },
+        "notes": { "type": "string" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/restoreItem" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "restoreItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tier"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique per contract (uniqueness enforced by spoke_restore.py --verify)."
+        },
+        "tier": {
+          "enum": ["tracked", "regenerable", "external", "ephemeral"],
+          "description": "Discriminator; one flat items[] list, tier decides the restore action."
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Literal gitignore pattern text this item covers. The --verify gitignore-coverage check matches by EXACT string equality (v1; glob overlap out of scope). Required for tracked, regenerable and ephemeral items; optional for external items (an external need has no on-disk pattern unless it also covers a gitignore line)."
+        },
+        "verify": {
+          "enum": ["manifest", "git"],
+          "description": "tracked only: how the clone-delivered tree is verified (manifest = MD5 vs managed MANIFEST.json; git = present in git index)."
+        },
+        "regen_cmd": {
+          "type": "string",
+          "minLength": 1,
+          "description": "regenerable only: real shell command run by --restore (cwd = repo root) that materializes the item."
+        },
+        "need": {
+          "type": "string",
+          "minLength": 1,
+          "description": "external only: what the machine layer / operator must supply."
+        },
+        "satisfier": {
+          "type": "string",
+          "minLength": 1,
+          "description": "external only: who/what satisfies the need (basher-machine tool, runbook, operator out-of-band)."
+        },
+        "note": {
+          "type": "string",
+          "description": "ephemeral: required — why the loss is accepted / how the artifact self-heals. Other tiers: optional clarification."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["tier"], "properties": { "tier": { "const": "tracked" } } },
+          "then": { "required": ["pattern", "verify"] }
+        },
+        {
+          "if": { "required": ["tier"], "properties": { "tier": { "const": "regenerable" } } },
+          "then": { "required": ["pattern", "regen_cmd"] }
+        },
+        {
+          "if": { "required": ["tier"], "properties": { "tier": { "const": "external" } } },
+          "then": { "required": ["need", "satisfier"] }
+        },
+        {
+          "if": { "required": ["tier"], "properties": { "tier": { "const": "ephemeral" } } },
+          "then": { "required": ["pattern", "note"] }
+        }
+      ]
+    }
+  }
+}

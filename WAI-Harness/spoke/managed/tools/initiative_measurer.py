@@ -298,6 +298,9 @@ Respond with valid JSON only:
             ["claude", "--print", "--model", "claude-haiku-4-5-20251001",
              "--no-session-persistence", "-p", prompt],
             capture_output=True, text=True, timeout=60,
+            # A headless scoring child must not self-upgrade the spoke mid-run
+            # (SessionStart pull would revert spoke-local managed/ edits).
+            env={**os.environ, "WAI_NO_HARNESS_PULL": "1"},
         )
         if result.returncode != 0:
             raise RuntimeError(result.stderr[:200])

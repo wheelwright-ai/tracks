@@ -86,6 +86,30 @@ try:
 except Exception: pass
 print(m)" 2>/dev/null)
   [[ -z "$_TR_MODEL" ]] && _TR_MODEL=$(python3 -c "import json;print(json.load(open('$STATE_FILE')).get('_session_state',{}).get('ai_id','') or '')" 2>/dev/null)
+  # Persist a resolved id back to _session_state.ai_id, which is the fallback the line
+  # above reads. Nothing wrote that key, so the fallback was dead code and turn 1 of every
+  # session rendered "unknown" -- the transcript has no assistant message to read yet, and
+  # the operator sees the wrong value in the one statusline that opens the session. Writing
+  # it here makes the next session's turn 1 inherit the last id actually observed. Only ever
+  # a FALLBACK: the transcript still wins whenever it has an answer, so a mid-session model
+  # switch corrects itself on the very next turn rather than persisting a stale claim.
+  if [[ -n "$_TR_MODEL" && "$_TR_MODEL" != "unknown" ]]; then
+    python3 -c "
+import json,sys
+p, model = sys.argv[1], sys.argv[2]
+try:
+    d = json.load(open(p))
+except Exception:
+    sys.exit(0)
+ss = d.setdefault('_session_state', {})
+if ss.get('ai_id') != model:
+    ss['ai_id'] = model
+    try:
+        json.dump(d, open(p, 'w'), indent=2)
+    except Exception:
+        pass
+" "$STATE_FILE" "$_TR_MODEL" 2>/dev/null || true
+  fi
   # Unresolved model => the honest DATA value "unknown", never the prompt placeholder.
   # "<your-model-id>" is a template token the model is told to substitute in its statusline;
   # writing it into the buffer leaked it through track -> model-usage/usage.jsonl and minted

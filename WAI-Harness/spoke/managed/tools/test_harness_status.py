@@ -73,18 +73,36 @@ def test_coexist_surfaces_v4_managed_integrity(tmp_path):
 
 
 def test_claude_resolver_bash_matches(tmp_path):
+    """Coexist resolves by ACTIVATION, not by mere presence of a v4 tree.
+
+    Overlap-safe default (2026-06-15, 'overlap-safe harness_mode'): a spoke with
+    both trees stays v3 until it is explicitly activated — a `.activated` marker
+    or a migrated v4 local/WAI-State.json. Presence alone must NOT flip a spoke
+    mid-overlap; that is what would strand a half-migrated spoke on paths its
+    data has not moved to yet.
+
+    This test used to assert bare presence => v4, i.e. the pre-gate behaviour.
+    Both arms are asserted now so neither direction can regress silently.
+    """
     resolver = HERE.parent / ".claude" / "hooks" / "harness_mode.sh"
     assert resolver.exists(), "harness_mode.sh must ship in managed/.claude/hooks"
     root = _spoke(tmp_path, v3=True, v4=True)
-    out = subprocess.run(
-        ["bash", "-c", f'source "{resolver}" "{root}"; echo "$HARNESS_MODE $HARNESS_ACTIVE"'],
-        capture_output=True, text=True)
-    assert out.stdout.strip() == "coexist v4"
-    # override to v3 via env
-    out2 = subprocess.run(
-        ["bash", "-c", f'WAI_HARNESS_MODE=v3 bash -c \'source "{resolver}" "{root}"; echo "$HARNESS_ACTIVE"\''],
-        capture_output=True, text=True)
-    assert out2.stdout.strip() == "v3"
+
+    def resolve(r, env=""):
+        return subprocess.run(
+            ["bash", "-c", f'{env} bash -c \'source "{resolver}" "{r}"; echo "$HARNESS_MODE $HARNESS_ACTIVE"\''],
+            capture_output=True, text=True).stdout.strip()
+
+    # not activated -> coexist stays on the legacy harness
+    assert resolve(root) == "coexist v3"
+
+    # activation marker -> the same tree now drives v4
+    (root / "WAI-Harness" / "spoke" / ".activated").write_text("")
+    assert resolve(root) == "coexist v4"
+
+    # explicit env override still wins over auto-resolution, in both directions
+    assert resolve(root, "WAI_HARNESS_MODE=v3").split()[-1] == "v3"
+    assert resolve(root, "WAI_HARNESS_MODE=v4").split()[-1] == "v4"
 
 
 def test_install_carries_basher_claude_set(tmp_path):

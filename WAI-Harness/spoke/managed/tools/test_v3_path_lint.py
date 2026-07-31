@@ -83,10 +83,31 @@ def test_manifest_cut_proceeds_when_clean(tmp_path):
 
 
 def test_manifest_cut_skip_lint_escape_hatch(tmp_path):
+    """The escape hatch is open, but it must SAY ITS NAME.
+
+    impl-cut-gate-consolidation-v1 (2026-07-10) made the cut gate fail closed:
+    --skip-lint is honoured only with a non-empty --skip-lint-reason, and the
+    reason is recorded in the manifest. A silent skip is what the consolidation
+    removed, so the reason is the contract, not decoration.
+    """
     m = _managed(tmp_path, {"tools/bad.py": 'P = "WAI-Spoke/x"\n'})
-    rc = hu.main(["manifest", "--managed", str(m), "--write", "--skip-lint"])
+    rc = hu.main(["manifest", "--managed", str(m), "--write", "--skip-lint",
+                  "--skip-lint-reason", "test: exercising the documented escape hatch"])
     assert rc == 0
     assert (m / hu.MANIFEST_NAME).exists()
+    # the reason is DURABLE — a skipped gate must stay auditable in the cut itself
+    man = json.loads((m / hu.MANIFEST_NAME).read_text())
+    assert man["cut_gate_skipped"]["reason"] == "test: exercising the documented escape hatch"
+
+
+def test_manifest_cut_skip_lint_without_reason_fails_closed(tmp_path):
+    """The other half of the same contract: no reason, no skip. Without this the
+    escape hatch could quietly regress to a silent bypass and the test above
+    would still pass."""
+    m = _managed(tmp_path, {"tools/bad.py": 'P = "WAI-Spoke/x"\n'})
+    assert hu.main(["manifest", "--managed", str(m), "--write", "--skip-lint"]) != 0
+    assert hu.main(["manifest", "--managed", str(m), "--write", "--skip-lint",
+                    "--skip-lint-reason", "   "]) != 0
 
 
 if __name__ == "__main__":

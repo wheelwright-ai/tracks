@@ -19,7 +19,7 @@ try:
 except ImportError:
     YAML_AVAILABLE = False
 
-PROJECT_ROOT = Path('/home/mario/projects/wheelwright/framework')
+PROJECT_ROOT = Path('/home/mario/projects/wheelwright/mywheel/WAI-Harness/spoke/managed')
 ADVISORS_DIR = PROJECT_ROOT / 'WAI-Spoke/advisors'
 LIFECYCLE_LOG = ADVISORS_DIR / 'lifecycle.jsonl'
 

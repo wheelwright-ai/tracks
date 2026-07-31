@@ -83,8 +83,18 @@ def _entry_to_pref(entry: dict, level: str, value_field: str) -> dict | None:
     """Convert one taste.*.yaml entry into a schema-shaped preference dict.
 
     value_field is "preference" (user yaml) or "statement" (spoke yaml).
-    Returns None for entries with no usable value text.
+    Returns None for entries with no usable value text, and for entries the
+    operator explicitly REJECTED.
+
+    Rejection had no case here, so a rejected entry fell through
+    _confidence_from_status's default and compiled as `inferred` -- filtered out
+    of injection, so harmless in effect, but still counted in spoke_entries and
+    still present in the graph. A preference the operator has ruled against must
+    leave the graph entirely; keeping it as "unconfirmed" quietly reclassifies a
+    NO as a not-yet.
     """
+    if str(entry.get("status") or "").strip().lower() == "rejected":
+        return None
     eid = str(entry.get("id") or "").strip()
     value = entry.get(value_field) or entry.get("preference") or entry.get("statement")
     if not eid or not value:
@@ -224,8 +234,12 @@ def compile_tastegraph(
         "counts": {
             "total": len(preferences),
             "by_confidence": confidences,
-            "user_entries": len(user_doc.get("entries", []) or []),
-            "spoke_entries": len(spoke_doc.get("entries", []) or []),
+            # Count what made it INTO the graph, not what was in the file. Counting
+            # raw file entries meant a rejected preference still inflated the number
+            # -- the same reason `status` reports in_force separately: a count that
+            # rises when the operator says NO is not measuring anything real.
+            "user_entries": sum(1 for p in preferences if "[level:user]" in p.get("source", "")),
+            "spoke_entries": sum(1 for p in preferences if "[level:spoke]" in p.get("source", "")),
         },
         "preferences": preferences,
     }

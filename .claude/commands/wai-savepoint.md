@@ -287,7 +287,7 @@ Read {BASE}/WAI-State.json. Then in order:
        }
        (The heavy work_done/work_context payload lives ONLY in the savepoint file, never here.)
 
-   Also set: _session_state.next_session_recommendation = "{resume_note}"
+   Also set: _session_state.next_session_recommendation = "resume: {first_actions[0].lug or sp_id} - {resume_note}" (impl-exitclarity-3: single resume pointer, lug-backed)
    Also set: _session_state.last_savepoint = "{session_id}"
 
    Write WAI-State.json.
@@ -395,6 +395,11 @@ python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id {SESSIO
 
 `{SESSION_ID}` resolves as elsewhere in this ceremony. Print the rendered block **verbatim**.
 
+**LANDED = ancestor of `origin/main`** — one definition, in `{TOOLS}/landing.py`; cite it, never
+paraphrase. Mid-lane AHEAD is normal: `git.unlanded` is a REMEDIABLE landing DEBT, stated and
+retried, not a block. `git.behind_canon` BLOCKS even here — `harness_upgrade` ships this working
+tree, so behind serves the fleet pre-canon bytes. Never report safe without saying which it is.
+
 **NOT_SAFE / SAFE_AFTER loop (max 2 iterations):** Step 3 already committed and pushed, so a lingering
 `git.dirty`/`git.unpushed` here usually means state changed after it (the Step 3a.5 digest roll, or
 Step 3b's own remediation). Commit it scoped as Step 3 does, re-run, at most twice. Still not `SAFE TO
@@ -409,6 +414,8 @@ why.
 
 **CONVERGE RECOMMENDED:** the block always carries this line. When it reads `CONVERGE RECOMMENDED: yes
 (...)`, quote the exact `$ ...` command in your closing message.
+**COMPLIANCE:** also run `python3 {TOOLS}/tastegraph_compliance.py record --trigger savepoint --session-id {session_id}` — instrumentation only, never blocks or prompts.
+
 
 ---
 

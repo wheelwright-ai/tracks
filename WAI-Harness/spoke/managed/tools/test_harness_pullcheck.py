@@ -16,12 +16,27 @@ import shutil
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import harness_upgrade as hu  # noqa: E402
 import harness_pullcheck as hpc  # noqa: E402
 
 REAL_AVAILABILITY = (Path(__file__).resolve().parents[3] / "hub" / "local" / "tools"
                       / "harness_availability.py")
+
+# This module injects the REAL hub-side availability resolver into its fixture, so it
+# can only run where a hub tree exists — the master. It ships to every spoke (it lives
+# in managed/tools/, which IS distributed, unlike managed/tests/), and on a spoke the
+# copy blew up with FileNotFoundError. That failure was not a spoke defect: it made
+# harness_validate's selftest check FAIL on every spoke, which turned every upgrade
+# report fleet-wide into a permanent PARTIAL and cost the validation signal its meaning.
+# Skip honestly where the source cannot exist rather than fail — the same stance
+# check_selftest already takes for a missing pytest ("cannot run, so not claiming pass").
+pytestmark = pytest.mark.skipif(
+    not REAL_AVAILABILITY.exists(),
+    reason=("hub-only source absent (WAI-Harness/hub/local/tools/harness_availability.py) — "
+            "this suite injects the real hub resolver, so it runs on the master only"))
 
 
 def _write(p, text):

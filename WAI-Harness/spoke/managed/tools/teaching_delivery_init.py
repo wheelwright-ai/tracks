@@ -6,7 +6,7 @@ hub/WAI-Spoke/hub/teachings/ per spec-teaching-delivery-system-v1.
 
 CLI:
   python3 tools/teaching_delivery_init.py [--hub-path <path>]
-  Default hub path: /home/mario/projects/wheelwright/hub
+  Default hub path: /home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-DEFAULT_HUB_PATH = "/home/mario/projects/wheelwright/hub"
+DEFAULT_HUB_PATH = "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local"
 INITIAL_MANIFEST_VERSION = "1.0.0"
 
 SUBDIRS = ["staging", "hot-patches", "consolidated", "archive"]

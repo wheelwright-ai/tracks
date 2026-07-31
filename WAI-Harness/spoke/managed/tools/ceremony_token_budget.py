@@ -54,7 +54,17 @@ BUDGETS = {
     # moved to fit the protocol instead of the protocol trimmed to fit the ceiling.
     # Mechanics are already extracted into thread_materialize.py; what remains here
     # is contract and rationale, which is exactly what must not be compressed.
-    "wai-savepoint.md": 470,
+    # 470 -> 476 (2026-07-30). change-git-lifecycle-must-land-on-origin-main-v1:
+    # the ceremony gains the LANDED definition (ancestor of origin/main) and the
+    # behind-BLOCKS / ahead-is-a-DEBT split. The file sat at exactly 470, zero
+    # headroom, so a new gate could not land at any size.
+    #
+    # Compressed FIRST, per the rule above: the rationale — why three gates each
+    # answered a narrower question, and the measured 17-pushed-commits-off-main
+    # case — lives in landing.py's docstring, not here. What remains is the
+    # contract a resuming agent must execute: the definition, which finding
+    # blocks, which is owed, and the never-report-safe-without-saying-which rule.
+    "wai-savepoint.md": 476,
     # 1300 -> 1330 (2026-07-19). The file sat at 1299 with ONE line of headroom, so
     # any new step broke the guard regardless of merit.
     #
@@ -80,8 +90,24 @@ BUDGETS = {
     # rule that keeps concurrent sessions from racing. Same judgement recorded
     # twice above: compress mechanics, never the rationale, then move the ceiling
     # to fit the protocol rather than trimming the protocol to fit the ceiling.
-    "wai-closeout.md": 1370,
-    "wai-closeout-slim.md": 336,
+    # 1370 -> 1380 and 336 -> 340 (2026-07-30). impl-exitclarity-3-recommendations-as-lugs-v1:
+    # Step 3 gains the capture-then-exit contract (substantive recommendations become lug
+    # files, not closeout prose) and Step 14/12 gain the --captured handoff. Both docs sat
+    # at 0-2 lines of headroom, so a mandatory new contract step could not land without a
+    # raise. Existing prose was reused/tightened first (Step 3's next_session_recommendation
+    # sentence, the hub-unreachable note, the auto-savepoint rule) rather than padded.
+    # 1380 -> 1383 (2026-07-30). Same lug as the savepoint raise above: the EXIT
+    # SAFETY VERDICT step gains the LANDED definition and the behind/ahead split.
+    # Compressed first — an 18-line draft became 8 by moving every "why" into
+    # landing.py and keeping only what the ceremony must DO.
+    # 1383 -> 1390, 340 -> 347 (2026-07-31). impl-exitclarity-6-session-netnet-v1:
+    # both docs gain Step 6d (Net-Net Synopsis) — a new mandatory-shape closeout
+    # call that writes the session's net-net line. Both files sat at 0-1 lines of
+    # headroom. Compressed first: the format spec, the --headline standard, and
+    # the dropped-refs semantics all moved to wai-closeout-reference.md; what
+    # remains here is the one-line contract + the command itself.
+    "wai-closeout.md": 1390,
+    "wai-closeout-slim.md": 347,
     "wai-closeout-reference.md": 140,
 }
 

@@ -304,6 +304,11 @@ def _spawn(cfg: dict, msg: dict, dirs: dict, cwd=None, model=None, prompt=None) 
     env["WAI_HERALD_SPAWN"] = "1"
     env["WAI_HERALD_MESSAGE_ID"] = msg["id"]
     env["WAI_HERALD_THREAD_ID"] = msg["thread_id"]
+    # A spawned responder must never self-upgrade the spoke mid-run: the SessionStart
+    # pull-on-spin-up overwrites WAI-Harness/spoke/managed/** from canon, silently
+    # reverting spoke-local managed edits (change-autopilot-headless-dispatch-
+    # reverts-managed-edits-every-lug-v1). The hook gates its pull on this marker.
+    env["WAI_NO_HARNESS_PULL"] = "1"
     # Same treatment lens-insight's background worker already gets: this is a
     # headless auto-answer responder, not an interactive session, and it runs in
     # the real spoke cwd (not a neutral dir), so notify.sh's cwd-based suppression

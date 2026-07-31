@@ -81,6 +81,34 @@ python3 WAI-Harness/spoke/managed/tools/dead_end_scan.py --root . --json
 
 If `clean: false`, add a banner line: `⚠ Carryover: {N} uncommitted, {N} untracked-source, {N} unpushed, {N} stash(es)` and offer to reconcile them (commit / lug / discard-with-reason) before new work. `branches_ahead` → note `↪ {N} session branch(es) unmerged to main — reunify (initiative-fleet-branch-reunification-v1)`. Cheap, read-only; never auto-commits.
 
+**2a.1 — Spoke taste surface (cheap, one call, never blocking).** The spoke TasteGraph
+learns only from what the operator has already said in the tracks. Mine at WAKEUP rather than
+at closeout: every prior session's track is final here, whereas at closeout the current one is
+still being written.
+
+```bash
+python3 {TOOLS}/tastegraph_harvest.py propose --cap 3
+```
+
+Harvested entries land as `status: proposed`, which compiles to `inferred`, which the Cardinal
+rule filters OUT of injection — nothing it writes can change behaviour until ratified. Surface
+the queue in the banner when it is non-empty, and never auto-accept:
+
+```
+Spoke taste: N proposed — ratify with /wai-initiative or `tastegraph_harvest.py ratify <id> --accept|--reject`
+```
+
+Report `in_force` (accepted entries), NOT `spoke_entries` — the latter counts proposals too, so
+it moves the moment the harvester writes and is a Goodhart target for this exact tool.
+
+**2a.2 — Trajectory read (optional, impl-exitclarity-6).** Session net-nets (`{BASE}/sessions/netnet.jsonl`) are a mechanically-derived, one-line-per-session synopsis written at each closeout — read the last 10 to see the arc of recent work without re-reading every track. Run this ONLY when the user asks for it (e.g. "show trajectory", "what have we been doing") OR this is the first wake after a 3+ day gap since `_session_state.last_closeout` in `WAI-State.json`:
+
+```bash
+python3 {TOOLS}/write_netnet.py --base {BASE} trajectory -n 10
+```
+
+Render the output as a `Trajectory (last 10):` block, one headline per line (each already <=140 chars, plain words). Skip silently if the tool or the file is absent (not yet distributed, or no sessions closed out since adoption) — never treat absence as an error.
+
 **0.5 — Priority Gate (mandatory, runs before intent router and savepoint intercept):**
 
 If a hub base is reachable, OR `TEACH_NEW > 0`, OR `Incoming: N lug(s) pending triage` — execute A → B → C silently, **in that order**, before any other step. Do not present a savepoint prompt or work queue until all complete.
@@ -202,7 +230,37 @@ Step 2.5: N upgrade report(s) processed → M improvement lug(s) opened
 
 If `outcome=fail` on any report, also surface: `⚠ N adoption failure(s) — bug lug(s) opened`.
 
-If no upgrade-report lugs exist in open/, skip this step silently.
+If no upgrade-report lugs exist in open/, skip the intake above silently — but STILL run the
+registry stamp below, because the archive in `completed/` is what proves the version column.
+
+**Registry version stamp (unconditional, master only).** Reports carry the one thing
+`hub-registry.json`'s `harness_version` column could never get on its own: a byte-verified
+statement of what version is actually on a spoke's disk. Mining a report for friction and
+then discarding its version is how the column drifted into confident fiction — measured
+2026-07-27: 30 of 34 wheels wrong, some by eight minor versions, while the same day's
+reports sat unread in `completed/`.
+
+```bash
+python3 {TOOLS}/registry_version_stamp.py --apply
+```
+
+Evidence-gated by construction: only a report with `verify_post_ok` true and `outcome` not
+`fail` may stamp, newest wins (rollbacks included), and every stamp records the lug id that
+earned it. Safe to run every session — it is idempotent, and a re-read of the archive cannot
+overwrite newer evidence. On a non-master spoke it stamps nothing.
+
+Surface the closing line in the briefing when anything moved:
+
+```
+Step 2.5: N upgrade report(s) processed → M improvement lug(s) opened | registry: K version(s) stamped
+```
+
+If the tool reports any `unproven` or `unknown` active wheels, surface that too — it means
+the fleet contains spokes whose running version nobody can prove:
+
+```
+⚠ Version truth: P proven | U unproven | K unknown (of T active wheels)
+```
 
 ---
 

@@ -64,10 +64,14 @@ show a per-option confidence read as green ASCII bars — what the model believe
 right choice, as a quick visual pre-read. Format (10-slot bar + percent, one line per option,
 recommended option first):
 
-```
-🟩🟩🟩🟩🟩🟩🟩🟩⬜⬜ 80%  (A) <option — Recommended>
-🟩🟩🟩⬜⬜⬜⬜⬜⬜⬜ 30%  (B) <option>
-```
+    🟩🟩🟩🟩🟩🟩🟩🟩⬜⬜ 80%  (A) <option — Recommended>
+    🟩🟩🟩⬜⬜⬜⬜⬜⬜⬜ 30%  (B) <option>
+
+(Indented, NOT fenced. `communication-message-format` sets
+`no_code_blocks_in_user_messages: yes` and `hash_border_blocks_plain: yes`, so a
+fenced block in a reply to the operator is itself a violation. This file used to
+demonstrate the format inside a fence, i.e. it taught the violation it was trying
+to prevent — measured 17 times in one session before anyone noticed.)
 
 - Percentages are the model's confidence each option is the right choice (need not sum to 100).
 - Plain-block fallback where emoji don't render: `████████░░ 80%`.

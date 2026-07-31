@@ -10,6 +10,7 @@ Phases:
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -222,6 +223,9 @@ class OziHeadlessRunner:
                     text=True,
                     timeout=300,
                     cwd=str(self.spoke_path),
+                    # Headless children must not self-upgrade the spoke mid-run
+                    # (SessionStart pull would revert spoke-local managed/ edits).
+                    env={**os.environ, "WAI_NO_HARNESS_PULL": "1"},
                 )
                 if result.returncode == 0:
                     completed_goals = [g["goal_id"] for g in sess.goals]
@@ -338,7 +342,9 @@ class OziHeadlessRunner:
                          "--permission-mode", "bypassPermissions", "--no-session-persistence",
                          "-p", scout_prompt],
                         cwd=str(self.spoke_path),
-                        capture_output=True, text=True, timeout=300
+                        capture_output=True, text=True, timeout=300,
+                        # No mid-run self-upgrade from a headless child (see above).
+                        env={**os.environ, "WAI_NO_HARNESS_PULL": "1"},
                     )
                     output = result.stdout
                     # Parse JSON blocks from output
@@ -729,6 +735,10 @@ class OziHeadlessRunner:
                 text=True,
                 timeout=900,
                 cwd=str(self.spoke_path),
+                # A dispatched worker must not self-upgrade the spoke mid-run: the
+                # SessionStart pull-on-spin-up would overwrite spoke-local managed/
+                # edits — including work this very run just produced.
+                env={**os.environ, "WAI_NO_HARNESS_PULL": "1"},
             )
             success = result.returncode == 0
             self.events.append(

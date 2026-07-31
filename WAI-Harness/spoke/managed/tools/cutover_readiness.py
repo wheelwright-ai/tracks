@@ -30,11 +30,11 @@ _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 import fleet_verify  # noqa: E402
 
-DEFAULT_REGISTRY = "/home/mario/projects/wheelwright/hub/hub-registry.json"
-OLD_HUB = "/home/mario/projects/wheelwright/hub"
+DEFAULT_REGISTRY = "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/hub-registry.json"
+OLD_HUB = "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local"
 # The hub stood itself up IN PLACE on v4 (symlink-bridge, no 385MB relocation): the v4 hub
 # serves from <hub-root>/WAI-Harness/hub. That is the canonical new hub_path spokes repoint to.
-NEW_HUB = "/home/mario/projects/wheelwright/hub/WAI-Harness/hub"
+NEW_HUB = "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/WAI-Harness/hub"
 MYWHEEL_ROOT = "/home/mario/projects/wheelwright/mywheel"
 
 

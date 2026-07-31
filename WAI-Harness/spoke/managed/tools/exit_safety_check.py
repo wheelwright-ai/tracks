@@ -130,21 +130,44 @@ def check_git(repo):
                     "%d commit(s) not pushed to %s" % (ahead, upstream.strip()),
                     "cd %s && git push" % repo))
 
-    # session branch stranded relative to main
-    if branch and branch not in ("main", "master", "HEAD"):
-        rc, _, _ = _git(["rev-parse", "--verify", "origin/main"], repo)
-        ref = "origin/main" if rc == 0 else None
-        if ref is None:
-            rc, _, _ = _git(["rev-parse", "--verify", "main"], repo)
-            ref = "main" if rc == 0 else None
-        if ref:
-            rc, unmerged, _ = _git(["rev-list", "--count", "%s..HEAD" % ref], repo)
-            if rc == 0 and unmerged.strip().isdigit() and int(unmerged.strip()) > 0:
-                out.append(_finding(
-                    "git.session_branch_unmerged", REMEDIABLE,
-                    "%s commit(s) on '%s' not in %s — work is stranded on the session branch"
-                    % (unmerged.strip(), branch, ref),
-                    "cd %s && git checkout main && git merge --ff-only %s" % (repo, branch)))
+    # LANDING, against the one shared definition (landing.LANDED_DEFINITION).
+    #
+    # This used to ask only "is HEAD unmerged into main?" and print
+    # `git merge --ff-only` for every answer -- a command that fails precisely
+    # when the branch has diverged, which is when the operator needs it. It also
+    # collapsed ahead and behind into one finding, hiding the half that actually
+    # ships: harness_upgrade distributes this working tree, so BEHIND is what the
+    # fleet receives.
+    #
+    # SEVERITY IS DELIBERATELY SPLIT. Being ahead is a landing DEBT -- legitimately
+    # owed while concurrent CSRP lanes are live, so it is REMEDIABLE, tracked and
+    # retried rather than blocking. A gate that blocked every concurrent session
+    # would be routed around within a week. Being behind is BLOCKING: it is never
+    # a normal state to exit in, and it is what gets distributed.
+    try:
+        if str(TOOLS) not in sys.path:
+            sys.path.insert(0, str(TOOLS))
+        import landing
+        st = landing.landing_status(repo)
+        if st["state"] == landing.UNKNOWN:
+            out.append(_finding(
+                "git.landing_unknown", REMEDIABLE,
+                "landing could not be confirmed — %s" % st["severity_note"]))
+        elif st["state"] in (landing.BEHIND, landing.DIVERGED):
+            out.append(_finding(
+                "git.behind_canon", BLOCKING,
+                "%s — %s" % (landing.describe(st), st["severity_note"]),
+                st["remediation"]))
+        elif st["state"] == landing.AHEAD:
+            out.append(_finding(
+                "git.unlanded", REMEDIABLE,
+                "%s — %s" % (landing.describe(st), st["severity_note"]),
+                st["remediation"]))
+    except Exception as _lexc:  # noqa: BLE001
+        out.append(_finding(
+            "git.landing_unavailable", UNAVAILABLE,
+            "landing check failed to run (%s) — landing is unconfirmed, "
+            "which is not landed" % _lexc))
     return out
 
 
@@ -338,6 +361,125 @@ def check_unstamped_completions(base):
         "or move + stamp them by hand now")]
 
 
+def check_intent_capture(base, session_id, repo):
+    """W1, epic-close-the-presumption-gap-v1: no ask leaves a session as prose.
+
+    intent_capture_gate.py reconciles every intent recorded in this session's
+    track against artifacts on disk. It shipped complete and tested and was
+    invoked by ZERO ceremonies -- the instruction to drain its MISSING list
+    existed in the closeout doc while nothing ever produced one.
+
+    Wired HERE rather than inline in wai-savepoint.md / wai-closeout.md on
+    purpose. Both ceremonies already call this tool as their final step, so one
+    check covers both; and the ceremony line budget is exhausted (savepoint
+    470/470 headroom 0, closeout 1369/1370 headroom 1), so an inline call
+    would have had to evict another step to fit.
+
+    BLOCKING: an ask the operator made that no artifact carries is exactly the
+    thing that must not survive an exit verdict. Contract: exit 0 = clean,
+    10 = MISSING, anything else = the gate itself is broken (never a pass)."""
+    tool = TOOLS / "intent_capture_gate.py"
+    if not tool.exists():
+        return [_finding("intent_capture", UNAVAILABLE, "intent_capture_gate.py not found")]
+    sid, src = _resolve_session_id(base, session_id)
+    if not sid:
+        return [_finding(
+            "intent_capture", UNAVAILABLE,
+            "no session id: cannot locate this session's track to reconcile asks against",
+            "cd %s && python3 %s --track %s/sessions/<session-id>/track.jsonl --base %s"
+            % (repo, _rel(tool, repo), _rel(base, repo), _rel(base, repo)))]
+    track = Path(base) / "sessions" / sid / "track.jsonl"
+    if not track.exists():
+        return [_finding(
+            "intent_capture", UNAVAILABLE,
+            "session track not found at %s (id via %s)" % (_rel(track, repo), src))]
+    rc, so, se = _run([sys.executable, str(tool), "--track", str(track),
+                       "--base", str(base), "--json"], cwd=str(repo), timeout=120)
+    if rc is None:
+        return [_finding("intent_capture", UNAVAILABLE,
+                         "intent_capture_gate.py failed: %s" % se[:120])]
+    if rc not in (0, 10):
+        return [_finding("intent_capture", UNAVAILABLE,
+                         "intent_capture_gate.py exited %s (expected 0 or 10)" % rc)]
+    try:
+        rep = json.loads(so)
+        missing = rep.get("missing", [])
+        summary = rep.get("summary", {})
+    except Exception:  # noqa: BLE001
+        return [_finding("intent_capture", UNAVAILABLE,
+                         "intent_capture_gate.py exited %s but its JSON did not parse" % rc)]
+    out = []
+    # netnet line (impl-exitclarity-3): the intents/captured/missing accounting is
+    # always rendered, not just on failure, so the operator sees the drain ratio
+    # every exit -- s138 proved 45/41/4 live; a silent pass hides that reconciliation
+    # happened at all.
+    out.append(_finding(
+        "intent_capture.summary", INFO,
+        "%d intent(s) | %d captured | %d missing" % (
+            summary.get("intents", 0), summary.get("captured", 0),
+            summary.get("missing", len(missing)))))
+    unparsed = summary.get("unparsed_entries") or 0
+    if unparsed:
+        out.append(_finding(
+            "intent_capture.unparsed", UNAVAILABLE,
+            "%d track entr(ies) carried no recoverable intent text — the gate could "
+            "not police them" % unparsed))
+    if not missing:
+        return out
+    first = missing[0].get("intent", "")[:90]
+    out.append(_finding(
+        "intent_capture.missing", BLOCKING,
+        "%d of %d recorded ask(s) have no artifact on disk — e.g. \"%s\"" % (
+            len(missing), summary.get("intents", len(missing)), first),
+        "cd %s && python3 %s --track %s --base %s   # then lug each MISSING, or record an explicit wont-do"
+        % (repo, _rel(tool, repo), _rel(track, repo), _rel(base, repo))))
+    return out
+
+
+def check_uncertified_completions(base, session_id, repo):
+    """A lug completed BY HAND this session, carrying no certification.
+
+    The choke-point gate in wai_ozi_dispatch covers every programmatic caller.
+    It does not cover a human or an interactive agent writing the JSON directly
+    -- which is exactly what happened while W1 and W2 were being built: two lugs
+    were marked completed by a script, and no gate saw either of them. A gate
+    with a hand-shaped hole in it is the presumption gap wearing a badge.
+
+    REMEDIABLE, not blocking: certifying by hand at exit is cheap and the
+    operator may have a reason, but it must never be silent."""
+    lugs = Path(base) / "lugs" / "bytype"
+    if not lugs.is_dir():
+        return []
+    sid, _src = _resolve_session_id(base, session_id)
+    offenders = []
+    try:
+        for p in lugs.glob("*/completed/*.json"):
+            try:
+                d = json.loads(p.read_text())
+            except (OSError, ValueError):
+                continue
+            if not isinstance(d, dict) or d.get("certification"):
+                continue
+            # attribute to THIS session only -- someone else's legacy lug is the
+            # recertification sweep's problem, not this exit's.
+            stamped = str(d.get("completed_by") or d.get("session_id")
+                          or d.get("commit_session") or "")
+            if sid and sid in stamped:
+                offenders.append(d.get("id") or p.stem)
+    except OSError as e:
+        return [_finding("completion_certification", UNAVAILABLE,
+                         "could not scan completed lugs: %s" % e)]
+    if not offenders:
+        return []
+    return [_finding(
+        "completion_certification.uncertified", REMEDIABLE,
+        "%d lug(s) completed this session carry no certification — they were "
+        "marked done by hand, bypassing the choke-point gate: %s"
+        % (len(offenders), ", ".join(offenders[:3])),
+        "cd %s && python3 %s <lug-path> --repo . --base %s   # certify, or record why not"
+        % (repo, _rel(TOOLS / "completion_certifier.py", repo), _rel(base, repo)))]
+
+
 def check_lugs(base):
     """INFORMATIONAL ONLY -- never affects the verdict.
 
@@ -386,6 +528,8 @@ def run_checks(repo, base, session_id):
     findings += check_lanes(base, session_id, repo)
     findings += check_track(base, repo)
     findings += check_savepoint(base, repo)
+    findings += check_intent_capture(base, session_id, repo)
+    findings += check_uncertified_completions(base, session_id, repo)
     findings += check_lugs(base)
     findings += check_unstamped_completions(base)
     return findings
@@ -416,6 +560,16 @@ def render(result):
     already = any(f["exact_command"] == ccmd for f in actionable)
     if ccmd and not already and cline.startswith("CONVERGE RECOMMENDED: yes"):
         lines.append("          $ %s" % ccmd)
+    # CAPTURED (impl-exitclarity-3): only rendered when the ceremony passed
+    # --captured -- a caller that never adopted the capture-then-exit contract
+    # (e.g. wai-savepoint.md, which backs every first_action with a lug already)
+    # gets no line rather than a misleading "CAPTURED: none".
+    captured = result.get("captured_ids")
+    if captured is not None:
+        if captured:
+            lines.append("  CAPTURED: %d lug(s): %s" % (len(captured), ", ".join(captured)))
+        else:
+            lines.append("  CAPTURED: none")
     verdict = result["verdict"]
     if verdict == "SAFE_TO_EXIT":
         lines.append("  VERDICT: SAFE TO EXIT")
@@ -436,6 +590,10 @@ def main(argv=None):
     ap.add_argument("--repo", default=None, help="git repo root; default cwd's toplevel")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     ap.add_argument("--render", action="store_true", help="terminal verdict block (default)")
+    ap.add_argument("--captured", default=None,
+                    help="comma-separated lug ids captured this session's recommendations "
+                         "(wai-closeout.md Step 3 capture-then-exit contract); omit if the "
+                         "calling ceremony has no capture step")
     a = ap.parse_args(argv)
 
     repo = a.repo
@@ -456,6 +614,8 @@ def main(argv=None):
     result = {"verdict": aggregate(findings), "findings": findings,
               "repo": str(repo), "base": str(base)}
     result["converge_recommended"] = converge_line(findings)[0].split(": ", 1)[1]
+    if a.captured is not None:
+        result["captured_ids"] = [c.strip() for c in a.captured.split(",") if c.strip()]
 
     if a.json:
         print(json.dumps(result, indent=2))

@@ -186,6 +186,24 @@ def _classify_lane(meta, now, active_window=ACTIVE_WINDOW_S):
     return "idle"
 
 
+def _is_self(sid, meta, session_id):
+    """Is this lane the CALLER's own lane?
+
+    Identity here has two spellings and they are not interchangeable: the lane
+    registry keys on the Claude session UUID, while every ceremony passes
+    --session-id as the wai-session NAME (`session-YYYYMMDD-HHMM`, the sessions/
+    dir). A bare `sid == session_id` therefore never matched, so a session
+    counted itself as a competitor — and once its own heartbeat aged past the
+    active window it became an absorption candidate OF ITSELF, letting converge
+    unregister the live lane it was running in. Match on either spelling.
+    """
+    if not session_id:
+        return False
+    if sid == session_id:
+        return True
+    return bool(meta) and meta.get("wai_session") == session_id
+
+
 def absorption_candidates(base, session_id, open_window=ACTIVE_WINDOW_S):
     """Competitor lanes whose opening session is NOT open -> absorption candidates.
     A lane is a candidate the moment its opener is gone (heartbeat stale beyond the
@@ -193,7 +211,7 @@ def absorption_candidates(base, session_id, open_window=ACTIVE_WINDOW_S):
     now = wg._utcnow()
     out = []
     for sid, m in wg.live_lanes(base).items():
-        if sid == session_id:
+        if _is_self(sid, m, session_id):
             continue
         if _lane_open(m, now, open_window):
             continue
@@ -221,11 +239,75 @@ def _match_lane(wt_name, lanes):
     return None, None
 
 
+def worktree_absorption_candidates(base, session_id, root, my_worktree=None,
+                                   open_window=ACTIVE_WINDOW_S):
+    """Parked-fork WORKTREES that converge would mutate, keyed by worktree name.
+
+    The lane-based gate was not enough, and the hole ran the wrong way round.
+    absorption_candidates() enumerates live_lanes() only, so a fork whose lane
+    has aged past LANE_TTL_SECONDS yields NO candidate at all — converge then
+    classifies its worktree 'dead', auto-commits its uncommitted work via
+    _commit_dirty_lane() and finishes it. That exempted precisely the oldest,
+    most deliberately-parked forks: age was buying LESS protection instead of
+    more, and 'age is not a retire verdict' (operator, standing rule).
+
+    A dirty worktree is unlanded operator work however its lane aged, so it
+    needs the same consent as a live-lane fork. Confirm by worktree NAME (or by
+    its session id, when one can still be matched).
+
+    Deliberately NOT candidates:
+      * clean worktrees — finishing a clean, merged lane is the safe reap this
+        tool exists to do; gating it would mean convergence never tidies up.
+      * worktrees whose lane is still OPEN — converge never force-closes a live
+        peer (it merges committed work only, and skips that too when dirty).
+    """
+    lanes = wg.live_lanes(base)
+    now = wg._utcnow()
+    lane_sids = {c.get("sid") for c in absorption_candidates(base, session_id, open_window)}
+    out = []
+    for w in wg.session_worktrees(root):
+        if my_worktree and w["name"] == my_worktree:
+            continue
+        if not w.get("dirty"):
+            continue
+        sid, meta = _match_lane(w["name"], lanes)
+        if _is_self(sid, meta, session_id):
+            continue
+        if meta and _lane_open(meta, now, open_window):
+            continue                      # live peer — converge leaves it alone
+        if sid and sid in lane_sids:
+            continue                      # already surfaced as a lane candidate
+        out.append({"sid": sid, "worktree": w["name"], "branch": w["branch"],
+                    "dirty": True, "ahead": w.get("ahead", 0),
+                    "liveness": _classify_lane(meta, now, open_window) if meta else "no-lane",
+                    "reason": "parked fork with uncommitted work and no open lane; "
+                              "converge would auto-commit it"})
+    return out
+
+
+def absorb_consent_required(base, session_id, root, my_worktree=None,
+                            open_window=ACTIVE_WINDOW_S):
+    """Everything converge would absorb or mutate that needs operator consent:
+    the union of stale LANES and dirty parked WORKTREES, deduped so one fork is
+    never asked about twice. Each entry carries `confirm_keys` — any one of them
+    satisfies --confirm-absorb for that fork."""
+    out = []
+    for c in absorption_candidates(base, session_id, open_window):
+        keys = {c.get("sid"), c.get("worktree"), c.get("wai_session")}
+        out.append({**c, "kind": "lane",
+                    "confirm_keys": sorted(k for k in keys if k)})
+    for c in worktree_absorption_candidates(base, session_id, root, my_worktree, open_window):
+        keys = {c.get("sid"), c.get("worktree")}
+        out.append({**c, "kind": "worktree",
+                    "confirm_keys": sorted(k for k in keys if k)})
+    return out
+
+
 def status(base, session_id, repo=".", active_window=ACTIVE_WINDOW_S):
     lanes = wg.live_lanes(base)
     competitors = []
     for sid, m in lanes.items():
-        if sid == session_id:
+        if _is_self(sid, m, session_id):
             continue
         competitors.append({"sid": sid, "wai_session": m.get("wai_session"),
                             "last_seen": m.get("last_seen"),
@@ -432,7 +514,7 @@ def converge(base, session_id, repo=".", my_worktree=None, verify=True,
     """
     root = wg.repo_root(repo)
     lanes = wg.live_lanes(base)
-    competitors = {s: m for s, m in lanes.items() if s != session_id}
+    competitors = {s: m for s, m in lanes.items() if not _is_self(s, m, session_id)}
     others_wts = [w for w in wg.session_worktrees(root) if w["name"] != my_worktree]
 
     # 1. zero-cost common path: nobody to converge with.
@@ -440,11 +522,15 @@ def converge(base, session_id, repo=".", my_worktree=None, verify=True,
         return {"ok": True, "lead": False, "reason": "no-competitors", "converged": []}
 
     # 2. CONSENT GATE — refuse to absorb anything the operator has not named.
-    cands = absorption_candidates(base, session_id, active_window)
+    # Covers stale LANES *and* dirty parked WORKTREES. Gating lanes alone left the
+    # oldest forks unprotected: once a lane aged past its TTL it stopped being a
+    # candidate, and its worktree fell through to auto-commit + finish untouched
+    # by any consent step. See worktree_absorption_candidates().
+    cands = absorb_consent_required(base, session_id, root, my_worktree, active_window)
     if cands:
         approved = set(confirm_absorb or [])
         if "ALL" not in approved:
-            unapproved = [c for c in cands if _cand_sid(c) not in approved]
+            unapproved = [c for c in cands if not (set(c["confirm_keys"]) & approved)]
             if unapproved:
                 return {
                     "ok": False,
@@ -454,9 +540,10 @@ def converge(base, session_id, repo=".", my_worktree=None, verify=True,
                     "advice": (
                         "These are PARKED FORKS, not litter — absorbing one destroys a thread "
                         "the operator intended to return to. Surface them as a choice and "
-                        "re-run with --confirm-absorb <session-id> (repeatable) for each lane "
-                        "he approves, or leave them parked. Keeping a lane parked is always "
-                        "safe; absorbing is not reversible by checkout."),
+                        "re-run with --confirm-absorb <session-id|worktree-name> (repeatable) "
+                        "for each fork he approves, or leave them parked. Keeping a fork parked "
+                        "is always safe; absorbing is not reversible by checkout — a 'worktree' "
+                        "candidate holds UNCOMMITTED work that converge would commit for it."),
                 }
 
     # 2. exactly-one-lead gate.
@@ -549,22 +636,32 @@ def main(argv=None):
 
     s = sub.add_parser("status"); add_base(s); s.add_argument("--repo", default="."); s.add_argument("--active-window", type=int, default=ACTIVE_WINDOW_S)
     cd = sub.add_parser("candidates"); add_base(cd); cd.add_argument("--active-window", type=int, default=ACTIVE_WINDOW_S)
+    cd.add_argument("--repo", default="."); cd.add_argument("--my-worktree", default=None)
     a = sub.add_parser("acquire-lock"); add_base(a); a.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_S)
     r = sub.add_parser("release-lock"); add_base(r)
     sg = sub.add_parser("signal"); sg.add_argument("--base", required=True); sg.add_argument("--target", required=True); sg.add_argument("--from", dest="frm", default=""); sg.add_argument("--kind", default="converge_request")
     ds = sub.add_parser("drain-signals"); add_base(ds)
     rl = sub.add_parser("reconcile-lane"); rl.add_argument("--repo", default="."); rl.add_argument("--name", required=True); rl.add_argument("--no-verify", action="store_true"); rl.add_argument("--test-cmd", default=None); rl.add_argument("--base", default=None); rl.add_argument("--session-id", default=None)
     cv = sub.add_parser("converge"); add_base(cv); cv.add_argument("--repo", default="."); cv.add_argument("--my-worktree", default=None); cv.add_argument("--no-verify", action="store_true"); cv.add_argument("--test-cmd", default=None); cv.add_argument("--active-window", type=int, default=ACTIVE_WINDOW_S); cv.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_S)
-    cv.add_argument("--confirm-absorb", action="append", default=None, metavar="SESSION_ID",
-                    help="operator-confirmed lane to absorb (repeatable; 'ALL' to confirm every "
-                         "candidate). REQUIRED when candidates exist — a parked lane is a fork, "
-                         "not litter, and absorbing it is not reversible by checkout.")
+    cv.add_argument("--confirm-absorb", action="append", default=None, metavar="SESSION_ID|WORKTREE",
+                    help="operator-confirmed fork to absorb, named by session id OR worktree name "
+                         "(repeatable; 'ALL' to confirm every candidate). REQUIRED when candidates "
+                         "exist — a parked lane or dirty worktree is a fork, not litter, and "
+                         "absorbing it is not reversible by checkout.")
 
     args = ap.parse_args(argv)
     if args.cmd == "candidates":
-        cands = absorption_candidates(args.base, args.session_id, args.active_window)
-        print(json.dumps({"absorption_candidates": cands, "count": len(cands)}, indent=2))
-        return 10 if cands else 0   # 10 = candidates exist (ceremony should converge), 0 = none
+        root = wg.repo_root(args.repo)
+        lane_c = absorption_candidates(args.base, args.session_id, args.active_window)
+        wt_c = worktree_absorption_candidates(args.base, args.session_id, root,
+                                              args.my_worktree, args.active_window)
+        print(json.dumps({"absorption_candidates": lane_c,
+                          "parked_worktrees": wt_c,
+                          "count": len(lane_c) + len(wt_c)}, indent=2))
+        # 10 = something needs consent before converge may run; 0 = nothing to absorb.
+        # Parked worktrees count: reporting 0 while converge would auto-commit them is
+        # exactly the false all-clear this gate exists to end.
+        return 10 if (lane_c or wt_c) else 0
     if args.cmd == "status":
         out = status(args.base, args.session_id, args.repo, args.active_window)
     elif args.cmd == "acquire-lock":

@@ -116,4 +116,12 @@ When implemented: run health checks, score PASS/total, write health lug to hub. 
 
 File locking (`.closeout.lock`, `.state.lock`, `.lugs.lock`) and migration checkpoints are deferred. Current concurrency model: ownership-based (agent sets `in_progress` with timestamp; other agents respect 4-hour activity window).
 
+## Net-Net Synopsis Format (Step 6d, impl-exitclarity-6)
+
+`{TOOLS}/write_netnet.py` appends one line to `{BASE}/sessions/netnet.jsonl`: `{session_id, dates, headline, arcs[], operator_decisions_made, operator_items_left, next_pointer}`. Each arc is `{topic, state: completed|advanced|opened|blocked, artifact_refs[]}` — every ref is checked against on-disk lugs/initiatives (or `git cat-file` for a commit sha) before the line is written; a ref that doesn't resolve drops that arc (reported as `_dropped_refs`, never silently kept).
+
+Pass `--headline "..."` with a short (<=140 char), plain-words, magnitude-first line synthesized this session (accessible-brief standard, taste-user-016) — omit it and the tool falls back to an auto-generated `N completed, N advanced, ...` count. Skip Step 6d silently if the tool is absent (not yet distributed to this spoke).
+
+Wakeup trajectory read: `write_netnet.py --base {BASE} trajectory -n 10` prints the last 10 `session_id: headline` lines (wai.md Step 2a.2).
+
 Duplicate detection keys live in `_closeout_state` in extended state file. Session summary dedup: check by session ID. Signal dedup: check by `{created_at}+{title}+{impact}`.

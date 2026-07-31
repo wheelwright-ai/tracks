@@ -79,3 +79,25 @@ reason_codes:
     - superseded           # replaced by a newer lug covering the same ground
     - duplicate             # duplicate of an already-tracked lug
     - operator_retired      # explicit operator decision to retire
+
+# ---------------------------------------------------------------------------
+# uat_request -- skip-list for UAT-request-on-completion emission
+# (impl-exitclarity-5-uat-request-on-completion-v1). Consumed by
+# WAI-Harness/spoke/managed/tools/uat_request.py's classify_skip(). DATA, not
+# code: default is EMIT a companion review lug for every autopilot completion;
+# a lug only skips emission when it matches one of the rules below, and every
+# skip is logged to activity-log.jsonl with the matching reason code (never
+# silent). Tune this list here, never as a Python literal in uat_request.py.
+uat_request:
+  # Lug `type` values that are purely-internal (docs sync, index rebuilds,
+  # meta-housekeeping) and never need an operator UAT verdict. Empty by
+  # default -- add entries deliberately, per type, not by guessing.
+  skip_types: []
+  # Specific lug ids to skip (rare -- prefer a type/tag rule).
+  skip_lug_ids: []
+  # Lugs tagged with any of these skip emission.
+  skip_tags: []
+  # Lugs whose `category` field matches skip emission.
+  skip_categories: []
+  # fnmatch-style globs against the lug id (e.g. "chore-lug-*") skip emission.
+  skip_id_globs: []

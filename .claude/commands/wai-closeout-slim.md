@@ -93,6 +93,11 @@ Run the Step 2b delta detection from `wai-closeout.md` to populate `DELTA_CLASS`
 
 Document: status, what's done, what remains, blockers, files. Store in session-summary `incomplete_work`.
 
+**Capture-then-exit** (impl-exitclarity-3, full contract: `wai-closeout.md` Step 3): every substantive
+recommendation (follow-up/fix-later/sync-later/divergence) becomes a lug in `bytype/{type}/open/`
+with full PEV (or `"tier": "seed"` if PEV can't be filled) BEFORE Step 12 — never prose in the final
+output. Collect ids as `CAPTURED_LUG_IDS` (comma-joined, `""` if none).
+
 ## Steps 4–5. Run Closeout Script
 
 ```bash
@@ -102,7 +107,7 @@ WAI-Harness/spoke/managed/tools/closeout.sh --modified-by {model_id} --track-pat
 Set `outcome` on each completed lug before archival: `shipped` | `shipped_with_rework` | `abandoned` | `superseded`
 
 Update WAI-State.json:
-- `_session_state.next_session_recommendation`
+- `_session_state.next_session_recommendation` = `"resume: <lug-id> - <one line>"` (single pointer, never prose)
 - `_session_state.track_path`
 
 ## Step 6. Finalize Session Track
@@ -115,6 +120,14 @@ Append terminal entry to `track.jsonl`:
 Append final row to `wai_track_ledger.md`:
 ```
 | {n} | {HH:MM UTC} | closeout | Session closed — {N} turns, {lug_count} lugs worked |
+```
+
+## Step 6d. Net-Net Synopsis
+
+One net-net line (impl-exitclarity-6); arcs with no resolving artifact ref are dropped. Format in `wai-closeout-reference.md`:
+
+```bash
+python3 {TOOLS}/write_netnet.py --base {BASE} --repo . write --session-id {session_id} --track-path {track_path}
 ```
 
 ## Step 5e. Close Patterns + Emit Certification Bolts
@@ -207,7 +220,7 @@ PYEOF
 
 ## Step 10c. Auto-Savepoint on Next Action
 
-**Rule:** If `_session_state.next_session_recommendation` is non-empty and not `"None"`, and no savepoint already exists for this session (i.e., Step 10b found nothing) — create one automatically before committing. The path the user was on must not be lost to a clean closeout.
+**Rule:** If `_session_state.next_session_recommendation` carries a resume pointer (Step 3 captured a lug this session), and no savepoint already exists for this session (i.e., Step 10b found nothing) — create one automatically before committing. The path the user was on must not be lost to a clean closeout.
 
 ```python
 import json, glob, os, datetime, subprocess, sys
@@ -326,7 +339,7 @@ Final step — print verbatim, nothing after it but the statusline (full rule + 
 
 ```bash
 SESSION_ID=$(python3 -c "import json,os,sys; sys.path.insert(0,'WAI-Harness/spoke/managed/tools'); from worktree_guard import resolve_guard_path; print(json.load(open(resolve_guard_path('{BASE}', os.environ.get('CLAUDE_CODE_SESSION_ID')))).get('session_id','unknown'))" 2>/dev/null || echo unknown)
-python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id "$SESSION_ID"
+python3 {TOOLS}/exit_safety_check.py --render --base {BASE} --session-id "$SESSION_ID" --captured "{CAPTURED_LUG_IDS}"
 ```
 
 Not `SAFE TO EXIT`? Ceremony-scope commands only (scoped commit; push only if Step 0.5 resolved

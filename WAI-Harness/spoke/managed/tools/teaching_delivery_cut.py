@@ -25,8 +25,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-DEFAULT_HUB_PATH = "/home/mario/projects/wheelwright/hub"
-HUB_REGISTRY_PATH = "/home/mario/projects/wheelwright/hub/hub-registry.json"
+DEFAULT_HUB_PATH = "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local"
+HUB_REGISTRY_PATH = "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/hub-registry.json"
 HARD_CAP = 20
 
 

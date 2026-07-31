@@ -7,7 +7,7 @@
 
 set -e
 
-FRAMEWORK_ROOT="/home/mario/projects/wheelwright/framework"
+FRAMEWORK_ROOT="/home/mario/projects/wheelwright/mywheel/WAI-Harness/spoke/managed"
 WILBUR_ROOT="${FRAMEWORK_ROOT}/wilbur"
 NIGHTLY_SCRIPT="${WILBUR_ROOT}/tools/nightly_scan.py"
 LOG_FILE="${WILBUR_ROOT}/logs/nightly-cron.log"

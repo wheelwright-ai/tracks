@@ -2178,6 +2178,12 @@ class OziAutopilot:
         # consumer that never saw it (2026-07-22, first real reports).
         "upgrade-report": "upgrade-report", "upgrade_report": "upgrade-report",
         "work": "work",
+        # "note" is the same defect class as "ack"/"chore"/"upgrade-report":
+        # a LIVE bytype/note/ dir with no explicit entry, caught by the
+        # recertification sweep (2026-07-29) because the mechanical
+        # live-tree test parametrizes a fresh tmp tree that has no
+        # pre-existing bytype/note/ dir for the fallback route to find.
+        "note": "note",
     }
 
     def _phase0a_intake(self) -> Dict[str, int]:
@@ -4427,6 +4433,12 @@ class OziAutopilot:
             # like a series of one-turn sessions that did nothing.
             _child_env = dict(os.environ)
             _child_env["WAI_AP_DISPATCH"] = "1"
+            # A dispatched worker must never self-upgrade the spoke mid-run: the
+            # SessionStart pull-on-spin-up overwrites WAI-Harness/spoke/managed/**
+            # from canon, silently reverting spoke-local managed edits — including
+            # work THIS run just produced (change-autopilot-headless-dispatch-
+            # reverts-managed-edits-every-lug-v1). The hook gates its pull on this.
+            _child_env["WAI_NO_HARNESS_PULL"] = "1"
             proc = subprocess.run(
                 cmd,
                 input=prompt,
@@ -4525,7 +4537,87 @@ class OziAutopilot:
                               file=sys.stderr)
             except Exception as _gexc:
                 print(f"[autopilot]   grounded gate skipped for {lug_id}: {_gexc}", file=sys.stderr)
-            self._dispatch.update_lug_status(lug_id, _gl_status, _gl_extra, session_id=self._session_id())
+
+            # --- Independent completion certification (W2, epic-close-the-presumption-gap-v1) ---
+            # Until now the proof that a lug was done was `proc.returncode == 0`: the
+            # worker's own subprocess exiting cleanly. That is the worker certifying
+            # itself, and it is how one lug reached completed/ carrying file_targets: []
+            # with nothing on disk able to tell real work from a fabrication.
+            #
+            # completion_certifier judges the claim against the lug's OWN verify[] and
+            # the tree, and is never handed the worker's narrative. Only `approved`
+            # keeps the completed stamp; `halted` reopens with the gate's reason;
+            # `escalate` (no verify steps, or steps nobody can decide) lands in
+            # needs_attention rather than silently passing.
+            #
+            # FAIL-SAFE, NOT FAIL-OPEN: if the certifier itself errors, the lug goes to
+            # needs_attention. An exception in the gate must not become a free pass --
+            # that would rebuild the exact presumption this wave removes.
+            if _gl_status == "completed" and not getattr(self, "_skip_certification", False):
+                try:
+                    import completion_certifier
+                    _cert = completion_certifier.certify(
+                        lug, str(self.spoke_root), str(self.spoke_wai),
+                        use_agent=getattr(self, "_certify_with_agent", True),
+                        base_ref=lug.get("dispatch_base_sha"),
+                    )
+                    _gl_extra["certification"] = _cert
+                    _gl_extra["certified_by"] = "completion_certifier (independent)"
+                    if _cert["file_targets_backfilled"]:
+                        _gl_extra["file_targets"] = _cert["file_targets"]
+                    if _cert["disposition"] == completion_certifier.HALTED:
+                        _gl_status = "open"
+                        _gl_extra["reopened_reason"] = _cert["reason"]
+                        print(f"[autopilot]   ⚑ {lug_id} certification HALTED — {_cert['reason']}",
+                              file=sys.stderr)
+                    elif _cert["disposition"] == completion_certifier.ESCALATE:
+                        _gl_status = "needs_attention"
+                        _gl_extra["escalation_reason"] = _cert["reason"]
+                        print(f"[autopilot]   ⚑ {lug_id} certification ESCALATE — {_cert['reason']}",
+                              file=sys.stderr)
+                    elif _cert["disposition"] == completion_certifier.AWAITING_HUMAN:
+                        # Every command step held; what remains is typed as a
+                        # human's. This is a QUEUE, not a failure -- it lands in
+                        # the operator's existing needs_attention queue, marked so
+                        # it is never read as a failed escalation, and carrying the
+                        # exact steps being asked of them.
+                        _gl_status = "needs_attention"
+                        _gl_extra["awaiting_human"] = True
+                        _gl_extra["awaiting_human_reason"] = _cert["reason"]
+                        _gl_extra["awaiting_human_steps"] = list(
+                            _cert.get("manual_steps_skipped") or [])
+                        print(f"[autopilot]   ⏸ {lug_id} AWAITING-HUMAN — {_cert['reason']}",
+                              file=sys.stderr)
+                except Exception as _cexc:
+                    _gl_status = "needs_attention"
+                    _gl_extra["escalation_reason"] = (
+                        "completion certifier failed to run (%s) — an uncertified "
+                        "completion is never auto-approved" % _cexc)
+                    print(f"[autopilot]   ⚑ {lug_id} certifier error, held for review: {_cexc}",
+                          file=sys.stderr)
+
+            self._dispatch.update_lug_status(
+                lug_id, _gl_status, _gl_extra, session_id=self._session_id(),
+                activity_log=self.activity_log,
+                uat_evidence={"run_id": self.run_id, "spoke_id": self.spoke_id},
+            )
+            if _gl_status == "completed":
+                # update_lug_status() emits the UAT request onto a freshly-loaded
+                # copy of the lug (impl-exitclarity-5) -- read the uat fields back
+                # onto THIS in-memory `lug` so the phase-5 activity-log/track
+                # writers (which use this same object) record the real
+                # post-emission uat_status instead of a stale hardcoded value.
+                try:
+                    _lt = lug.get("type") or lug.get("_fs_type") or "unknown"
+                    _p = self._config.bytype_dir / _lt / "completed" / f"{lug_id}.json"
+                    if _p.exists():
+                        _u = json.loads(_p.read_text())
+                        if _u.get("uat_status"):
+                            lug["uat_status"] = _u["uat_status"]
+                        if _u.get("uat_review_lug_id"):
+                            lug["uat_review_lug_id"] = _u["uat_review_lug_id"]
+                except Exception:
+                    pass
             print(f"[autopilot]   ✓ {lug_id} done ({_elapsed_lug}s, tokens={lug_tokens}) [{_gl_status}]", file=sys.stderr)
             return True, ""
         else:
@@ -4669,7 +4761,10 @@ class OziAutopilot:
                     "confidence_score": confidence,
                     "commit_sha": "",         # backfilled after git commit
                     "outcome": "completed",
-                    "uat_status": "pending",
+                    # impl-exitclarity-5: real value once the completion choke-point
+                    # (wai_ozi_dispatch.update_lug_status) has run emit_uat_request;
+                    # "pending" only survives here for skipped/internal completions.
+                    "uat_status": lug.get("uat_status", "pending"),
                     "followon_lugs": [],
                     "track_file": track_file,
                     "grooming_normalized": len(self._grooming_result.normalized) if self._grooming_result else 0,

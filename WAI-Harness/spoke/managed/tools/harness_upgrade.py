@@ -752,6 +752,78 @@ def committed_cut_ok(master_root):
         return False, f"committed_cut_ok error: {e}", sha, branch
 
 
+CANON_REF = "origin/main"
+CANON_OVERRIDE_ENV = "WAI_ALLOW_NONCANON_DISTRIBUTION"
+
+
+def canon_cut_ok(master_root, canon_ref=CANON_REF):
+    """Refuse to distribute from a master tree that is BEHIND its own canon.
+
+    committed_cut_ok() proves the payload is committed, recut and cut from a commit
+    reachable from HEAD. All three can hold on a feature branch, which is how the
+    fleet came to be served content older than canon under a version number NEWER
+    than canon (basher, 2026-07-30):
+
+        master worktree on session-20260719-work-split, VERSION 4.14.31, no pull-gate
+        canon        on main,                          VERSION 4.14.30, gate present
+
+    The pull is upgrade-when-newer, so every spoke was stamped 4.14.31 with content
+    predating 4.14.30 and could never afterwards reach the fix. It reported ok:true.
+    The missing invariant is not about the payload at all -- it is that the tree
+    being published must CONTAIN canon.
+
+    A distribution that ships the wrong bytes silently is worse than one that
+    refuses, so this fails CLOSED when canon resolves and HEAD does not contain it.
+    It fails OPEN only when canon cannot be resolved at all -- a clone with no
+    remote, or an offline machine -- because there a refusal would brick a spoke
+    that has no way to satisfy the check. Set WAI_ALLOW_NONCANON_DISTRIBUTION=1 to
+    publish deliberately from a non-canon tree (a pre-release cut being dogfooded);
+    the reason is returned either way so callers can log which case they took.
+
+    Returns (ok, reason).
+    """
+    master_root = Path(master_root)
+    try:
+        # Distinguish "not version-controlled at all" from "behind canon" explicitly,
+        # rather than letting both fall out of the same failed rev-parse. A master
+        # distributed as an extracted tarball has no git history to be behind, and is
+        # the same case as an offline clone: nothing to compare, so nothing to enforce.
+        inside = subprocess.run(["git", "-C", str(master_root), "rev-parse",
+                                 "--is-inside-work-tree"],
+                                capture_output=True, text=True, timeout=10)
+        if inside.returncode != 0 or inside.stdout.strip() != "true":
+            return True, "master is not a git work tree (tarball or unpacked cut); not enforced"
+        canon = subprocess.run(["git", "-C", str(master_root), "rev-parse", "--verify",
+                                "-q", canon_ref],
+                               capture_output=True, text=True, timeout=10)
+        if canon.returncode != 0 or not canon.stdout.strip():
+            # No canon to compare against -- fail OPEN, see docstring.
+            return True, f"canon ref {canon_ref} unresolvable (offline or no remote); not enforced"
+        canon_sha = canon.stdout.strip()
+        contains = subprocess.run(["git", "-C", str(master_root), "merge-base",
+                                   "--is-ancestor", canon_sha, "HEAD"],
+                                  capture_output=True, text=True, timeout=10)
+        if contains.returncode == 0:
+            return True, f"tree contains {canon_ref}"
+
+        behind = subprocess.run(["git", "-C", str(master_root), "rev-list", "--count",
+                                 f"HEAD..{canon_sha}"], capture_output=True, text=True, timeout=10)
+        n = (behind.stdout or "").strip() or "?"
+        head_branch = subprocess.run(["git", "-C", str(master_root), "rev-parse",
+                                      "--abbrev-ref", "HEAD"],
+                                     capture_output=True, text=True, timeout=10)
+        br = (head_branch.stdout or "").strip() or "?"
+        reason = (f"master tree is on '{br}', which does NOT contain {canon_ref} "
+                  f"({n} canon commit(s) missing) -- distributing would serve pre-canon "
+                  f"content, and an upgrade-when-newer pull would then pin every spoke "
+                  f"above canon so it could never receive the real cut")
+        if os.environ.get(CANON_OVERRIDE_ENV) == "1":
+            return True, f"OVERRIDDEN via {CANON_OVERRIDE_ENV}=1: {reason}"
+        return False, reason
+    except Exception as e:  # noqa: BLE001 — same fail-closed posture as committed_cut_ok
+        return False, f"canon_cut_ok error: {e}"
+
+
 def _load_registry_path_map(master_root):
     """Best-effort realpath(entry.path) -> wheel_id map from hub-registry.json.
     Missing/unreadable registry -> empty map (never raises)."""
@@ -876,6 +948,19 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
     master_managed = _resolve_managed(master_root, side)
     if not (Path(master_managed) / MANIFEST_NAME).exists():
         return {"pulled": 0, "status": "no-master", "current": None}
+    # Canon gate BEFORE anything else: the master publishes its WORKING TREE, so a
+    # master sitting on a feature branch serves that branch to the whole fleet. That
+    # is not hypothetical -- it shipped pre-canon content under a higher version
+    # number and pinned every spoke above canon (see canon_cut_ok). The ordinary
+    # per-spoke pull is precisely the path that never resolved a cut and so never
+    # ran committed_cut_ok(), which is why nothing caught it. Refuse loudly here:
+    # a wrong-bytes success is worse than a visible abort.
+    canon_ok, canon_reason = canon_cut_ok(master_root)
+    if not canon_ok:
+        return {"pulled": 0, "status": "noncanon-master", "current": False, "ok": False,
+                "canon_reason": canon_reason,
+                "aborted": (f"refusing to pull from a non-canon master: {canon_reason} "
+                            f"(set {CANON_OVERRIDE_ENV}=1 to publish deliberately)")}
     # Version gate FIRST: a spoke told to pull vX against a vY master must abort loudly,
     # not silently bring vY — independent of whether it is current/behind/dry-run.
     if expect_version is not None:
@@ -911,6 +996,7 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
                 "commands_deployed": _deploy_active_commands(spoke_root),
                 "hooks_deployed": _deploy_active_hooks(spoke_root),
                 "settings_deployed": _deploy_active_settings(spoke_root),
+                "trees_deployed": _deploy_active_trees(spoke_root),
                 # Stamp on the current branch too: managed can match while VERSION /
                 # wheel.harness_version still advertise an older cut. Idempotent (no-ops
                 # when already correct), so this is what SELF-HEALS a spoke that pulled
@@ -948,6 +1034,28 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
            # what master retired on this pull (and any unlink that failed) — surfaced
            # so a retirement is reported, never a silent disappearance
            "retired": rep.get("retired", []), "retire_errors": rep.get("retire_errors", [])}
+    # Overwrite audit (change-autopilot-headless-dispatch-reverts-managed-edits-every-
+    # lug-v1): every pull that reaches the apply path leaves a durable JSONL record of
+    # WHAT it replaced, so an intended overwrite and an accidental clobber are
+    # distinguishable after the fact — the absence of any such record is why the
+    # silent-revert defect went undiagnosed. The file lists come straight from the
+    # home-map computed above (add/change = files written, retire = files deleted).
+    # Best-effort: an audit line must never fail (or gate) the pull itself.
+    try:
+        _log_dir = Path(spoke_root) / "WAI-Harness" / "spoke" / "local" / "runtime"
+        _log_dir.mkdir(parents=True, exist_ok=True)
+        _audit = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "trigger": os.path.basename(sys.argv[0] or "") or "harness_upgrade",
+            "status": out["status"],
+            "master_version": master_version,
+            "applied": out["pulled"],
+            "files": {"add": hm["add"], "change": hm["change"], "retire": hm["retire"]},
+        }
+        with open(_log_dir / "managed-overwrites.jsonl", "a", encoding="utf-8") as _fh:
+            _fh.write(json.dumps(_audit) + "\n")
+    except Exception:
+        pass
     # F7: persist the applied/failed branch's real verify_post receipt too (previously
     # discarded — verify_post was returned in the report but never landed anywhere
     # durable, so a 34/34-spoke sweep left zero provable evidence).
@@ -969,6 +1077,9 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
     out["commands_deployed"] = _deploy_active_commands(spoke_root)
     out["hooks_deployed"] = _deploy_active_hooks(spoke_root)
     out["settings_deployed"] = _deploy_active_settings(spoke_root)
+    # agents/ + skills/ + workflows/ — distributed since forever, never deployed
+    # live until now (see _deploy_active_tree).
+    out["trees_deployed"] = _deploy_active_trees(spoke_root)
     # Record the master's HEAD SHA + version so harness_converge contribute knows
     # the baseline (P7: cross-spoke convergence base tracking).
     if out["ok"] and out["pulled"]:
@@ -1092,6 +1203,68 @@ def _deploy_active_hooks(spoke_root):
                 "already_current": len(current), "preserved_local": preserved_local}
     except Exception as e:  # noqa: BLE001 — best-effort, never fatal
         return {"ok": False, "error": str(e)[:120]}
+
+
+def _deploy_active_tree(spoke_root, subdir):
+    """Best-effort RECURSIVE sync of <spoke_root>/.claude/<subdir> from the managed
+    canonical, for the subtrees that had no deploy path at all.
+
+    _deploy_active_hooks/_deploy_active_commands covered hooks/ and commands/, and
+    _deploy_active_settings covered settings.json. Nothing covered agents/, skills/
+    or workflows/ — so those shipped into every spoke's managed/ tree on every cut
+    and were never deployed to the LIVE .claude/ dir. A spoke ran whatever it had
+    at init, forever. Measured on basher at 4.14.12 (2026-07-26): hooks 20/20 and
+    commands 109/110 in sync, but agents 0/8, skills 0/24, workflows 0/2 — basher
+    was missing its own ozi-nightly.md agent and both fable-review workflows.
+
+    Recursive because these are not flat: skills live at skills/<name>/SKILL.md
+    (and skills/generated/<name>/SKILL.md), unlike hooks/ which is one level.
+
+    Same contract as _deploy_active_hooks: overwrite a stale live file (md5 diff),
+    PRESERVE any live-only file managed does not know about, never create from
+    nothing when managed is absent, never raise.
+    """
+    try:
+        managed_dir = Path(spoke_root) / "WAI-Harness" / "spoke" / "managed" / ".claude" / subdir
+        active_dir = Path(spoke_root) / ".claude" / subdir
+        if not managed_dir.is_dir():
+            return {"ok": True, "skipped": f"no managed .claude/{subdir}"}
+        active_dir.mkdir(parents=True, exist_ok=True)
+        copied, current, managed_rel = [], [], set()
+        for src in sorted(p for p in managed_dir.rglob("*") if p.is_file()):
+            rel = src.relative_to(managed_dir)
+            if any(part.startswith(".") for part in rel.parts):
+                continue
+            managed_rel.add(str(rel))
+            dst = active_dir / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if dst.exists() and _md5(dst) == _md5(src):
+                current.append(str(rel))
+                continue
+            shutil.copy2(src, dst)
+            if src.suffix in (".sh", ".js"):
+                try:
+                    dst.chmod(0o755)
+                except OSError:
+                    pass
+            copied.append(str(rel))
+        preserved_local = sorted(
+            str(p.relative_to(active_dir)) for p in active_dir.rglob("*")
+            if p.is_file() and str(p.relative_to(active_dir)) not in managed_rel
+            and not any(part.startswith(".") for part in p.relative_to(active_dir).parts)
+        )
+        return {"ok": True, "synced": len(copied), "copied": copied[:20],
+                "already_current": len(current), "preserved_local": preserved_local[:20]}
+    except Exception as e:  # noqa: BLE001 — best-effort, never fatal
+        return {"ok": False, "error": str(e)[:120]}
+
+
+# The .claude subtrees that were distributed but never deployed live.
+_ACTIVE_TREES = ("agents", "skills", "workflows")
+
+
+def _deploy_active_trees(spoke_root):
+    return {sub: _deploy_active_tree(spoke_root, sub) for sub in _ACTIVE_TREES}
 
 
 _SETTINGS_LIST_MERGE_KEYS = {
@@ -1336,6 +1509,117 @@ def _scaffold_local_skeleton(local_root):
         (local_root / d / ".gitkeep").touch()
 
 
+# ---------------------------------------------------------------- managed ignore
+#
+# impl-harness-ignore-untrack-regenerable-advisor-runtime-state-v1.
+#
+# THE SPOKE ROOT .gitignore IS WHAT GIT READS. A WAI-Harness/.gitignore only ever
+# governed paths BELOW itself and was invisible to anyone reading the repo's
+# ignore rules, so shipping one looked like the problem was handled while the
+# churn kept arriving. Operator decision 2026-06-14: manage the root file, retire
+# the harness-local copy.
+#
+# A .gitignore CHANGE ALONE DOES NOTHING FOR ALREADY-TRACKED FILES, which is why
+# this ships with untrack_regenerable(): the dated advisor snapshots were tracked,
+# so git dutifully reported them modified every session no matter what the ignore
+# file said. Measured 2026-07-31: 499 of 641 untracked source files across the
+# fleet were regenerable advisor/runtime state, and 20 more were tracked-and-
+# rewritten in the master alone.
+_IGNORE_BEGIN = "# === WAI managed: regenerable advisor/runtime state (idempotent block) ==="
+_IGNORE_END = "# === end WAI managed block ==="
+
+# Scoped STRICTLY to regenerable globs. Durable advisor config (context_prompt.md,
+# registry.json), lugs, WAI-State.json and track history must never match — an
+# untracking sweep that ate work-state would be far worse than the churn it fixes.
+MANAGED_IGNORE_GLOBS = [
+    "WAI-Harness/spoke/local/runtime/",
+    "WAI-Harness/spoke/local/wakeup-brief.json",
+    "WAI-Harness/spoke/advisors/*/scan_state.json",
+    "WAI-Harness/spoke/advisors/*/passes.jsonl",
+    "WAI-Harness/spoke/advisors/*/vectors.jsonl",
+    "WAI-Harness/spoke/advisors/*/findings-log.jsonl",
+    # dated CONTEXT snapshots — rewritten every session; the dominant churn.
+    "WAI-Harness/spoke/advisors/*/context/snapshot-*",
+    "WAI-Harness/hub/local/WAI-Hub/advisors/*/context/snapshot-*",
+    "WAI-Harness/spoke/advisors/*/expeditions/*.json",
+    # v3 coexist spokes keep their regenerable state under WAI-Spoke/.
+    "WAI-Spoke/runtime/",
+    "WAI-Spoke/advisors/*/scan_state.json",
+    "WAI-Spoke/advisors/*/context/snapshot-*",
+]
+
+
+def write_managed_ignore(spoke_root):
+    """Write the managed block into the SPOKE ROOT .gitignore, idempotently.
+
+    Everything outside the delimited block is preserved verbatim — a spoke's own
+    project rules are none of the harness's business, and clobbering them is how a
+    managed file earns a reputation nobody can undo.
+    """
+    import re as _re
+    p = Path(spoke_root) / ".gitignore"
+    block = "\n".join([_IGNORE_BEGIN] + MANAGED_IGNORE_GLOBS + [_IGNORE_END]) + "\n"
+    existing = p.read_text() if p.exists() else ""
+    pattern = _re.compile(
+        _re.escape(_IGNORE_BEGIN) + r".*?" + _re.escape(_IGNORE_END) + r"\n?",
+        _re.S)
+    if pattern.search(existing):
+        new = pattern.sub(block, existing)
+    elif _IGNORE_BEGIN in existing:
+        # An older un-terminated block: replace from the marker to end-of-section
+        # rather than appending a second one and ignoring twice.
+        head = existing.split(_IGNORE_BEGIN)[0]
+        new = head + block
+    else:
+        new = (existing.rstrip("\n") + "\n\n" if existing.strip() else "") + block
+    if new != existing:
+        p.write_text(new)
+        return True
+    return False
+
+
+def untrack_regenerable(spoke_root):
+    """git rm --cached the regenerable files git is still tracking.
+
+    Idempotent and non-destructive: --cached leaves every file on disk, and
+    --ignore-unmatch makes a spoke that never tracked them a no-op. Returns the
+    number of paths untracked so the caller can report it rather than guess.
+    """
+    import subprocess as _sp
+    n = 0
+    for glob in MANAGED_IGNORE_GLOBS:
+        if glob.endswith("/"):
+            glob = glob + "**"
+        try:
+            before = _sp.run(["git", "-C", str(spoke_root), "ls-files", glob],
+                             capture_output=True, text=True, timeout=60).stdout
+            hits = [x for x in before.splitlines() if x.strip()]
+            if not hits:
+                continue
+            _sp.run(["git", "-C", str(spoke_root), "rm", "--cached", "-q",
+                     "--ignore-unmatch", "--"] + hits,
+                    capture_output=True, text=True, timeout=120)
+            n += len(hits)
+        except Exception:  # noqa: BLE001 -- never fail an upgrade over hygiene
+            continue
+    return n
+
+
+def retire_harness_local_gitignore(harness_root):
+    """Remove the WAI-Harness/.gitignore the harness used to ship.
+
+    It governed only paths below itself and was invisible where anyone actually
+    looks, so it read as coverage while providing almost none."""
+    p = Path(harness_root) / ".gitignore"
+    if p.exists():
+        try:
+            p.unlink()
+            return True
+        except OSError:
+            return False
+    return False
+
+
 def install(master_root, spoke_root, include_hub=False):
     """NON-DESTRUCTIVE v4 install: drop a `WAI-Harness/` folder into an existing
     spoke, beside its v3 `WAI-Spoke/`. Both then coexist; which runs depends on
@@ -1376,18 +1660,26 @@ def install(master_root, spoke_root, include_hub=False):
             # hub local/ regenerates from its advisors; ship just an empty marker
             (harness / "hub" / "local").mkdir(parents=True, exist_ok=True)
             (harness / "hub" / "local" / ".gitkeep").touch()
-        # ship the always-clean .gitignore so the installed spoke's local/ churn
-        # can never dirty the tracked tree (the invariant)
-        gi = master_root / ".gitignore"
-        if gi.exists():
-            shutil.copy2(gi, harness / ".gitignore")
+        # The invariant is unchanged — the installed spoke's local/ churn must never
+        # dirty the tracked tree — but it is enforced where git actually reads it.
+        # This used to copy the master .gitignore to WAI-Harness/.gitignore, which
+        # governs only paths below itself and sits where nobody looks: it read as
+        # coverage while providing almost none.
         report["installed"] = "fresh"
-        report["gitignore_shipped"] = (harness / ".gitignore").exists()
+        report["gitignore_shipped"] = False
     else:
         # re-install = upgrade the managed tree in place
         up = upgrade(master_root / "spoke" / "managed", harness / "spoke" / "managed")
         report["installed"] = "upgrade"
         report["upgrade"] = up
+
+    # ---- managed ignore: root .gitignore + untrack what git already tracks ----
+    # Runs on BOTH paths (fresh install and in-place upgrade). An upgrade is where
+    # this matters most: the fleet is already installed, already tracking the
+    # regenerable files, and already dirtying every session over them.
+    report["gitignore_block_written"] = write_managed_ignore(spoke_root)
+    report["untracked_regenerable"] = untrack_regenerable(spoke_root)
+    report["harness_gitignore_retired"] = retire_harness_local_gitignore(harness)
 
     # verify the installed managed tree against the master manifest
     report["verify"] = verify(harness / "spoke" / "managed",

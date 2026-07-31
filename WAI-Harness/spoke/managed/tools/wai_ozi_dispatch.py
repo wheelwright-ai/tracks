@@ -19,6 +19,53 @@ try:
 except ImportError:
     _LEASE_AVAILABLE = False
 
+# UAT-request-on-completion emission (impl-exitclarity-5, optional — graceful
+# fallback if module absent so a UAT-emission bug can never brick dispatch).
+try:
+    from uat_request import emit_uat_request  # noqa: E402
+    _UAT_REQUEST_AVAILABLE = True
+except ImportError:
+    _UAT_REQUEST_AVAILABLE = False
+
+# Independent completion certification (W2/W3, epic-close-the-presumption-gap-v1).
+try:
+    import completion_certifier  # noqa: E402
+    _CERTIFIER_AVAILABLE = True
+except ImportError:
+    _CERTIFIER_AVAILABLE = False
+
+# Lug types where "completed" is an ASSERTION someone could be wrong about, and
+# therefore the types the certifier gates. A report, a notation, a signal or a
+# received notice is a RECORD -- it is complete because it arrived, not because
+# work was done, and holding those for certification would be pure noise. This
+# distinction is not cosmetic: 124 of the 172 completions in the week before the
+# gate shipped were upgrade-reports.
+CERTIFIABLE_TYPES = frozenset({
+    "impl", "bug", "fix", "change", "task", "epic", "feature", "spec",
+})
+
+
+def _certifier_roots(config):
+    """(repo_root, spoke_base) for the certifier, derived from bytype_dir only.
+
+    bytype_dir is the one path on the config with an unambiguous shape
+    (<base>/lugs/bytype). Deriving the repo from spoke_path instead landed one
+    directory off, which made every mechanical `test -f` run in the wrong cwd and
+    refuted work that was genuinely done -- a false REFUTED is as damaging as a
+    false CERTIFIED, in the opposite direction."""
+    base = Path(config.bytype_dir).parent.parent
+    for cand in [base] + list(base.parents):
+        if (cand / ".git").exists():
+            return str(cand), str(base)
+    # No git (tests, bare checkouts). Do NOT assume a fixed depth: v4 bases live at
+    # <repo>/WAI-Harness/spoke/local (3 up) and v3 bases at <repo>/WAI-Spoke (1 up).
+    # A hardcoded 3 silently pointed the certifier above the repo on v3 layouts, so
+    # every `test -f` ran in the wrong directory and refuted real work.
+    for cand in [base] + list(base.parents):
+        if cand.name in ("WAI-Harness", "WAI-Spoke"):
+            return str(cand.parent), str(base)
+    return str(base), str(base)
+
 
 # ── Builder taste block (impl-inject-tastegraph-into-autopilot-dispatch-prompt-v1)
 # The autonomous builders had the operator's steering wheel disconnected: TasteGraph
@@ -275,6 +322,8 @@ class OziDispatch:
         workflow: Dict[str, Any],
         extra_fields: Optional[Dict[str, Any]] = None,
         session_id: Optional[str] = None,
+        activity_log: Optional[Path] = None,
+        uat_evidence: Optional[Dict[str, Any]] = None,
     ) -> bool:
         # RULE 1 (spec-lug-lifecycle-ownership-v1, claim-on-pickup): this is
         # the single sanctioned entry point both autopilot dispatch paths
@@ -333,6 +382,86 @@ class OziDispatch:
         # lug alongside the status transition -- never required, never nested.
         if extra_fields:
             lug.update(extra_fields)
+
+        # ---- Independent completion certification, at the CHOKE-POINT ----
+        # W2 first put this gate in ozi_autopilot._dispatch_subprocess. Measured
+        # afterwards: of 172 completions in the previous 7 days, ZERO came through
+        # that path and exactly 2 carried a certification block. Gating one caller
+        # gates nothing -- which is why the last recertification sweep produced a
+        # number and no durable change. The gate belongs here, on the transition
+        # itself, per this method's own contract as the single sanctioned entry
+        # point (RULE 1 above).
+        #
+        # SCOPED TO LUGS THAT CLAIM WORK. An upgrade-report or a notation is a
+        # record, not a claim that something was built; holding those for
+        # certification would be noise, and 124 of those 172 completions were
+        # exactly that. CERTIFIABLE_TYPES names the types where "done" is an
+        # assertion someone could be wrong about.
+        #
+        # IDEMPOTENT: a caller that already certified (autopilot does) passes its
+        # verdict in extra_fields and is not re-run.
+        if status == "completed" and _CERTIFIER_AVAILABLE and not lug.get("certification"):
+            _t = (lug.get("type") or lug.get("_fs_type") or "").lower()
+            if _t in CERTIFIABLE_TYPES:
+                try:
+                    _repo, _cbase = _certifier_roots(self._config)
+                    _v = completion_certifier.certify(
+                        lug, _repo, _cbase, use_agent=False,
+                    )
+                    lug["certification"] = _v
+                    lug["certified_by"] = "completion_certifier @ update_lug_status (choke-point)"
+                    if _v["file_targets_backfilled"]:
+                        lug["file_targets"] = _v["file_targets"]
+                    if _v["disposition"] == completion_certifier.HALTED:
+                        status = "open"
+                        lug["reopened_reason"] = _v["reason"]
+                    elif _v["disposition"] == completion_certifier.ESCALATE:
+                        status = "needs_attention"
+                        lug["escalation_reason"] = _v["reason"]
+                    elif _v["disposition"] == completion_certifier.AWAITING_HUMAN:
+                        # The machine's half held; the rest is typed as a human's.
+                        # needs_attention is the operator's existing queue, so this
+                        # reuses it rather than minting a fifth lifecycle directory
+                        # that every reader would have to learn. It is marked
+                        # distinctly because it is NOT a failed escalation, and the
+                        # skipped steps ride along so the operator sees exactly what
+                        # is being asked of them.
+                        status = "needs_attention"
+                        lug["awaiting_human"] = True
+                        lug["awaiting_human_reason"] = _v["reason"]
+                        lug["awaiting_human_steps"] = list(
+                            _v.get("manual_steps_skipped") or [])
+                except Exception as _e:  # noqa: BLE001
+                    # FAIL-SAFE, NOT FAIL-OPEN. A broken certifier must not become
+                    # a free pass -- that is the presumption being removed.
+                    status = "needs_attention"
+                    lug["escalation_reason"] = (
+                        "completion certifier failed to run (%s) -- an uncertified "
+                        "completion is never auto-approved" % _e)
+                lug["status"] = status
+                lug["s"] = status
+
+        # UAT-request-on-completion emission (impl-exitclarity-5): this method is
+        # the single sanctioned entry point every completion transition funnels
+        # through (see RULE 1 above), so it is the single choke-point to emit
+        # from. Mutates `lug` in place (uat_status="awaiting_user") before the
+        # write below persists it. Fail-safe: any error here must never block
+        # the completion write itself.
+        if status == "completed" and _UAT_REQUEST_AVAILABLE:
+            try:
+                _wf = lug.get("workflow") or {}
+                ev = dict(uat_evidence or {})
+                ev.setdefault("dispatch_method", _wf.get("dispatch_method"))
+                ev.setdefault("grounded_verdict", _wf.get("grounded_verdict"))
+                ev.setdefault("completed_at", _wf.get("completed_at"))
+                emit_uat_request(
+                    lug,
+                    self._config.bytype_dir,
+                    evidence=ev,
+                    activity_log=activity_log,
+                )
+            except Exception:
+                pass  # UAT emission must never block a completion write
 
         current_status_dir = lug_path.parent.name
         type_dir = lug_path.parent.parent

@@ -32,8 +32,8 @@ import argparse, json, os, sys, datetime
 
 DEFAULT_DEPRECATED = [
     # Known-retired repos superseded by mywheel (reference-deprecated-framework-hub-repos).
-    "/home/mario/projects/wheelwright/framework",
-    "/home/mario/projects/wheelwright/hub",
+    "/home/mario/projects/wheelwright/mywheel/WAI-Harness/spoke/managed",
+    "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local",
 ]
 TRACK_GLOBS = ("WAI-Spoke/sessions", "WAI-Spoke/lanes", "WAI-Harness/spoke/local/sessions")
 

@@ -4,7 +4,7 @@ import sys
 import uuid
 from pathlib import Path
 
-PROJECT_ROOT = Path('/home/mario/projects/wheelwright/framework')
+PROJECT_ROOT = Path('/home/mario/projects/wheelwright/mywheel/WAI-Harness/spoke/managed')
 sys.path.insert(0, str(PROJECT_ROOT / 'WAI-Spoke'))
 from db.sync import SyncClient
 

@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-HUB_DIR = Path("/home/mario/projects/wheelwright/hub")
+HUB_DIR = Path("/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local")
 CANONICAL_SIGNAL_DIR = HUB_DIR / "WAI-Hub" / "lugs" / "bytype" / "signal" / "canonical"
 HUB_REGISTRY = HUB_DIR / "hub-registry.json"
 

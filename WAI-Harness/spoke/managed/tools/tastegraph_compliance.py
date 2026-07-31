@@ -34,6 +34,7 @@ Usage:
 """
 
 import argparse
+from datetime import datetime, timezone
 import glob
 import json
 import os
@@ -140,12 +141,26 @@ def d_no_context_estimate(text, _pref):
             for m in pat.finditer(text)]
 
 
+# A paragraph that is substantially a VERBATIM QUOTE of the operator. Grading the
+# agent on the shape of the operator's own sentences is not just a false positive:
+# the only way to "comply" is to paraphrase him, which is exactly what the taste
+# harvester promises never to do. Caught live in session-20260728-0016, where both
+# dyslexia violations were his own words quoted back to him for ratification.
+_QUOTED = re.compile(r'^\s*["“‘«]')
+
+
 def d_paragraph_length(text, _pref):
-    """accessibility-dyslexia: max_paragraph_sentences = 3."""
+    """accessibility-dyslexia: max_paragraph_sentences = 3.
+
+    Verbatim operator quotes are exempt — see _QUOTED. The accommodation governs
+    how the AGENT writes, not what the operator said.
+    """
     out = []
     for para in re.split(r"\n\s*\n", strip_structured(text)):
         para = para.strip()
         if not para or para.startswith(("-", "*", "|", ">")) or re.match(r"^\d+\.", para):
+            continue
+        if _QUOTED.match(para):
             continue
         sentences = [s for s in re.split(r"(?<=[.!?])\s+", para) if s.strip()]
         if len(sentences) > 3:
@@ -342,8 +357,40 @@ DETECTORS = {
     "communication-register": (d_no_permission_ask_for_safe_ops, False),
 }
 
-# Sub-detectors that share the message-format preference id.
-EXTRA_FORMAT_DETECTORS = [d_no_code_blocks, d_no_bold_markdown]
+# Drop-in detectors (one file per preference, so coverage can grow in parallel
+# without authors colliding in this dict). Plugins may not silently REPLACE a
+# built-in: a shadowed detector would change what the score means with no diff
+# visible here.
+try:
+    from compliance_detectors import load as _load_plugins
+except ImportError:  # running from another cwd
+    import os as _os, sys as _sys
+    _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    from compliance_detectors import load as _load_plugins
+
+for _pid, _entry in _load_plugins().items():
+    if _pid not in DETECTORS:
+        DETECTORS[_pid] = _entry
+PLUGIN_ERRORS = getattr(_load_plugins, "errors", [])
+
+# Sub-detectors that share a preference id with a built-in.
+#
+# One preference can need more than one PROOF, and the proofs are often different
+# shapes: statusline fidelity has a built-in that judges each line alone plus an
+# extension that compares lines across turns, because staleness exists only in
+# the relation between renderings. Extras used to be a hardcoded `if pid ==`
+# branch inside evaluate(); they now live in one map that plugins join by
+# declaring EXTENDS, so a second proof for an existing preference no longer means
+# editing this file. Findings land on the BASE preference's verdict, which keeps
+# the score meaning what its name says.
+EXTRA_DETECTORS = {
+    "communication-message-format": [d_no_code_blocks, d_no_bold_markdown],
+}
+for _base, _fns in getattr(_load_plugins, "extensions", {}).items():
+    EXTRA_DETECTORS.setdefault(_base, []).extend(_fns)
+
+# Back-compat name for the message-format extras.
+EXTRA_FORMAT_DETECTORS = EXTRA_DETECTORS["communication-message-format"]
 
 
 # ---- transcript -------------------------------------------------------------
@@ -373,12 +420,72 @@ def load_transcript(path):
     return blocks
 
 
-def find_transcript(session_id, spoke_root):
-    """Locate a transcript by session id under the Claude projects dir."""
+def _project_dirs(spoke_root):
+    """Claude project dirs, most-specific first: this spoke's, then any."""
     home = os.path.expanduser("~/.claude/projects")
-    for path in glob.glob(os.path.join(home, "*", f"{session_id}*.jsonl")):
-        return path
-    return None
+    slug = os.path.abspath(spoke_root).replace("/", "-")
+    dirs = [os.path.join(home, slug)] if os.path.isdir(os.path.join(home, slug)) else []
+    dirs += sorted(d for d in glob.glob(os.path.join(home, "*")) if os.path.isdir(d))
+    seen, out = set(), []
+    for d in dirs:
+        if d not in seen:
+            seen.add(d); out.append(d)
+    return out
+
+
+def find_transcript(session_id, spoke_root):
+    """Locate a transcript, by Claude session UUID or by WAI session id.
+
+    THE REASON THIS TOOL HAD NEVER RUN. It resolved ONLY a Claude session UUID --
+    a value no ceremony has and no operator types. Every caller in the wheel knows
+    the WAI session id (`session-YYYYMMDD-HHMM`) instead, so savepoint and closeout
+    could not invoke the oracle even though it worked. A fully-built detector suite
+    sat unused behind an argument nobody could supply.
+
+    Resolution order, most-precise first:
+      1. exact/prefix match on the Claude UUID (unchanged behaviour)
+      2. WAI session id -> the transcript whose mtime falls inside that session,
+         found via the spoke's own sessions/<id>/track.jsonl timestamps
+      3. no session id at all -> the newest transcript for this spoke
+    """
+    dirs = _project_dirs(spoke_root)
+
+    if session_id and not session_id.startswith("session-"):
+        for d in dirs:
+            for path in sorted(glob.glob(os.path.join(d, f"{session_id}*.jsonl"))):
+                return path
+
+    # Search THIS spoke's project dir alone first. Pooling every project's
+    # transcripts and taking the global newest meant a zero-argument run could
+    # score a DIFFERENT project's session and report the number as this spoke's --
+    # caught immediately when --session-id said 0.92 and no-args said 0.69 against
+    # what should have been the same transcript. A wrong number that looks right
+    # is the failure this whole tool exists to remove.
+    candidates = []
+    for d in dirs:
+        found = [c for c in glob.glob(os.path.join(d, "*.jsonl")) if os.path.isfile(c)]
+        if found:
+            candidates = found
+            break
+    if not candidates:
+        return None
+    candidates.sort(key=os.path.getmtime, reverse=True)
+
+    if session_id and session_id.startswith("session-"):
+        track = os.path.join(spoke_root, "WAI-Harness", "spoke", "local",
+                             "sessions", session_id, "track.jsonl")
+        if os.path.isfile(track):
+            start = os.path.getmtime(track)
+            # The transcript still being written during that session is the one
+            # whose last write is nearest the track's. Never guess silently: if
+            # nothing is within a day, fall through to newest rather than pick
+            # an unrelated file and call it that session.
+            near = [c for c in candidates if abs(os.path.getmtime(c) - start) < 86400]
+            if near:
+                return min(near, key=lambda c: abs(os.path.getmtime(c) - start))
+        return candidates[0]
+
+    return candidates[0]
 
 
 def graph_path(spoke_root):
@@ -415,10 +522,9 @@ def evaluate(blocks, prefs):
                 continue
             for v in fn(text, pref):
                 violations.append({**v, "block": i})
-            if pid == "communication-message-format":
-                for extra in EXTRA_FORMAT_DETECTORS:
-                    for v in extra(text, pref):
-                        violations.append({**v, "block": i})
+            for extra in EXTRA_DETECTORS.get(pid, ()):
+                for v in extra(text, pref):
+                    violations.append({**v, "block": i})
 
         results[pid] = {
             "verdict": "violated" if violations else "compliant",
@@ -448,8 +554,12 @@ def summarise(results):
 
 def resolve_blocks(args, spoke_root):
     path = args.transcript
-    if not path and args.session_id:
-        path = find_transcript(args.session_id, spoke_root)
+    if not path:
+        # Resolve even with no --session-id. Requiring one meant the zero-argument
+        # invocation -- the one a ceremony or a curious operator actually types --
+        # failed with "transcript not found: None", which reads as "there is no
+        # data" rather than "you did not pass a flag".
+        path = find_transcript(getattr(args, "session_id", None), spoke_root)
     if not path or not os.path.isfile(path):
         print(f"[compliance] transcript not found: {path or args.session_id}",
               file=sys.stderr)
@@ -500,11 +610,84 @@ def cmd_score(args, spoke_root):
     return 0
 
 
+LEDGER_REL = ("WAI-Harness", "spoke", "local", "runtime", "compliance-ledger.jsonl")
+
+
+def ledger_path(spoke_root):
+    return os.path.join(spoke_root, *LEDGER_REL)
+
+
+def cmd_record(args, spoke_root):
+    """Append one measurement to the ledger. Called by savepoint and closeout.
+
+    A score computed and printed is a score nobody compares. The ledger exists so
+    the question stops being "what is it now" -- which invites re-measuring by
+    hand and forgetting -- and becomes "is it moving", which is the only version
+    of the question that can catch decay.
+
+    Never fatal. A ceremony must not fail because the oracle could not find a
+    transcript; it records the miss and moves on, because a ceremony that dies on
+    its own instrumentation is worse than one that is briefly blind.
+    """
+    blocks, path = resolve_blocks(args, spoke_root)
+    entry = {"ts": datetime.now(timezone.utc).isoformat(),
+             "session_id": getattr(args, "session_id", None),
+             "trigger": getattr(args, "trigger", None) or "manual"}
+    if blocks is None:
+        entry.update({"ok": False, "reason": "transcript not resolved"})
+    else:
+        prefs = _collect_prefs(json.load(open(graph_path(spoke_root))), [])
+        results = evaluate(blocks, prefs)
+        summary = summarise(results)
+        entry.update({
+            "ok": True, "transcript": os.path.basename(path), "blocks": len(blocks),
+            "score": summary["score"], "coverage": summary["coverage"],
+            "measured": summary["measured"], "total": summary["total"],
+            "violated": {pid: r["violation_count"] for pid, r in results.items()
+                         if r["verdict"] == "violated"},
+        })
+    lp = ledger_path(spoke_root)
+    os.makedirs(os.path.dirname(lp), exist_ok=True)
+    with open(lp, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(entry) + "\n")
+    print(json.dumps(entry))
+    return 0
+
+
+def cmd_trend(args, spoke_root):
+    """Read the ledger back. Answers 'is it moving', which is the point."""
+    lp = ledger_path(spoke_root)
+    if not os.path.isfile(lp):
+        print("[compliance] no ledger yet — run `record` at savepoint or closeout")
+        return 0
+    rows = []
+    for line in open(lp, encoding="utf-8"):
+        line = line.strip()
+        if line:
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                continue
+    ok = [r for r in rows if r.get("ok")]
+    print(f"compliance ledger — {len(rows)} entr(ies), {len(ok)} with a measurement")
+    for r in ok[-12:]:
+        v = sum((r.get("violated") or {}).values())
+        print(f"  {r['ts'][:16]}  score {r['score']:.4f}  coverage {r['coverage']:.1%}"
+              f"  measured {r['measured']}/{r['total']}  violations {v}  [{r.get('trigger')}]")
+    if len(ok) >= 2:
+        d_s = ok[-1]["score"] - ok[0]["score"]
+        d_c = ok[-1]["coverage"] - ok[0]["coverage"]
+        print(f"  since first: score {d_s:+.4f}  coverage {d_c:+.1%}")
+    return 0
+
+
 def cmd_detectors(args, spoke_root):
     print(f"Deterministic detectors: {len(DETECTORS)}")
     for pid, (fn, closing_only) in sorted(DETECTORS.items()):
         scope = "closing only" if closing_only else "every message"
         print(f"  {pid:42s} {scope:14s} {fn.__doc__.splitlines()[0]}")
+        for extra in EXTRA_DETECTORS.get(pid, ()):
+            print(f"    + extension{'':30s} {extra.__doc__.splitlines()[0]}")
     print("\nEvery other preference is UNMEASURABLE by this tool and is reported")
     print("as such. Coverage is a floor to raise by writing detectors, never a")
     print("target to optimise — a fabricated score is worse than an honest gap.")
@@ -516,19 +699,22 @@ def main(argv=None):
     ap.add_argument("--spoke-path")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    for name in ("check", "score"):
+    for name in ("check", "score", "record"):
         s = sub.add_parser(name)
         s.add_argument("--transcript")
         s.add_argument("--session-id")
         if name == "check":
             s.add_argument("--json", action="store_true")
+        if name == "record":
+            s.add_argument("--trigger", help="savepoint | closeout | manual")
 
     sub.add_parser("detectors")
+    sub.add_parser("trend")
 
     args = ap.parse_args(argv)
     spoke_root = find_spoke_root(args.spoke_path)
-    return {"check": cmd_check, "score": cmd_score,
-            "detectors": cmd_detectors}[args.cmd](args, spoke_root)
+    return {"check": cmd_check, "score": cmd_score, "record": cmd_record,
+            "trend": cmd_trend, "detectors": cmd_detectors}[args.cmd](args, spoke_root)
 
 
 if __name__ == "__main__":

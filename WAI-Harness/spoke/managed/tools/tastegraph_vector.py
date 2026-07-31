@@ -251,14 +251,22 @@ def match_vector(pref, vector):
     return False, None
 
 
-def select(prefs, vector):
+def select(prefs, vector, now=None):
     """
     Returns (selected, dropped). Every preference lands in exactly one list —
     the two together always account for the whole graph, which is what makes
     the drop log auditable.
+
+    `now` is injectable for the same reason is_deferred's is: without it a test
+    can freeze its own clock but not this function's, so any test that builds a
+    defer_until relative to a frozen NOW silently stops testing deferral the day
+    that date passes. That is not hypothetical — test_deferred_preference_is_
+    dropped_from_delivery froze NOW at 2026-07-18, set defer_until 10 days out,
+    and had been red since 2026-07-28 while appearing to assert real behaviour.
+    Production callers pass nothing and get wall-clock, exactly as before.
     """
     selected, dropped = [], []
-    now = datetime.now(timezone.utc)
+    now = now or datetime.now(timezone.utc)
     for pref in prefs:
         if not is_verified(pref):
             dropped.append({"id": pref.get("id"), "reason": "unverified"})

@@ -23,7 +23,7 @@ _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 import fleet_verify  # noqa: E402
 
-DEFAULT_REGISTRY = "/home/mario/projects/wheelwright/hub/hub-registry.json"
+DEFAULT_REGISTRY = "/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/hub-registry.json"
 DEFAULT_MASTER = "/home/mario/projects/wheelwright/mywheel/WAI-Harness"
 LIGHT = {True: "●", False: "○", None: "—"}   # on / off / n-a
 

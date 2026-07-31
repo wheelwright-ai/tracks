@@ -135,6 +135,27 @@ INDIRECT_HANDLERS = {
     "validate_track_buffer.py": "invoked by flush path",
     "wakeup-canonical.sh": "invoked by session-start.sh",
 }
+def _indirect_caller(hooks_dir, name):
+    """Return the sibling hook that invokes `name`, or None.
+
+    Mechanical replacement for remembering to add an entry to INDIRECT_HANDLERS.
+    A hook invoked by another hook is wired — just not bound in settings — and
+    reporting it as dead is a false alarm the reader learns to ignore.
+    """
+    try:
+        for sib in sorted(hooks_dir.iterdir()):
+            if not sib.is_file() or sib.name == name:
+                continue
+            try:
+                if name in sib.read_text(errors="ignore"):
+                    return sib.name
+            except OSError:
+                continue
+    except OSError:
+        pass
+    return None
+
+
 IGNORE_HOOK_DIR_ENTRIES = {"__pycache__"}
 CRUFT_SUFFIXES = (".log", ".bak")
 
@@ -237,6 +258,15 @@ def enforcement_findings(root, bindings):
                 findings.append({"kind": "CRUFT_IN_HOOKS", "detail": f".claude/hooks/{f.name}"})
                 continue
             if f.name not in bound_names and f.name not in INDIRECT_HANDLERS:
+                # Before crying UNBOUND, look for a real caller. INDIRECT_HANDLERS is a
+                # hand-maintained allowlist, so anything invoked by a sibling hook and
+                # not remembered there was reported as dead — turn_insight.py is called
+                # by user-prompt-submit.sh on every turn and was flagged anyway (s139).
+                # A checker that fires on correct code teaches people to skim past it,
+                # which is the same disease as a gate that never fires.
+                caller = _indirect_caller(hooks_dir, f.name)
+                if caller:
+                    continue
                 findings.append({"kind": "INSTALLED_UNBOUND", "detail": f".claude/hooks/{f.name} — installed, bound by nothing"})
             rel = f".claude/hooks/{f.name}"
             entry = mfiles.get(rel)

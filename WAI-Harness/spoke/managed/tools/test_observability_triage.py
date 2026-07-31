@@ -72,8 +72,20 @@ def test_dashboard_what_needs_me_points_at_needs_you(tmp_path):
     assert "automatable" in d["surfaces"]["attention"]
 
 
-def test_overloaded_counts_only_human_items(tmp_path):
-    # many automatable stalled lugs must NOT trip the human-overload alarm
+def test_overloaded_measures_the_whole_attention_queue(tmp_path):
+    """Backlog DEPTH is itself the alarm — automatable or not.
+
+    spec-observability-oversight-v1: "a max-depth alarm (queue over N items is
+    itself a P1 'attention overloaded' signal)". The alarm is over the queue,
+    not the human-only subset.
+
+    This test previously asserted the opposite (overloaded is False while the
+    queue is deep with automatable items). That encoded a later display-only
+    refinement — the needs_you/automatable split — back into the alarm, which
+    silently narrowed it to the point that it could never fire in the wild,
+    because real backlogs are almost entirely automatable-tagged. The whole
+    class of gap it exists to surface is exactly that: depth as pressure.
+    """
     spoke = tmp_path / "WAI-Spoke"
     d = spoke / "lugs" / "bytype" / "task" / "open"
     d.mkdir(parents=True)
@@ -84,5 +96,23 @@ def test_overloaded_counts_only_human_items(tmp_path):
             "updated_at": _iso(NOW - 60)}))
     att = obs.build_attention_surface(spoke, NOW)
     assert att["automatable_count"] >= obs.ATTENTION_MAX_DEPTH + 3
+    # the display split still holds: none of this is the operator's personal to-do
     assert att["needs_you_count"] == 0
-    assert att["overloaded"] is False        # overload is about HUMAN load, not pipeline depth
+    # ...but the queue is over depth, so the P1 depth alarm MUST fire
+    assert att["overloaded"] is True
+
+
+def test_not_overloaded_below_max_depth(tmp_path):
+    """The alarm must still be quiet when the queue is shallow — otherwise the
+    test above passes for a hardcoded True and the alarm carries no signal."""
+    spoke = tmp_path / "WAI-Spoke"
+    d = spoke / "lugs" / "bytype" / "task" / "open"
+    d.mkdir(parents=True)
+    for i in range(3):
+        (d / f"t{i}.json").write_text(json.dumps({
+            "id": f"task-{i}", "type": "task", "status": "open",
+            "autopilot_failures": 2, "model_fit": "haiku", "execution_mode": "subagent",
+            "updated_at": _iso(NOW - 60)}))
+    att = obs.build_attention_surface(spoke, NOW)
+    assert att["count"] <= obs.ATTENTION_MAX_DEPTH
+    assert att["overloaded"] is False

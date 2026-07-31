@@ -96,7 +96,11 @@ def _dispatch(model, prompt, pass_name, actor, timeout, root=".", lug_id=None,
     proc = subprocess.run(
         ["claude", "--print", "--output-format", "json", "--model", model,
          "--permission-mode", "bypassPermissions", "--no-session-persistence"],
-        input=prompt, capture_output=True, text=True, timeout=timeout, cwd=cwd)
+        input=prompt, capture_output=True, text=True, timeout=timeout, cwd=cwd,
+        # Headless child sessions must not self-upgrade the spoke mid-run: the
+        # SessionStart pull-on-spin-up would overwrite spoke-local managed/ edits
+        # (change-autopilot-headless-dispatch-reverts-managed-edits-every-lug-v1).
+        env={**os.environ, "WAI_NO_HARNESS_PULL": "1"})
     raw = proc.stdout or ""
     text = raw
     try:
@@ -310,27 +314,11 @@ def close_round(root, round_rec, verify=True):
                      if st.get("verdict") not in (None, "NO-WORK")]
     all_verdicts = list(round_rec["verdicts"]) + step_verdicts
 
-    refuted = [v for v in all_verdicts if v.get("verdict") == "REFUTED"]
-    unver = [v for v in all_verdicts if v.get("verdict") == "UNVERIFIABLE"]
-    # A runner that threw produced no claims to judge, so every check below would
-    # find nothing wrong and hand back CLEAN — a green verdict on a round that
-    # never ran. Measured: round-20260722T025333 reported CLEAN over a phase_3
-    # AttributeError with 277 dispatchable lugs untouched.
-    runner_errors = [st for st in round_rec.get("steps", [])
-                     if st.get("verdict") == "RUNNER-ERROR"]
 
-    if runner_errors:
-        round_rec["verdict"] = "RUNNER-ERROR"
-    elif refuted:
-        round_rec["verdict"] = "REFUTED"
-    elif not round_rec["say_do"].get("ok", True):
-        round_rec["verdict"] = "GAPS"
-    elif unver:
-        round_rec["verdict"] = "UNVERIFIED"
-    else:
-        round_rec["verdict"] = "CLEAN"
+    round_rec["verdict"] = decide_round_verdict(round_rec)
 
-    round_rec["refuted_count"] = len(refuted)
+    round_rec["refuted_count"] = len(
+        [v for v in all_verdicts if v.get("verdict") == "REFUTED"])
     round_rec["ended_at"] = _now().isoformat()
 
     os.makedirs(_rounds_dir(root), exist_ok=True)
@@ -615,15 +603,152 @@ def run_chain(root, steps, scope_flag, runner, on_refute="remediate", verbose=Tr
 
         round_rec["steps"].append(step)
 
-        if step["verdict"] in ("REFUTED", "PROCESS-FAULT") and on_refute in ("stop", "remediate"):
+        # UNVERIFIABLE BELONGS HERE, and its absence was a silent free pass.
+        #
+        # This module's own contract (see verify_step's docstring) says UNVERIFIABLE
+        # "must not be silently upgraded to CONFIRMED — a claim nobody could check
+        # is not a claim anybody should trust", and the comment above this loop says
+        # the chain "advances only on CONFIRMED". The tuple said otherwise: it named
+        # REFUTED and PROCESS-FAULT, so an UNVERIFIABLE step fell through, the chain
+        # advanced, and the lug KEPT the completed stamp its verifier had just
+        # declined to confirm.
+        #
+        # Observed live 2026-07-31, step 1 of an 8-step chain:
+        # bug-managed-test-suite-deletes-tracked-lug-index-files-v1 verified
+        # REFUTED, remediated, came back UNVERIFIABLE — and landed in completed/
+        # with no certification recorded at all. Left running, the chain would have
+        # built seven more steps on top of it. This is the measured "1 in 5 true
+        # completion rate" made mechanical: not agents doing bad work, one missing
+        # tuple member turning "nobody could check this" into "done".
+        #
+        # A lug whose completion nobody could confirm is demoted to needs_attention
+        # rather than left wearing a stamp it did not earn.
+        # THE VERDICT MUST REACH THE LUG. It used to live only in the round record
+        # and the console, so the backlog — which is what the operator and the next
+        # session actually read — carried no trace of whether anything had been
+        # verified at all.
+        #
+        # Observed live 2026-07-31 immediately after the UNVERIFIABLE fix below:
+        # impl-exitclarity-6-session-netnet-v1 settled APPROVED on attempt 2, its
+        # artifact (write_netnet.py + the closeout wiring) genuinely on disk — and
+        # the lug sat in needs_attention with NO reason recorded: no escalation
+        # reason, no verdict, no timestamp. Something in the refute-then-remediate
+        # path had moved it and the APPROVED settle never moved it back, so real,
+        # independently-confirmed work read as unfinished. That is the same
+        # verdict/lug-state divergence as the UNVERIFIABLE bug, pointing the other
+        # way: a false negative rather than a false pass. Less dangerous, equally
+        # corrosive — a backlog that lies in either direction stops being read.
+        _record_verdict(root, lug_id, step["verdict"], step.get("reasoning"))
+        if step["verdict"] == "UNVERIFIABLE":
+            _demote_unverified(root, lug_id, step.get("reasoning"))
+        if (step["verdict"] in ("REFUTED", "PROCESS-FAULT", "UNVERIFIABLE")
+                and on_refute in ("stop", "remediate")):
             round_rec["stopped_early"] = (
-                f"step {index} refuted: {str(step.get('reasoning'))[:200]}")
+                f"step {index} {step['verdict'].lower()}: "
+                f"{str(step.get('reasoning'))[:200]}")
             if verbose:
                 print(f"\n    CHAIN HALTED at step {index} — not proceeding on top of "
                       f"unverified work", flush=True)
             break
 
     return close_round(root, round_rec, verify=False)
+
+
+def _record_verdict(root, lug_id, verdict, reasoning=None):
+    """Write the chain's verdict onto the lug, and let CONFIRMED restore `completed`.
+
+    Two jobs, both about the backlog telling the truth:
+
+    1. RECORD. Without this the verdict exists only in the round record and the
+       console, so a lug carries no durable evidence that anyone checked it. The
+       next session reads the backlog, not the log.
+    2. PROMOTE ON CONFIRMED. The refute-then-remediate path can leave the lug
+       parked in needs_attention; an APPROVED settle that does not move it back
+       leaves genuinely verified work reading as unfinished. The chain's verdict is
+       the authority here, so it is asserted rather than assumed.
+
+    CONFIRMED is the ONLY verdict that promotes. Everything else records and leaves
+    placement alone — UNVERIFIABLE is handled by _demote_unverified, and a REFUTED
+    lug has no business being moved to completed by a bookkeeping helper.
+    """
+    from pathlib import Path
+    import datetime
+    try:
+        path = None
+        for p in Path(root).joinpath(
+                "WAI-Harness/spoke/local/lugs/bytype").rglob(lug_id + ".json"):
+            path = p
+            break
+        if path is None:
+            return False
+        lug = json.loads(Path(path).read_text())
+        lug["chain_verdict"] = {
+            "verdict": verdict,
+            "reasoning": str(reasoning)[:500] if reasoning else None,
+            "at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "by": "autopilot_round chain verifier (independent, asked to refute)",
+        }
+        dest = path
+        if verdict == "CONFIRMED" and "completed" not in Path(path).parts:
+            lug["status"] = "completed"
+            lug.setdefault("completed_at",
+                           datetime.datetime.now(datetime.timezone.utc).isoformat())
+            for state in ("needs_attention", "in_progress", "open"):
+                if f"/{state}/" in str(path):
+                    dest = Path(str(path).replace(f"/{state}/", "/completed/"))
+                    break
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(lug, indent=2) + "\n")
+        if dest != path:
+            path.unlink()
+            print(f"    promoted {lug_id}: -> completed (CONFIRMED)", flush=True)
+        return True
+    except Exception as e:  # noqa: BLE001 -- bookkeeping must never fail a round
+        print(f"    WARNING: could not record verdict for {lug_id}: {e}", flush=True)
+        return False
+
+
+def _demote_unverified(root, lug_id, reasoning=None):
+    """Strip the completed stamp from a lug nobody could verify.
+
+    Halting the chain is not enough on its own: the lug has ALREADY been moved to
+    completed/ by the time the verifier rules, so a chain that merely stopped would
+    still leave the unverified claim sitting in the done pile, indistinguishable
+    from work that earned it. needs_attention is the same destination the completion
+    certifier uses for ESCALATE, and for the same reason — an unverifiable
+    completion is a question for a human, not a result.
+
+    Best-effort by design: a failure to demote must not crash the round, but it is
+    reported, because silently failing to un-stamp would rebuild the exact hole
+    this closes.
+    """
+    from pathlib import Path  # module-local: this file otherwise works in os.path
+    try:
+        path = None
+        for p in Path(root).joinpath(
+                "WAI-Harness/spoke/local/lugs/bytype").rglob(lug_id + ".json"):
+            path = p
+            break
+        if path is None or "completed" not in Path(path).parts:
+            return False
+        lug = json.loads(Path(path).read_text())
+        lug["status"] = "needs_attention"
+        lug["escalation_reason"] = (
+            "chain verifier returned UNVERIFIABLE — the completion claim could not "
+            "be checked by anyone, so it does not keep the completed stamp"
+            + (": %s" % str(reasoning)[:200] if reasoning else ""))
+        lug["unverified_completion"] = True
+        dest = Path(str(path).replace("/completed/", "/needs_attention/"))
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(lug, indent=2) + "\n")
+        Path(path).unlink()
+        print(f"    demoted {lug_id}: completed -> needs_attention (UNVERIFIABLE)",
+              flush=True)
+        return True
+    except Exception as e:  # noqa: BLE001
+        print(f"    WARNING: could not demote unverified {lug_id}: {e}",
+              flush=True)
+        return False
 
 
 def _remediate(root, lug_id, verdict):
@@ -697,13 +822,68 @@ def render(rec):
     return "\n".join(lines)
 
 
+def decide_round_verdict(rec):
+    """The round's top-line verdict. Extracted so the rule is testable at all.
+
+    THE RULE IS "ANYTHING THAT IS NOT A PASS", not a list of known-bad verdicts.
+    Enumerating the bad ones is what kept letting this back in: the module comment
+    above records the CLEAN-over-a-halt bug being fixed for REFUTED, it recurred
+    for UNVERIFIABLE, and it recurred again for PROCESS-FAULT — observed live
+    2026-07-31, when round-20260731T084737 HALTED at step 2 ("the commit touches
+    none of the five declared target files") and its own header still read CLEAN.
+    Written this way, a verdict kind added next year is NOT-CLEAN by default
+    rather than silently qualifying as green.
+
+    A top-line verdict that disagrees with the evidence printed beneath it is the
+    precise failure this tool exists to catch, so it must not be possible here.
+    """
+    steps = rec.get("steps", []) or []
+    step_verdicts = [{"lug_id": st.get("lug_id"), "verdict": st.get("verdict")}
+                     for st in steps if st.get("verdict") not in (None, "NO-WORK")]
+    all_verdicts = list(rec.get("verdicts") or []) + step_verdicts
+
+    def _of(kind):
+        return [v for v in all_verdicts if v.get("verdict") == kind]
+
+    # A runner that threw produced no claims to judge, so every check below would
+    # find nothing wrong and hand back CLEAN — a green verdict on a round that
+    # never ran. Measured: round-20260722T025333 reported CLEAN over a phase_3
+    # AttributeError with 277 dispatchable lugs untouched.
+    if _of("RUNNER-ERROR"):
+        return "RUNNER-ERROR"
+    if _of("REFUTED"):
+        return "REFUTED"
+    if not (rec.get("say_do") or {}).get("ok", True):
+        return "GAPS"
+    if _of("UNVERIFIABLE"):
+        return "UNVERIFIED"
+    passing = {"CONFIRMED", "NO-WORK", None}
+    other = [v for v in all_verdicts if v.get("verdict") not in passing]
+    if other:
+        # Named by its own verdict rather than flattened, so the header says the
+        # same thing as the step detail beneath it.
+        return str(other[0].get("verdict") or "NOT-CLEAN")
+    return "CLEAN"
+
+
 def render_chain(rec):
     steps = rec.get("steps", [])
     confirmed = sum(1 for s in steps if s.get("verdict") == "CONFIRMED")
-    refuted = sum(1 for s in steps if s.get("verdict") == "REFUTED")
+    # EVERY verdict is counted, not just the two that were thought of first.
+    # "2 step(s): 1 approved, 0 refuted" was printed for a round HALTED by a
+    # PROCESS-FAULT — true on its own terms and false as a summary, because the
+    # halting verdict appeared in neither number. A tally that silently omits the
+    # outcome that stopped the run is how a reader concludes nothing went wrong.
+    other = {}
+    for s in steps:
+        v = s.get("verdict")
+        if v and v != "CONFIRMED":
+            other[v] = other.get(v, 0) + 1
+    tally = ", ".join([f"{confirmed} approved"]
+                      + [f"{n} {v.lower()}" for v, n in sorted(other.items())])
     lines = [
         f"CHAIN {rec['round_id']} — {rec.get('verdict','?')}",
-        f"  {len(steps)} step(s): {confirmed} approved, {refuted} refuted"
+        f"  {len(steps)} step(s): {tally}"
         f"  | on-refute={rec.get('on_refute')}",
         f"  baseline {str(rec.get('baseline_sha'))[:8]} | "
         f"{rec['impact']['commit_count']} commit(s), {rec['impact']['file_count']} file(s)",

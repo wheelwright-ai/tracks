@@ -47,7 +47,13 @@ Review session for decisions/learnings with **impact >= 8**. Write each as a sig
 
 ### 3. Incomplete Work Capture
 
-Document unfinished work with enough detail to resume: status, what's done, what remains, blockers, files, continuation instructions. Store in session-summary `incomplete_work` AND `_session_state.next_session_recommendation`.
+Document unfinished work with enough detail to resume: status, what's done, what remains, blockers, files, continuation instructions. Store in session-summary `incomplete_work`.
+
+**Capture-then-exit** (impl-exitclarity-3, full contract: `wai-closeout.md` Step 3): every substantive
+recommendation (follow-up/fix-later/sync-later/divergence found) becomes a lug in
+`lugs/bytype/{type}/open/` with full PEV (or `"tier": "seed"` if PEV can't be filled) BEFORE Step 15 —
+never prose in the final output. `_session_state.next_session_recommendation` holds ONLY
+`"resume: <lug-id> - <one line>"`.
 
 If a session track exists, also read `open` items from the last 3 track points.
 
@@ -64,7 +70,7 @@ Add `--dry-run` to preview without writing.
 Review the printed summary, then complete the remaining AI-only fields:
 
 **AI completes in WAI-State.json:**
-- `_session_state.next_session_recommendation` = what the next session should focus on
+- `_session_state.next_session_recommendation` = the single resume pointer (Step 3: `"resume: <lug-id> - <one line>"`) — never recommendation prose
 - `_session_state.track_path` = current session track path (if not passed via `--track-path`)
 
 **Capability check:** `test -d WAI-Harness/spoke/lugs/bytype && echo BYTYPE_OK || echo FLAT_LUG` — if FLAT_LUG, skip 5b and 5c entirely.
@@ -119,7 +125,7 @@ Scan `WAI-Harness/spoke/lugs/outgoing/` for any `.json` file where `delivered_at
 4. In the local outgoing copy: set `"status": "delivered"`, add `"delivered_at": "{iso_timestamp}"`.
 5. Log: `Delivered: {lug_id} → {target_spoke}`.
 
-If hub registry is unreachable: note all undelivered lugs in `next_session_recommendation`. Do not block closeout.
+If hub registry is unreachable: the undelivered set is already lugs on disk — point `next_session_recommendation` at the highest-priority one, do not paste the list into the field. Do not block closeout.
 
 Report: `Outgoing sweep: N delivered, M blocked (quality), K already delivered.`
 
@@ -188,7 +194,7 @@ Run and print this block **verbatim** as the ceremony's true final output — no
 the statusline (impl-exitclarity-2-ceremony-verdict-wiring-v1):
 
 ```bash
-python3 WAI-Harness/spoke/managed/tools/exit_safety_check.py --render --base WAI-Spoke --session-id {session_id}
+python3 WAI-Harness/spoke/managed/tools/exit_safety_check.py --render --base WAI-Spoke --session-id {session_id} --captured "{captured_lug_ids}"
 ```
 
 *(v4-only spoke — no `WAI-Harness/spoke/` tree: use `--base WAI-Harness/spoke/local` instead.)*

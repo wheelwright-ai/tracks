@@ -33,6 +33,7 @@ import glob
 import json
 import os
 import subprocess
+from pathlib import Path
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -306,6 +307,18 @@ def build_autoeject(session_id, working_base, root, signals, mode):
         }],
         "in_progress_lugs": signals.get("in_progress_lugs", []),
         "uncommitted_files": signals.get("uncommitted_files", 0),
+        # workspace + inbox_snapshot are REQUIRED by validate_savepoint.py, which
+        # exit_safety_check runs against the latest savepoint. Omitting them made every
+        # auto-eject fail that validation and BLOCK the exit it exists to make safe --
+        # the safety net could not catch anything cleanly. Both are mechanically
+        # derivable here, so there was never a reason for a human to supply them.
+        "workspace": {
+            "path": str(Path(root).resolve()),
+            "why": "the tree this session was running in when the Stop-hook safety net fired",
+        },
+        "inbox_snapshot": sorted(
+            p.name for p in (Path(working_base) / "lugs" / "incoming").glob("*.json")
+        ) if (Path(working_base) / "lugs" / "incoming").is_dir() else [],
         "honest_flags": [{
             "flag": "AUTO-GENERATED savepoint (status=auto-eject, degraded=true). It was written by the Stop-hook safety net, not authored by the session. work_done/first_actions are reconstructed and may be incomplete or wrong.",
             "why_it_matters": "A degraded-but-durable resume lead beats total loss, but do not trust it as a full resume contract — verify against git history and the in_progress lugs.",
