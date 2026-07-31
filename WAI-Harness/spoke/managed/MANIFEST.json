@@ -1,8 +1,8 @@
 {
   "harness_version": "4.14.32",
   "is_master": false,
-  "generated_at": "2026-07-31T14:20:28.213830+00:00",
-  "master_sha": "1be31ad9834c894030b4b8623388ccde9b81e9a0",
+  "generated_at": "2026-07-31T17:04:23.732296+00:00",
+  "master_sha": "aceb00e1df40a643b580be8a23e2b0e01e04dd08",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -3524,6 +3524,11 @@
       "md5": "c7cfd7a2028daf84afe82335d3d548e6",
       "owner": "basher"
     },
+    "tools/contract_duplication_scan.py": {
+      "version": "4.14.32",
+      "md5": "9886c2fb6b346df56850015d0638babe",
+      "owner": "basher"
+    },
     "tools/contract_router.py": {
       "version": "4.6.5",
       "md5": "56b6c9a741b4da8757a155ff9c9130c6",
@@ -3801,7 +3806,7 @@
     },
     "tools/harness_upgrade.py": {
       "version": "4.6.5",
-      "md5": "a4780c9d1e47fface8acc3eb14802292",
+      "md5": "175a2b7662095842c78ea912c9055f4f",
       "owner": "basher"
     },
     "tools/harness_validate.py": {
@@ -4461,7 +4466,7 @@
     },
     "tools/wai-enter.sh": {
       "version": "4.6.9",
-      "md5": "67b88b2c569760478bd1b4a34cd435e6",
+      "md5": "190d07a062b3a6e62a19d2bb09657379",
       "owner": "basher"
     },
     "tools/wai_assurance.py": {

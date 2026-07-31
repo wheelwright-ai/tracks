@@ -945,6 +945,26 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
     wh = Path(spoke_root) / "WAI-Harness"
     if not wh.is_dir():
         return {"pulled": 0, "status": "no-harness", "current": None}
+
+    # MANAGED IGNORE RUNS ON EVERY PULL, not just a fresh install.
+    #
+    # The fleet distributes through pull(), never install() — so wiring the ignore
+    # work into install() alone shipped it to exactly ZERO spokes. Verified
+    # 2026-07-31: the managed block was absent from every spoke in the fleet after
+    # a full distribution pass, and 774 regenerable harness files were still
+    # showing as untracked across the wheel.
+    #
+    # It belongs here for the same reason the hook/command re-deploy below does: a
+    # spoke that is "current" by manifest can still have drifted, and this is
+    # idempotent and cheap (a no-op when the block is already correct), so it is
+    # safe on every session start. Placed before every return path, so no pull
+    # outcome — current, upgraded, or version-desync — can skip it.
+    try:
+        write_managed_ignore(spoke_root)
+        untrack_regenerable(spoke_root)
+        retire_harness_local_gitignore(wh)
+    except Exception:  # noqa: BLE001 -- hygiene must never break a session start
+        pass
     master_managed = _resolve_managed(master_root, side)
     if not (Path(master_managed) / MANIFEST_NAME).exists():
         return {"pulled": 0, "status": "no-master", "current": None}
@@ -1501,9 +1521,45 @@ def _scaffold_local_skeleton(local_root):
     lugs/sessions/state. Idempotent."""
     local_root = Path(local_root)
     dirs = list(_LOCAL_SKELETON_DIRS)
-    for t in _LUG_TYPES:
-        for s in _LUG_STATUSES:
-            dirs.append(f"lugs/bytype/{t}/{s}")
+
+    # THE VALIDATOR OWNS THIS CONTRACT — cite it, do not keep a second copy.
+    #
+    # This used to apply a flat (open, in_progress, completed) to every type, while
+    # wai_validate.REQUIRED_BYTYPE_DIRS says `signal` takes undelivered/delivered,
+    # `other` takes open/completed, and `session-summary` takes no status folder at
+    # all. Two definitions of one contract, disagreeing — so a freshly scaffolded
+    # spoke failed its own structure check BY CONSTRUCTION, and every spoke in the
+    # fleet carried the same missing bytype/signal/undelivered/. Measured
+    # 2026-07-31 across 5 spokes; scaffolding them did not fix it, because the
+    # scaffolder was building to the wrong shape.
+    #
+    # Falls back to the flat shape only if the validator cannot be imported, so a
+    # partial tree still gets a skeleton rather than none.
+    required = None
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from wai_validate import REQUIRED_BYTYPE_DIRS as required  # noqa: F811
+    except Exception:  # noqa: BLE001
+        required = None
+
+    if required:
+        for t, statuses in required.items():
+            if not statuses:                      # session-summary: no status folder
+                dirs.append(f"lugs/bytype/{t}")
+                continue
+            for s in statuses:
+                dirs.append(f"lugs/bytype/{t}/{s}")
+        # Types the harness uses that the validator does not require are still
+        # created with the ordinary lifecycle, so nothing that worked stops working.
+        for t in _LUG_TYPES:
+            if t in required:
+                continue
+            for s in _LUG_STATUSES:
+                dirs.append(f"lugs/bytype/{t}/{s}")
+    else:
+        for t in _LUG_TYPES:
+            for s in _LUG_STATUSES:
+                dirs.append(f"lugs/bytype/{t}/{s}")
     for d in dirs:
         (local_root / d).mkdir(parents=True, exist_ok=True)
         (local_root / d / ".gitkeep").touch()

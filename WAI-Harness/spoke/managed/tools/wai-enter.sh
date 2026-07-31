@@ -568,7 +568,7 @@ _wai_dupguard_decide() {
         _st=$(cat "$_pd/stat" 2>/dev/null); _st="${_st##*) }"; _st="${_st%% *}"
         case "$_st" in Z|X|x|"") continue ;; esac
         [[ "$(readlink "$_pd/cwd" 2>/dev/null)" == "$PROJECT_DIR" ]] || continue
-        tr '\0' ' ' < "$_pd/cmdline" 2>/dev/null | grep -qE ' -p( |$)| --print' && continue
+        tr '\0' ' ' 2>/dev/null < "$_pd/cmdline" | grep -qE ' -p( |$)| --print' && continue
         _dup_pids+=("$_dp")
     done
     if [[ "${#_dup_pids[@]}" -gt 0 ]]; then
