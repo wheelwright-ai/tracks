@@ -321,3 +321,4 @@
 {"measured_at": "2026-07-31T14:15:14.543999+00:00", "total": 151, "auto_build_ratio": 0.0265, "review": 133, "needs_you": 13, "auto_build": 4, "blocked": 1}
 {"measured_at": "2026-07-31T14:29:32.483775+00:00", "total": 151, "auto_build_ratio": 0.0265, "review": 133, "needs_you": 13, "auto_build": 4, "blocked": 1}
 {"measured_at": "2026-07-31T14:32:26.107951+00:00", "total": 151, "auto_build_ratio": 0.0265, "review": 133, "needs_you": 13, "auto_build": 4, "blocked": 1}
+{"measured_at": "2026-07-31T18:23:07.819799+00:00", "total": 154, "auto_build_ratio": 0.026, "review": 133, "needs_you": 16, "auto_build": 4, "blocked": 1}
