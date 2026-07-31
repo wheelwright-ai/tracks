@@ -1,18 +1,18 @@
 {
-  "cached_at": "2026-07-07T09:37:46.804699+00:00",
+  "cached_at": "2026-07-31T09:37:04.495867+00:00",
   "ttl_hours": 24,
   "catalog": null,
   "fleet_chart": {
-    "generated_at": "2026-07-07T09:37:46.593767+00:00",
-    "spoke_count": 5,
-    "total_sessions": 16,
+    "generated_at": "2026-07-31T09:37:04.277221+00:00",
+    "spoke_count": 2,
+    "total_sessions": 8,
     "observations": [
       {
         "model_id": "claude-sonnet-4-6",
         "provider": "anthropic",
         "work_type": "coding",
         "complexity_band": null,
-        "sample_count": 9,
+        "sample_count": 5,
         "avg_quality_score": null,
         "avg_rework_rate": null,
         "avg_tokens_in": null,
@@ -24,43 +24,15 @@
         "provider": "anthropic",
         "work_type": "analysis",
         "complexity_band": null,
-        "sample_count": 5,
+        "sample_count": 3,
         "avg_quality_score": null,
         "avg_rework_rate": null,
         "avg_tokens_in": null,
         "avg_tokens_out": null,
         "last_observed_at": "2026-05-24T18:02:33.196274+00:00"
-      },
-      {
-        "model_id": "claude-sonnet-4-6",
-        "provider": "anthropic",
-        "work_type": "framework_maintenance",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-05-04T20:40:37.860503+00:00"
-      },
-      {
-        "model_id": "claude-sonnet-4-6",
-        "provider": "anthropic",
-        "work_type": "routing",
-        "complexity_band": null,
-        "sample_count": 1,
-        "avg_quality_score": null,
-        "avg_rework_rate": null,
-        "avg_tokens_in": null,
-        "avg_tokens_out": null,
-        "last_observed_at": "2026-05-14T07:14:42.434081+00:00"
       }
     ]
   },
-  "recommendations_pulled_at": "2026-07-07T09:37:46.804699+00:00",
-  "recommendations_valid_through": "2026-07-08T09:37:46.693885+00:00",
-  "usage_summary": {
-    "limits_available": false,
-    "entries": []
-  }
+  "recommendations_pulled_at": "2026-07-31T09:37:04.495867+00:00",
+  "recommendations_valid_through": "2026-08-01T09:37:04.376371+00:00"
 }

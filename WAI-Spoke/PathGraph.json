@@ -5,7 +5,7 @@
   "archaeology_complete": true,
   "archaeology_draft": false,
   "draft_generated_at": "2026-06-02T00:58:25.093819+00:00",
-  "last_scan_at": null,
+  "last_scan_at": "2026-07-22T21:15:39.554936+00:00",
   "aspirations": [
     {
       "aspiration_id": "asp-tracks-track-format-spec-v1",
@@ -174,6 +174,20 @@
         "signal-fleet-silent-hook-failure-env-var-v1"
       ],
       "lug_status": "open"
+    },
+    {
+      "aspiration_id": "asp-session-20260430-1000-auto",
+      "module": "unknown",
+      "intent": "Gardener lifecycle completed. Failed to adopt one teaching due to file not found. Processed one incoming mail item, others blocked by tool loop detection. Failed to execute one ready lug due to file n",
+      "spirit_summary": "",
+      "source_sessions": [
+        "session-20260430-1000"
+      ],
+      "source_lugs": [],
+      "current_state": "not_started",
+      "confidence": "low",
+      "mario_verified": false,
+      "extracted_at": "2026-07-22T21:14:41.436711+00:00"
     }
   ],
   "decisions": [
@@ -236,7 +250,269 @@
       "confidence": "stated"
     }
   ],
-  "drift_flags": [],
+  "drift_flags": [
+    {
+      "flag_id": "drift-session-20260406-1206-asp-tracks-prompt-variants-v1",
+      "lug_id": "session-20260406-1206",
+      "aspiration_id": "asp-tracks-prompt-variants-v1",
+      "drift_description": "Related lug with low execute alignment (3 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.438908+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-claude-gitignore-fleet-antipattern-s121-asp-tracks-anti-hallucination-spec-v1",
+      "lug_id": "signal-claude-gitignore-fleet-antipattern-s121",
+      "aspiration_id": "asp-tracks-anti-hallucination-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.441310+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-456864cf35a1-asp-tracks-station-master-api-v1",
+      "lug_id": "signal-migrated-456864cf35a1",
+      "aspiration_id": "asp-tracks-station-master-api-v1",
+      "drift_description": "Related lug with low execute alignment (3 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.442167+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-cce11caf8e12-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-migrated-cce11caf8e12",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.442450+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-cce11caf8e12-asp-tracks-prompt-variants-v1",
+      "lug_id": "signal-migrated-cce11caf8e12",
+      "aspiration_id": "asp-tracks-prompt-variants-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.442498+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-cce11caf8e12-asp-tracks-chat-to-track-v1",
+      "lug_id": "signal-migrated-cce11caf8e12",
+      "aspiration_id": "asp-tracks-chat-to-track-v1",
+      "drift_description": "Related lug with low execute alignment (3 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.442620+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-cce11caf8e12-asp-tracks-track-generate-v1",
+      "lug_id": "signal-migrated-cce11caf8e12",
+      "aspiration_id": "asp-tracks-track-generate-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.442653+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-8c26a4859490-asp-tracks-anti-hallucination-spec-v1",
+      "lug_id": "signal-migrated-8c26a4859490",
+      "aspiration_id": "asp-tracks-anti-hallucination-spec-v1",
+      "drift_description": "Related lug with low execute alignment (5 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.443391+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-fleet-ingest-cleanup-pattern-v1-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-fleet-ingest-cleanup-pattern-v1",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.444865+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-4f9c061a64c3-asp-tracks-historian-sweep-v1",
+      "lug_id": "signal-migrated-4f9c061a64c3",
+      "aspiration_id": "asp-tracks-historian-sweep-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.445338+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-track-integrity-false-positive-v1-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-track-integrity-false-positive-v1",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.445645+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-track-integrity-false-positive-v1-asp-tracks-chat-to-track-v1",
+      "lug_id": "signal-track-integrity-false-positive-v1",
+      "aspiration_id": "asp-tracks-chat-to-track-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.445800+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-track-integrity-false-positive-v1-asp-tracks-track-generate-v1",
+      "lug_id": "signal-track-integrity-false-positive-v1",
+      "aspiration_id": "asp-tracks-track-generate-v1",
+      "drift_description": "Related lug with low execute alignment (3 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.445835+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-migrated-21d4e68d3a75-asp-tracks-station-master-api-v1",
+      "lug_id": "signal-migrated-21d4e68d3a75",
+      "aspiration_id": "asp-tracks-station-master-api-v1",
+      "drift_description": "Related lug with low execute alignment (5 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.447332+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-subagent-parallelism-pattern-validated-v1-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-subagent-parallelism-pattern-validated-v1",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.448000+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-subagent-parallelism-pattern-validated-v1-asp-tracks-anti-hallucination-spec-v1",
+      "lug_id": "signal-subagent-parallelism-pattern-validated-v1",
+      "aspiration_id": "asp-tracks-anti-hallucination-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.448218+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-track-integrity-closeout-event-false-positive-v1-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-track-integrity-closeout-event-false-positive-v1",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.449406+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-track-integrity-closeout-event-false-positive-v1-asp-tracks-chat-to-track-v1",
+      "lug_id": "signal-track-integrity-closeout-event-false-positive-v1",
+      "aspiration_id": "asp-tracks-chat-to-track-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.449563+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-track-integrity-closeout-event-false-positive-v1-asp-tracks-track-generate-v1",
+      "lug_id": "signal-track-integrity-closeout-event-false-positive-v1",
+      "aspiration_id": "asp-tracks-track-generate-v1",
+      "drift_description": "Related lug with low execute alignment (3 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.449599+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-flat-lug-orphan-migration-v1-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-flat-lug-orphan-migration-v1",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (3 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.450156+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-flat-lug-orphan-migration-v1-asp-tracks-chat-to-track-v1",
+      "lug_id": "signal-flat-lug-orphan-migration-v1",
+      "aspiration_id": "asp-tracks-chat-to-track-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.450311+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-post-compact-recovery-flag-pattern-v1-asp-tracks-prompt-variants-v1",
+      "lug_id": "signal-post-compact-recovery-flag-pattern-v1",
+      "aspiration_id": "asp-tracks-prompt-variants-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.450871+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-closeout-track-terminal-entry-v1-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-closeout-track-terminal-entry-v1",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.453415+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-closeout-track-terminal-entry-v1-asp-tracks-chat-to-track-v1",
+      "lug_id": "signal-closeout-track-terminal-entry-v1",
+      "aspiration_id": "asp-tracks-chat-to-track-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.453572+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-closeout-track-terminal-entry-v1-asp-tracks-track-generate-v1",
+      "lug_id": "signal-closeout-track-terminal-entry-v1",
+      "aspiration_id": "asp-tracks-track-generate-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.453606+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-fleet-silent-hook-failure-env-var-v1-asp-tracks-track-format-spec-v1",
+      "lug_id": "signal-fleet-silent-hook-failure-env-var-v1",
+      "aspiration_id": "asp-tracks-track-format-spec-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.454468+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-impl-missing-git-checks-20260614-asp-tracks-prompt-variants-v1",
+      "lug_id": "impl-missing-git-checks-20260614",
+      "aspiration_id": "asp-tracks-prompt-variants-v1",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:14:41.458609+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-epic-spoke-maintenance-gardener-v1-asp-session-20260430-1000-auto",
+      "lug_id": "epic-spoke-maintenance-gardener-v1",
+      "aspiration_id": "asp-session-20260430-1000-auto",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:15:30.558777+00:00",
+      "resolved": false
+    },
+    {
+      "flag_id": "drift-signal-20260506-gardener-python3-block-collapse-v1-asp-session-20260430-1000-auto",
+      "lug_id": "signal-20260506-gardener-python3-block-collapse-v1",
+      "aspiration_id": "asp-session-20260430-1000-auto",
+      "drift_description": "Related lug with low execute alignment (2 token overlap)",
+      "severity": "medium",
+      "detected_at": "2026-07-22T21:15:30.566828+00:00",
+      "resolved": false
+    }
+  ],
   "open_threads": [
     {
       "description": "lug-station-orchestrator-v1 remained open with no PEV/acceptance_criteria and a directive NOT to auto-execute; only lug-station-schema-v1 was ever executed, so the orchestrator half of Station Master is unbuilt.",
