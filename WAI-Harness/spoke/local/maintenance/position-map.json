@@ -1,0 +1,44 @@
+{
+  "schema": "spoke-position-map/v1",
+  "ts": "2026-07-22T20:12:46.731447+00:00",
+  "spoke_root": "/home/mario/projects/wheelwright/tracks",
+  "position": {
+    "value": 66,
+    "max": 100,
+    "grade": "degraded",
+    "dims": {
+      "structure": 12,
+      "hooks": 20,
+      "lugs": 19,
+      "parity": 5,
+      "hub": 10
+    }
+  },
+  "bar": {
+    "value": {
+      "cg_mandated": 6,
+      "cg_recommended": 3
+    },
+    "source": "/home/mario/projects/wheelwright/tracks/WAI-Harness/spoke/managed/runtime/capabilities-effective.json"
+  },
+  "gaps": {
+    "value": null,
+    "reason": "no capability-survey.json (survey of what is actually present is absent)"
+  },
+  "oracles": {
+    "value": 0.0,
+    "grounded": 0,
+    "total": 27,
+    "hard": true,
+    "loop": "grounded-loop-coverage",
+    "reading": "0/27 impl lugs carry a metric_target"
+  },
+  "priority": {
+    "value": null,
+    "reason": "no hub path (lathe portfolio weight needs the hub registry); pass --hub-path"
+  },
+  "narrative_ref": {
+    "value": null,
+    "reason": "no KnowMe.md (run generate_knowme.py to build the self-portrait)"
+  }
+}

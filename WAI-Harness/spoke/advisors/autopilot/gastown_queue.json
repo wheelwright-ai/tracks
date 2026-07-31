@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "task-doc-architecture-v4-clarify-20260627",
+      "model_fit": "haiku",
+      "title": "Clarify WAI-Spoke (v3) vs WAI-Harness/spoke (v4) in ARCHITECTURE.md",
+      "queued_at": "2026-06-27T03:13:18.468877+00:00"
+    },
+    {
+      "id": "task-doc-index-create-20260627",
+      "model_fit": "haiku",
+      "title": "Create master documentation index for Tracks spoke",
+      "queued_at": "2026-06-27T03:13:18.468887+00:00"
+    },
+    {
+      "id": "task-doc-readme-framework-refs-20260627",
+      "model_fit": "haiku",
+      "title": "Clarify external framework references in README.md",
+      "queued_at": "2026-06-27T03:13:18.468890+00:00"
+    }
+  ]
+}

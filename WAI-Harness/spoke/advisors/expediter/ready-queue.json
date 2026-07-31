@@ -1,0 +1,389 @@
+{
+  "schema_version": "1.0",
+  "spoke_id": "tracks",
+  "generated_at": "2026-07-31T12:00:51.880614+00:00",
+  "priority_sequence": [
+    "teachings",
+    "work(initiative-scoped first)",
+    "scouting",
+    "refinement",
+    "triage"
+  ],
+  "priority_source": "WAI-Harness/spoke/local/tastegraph.json engagement-inbox-first",
+  "columns": {
+    "autonomous": [
+      {
+        "id": "task-doc-readme-framework-refs-20260627",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 5.0,
+        "initiative_scoped": true
+      },
+      {
+        "id": "task-doc-architecture-v4-clarify-20260627",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "task-doc-index-create-20260627",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260627-013853",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260627-023214",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260627-002425",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260626-202140",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260626-175830",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260626-193523",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260626-175830",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260627-020617",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260626-182957",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260627-023214",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260605-181445",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260605-181822",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260626-185950",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260626-185950",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260626-202140",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260605-181822",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260626-182957",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260626-193523",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260627-002425",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260627-013853",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-documentation-20260627-020617",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260627-023905",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      },
+      {
+        "id": "crew-recommend-deployment_automation-20260605-181445",
+        "type": "implementation",
+        "type_row": "scouting",
+        "column": "autonomous",
+        "route": "gastown",
+        "score": 2.5,
+        "initiative_scoped": true
+      }
+    ],
+    "needs_you": [
+      {
+        "id": "teachings-pending-41",
+        "type": "teaching",
+        "type_row": "teachings",
+        "column": "needs-you",
+        "route": null,
+        "score": 0,
+        "initiative_scoped": false,
+        "note": "41 teaching(s) pending adoption; adopt before acting (inbox-first)."
+      },
+      {
+        "id": "lug-station-orchestrator-v1",
+        "type": "task",
+        "type_row": "work",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 16.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "local-settings-review-claude-20260723-044241",
+        "type": "task",
+        "type_row": "work",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 10.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "impl-proofer-deploy-and-pathgraph-review-tracks-v1",
+        "type": "implementation",
+        "type_row": "work",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 9.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "unknown",
+        "type": "unknown",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 18.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260726T193234-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260726T083413-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260722T201005-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260724T201241-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260723T022604-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260731T120051-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "good-hot-patch",
+        "type": "unknown",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 10.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "teaching-upgrade-base-v1-1-0",
+        "type": "consolidated",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 10.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "scout-needs-judgment-20260627T025852",
+        "type": "needs-you",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 10.0,
+        "initiative_scoped": false
+      }
+    ]
+  },
+  "display_labels": {
+    "autonomous": "no-user-needed",
+    "needs_you": "user-needed"
+  },
+  "counts": {
+    "total": 40,
+    "autonomous": 26,
+    "needs_you": 14
+  }
+}

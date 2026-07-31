@@ -1,0 +1,1 @@
+{"ts": "2026-06-27T03:12:01.144814+00:00", "scout": "expedition", "trigger": "backlog low (0 <= 3 dispatchable)", "findings": 0, "auto_groomable": 0, "needs_judgment": 0, "verification_debt": {"deployed_unverified": 0, "spec_drift": 0, "abandoned": 0}, "findings_by_producer": {}, "report_id": "scout-report-20260627T031201", "refine_id": null}

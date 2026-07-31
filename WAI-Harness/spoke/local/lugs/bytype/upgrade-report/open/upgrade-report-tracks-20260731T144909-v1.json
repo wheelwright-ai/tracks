@@ -1,0 +1,84 @@
+{
+  "id": "upgrade-report-tracks-20260731T144909-v1",
+  "type": "upgrade-report",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "title": "Upgrade to 4.14.32 on tracks \u2014 validation PARTIAL",
+  "created_at": "2026-07-31T14:49:09.477160+00:00",
+  "created_by": "harness_upgrade.emit_upgrade_report",
+  "spoke_id": "tracks",
+  "spoke_path": "/home/mario/projects/wheelwright/tracks",
+  "harness_version": "4.14.32",
+  "outcome": "partial",
+  "applied": 942,
+  "retired": [],
+  "verify_post_ok": true,
+  "aborted": null,
+  "validation": {
+    "outcome": "fail",
+    "ran_at": "2026-07-31T14:49:09.476319+00:00",
+    "spoke_root": "/home/mario/projects/wheelwright/tracks",
+    "checks": [
+      {
+        "check": "syntax",
+        "status": "pass",
+        "detail": "260 tool(s) compile",
+        "evidence": []
+      },
+      {
+        "check": "paths",
+        "status": "skip",
+        "detail": "spoke has a WAI-Spoke tree (v3 coexist) \u2014 v3 paths are legitimate here",
+        "evidence": []
+      },
+      {
+        "check": "entrypoints",
+        "status": "pass",
+        "detail": "5 entrypoint(s) import cleanly",
+        "evidence": []
+      },
+      {
+        "check": "health",
+        "status": "fail",
+        "detail": "spoke health check reports RED",
+        "evidence": [
+          "Health: RED"
+        ]
+      },
+      {
+        "check": "selftest",
+        "status": "pass",
+        "detail": "100 passed, 6 skipped in 1.68s",
+        "evidence": []
+      }
+    ],
+    "failed": [
+      "health"
+    ],
+    "skipped": [
+      "paths"
+    ],
+    "summary": "3/4 check(s) passed, 1 FAILED: health (1 skipped)",
+    "baseline_outcome": "fail",
+    "regressions": [],
+    "preexisting_failures": [
+      "health"
+    ],
+    "verdict": "clean-with-preexisting"
+  },
+  "summary": "942 file(s) applied; bytes verified; validation clean-with-preexisting \u2014 3/4 check(s) passed, 1 FAILED: health (1 skipped)",
+  "friction_points": [
+    {
+      "step": "health",
+      "issue": "spoke health check reports RED",
+      "suggestion": "Health: RED"
+    }
+  ],
+  "impact": 3,
+  "effort": 2,
+  "disposition": "needs_you",
+  "disposition_reason": "missing both file_targets and acceptance_criteria -- needs human scoping",
+  "disposition_at": "2026-07-31T14:49:09.891922+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-07-31T14:49:09.886849+00:00"
+}

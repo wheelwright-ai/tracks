@@ -1,0 +1,154 @@
+{
+  "advisor_id": "tool-advisor",
+  "version": "1.0.0",
+  "mode": "update",
+  "project_root": "/home/mario/projects/wheelwright/tracks",
+  "score": 3,
+  "score_by_area": {
+    "Claude": "pass",
+    "Gemini": "skip",
+    "Codex": "pass",
+    "Qwen": "skip",
+    "Shared": "pass"
+  },
+  "findings": [
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/compact-resume-inject.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-end-lane.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/user-prompt-submit.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-tool-guard.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-write-guard.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-test-runner.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-track-flush.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-savepoint-guard.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-worktree-hygiene.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-compact.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-create.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    },
+    {
+      "area": "Claude",
+      "level": "warn",
+      "code": "claude-hook-script-missing",
+      "message": "Referenced hook script missing: F=\"${CLAUDE_PROJECT_DIR}/.claude/hooks/post-tool-use.sh\"; [ -x \"$F\" ] && exec \"$F\"; true",
+      "category": "stale-path-hygiene"
+    }
+  ],
+  "auto_applied": [],
+  "planned_fixes": [],
+  "proposals": [
+    {
+      "area": "Claude",
+      "code": "mcp-not-configured",
+      "message": "No .mcp.json found \u2014 consider configuring MCP servers for enhanced tool capabilities",
+      "target_file": ".mcp.json",
+      "risk": "low",
+      "requires_human_review": true
+    },
+    {
+      "area": "Codex",
+      "code": "codex-hooks-not-implementable",
+      "message": "Codex has no equivalent for 7 Claude Code lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, Stop, PreCompact, PostToolUse, PermissionRequest). Manual startup duties are documented in AGENTS.md under 'Codex Startup Duties'. These gaps cannot be closed by Basher tooling alone.",
+      "target_file": "AGENTS.md",
+      "risk": "info",
+      "requires_human_review": false,
+      "unsupported_hooks": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "PreToolUse",
+        "Stop",
+        "PreCompact",
+        "PostToolUse",
+        "PermissionRequest"
+      ]
+    },
+    {
+      "area": "Shared",
+      "code": "gemini-coverage-absent",
+      "message": "AGENTS.md present but GEMINI.md absent \u2014 consider adding GEMINI.md for Gemini CLI coverage",
+      "target_file": "GEMINI.md",
+      "risk": "low",
+      "requires_human_review": true
+    }
+  ],
+  "auto_routed": [],
+  "audit_pending": false,
+  "audit_reason": ""
+}

@@ -1,0 +1,574 @@
+{
+  "schema_version": "2.0",
+  "spoke_id": "tracks",
+  "generated_at": "2026-07-31T12:00:51.910802+00:00",
+  "priority_sequence": [
+    "teachings",
+    "refinement",
+    "work",
+    "scouting"
+  ],
+  "matrix": {
+    "teachings": {
+      "autonomous": [],
+      "attended": [
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        },
+        {
+          "id": "teaching-pending",
+          "type": "teaching",
+          "score": 0,
+          "note": "pending adoption from hub"
+        }
+      ]
+    },
+    "refinement": {
+      "autonomous": [
+        {
+          "id": "lug-station-orchestrator-v1",
+          "type": "task",
+          "model_fit": "unset",
+          "score": 16.0,
+          "wave": ""
+        },
+        {
+          "id": "local-settings-review-claude-20260723-044241",
+          "type": "task",
+          "model_fit": "unset",
+          "score": 10.0,
+          "wave": ""
+        },
+        {
+          "id": "impl-proofer-deploy-and-pathgraph-review-tracks-v1",
+          "type": "implementation",
+          "model_fit": "unset",
+          "score": 9.0,
+          "wave": ""
+        }
+      ],
+      "attended": []
+    },
+    "work": {
+      "autonomous": [
+        {
+          "id": "unknown",
+          "type": "unknown",
+          "model_fit": "unset",
+          "score": 18.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260726T193234-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260726T083413-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260722T201005-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260724T201241-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260723T022604-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260731T120051-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "good-hot-patch",
+          "type": "unknown",
+          "model_fit": "unset",
+          "score": 10.0,
+          "wave": ""
+        },
+        {
+          "id": "teaching-upgrade-base-v1-1-0",
+          "type": "consolidated",
+          "model_fit": "unset",
+          "score": 10.0,
+          "wave": ""
+        },
+        {
+          "id": "scout-needs-judgment-20260627T025852",
+          "type": "needs-you",
+          "model_fit": "unset",
+          "score": 10.0,
+          "wave": ""
+        },
+        {
+          "id": "task-doc-readme-framework-refs-20260627",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 5.0,
+          "wave": ""
+        },
+        {
+          "id": "task-doc-architecture-v4-clarify-20260627",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "task-doc-index-create-20260627",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        }
+      ],
+      "attended": []
+    },
+    "scouting": {
+      "autonomous": [
+        {
+          "id": "crew-recommend-deployment_automation-20260627-013853",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260627-023214",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260627-002425",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260626-202140",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260626-175830",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260626-193523",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260626-175830",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260627-020617",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260626-182957",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260627-023214",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260605-181445",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260605-181822",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260626-185950",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260626-185950",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260626-202140",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260605-181822",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260626-182957",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260626-193523",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260627-002425",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260627-013853",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-documentation-20260627-020617",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260627-023905",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        },
+        {
+          "id": "crew-recommend-deployment_automation-20260605-181445",
+          "type": "implementation",
+          "model_fit": "haiku",
+          "score": 2.5,
+          "wave": ""
+        }
+      ],
+      "attended": []
+    }
+  },
+  "counts": {
+    "teachings": {
+      "autonomous": 0,
+      "attended": 41
+    },
+    "refinement": {
+      "autonomous": 3,
+      "attended": 0
+    },
+    "work": {
+      "autonomous": 13,
+      "attended": 0
+    },
+    "scouting": {
+      "autonomous": 23,
+      "attended": 0
+    }
+  },
+  "totals": {
+    "autonomous": 39,
+    "attended": 41
+  }
+}

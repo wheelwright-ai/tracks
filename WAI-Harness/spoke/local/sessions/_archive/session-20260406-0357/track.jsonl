@@ -1,0 +1,5 @@
+{"event": "session_start", "ts": "2026-04-06T03:57:00Z", "session_id": "session-20260406-0357", "phase": "gardener", "agent": "gardener-tender"}
+{"event": "step1_teachings", "ts": "2026-04-06T03:57:10Z", "session_id": "session-20260406-0357", "summary": "Processed 20 teachings (19 new + 1 reinstall). 16 safe_to_auto_adopt:true → signal lugs created in undelivered/. 3 safe_to_auto_adopt:false → routed to manual/. Reinstall (teaching-repo-restructure) verified: new path already active.", "teachings_adopted": 16, "teachings_manual": 3, "teachings_reinstall_verified": 1}
+{"event": "step2_mail", "ts": "2026-04-06T03:57:20Z", "session_id": "session-20260406-0357", "summary": "0 incoming mail items. Nothing to route."}
+{"event": "step3_work", "ts": "2026-04-06T03:57:25Z", "session_id": "session-20260406-0357", "summary": "0 ready lugs. No work executed."}
+{"event": "closeout", "completed": true, "session_id": "session-20260406-0357", "ts": "2026-04-06T03:57:30Z", "phase": "review", "session_number": 1}

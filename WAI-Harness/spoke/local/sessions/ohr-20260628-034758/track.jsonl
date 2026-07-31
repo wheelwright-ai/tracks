@@ -1,0 +1,2 @@
+{"event": "session_start", "session_id": "ohr-20260628-034758", "timestamp": "2026-06-28T03:47:58.264595+00:00", "mode": "autopilot", "spoke_id": "tracks", "spoke_name": "Tracks", "hub_dir": "/home/mario/projects/wheelwright/hub", "trigger_source": "manual", "budget": 40}
+{"event": "run_summary", "session_id": "ohr-20260628-034758", "ts": "2026-06-28T03:47:58.262829+00:00", "lugs_completed": 0, "lugs_failed": 0, "lugs_stalled": 0, "teachings_adopted": 0, "tokens_used": 0, "errors": ["phase_2_5: name 'FEEDS_CONTEXT' is not defined"]}

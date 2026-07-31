@@ -1,0 +1,65 @@
+# Documentation Advisor Feeds Configuration
+# Data sources injected into context_prompt.md for documentation scans
+
+feeds:
+  project_state:
+    source: "WAI-Spoke/WAI-State.json"
+    purpose: "Track project metadata, version, and bootstrap status"
+
+  documentation_artifacts:
+    - path: "README.md"
+      purpose: "User-facing manifesto and setup guide"
+      type: "primary_doc"
+    - path: "ARCHITECTURE.md"
+      purpose: "Engineering guide for contributors"
+      type: "primary_doc"
+    - path: "CHANGELOG.md"
+      purpose: "Version history and release notes"
+      type: "primary_doc"
+    - path: "spec/track-format.md"
+      purpose: "WAI Point and Track file format specification"
+      type: "spec"
+
+  prompts:
+    directory: "prompts/"
+    items:
+      - path: "prompts/active-collection.md"
+        version_indicator: "v0.24"
+        purpose: "Live session capture variant"
+      - path: "prompts/prep-and-request.md"
+        version_indicator: "v0.24"
+        purpose: "Preparation and continuation variant"
+      - path: "prompts/closing-request.md"
+        version_indicator: "v0.24"
+        purpose: "Retroactive extraction variant"
+
+  samples:
+    directory: "samples/"
+    expected_files:
+      - "coding-session.jsonl"
+      - "learning-session.jsonl"
+      - "strategy-session.jsonl"
+    purpose: "Example Track files demonstrating format and portability"
+
+  viewer:
+    directory: "viewer/"
+    expected_files:
+      - "index.html"
+      - "app.js"
+      - "styles.css"
+      - "library.example.json"
+    purpose: "Web-based Track file viewer and browser"
+
+scan_scope:
+  - Check all documented prompts exist and have metadata headers
+  - Verify sample Track files match schema described in spec/track-format.md
+  - Audit README.md and ARCHITECTURE.md for stale paths or references
+  - Detect undocumented prompt files or samples
+  - Flag spec drift between track-format.md and actual prompt implementations
+  - Verify CHANGELOG.md accurately reflects current versions
+
+escalation_criteria:
+  - Missing or broken sample files
+  - Spec/implementation drift in Track schema
+  - Broken cross-references in documentation
+  - Undocumented prompts or formats
