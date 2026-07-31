@@ -185,19 +185,44 @@ def test_install_existing_spoke_is_non_destructive(tmp_path):
     assert {"WAI-Spoke", "WAI-Harness", "CLAUDE.md"} <= set(p.name for p in spoke.iterdir())
 
 
-def test_install_ships_always_clean_gitignore(tmp_path):
-    # the master's .gitignore must travel with a fresh install so local/ churn
-    # cannot dirty the tracked tree (the always-clean invariant)
+def test_install_writes_the_managed_block_to_the_repo_root(tmp_path):
+    """The always-clean invariant, enforced where git actually reads it.
+
+    This test used to assert the OPPOSITE — that install copies the master's
+    .gitignore to WAI-Harness/.gitignore. That file governs only paths below
+    itself and sits where nobody looks for ignore rules, so it read as coverage
+    while providing almost none
+    (impl-harness-ignore-untrack-regenerable-advisor-runtime-state-v1, operator
+    decision 2026-06-14). The invariant is unchanged; its enforcement point moved
+    to the SPOKE ROOT .gitignore.
+    """
     master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
-    (master / ".gitignore").write_text("spoke/local/**\n!spoke/local/**/\n!**/.gitkeep\n")
+    (master / ".gitignore").write_text("spoke/local/**\n!**/.gitkeep\n")
     spoke = tmp_path / "spoke"
     spoke.mkdir()
     rep = hu.install(master, spoke)
     assert rep["ok"] is True
-    assert rep.get("gitignore_shipped") is True
-    gi = (spoke / "WAI-Harness" / ".gitignore").read_text()
-    assert "spoke/local/**" in gi          # runtime state ignored
-    assert "!**/.gitkeep" in gi            # skeleton kept
+
+    # The rules land in the ROOT .gitignore...
+    root_gi = (spoke / ".gitignore").read_text()
+    assert "context/snapshot-*" in root_gi, "the dominant churn glob is missing"
+    assert "WAI-Harness/spoke/local/runtime/" in root_gi
+    assert rep.get("gitignore_block_written") is True
+
+    # ...and NOT in a harness-local file, which is no longer shipped at all.
+    assert not (spoke / "WAI-Harness" / ".gitignore").exists()
+    assert rep.get("gitignore_shipped") is False
+
+
+def test_install_preserves_a_spokes_own_ignore_rules(tmp_path):
+    master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
+    spoke = tmp_path / "spoke"
+    spoke.mkdir()
+    (spoke / ".gitignore").write_text("node_modules/\n.env.local\n")
+    hu.install(master, spoke)
+    gi = (spoke / ".gitignore").read_text()
+    assert "node_modules/" in gi and ".env.local" in gi, (
+        "a spoke's own rules were clobbered by the managed block")
 
 
 def test_install_hub_proves_hub_payload(tmp_path):
