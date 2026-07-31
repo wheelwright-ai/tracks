@@ -1,8 +1,8 @@
 {
   "harness_version": "4.14.32",
   "is_master": false,
-  "generated_at": "2026-07-31T17:04:23.732296+00:00",
-  "master_sha": "aceb00e1df40a643b580be8a23e2b0e01e04dd08",
+  "generated_at": "2026-07-31T19:21:08.255733+00:00",
+  "master_sha": "b61d4d1103bc7d0106d0faf04f59312d2788ef43",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -3586,7 +3586,7 @@
     },
     "tools/dead_end_scan.py": {
       "version": "4.6.5",
-      "md5": "2ce9274d6bfb67a38e6b948d545f1c61",
+      "md5": "4fb0dd5713a498f2e72d1c3c7d39b4ec",
       "owner": "basher"
     },
     "tools/debt_rotation.py": {
@@ -3806,7 +3806,7 @@
     },
     "tools/harness_upgrade.py": {
       "version": "4.6.5",
-      "md5": "175a2b7662095842c78ea912c9055f4f",
+      "md5": "63b9b11052ad6fb31f46ff4a5f57418c",
       "owner": "basher"
     },
     "tools/harness_validate.py": {
@@ -3939,6 +3939,11 @@
       "md5": "63933123f14eb04fe3c09c4f214eef63",
       "owner": "basher"
     },
+    "tools/lug_resolution_derive.py": {
+      "version": "4.14.32",
+      "md5": "4828c8d62ef4f746194f24b4094a665d",
+      "owner": "basher"
+    },
     "tools/lug_status_reconcile.py": {
       "version": "4.6.5",
       "md5": "cfb1d924d6d60adcead089a23960c3d6",
@@ -3947,6 +3952,11 @@
     "tools/lug_utils.py": {
       "version": "4.6.5",
       "md5": "e6cec3c137aa1cf7fce47e05d5e33ee4",
+      "owner": "basher"
+    },
+    "tools/lug_vocabulary_audit.py": {
+      "version": "4.14.32",
+      "md5": "dfb6c4a306f134c2a8650a3e50d1980c",
       "owner": "basher"
     },
     "tools/lug_worktree_map.py": {
@@ -4006,7 +4016,7 @@
     },
     "tools/observability_dashboard.py": {
       "version": "4.6.5",
-      "md5": "161d6606439bfb2c9ef0773ff1de00b0",
+      "md5": "2dc747127455f365d9d53e708b6079d9",
       "owner": "basher"
     },
     "tools/ozi_autopilot.py": {
@@ -4116,7 +4126,7 @@
     },
     "tools/routing_vocab.py": {
       "version": "4.14.8",
-      "md5": "c2a6dc531159dc3fd172763855698313",
+      "md5": "3777cb3ac97030e05746a954ded404c0",
       "owner": "basher"
     },
     "tools/sandbox_run_test.py": {
@@ -4201,7 +4211,7 @@
     },
     "tools/spec_index_rebuild.py": {
       "version": "4.6.5",
-      "md5": "c4840e2d18b1d07b80bff4f89250d5d4",
+      "md5": "757df99561ee8a4a75dcff79e7347bff",
       "owner": "basher"
     },
     "tools/spoke_cleanup.py": {

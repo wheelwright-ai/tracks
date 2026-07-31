@@ -181,6 +181,93 @@ LIVE_STATES = ("open", "in_progress", "active", "needs_attention", "flagged",
 # TERMINAL states — historical provenance, deliberately left alone.
 TERMINAL_STATES = ("completed", "closed", "retired", "resolved", "delivered")
 
+
+# ====================================================================== CANON
+#
+# OPERATOR RULING (2026-07-31): "Wheelwright must be canonical so no disagreement
+# over status values or expected locations and behaviors."
+#
+# THE PROBLEM THIS FIXES. Measured the same day on one spoke: 30 DISTINCT status
+# values across 2,400+ lugs, and TERMINAL_STATES defined in three modules with
+# different contents — so work_split counted a lug in state "done" as finished
+# while routing_vocab counted it as live. The same lug, two answers.
+#
+# THE CUT, which is the operator's: "Done doesn't infer implemented — perhaps a
+# sub-status or resolution is needed." One field was carrying two questions.
+#
+#   CANONICAL_STATUS      WHERE a lug is. Matches the directories exactly, so the
+#                         filesystem and the field can never disagree.
+#   CANONICAL_RESOLUTION  HOW a completed lug ended. Required when completed,
+#                         meaningless otherwise. Stored in `resolution_class`.
+#
+# WHY resolution_class AND NOT resolution. The obvious field name was already
+# taken, and finding that out is the whole reason the operator said "not assume it
+# — a simple validation is worth it considering the importance of this spoke being
+# our harness." Measured 2026-07-31: 126 lugs already store FREE-TEXT narrative in
+# `resolution`, one of them 1,592 characters of reasoning about why something was
+# closed, plus 18 storing structured dicts. Backfilling `resolution = implemented`
+# would have overwritten 144 operator-written explanations with a single word.
+# The controlled vocabulary therefore lives in its own field and the prose is left
+# exactly where it is.
+#
+# "done" is deliberately ABSENT from both. It is the word that started this: it
+# says a lug stopped without saying whether it was built, decided or abandoned.
+# LEGACY_STATUS_MAP records where each historical value goes; a value mapping to a
+# resolution of None needs a human, and the migration must PARK it rather than
+# guess — mapping done -> implemented is a guess about work someone else did.
+#
+# Everything else in the wheel IMPORTS these. A second copy is a defect on sight,
+# whether or not it currently agrees, because nothing keeps copies in step.
+# Detector: contract_duplication_scan.py --fail-on-disagree.
+
+CANONICAL_STATUS = ("open", "in_progress", "needs_attention", "completed")
+
+CANONICAL_RESOLUTION = ("implemented", "delivered", "decided", "superseded",
+                        "duplicate", "wont_do", "retired")
+
+# historical value -> (canonical status, canonical resolution or None if a human
+# must decide). None NEVER means "pick something sensible"; it means park it.
+LEGACY_STATUS_MAP = {
+    "completed":       ("completed", None),          # already canonical; resolution unknown
+    "open":            ("open", None),
+    "in_progress":     ("in_progress", None),
+    "needs_attention": ("needs_attention", None),
+    "resolved":        ("completed", "implemented"),
+    "delivered":       ("completed", "delivered"),
+    "published":       ("completed", "delivered"),
+    "implemented":     ("completed", "implemented"),
+    "archived":        ("completed", "retired"),
+    "retired":         ("completed", "retired"),
+    "decided":         ("completed", "decided"),
+    "accepted":        ("completed", "decided"),
+    "superseded":      ("completed", "superseded"),
+    "duplicate":       ("completed", "duplicate"),
+    "wont_do":         ("completed", "wont_do"),
+    "closed":          ("completed", None),          # ambiguous: built or abandoned?
+    "done":            ("completed", None),          # THE ambiguous one — never guess
+    "active":          ("in_progress", None),
+    "draft":           ("open", None),
+    "pending":         ("open", None),
+    "deferred":        ("open", None),
+    "parked":          ("open", None),
+    "flagged":         ("needs_attention", None),
+    "needs_review":    ("needs_attention", None),
+    "undelivered":     ("open", None),
+    "acknowledged":    ("in_progress", None),
+}
+
+
+def canonicalise(status):
+    """Map any historical status onto (canonical_status, resolution_or_None).
+
+    Returns (None, None) for a value with no mapping — reported, never guessed.
+    A caller that turns an unmapped value into a plausible one rewrites history
+    silently, which is the failure this whole canon exists to remove.
+    """
+    if not status:
+        return (None, None)
+    return LEGACY_STATUS_MAP.get(str(status).strip().lower(), (None, None))
+
 LUG_GLOBS = tuple(
     f"WAI-Harness/spoke/local/lugs/bytype/*/{s}/*.json" for s in LIVE_STATES
 ) + ("WAI-Harness/spoke/local/lugs/incoming/*.json",)

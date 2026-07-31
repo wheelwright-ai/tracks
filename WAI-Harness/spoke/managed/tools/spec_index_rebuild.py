@@ -26,7 +26,11 @@ import json
 import sys
 from pathlib import Path
 
-SOURCE_ROOTS = [
+# Renamed from SPEC_INDEX_ROOTS: it collided with validate_savepoint.SPEC_INDEX_ROOTS,
+# which is a REGEX of source directory NAMES for re-runnable evidence paths. Two
+# unrelated concepts sharing one name read as a duplicated contract to any reader
+# and to the duplication detector. Different things get different names.
+SPEC_INDEX_ROOTS = [
     "WAI-Harness/spoke/local/lugs/bytype/spec",
     "WAI-Harness/spoke/managed/knowledge/spec",
 ]
@@ -70,13 +74,13 @@ def load_spec(path: Path, mywheel_path: Path):
 
 
 def collect_specs(mywheel_path: Path):
-    """Scan both SOURCE_ROOTS, globbing every status subdirectory (no allowlist).
+    """Scan both SPEC_INDEX_ROOTS, globbing every status subdirectory (no allowlist).
 
     Returns (records, count_lugs_bytype_spec, count_managed_knowledge_spec).
     """
     records = []
     per_root_counts = []
-    for root in SOURCE_ROOTS:
+    for root in SPEC_INDEX_ROOTS:
         root_dir = mywheel_path / root
         root_count = 0
         if not root_dir.is_dir():

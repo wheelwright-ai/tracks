@@ -963,6 +963,7 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
         write_managed_ignore(spoke_root)
         untrack_regenerable(spoke_root)
         retire_harness_local_gitignore(wh)
+        retire_orphan_tests(spoke_root)
     except Exception:  # noqa: BLE001 -- hygiene must never break a session start
         pass
     master_managed = _resolve_managed(master_root, side)
@@ -1659,6 +1660,45 @@ def untrack_regenerable(spoke_root):
         except Exception:  # noqa: BLE001 -- never fail an upgrade over hygiene
             continue
     return n
+
+
+def retire_orphan_tests(spoke_root):
+    """Remove managed/tests from a NON-MASTER spoke. Operator ruling 2026-07-31.
+
+    THE ORPHAN. managed/tests has ZERO entries in MANIFEST.json, so no upgrade or
+    pull has ever refreshed it — every spoke carries whatever was copied at install
+    time and nothing since. Measured 2026-07-31: ezorg-email-website held 20 test
+    files against the master's 198, a frozen fragment ~90% out of date, which then
+    failed collection and was reported as a bug.
+
+    It is also not the surface anything validates: harness_validate.check_selftest
+    runs tools/test_*.py, which IS manifested and passed on that same spoke (100
+    passed, 6 skipped). So the orphan could only ever rot further and manufacture
+    false alarms about a suite nobody runs.
+
+    THE MASTER IS NEVER TOUCHED. The guard is is_master, read from the spoke's own
+    MANIFEST — not a path heuristic, because deleting the authoring copy of 198
+    tests would be catastrophic and a path check is exactly the kind of thing that
+    is wrong once. Absent or unreadable manifest means DO NOTHING.
+    """
+    from pathlib import Path as _P
+    import shutil as _sh
+    root = _P(spoke_root)
+    tests = root / "WAI-Harness" / "spoke" / "managed" / "tests"
+    if not tests.is_dir():
+        return 0
+    mf = root / "WAI-Harness" / "spoke" / "managed" / "MANIFEST.json"
+    try:
+        if json.loads(mf.read_text()).get("is_master"):
+            return 0                      # the master AUTHORS these; never remove
+    except Exception:  # noqa: BLE001
+        return 0                          # cannot prove non-master -> do nothing
+    n = len(list(tests.glob("*.py")))
+    try:
+        _sh.rmtree(tests)
+        return n
+    except OSError:
+        return 0
 
 
 def retire_harness_local_gitignore(harness_root):

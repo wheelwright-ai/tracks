@@ -35,9 +35,22 @@ import os
 import subprocess
 import sys
 
+# CANONICAL — the one definition of "a source file" for every hygiene tool.
+# epic-harness-audit-and-reconciliation-v1, dimension 1.
+#
+# Three copies existed and all three disagreed: this one, fleet_git_health.py and
+# spoke_safe_land.py. So "untracked source file" meant something different in each,
+# which is why their counts never quite matched and why a file could be a loss risk
+# to one tool and invisible to another. This is the union — every extension any of
+# the three considered source, including the java/c/h/cpp that only
+# fleet_git_health knew about.
+#
+# The other two now IMPORT this. Adding a fourth copy is a defect on sight; the
+# detector is contract_duplication_scan.py --fail-on-disagree.
 SOURCE_EXT = (
     ".py", ".sh", ".bash", ".js", ".ts", ".jsx", ".tsx", ".md", ".json", ".jsonl",
     ".yaml", ".yml", ".sql", ".toml", ".rb", ".go", ".rs", ".css", ".html",
+    ".java", ".c", ".h", ".cpp",
 )
 
 

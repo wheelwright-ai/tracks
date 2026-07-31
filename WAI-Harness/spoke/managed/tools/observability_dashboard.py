@@ -29,7 +29,22 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-LUG_TYPES = ("implementation", "task", "epic", "bug", "feature", "spec")
+def _canonical_lug_types():
+    """LUG_TYPES from harness_init, the module that CREATES the directories.
+
+    This dashboard carried its own 6-entry list against harness_init's 18, so it
+    silently omitted impl, fix, signal, notation, decision, chain, hypothesis,
+    idea, foundation, other, work and session-summary — twelve whole categories of
+    work absent from the view meant to show the operator what exists. A subset is
+    the worst kind of second definition: it does not error, it just under-reports.
+    """
+    import os as _o, sys as _s
+    _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__)))
+    from harness_init import LUG_TYPES as _T
+    return tuple(_T)
+
+
+LUG_TYPES = _canonical_lug_types()
 QUEUE_STATUSES = ("open", "in_progress")
 
 # freshness cadences in seconds (spec freshness_contracts.examples)
