@@ -271,6 +271,38 @@ def completions_since(root, since_iso):
     return out
 
 
+def dispatches_since(root, since_iso):
+    """EVERY dispatch this round, whatever its outcome — not only the completions.
+
+    completions_since() answers "what claimed success". Nothing answered "what was
+    attempted", and that absence is what let a totally failed round print CLEAN:
+    with no claims there is nothing to verify, and nothing-to-verify was rendered
+    identically to everything-verified.
+
+    Measured round-20260801T200536: 3 lugs dispatched, 837s, 47,116 tokens, all
+    three parked needs_attention, zero claims, commit of 122 deletions and nothing
+    else — verdict CLEAN, exit 0. Rounds that achieved strictly MORE exited 2 and
+    blocked, so the signal was not merely mislabelled, it was inverted.
+    """
+    path = os.path.join(root, "WAI-Harness", "spoke", "advisors",
+                        "autopilot", "activity-log.jsonl")
+    if not os.path.isfile(path):
+        path = os.path.join(root, "WAI-Spoke", "advisors", "autopilot", "activity-log.jsonl")
+    out = []
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    rec = json.loads(line)
+                except ValueError:
+                    continue
+                if rec.get("lug_id") and str(rec.get("ts", "")) >= since_iso:
+                    out.append(rec)
+    except OSError:
+        pass
+    return out
+
+
 def close_round(root, round_rec, verify=True):
     """Verify every claim, compute the impact group, and write the verdict."""
     started = round_rec["started_at"]
@@ -279,6 +311,14 @@ def close_round(root, round_rec, verify=True):
     claims = completions_since(root, started)
     round_rec["claims"] = [{"lug_id": c["lug_id"], "tokens": c.get("tokens_used")}
                            for c in claims]
+
+    # What was ATTEMPTED, so "nothing claimed" can be told apart from "nothing ran".
+    dispatched = dispatches_since(root, started)
+    round_rec["dispatched"] = [{"lug_id": d["lug_id"], "outcome": d.get("outcome"),
+                                "tokens": d.get("tokens_used")} for d in dispatched]
+    round_rec["dispatched_count"] = len(dispatched)
+    round_rec["tokens_spent"] = sum(
+        int(d.get("tokens_used") or 0) for d in dispatched)
 
     # Impact group: exactly what this round produced, so review and undo are both
     # bounded to it rather than to "whatever the tree looks like now".
@@ -794,12 +834,26 @@ def open_round(root, budget, scope):
 
 def render(rec):
     v = rec.get("verdict", "?")
-    icon = {"CLEAN": "OK", "GAPS": "!!", "REFUTED": "XX", "UNVERIFIED": "??"}.get(v, "??")
+    icon = {"CLEAN": "OK", "GAPS": "!!", "REFUTED": "XX", "UNVERIFIED": "??",
+            "NO-PROGRESS": "XX"}.get(v, "??")
     lines = [
         f"ROUND {rec['round_id']} — {icon} {v}",
         f"  budget {rec.get('budget')} | scope {rec.get('scope')} | baseline {str(rec.get('baseline_sha'))[:8]}",
-        f"  claims {len(rec.get('claims', []))} | commits {rec['impact']['commit_count']} | files {rec['impact']['file_count']}",
+        # dispatched and tokens sit BESIDE claims deliberately: "claims 0" alone
+        # reads as a quiet round, while "dispatched 3 | claims 0 | 47,116 tokens"
+        # reads as what it is. The operator sees this line, not the JSON.
+        f"  dispatched {rec.get('dispatched_count', 0)} | claims {len(rec.get('claims', []))}"
+        f" | commits {rec['impact']['commit_count']} | files {rec['impact']['file_count']}"
+        + (f" | {rec['tokens_spent']:,} tokens" if rec.get("tokens_spent") else ""),
     ]
+    if v == "NO-PROGRESS":
+        lines.append("")
+        lines.append(f"  NO PROGRESS — {rec.get('dispatched_count', 0)} lug(s) dispatched, "
+                     f"{rec.get('tokens_spent', 0):,} tokens spent, NOTHING claimed completion.")
+        for d in (rec.get("dispatched") or [])[:5]:
+            lines.append(f"    · {str(d.get('lug_id'))[:52]} -> {d.get('outcome') or 'no outcome recorded'}")
+        lines.append("  This is a FAILED round, not a quiet one. Read each lug's")
+        lines.append("  attention_reason; if it has none, that is its own defect.")
     if rec.get("verdicts"):
         lines.append("")
         lines.append("  INDEPENDENT VERIFICATION (adversarial — asked to refute):")
@@ -815,9 +869,9 @@ def render(rec):
         lines.append(f"  SAY-DO GAPS: {len(gaps)} (work claimed but not recorded)")
         for gap in gaps:
             lines.append(f"    [{gap['severity']}] {gap['lug_id'][:52]}")
-    if v == "REFUTED":
+    if v in ("REFUTED", "NO-PROGRESS"):
         lines.append("")
-        lines.append("  NEXT ROUND BLOCKED — a claim was refuted. Review, then either fix")
+        lines.append("  NEXT ROUND BLOCKED — the round did not come back clean. Review, then either fix")
         lines.append(f"  the lug or undo this round: autopilot_round.py --undo {rec['round_id']}")
     return "\n".join(lines)
 
@@ -853,6 +907,20 @@ def decide_round_verdict(rec):
         return "RUNNER-ERROR"
     if _of("REFUTED"):
         return "REFUTED"
+
+    # NO-PROGRESS: work was attempted and NOTHING claimed success. Every check in
+    # this function reads verdicts, and a round with no claims produces no
+    # verdicts, so all of them find nothing wrong and fall through to CLEAN. That
+    # is the one shape the "anything that is not a pass" rule could not see,
+    # because the failure is the ABSENCE of the thing being judged.
+    #
+    # The inversion is what makes it urgent rather than cosmetic: a round that
+    # achieves nothing exits 0 and clears the way for the next round, while a
+    # round that achieves something and has one claim questioned exits 2 and
+    # blocks. Having nothing to verify currently scores better than having
+    # something verified. (bug-a-round-with-zero-claims-reports-ok-clean-v1)
+    if rec.get("dispatched_count") and not rec.get("claims"):
+        return "NO-PROGRESS"
     if not (rec.get("say_do") or {}).get("ok", True):
         return "GAPS"
     if _of("UNVERIFIABLE"):

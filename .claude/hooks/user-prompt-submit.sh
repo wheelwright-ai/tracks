@@ -21,8 +21,28 @@ STATE_FILE="$BASE/WAI-State.json"
 
 RUNTIME_DIR="$BASE/runtime"
 _UPS_INPUT=$(timeout 2 cat 2>/dev/null || true)
-_UPS_SID=$(printf '%s' "$_UPS_INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('session_id',''))" 2>/dev/null)
-_UPS_TRANSCRIPT=$(printf '%s' "$_UPS_INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('transcript_path',''))" 2>/dev/null)
+
+# ── WAI Interface Contract v1 seam (impl-iface-h2-envelope-seam-v1) ───────────
+# This body used to parse Claude-NATIVE stdin directly. It now reads the contract
+# envelope, so the same body serves any interface with an adapter and a second
+# interface never means a second implementation of this file.
+#
+# Fail-OPEN by design: if the emitter is absent or refuses, fall back to the
+# original native parse. A hook that stops working because a new abstraction is
+# missing would be a worse failure than the coupling it removes — and this file
+# ships to spokes that may not yet carry the tool.
+_UPS_IFACE_TOOL="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/iface_envelope.py"
+_UPS_ENV=""
+[[ -f "$_UPS_IFACE_TOOL" ]] && _UPS_ENV=$(printf '%s' "$_UPS_INPUT" \
+  | python3 "$_UPS_IFACE_TOOL" --event wai.turn.begin 2>/dev/null || true)
+
+if [[ -n "$_UPS_ENV" ]]; then
+  _UPS_SID=$(printf '%s' "$_UPS_ENV" | python3 -c "import json,sys; print(json.load(sys.stdin).get('session_id',''))" 2>/dev/null)
+  _UPS_TRANSCRIPT=$(printf '%s' "$_UPS_ENV" | python3 -c "import json,sys; print(json.load(sys.stdin).get('transcript_ref',''))" 2>/dev/null)
+else
+  _UPS_SID=$(printf '%s' "$_UPS_INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('session_id',''))" 2>/dev/null)
+  _UPS_TRANSCRIPT=$(printf '%s' "$_UPS_INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('transcript_path',''))" 2>/dev/null)
+fi
 [[ -z "$_UPS_SID" && -n "$_UPS_TRANSCRIPT" ]] && _UPS_SID=$(basename "$_UPS_TRANSCRIPT" .jsonl)
 
 # ── Mid-session inbox notify (impl-basher-mid-session-inbox-notify-v1) ────────

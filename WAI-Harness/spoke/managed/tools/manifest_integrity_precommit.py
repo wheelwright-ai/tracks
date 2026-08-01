@@ -54,10 +54,23 @@ def touched_managed_roots(repo_root):
     return touched
 
 
-def check(repo_root="."):
-    """Return list of (managed_root, verify_report) for roots that fail self-verify."""
+def check(repo_root=".", scope="staged"):
+    """Return list of (managed_root, verify_report) for roots that fail self-verify.
+
+    scope="staged" (commit-time): only roots with a staged change are examined, so
+    committing unrelated work stays cheap.
+
+    scope="all" (push-time): EVERY managed root is verified regardless of what is
+    staged. This exists because the staged-only scope is blind at push time — nothing
+    is staged then, so the gate found nothing and returned 0. Measured session 140: a
+    corrected master ozi_autopilot.py sat on disk while MANIFEST.json still advertised
+    the pre-fix md5, and 14 consecutive --no-verify commits meant the commit-time gate
+    never ran either. A sibling spoke caught the stranding by hand. Push is the last
+    point before canon, so push verifies everything.
+    """
+    roots = MANAGED_ROOTS if scope == "all" else touched_managed_roots(repo_root)
     failures = []
-    for root in touched_managed_roots(repo_root):
+    for root in roots:
         mroot = os.path.join(repo_root, root)
         manifest_path = os.path.join(mroot, "MANIFEST.json")
         if not os.path.isfile(manifest_path):
@@ -71,9 +84,12 @@ def check(repo_root="."):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--repo-root", default=".")
+    ap.add_argument("--scope", choices=("staged", "all"), default="staged",
+                    help="staged = only roots with a staged change (commit-time); "
+                         "all = every managed root regardless of staging (push-time)")
     args = ap.parse_args(argv)
 
-    failures = check(args.repo_root)
+    failures = check(args.repo_root, scope=args.scope)
     if not failures:
         return 0
 

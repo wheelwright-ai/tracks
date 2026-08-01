@@ -100,9 +100,26 @@ def check(root=".", since_iso=None):
 
     tracked = set(_git(root, "ls-files").splitlines())
     dirty = set()
-    for line in _git(root, "status", "--porcelain").splitlines():
+    # CHANGED SOURCE — "what actually changed", the candidate set drift detection
+    # offers the reader. Kept separate from `dirty`, which must stay complete for
+    # the other checks. Runtime churn is excluded: it moves on every run and would
+    # drown the real candidates.
+    changed_source = set()
+    _NOISE = ("/runtime/", "/sessions/", "/ap-rounds/", "/ap-runs/", "/receipts/",
+              "activity-log", "ready-queue", "spend-ledger", "/pathgraph/",
+              "/capabilitygraph/", "__pycache__", ".pytest_cache")
+    # -uall: plain --porcelain collapses an untracked DIRECTORY to a single
+    # "?? dir/" entry, so the drift candidates would name a folder instead of the
+    # file that actually holds the work — which is the one thing the reader needs.
+    for line in _git(root, "status", "--porcelain", "-uall").splitlines():
         if len(line) > 3:
-            dirty.add(line[3:].strip())
+            path = line[3:].strip()
+            dirty.add(path)
+            # `dirty` stays complete (other checks depend on it); the CANDIDATE set
+            # is the filtered one. Unioning raw `dirty` in below would reintroduce
+            # every excluded path — which it did, and the noise test caught it.
+            if not any(n in path for n in _NOISE):
+                changed_source.add(path)
 
     findings = []
     for rec in completions:
@@ -164,7 +181,26 @@ def check(root=".", since_iso=None):
         record_untracked = bool(
             lug_rel and lug_rel not in tracked and os.path.exists(os.path.join(root, lug_rel)))
 
-        if untracked or uncommitted or placeholders or record_untracked \
+        # TARGET-DRIFT: the lug declared where it would work, and worked elsewhere.
+        #
+        # Measured round-20260801T080843: impl-spine-d1-bench-runner-v1 declared
+        # WAI-Harness/tests/bench/bench_runner.py, a path that has never existed.
+        # The agent correctly built at WAI-Harness/spoke/managed/tests/bench/. Every
+        # declared target therefore landed in `missing`, `missing` suppressed the
+        # finding, and 12.8KB of tested working code sat untracked while the gate
+        # said clean. The adversarial verifier then refuted a TRUE claim as "zero
+        # code" and blocked the round.
+        #
+        # The signature is specific: every declared target is missing, yet the tree
+        # carries untracked or uncommitted work. That is a lug pointing at the wrong
+        # place, not a lug that did nothing — and reporting it as NO-COMMIT (or not
+        # at all) tells the reader the opposite of what happened.
+        drifted = bool(targets) and len(missing) == len(targets)
+        drift_candidates = []
+        if drifted:
+            drift_candidates = sorted(changed_source)[:20]
+
+        if untracked or uncommitted or placeholders or record_untracked or drifted \
                 or (targets and not landed and not missing):
             findings.append({
                 "lug_id": lug_id,
@@ -177,12 +213,19 @@ def check(root=".", since_iso=None):
                 "missing": missing,
                 "lug_record_untracked": lug_rel if record_untracked else None,
                 "commit_landed": landed,
+                "drifted_targets": missing if drifted else [],
+                "drift_candidates": drift_candidates,
                 # The severity that matters: untracked work is one command from
                 # gone, uncommitted is merely unsaved, and no-commit-but-clean
                 # usually means the lug was closed out rather than built.
+                # TARGET-DRIFT ranks above UNVERIFIABLE-TARGETS and NO-COMMIT
+                # because it is the one that produces a FALSE REFUTATION: the work
+                # exists, so calling it "no commit" sends the reader looking for
+                # work that was never done instead of for work filed elsewhere.
                 "severity": "DATA-LOSS-RISK" if (untracked or record_untracked) else
                             ("UNCOMMITTED" if uncommitted else
-                             ("UNVERIFIABLE-TARGETS" if placeholders else "NO-COMMIT")),
+                             ("TARGET-DRIFT" if drifted else
+                              ("UNVERIFIABLE-TARGETS" if placeholders else "NO-COMMIT"))),
             })
 
     return {
@@ -201,6 +244,7 @@ def heal(root, report, commit=True):
     attributed to a lug that did not produce it.
     """
     healed = []
+    skipped = []
     for gap in report["gaps"]:
         # The lug's own record is staged alongside its declared targets: a state
         # transition and the work that caused it belong in one commit, and
@@ -209,6 +253,28 @@ def heal(root, report, commit=True):
         record = [gap["lug_record_untracked"]] if gap.get("lug_record_untracked") else []
         paths = [p for p in (gap["untracked"] + gap["uncommitted"] + record)
                  if os.path.exists(os.path.join(root, p))]
+
+        # TARGET-DRIFT is NOT healable here, and pretending otherwise is how this
+        # went wrong the first time. The declared targets resolve to nothing, so
+        # the only paths left to stage are the lug's own JSON record — producing a
+        # commit of pure metadata that LOOKS like a heal and contains no work.
+        # Measured: round-20260801T080843's heal commit was 475 insertions of lug
+        # JSON and zero code, which the verifier then read as "no code produced"
+        # and used to refute a true claim.
+        #
+        # Staging the drift candidates automatically would be worse: they are the
+        # whole untracked tree, and attributing arbitrary files to a lug that
+        # declared different ones is a guess written into git history.
+        #
+        # So: refuse, name both sides, and let a human or a re-scoped lug decide.
+        if gap.get("severity") == "TARGET-DRIFT":
+            skipped.append({
+                "lug_id": gap["lug_id"],
+                "declared": gap.get("drifted_targets") or [],
+                "candidates": gap.get("drift_candidates") or [],
+            })
+            continue
+
         if not paths:
             continue
         subprocess.run(["git", "-C", root, "add", "--", *paths],
@@ -229,6 +295,26 @@ def heal(root, report, commit=True):
         )
         subprocess.run(["git", "-C", root, "commit", "--no-verify", "-m", msg],
                        capture_output=True, text=True, timeout=120)
+
+    if skipped:
+        print("\nHEAL REFUSED — %d lug(s) with TARGET-DRIFT (declared targets do "
+              "not exist):" % len(skipped), file=sys.stderr)
+        for sk in skipped:
+            print("  %s" % sk["lug_id"], file=sys.stderr)
+            for d in sk["declared"][:4]:
+                print("      declared (missing): %s" % d, file=sys.stderr)
+            for c in sk["candidates"][:6]:
+                print("      actually changed:   %s" % c, file=sys.stderr)
+        print("  These lugs point at the wrong paths. The work may well exist at the\n"
+              "  paths above — correct each lug's file_targets, then re-heal. Staging\n"
+              "  the candidates automatically would attribute files to a lug that\n"
+              "  declared different ones, which is a guess written into git history.",
+              file=sys.stderr)
+    # Return type stays a LIST. Callers index and len() this; switching to a
+    # dict when drift happens would break them exactly when something is wrong,
+    # which is the worst possible moment for an API surprise. The skipped set is
+    # reported to stderr and carried on the report, not smuggled into the return.
+    report["heal_skipped_target_drift"] = skipped
     return healed
 
 

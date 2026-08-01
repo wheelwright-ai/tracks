@@ -1259,6 +1259,16 @@ def main() -> None:
         "ask_landing": ask_landing_data,
         "insight_memory": insight_memory_data,
         "tastegraph_prefs": tastegraph_data,
+        # AGE, not a timestamp (operator, s140: "better yet an age from now").
+        # An age answers "is this current?" directly; a timestamp makes the reader
+        # do date arithmetic before they know whether to care. Surfaced in the
+        # brief so a stale or never-compiled TasteGraph is visible on the ordinary
+        # path rather than only when someone thinks to ask — 15 of 16 spokes were
+        # stale or absent on 2026-08-01 and nobody could have known.
+        "tastegraph_freshness": (
+            compile_tastegraph.snapshot_age(str(PROJECT_ROOT))
+            if compile_tastegraph is not None
+               and hasattr(compile_tastegraph, "snapshot_age") else None),
         "assurance_health": assurance_health_data,
         "integrity_probe": integrity_probe_data,
     }

@@ -6,14 +6,17 @@ WAI gives you persistent memory, structured work tracking, and cross-session con
 
 ## Bootstrap (First Turn)
 
-1. **Review inbox first** — Check `WAI-Harness/spoke/lugs/incoming/` for any unprocessed lugs. List what arrived (file names + titles). Triage in place: note each item, defer actioning to the appropriate session goal. Do this before any other work regardless of the stated session goal.
-2. Read `WAI-Harness/spoke/WAI-State.json` — project identity, session state, hub connection
+1. **Review inbox first** — Check `WAI-Harness/spoke/local/lugs/incoming/` for any unprocessed lugs *(v3 coexist spokes: `WAI-Harness/spoke/lugs/incoming/`)*. List what arrived (file names + titles). Triage in place: note each item, defer actioning to the appropriate session goal. Do this before any other work regardless of the stated session goal.
+2. Read `WAI-Harness/spoke/local/WAI-State.json` — project identity, session state, hub connection
+   *(v3 coexist spokes: `WAI-Harness/spoke/WAI-State.json`)*
 3. Load the first wakeup file that exists:
-   - `WAI-Harness/spoke/commands/wai.md`
-   - `WAI-Harness/spoke/skills/wai/wai.md`
+   - `.claude/commands/wai.md` (v4 — invoke `/wai`)
+   - `WAI-Harness/spoke/commands/wai.md` (v3 coexist fallback)
+   - `WAI-Harness/spoke/skills/wai/wai.md` (v3 coexist fallback)
 4. Follow that wakeup file to produce the WAI Point briefing
 5. Discover teachings (wai.md Step 5 covers this, but if skipped — do it here):
-   - Local: check `WAI-Harness/spoke/seed/ingest/` for `.teaching` files not yet in `processed/`
+   - Local: check `WAI-Harness/spoke/local/seed/ingest/` for `.teaching` files not yet in `processed/`
+     *(v3 coexist spokes: `WAI-Harness/spoke/seed/ingest/`)*
    - Hub: read `wheel.hub_path` from WAI-State.json → scan `{hub_path}/teachings_repo/framework/current/*.teaching`
    - Surface pending teachings in the briefing first; do not stop wakeup before the briefing is complete
    - During wakeup, summarize teachings from filenames/frontmatter only. Do not read full teaching bodies unless the user explicitly asks to review them now
@@ -23,7 +26,8 @@ WAI gives you persistent memory, structured work tracking, and cross-session con
 
 - For Codex/OpenAI agents, treat this `AGENTS.md` as the primary entry file.
 - Do not read `CLAUDE.md` unless the task touches Claude-specific hooks or config.
-- Do not preload large WAI history/runtime areas such as `WAI-Harness/spoke/sessions/`, `WAI-Harness/spoke/seed/`, `WAI-Harness/spoke/archive/`, `WAI-Harness/spoke/model-usage/`, or `WAI-Harness/spoke/runtime/`.
+- Do not preload large WAI history/runtime areas such as `WAI-Harness/spoke/local/sessions/`, `WAI-Harness/spoke/local/seed/`, `WAI-Harness/spoke/local/archive/`, `WAI-Harness/spoke/local/model-usage/`, or `WAI-Harness/spoke/local/runtime/`.
+  *(v3 coexist spokes: the same paths without the `local/` segment.)*
 - Prefer targeted reads of the files directly involved in the task.
 - During `/wai`, finish the WAI Point briefing before asking for approval on teachings or side actions.
 - During `/wai`, output the completed WAI Point briefing itself, not a transcript of the bootstrap work.
@@ -35,12 +39,12 @@ WAI gives you persistent memory, structured work tracking, and cross-session con
 
 | Path | What It Is |
 |------|-----------|
-| `WAI-Harness/spoke/WAI-State.json` | Project state — identity, sessions, hub connection |
-| `WAI-Harness/spoke/commands/` | Skills — behavioral rules as `.md` files (source of truth) |
-| `WAI-Harness/spoke/lugs/bytype/` | Work tracker — tasks, bugs, epics, signals by type and status |
-| `WAI-Harness/spoke/lugs/incoming/` | Incoming lugs from hub or other spokes |
-| `WAI-Harness/spoke/lugs/outgoing/` | Outbound lugs for hub or other spokes |
-| `WAI-Harness/spoke/seed/ingest/` | Pending teachings from framework |
+| `WAI-Harness/spoke/local/WAI-State.json` | Project state — identity, sessions, hub connection *(v3 coexist: `WAI-Harness/spoke/WAI-State.json`)* |
+| `.claude/commands/` | Skills — behavioral rules as `.md` files (source of truth) *(v3 coexist: `WAI-Harness/spoke/commands/`)* |
+| `WAI-Harness/spoke/local/lugs/bytype/` | Work tracker — tasks, bugs, epics, signals by type and status *(v3 coexist: `WAI-Harness/spoke/lugs/bytype/`)* |
+| `WAI-Harness/spoke/local/lugs/incoming/` | Incoming lugs from hub or other spokes *(v3 coexist: `WAI-Harness/spoke/lugs/incoming/`)* |
+| `WAI-Harness/spoke/local/lugs/outgoing/` | Outbound lugs for hub or other spokes *(v3 coexist: `WAI-Harness/spoke/lugs/outgoing/`)* |
+| `WAI-Harness/spoke/local/seed/ingest/` | Pending teachings from framework *(v3 coexist: `WAI-Harness/spoke/seed/ingest/`)* |
 
 ## Tool-Specific Files
 

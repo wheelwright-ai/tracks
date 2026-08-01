@@ -155,6 +155,25 @@ fi
 _HYGIENE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/hygiene_run.py"
 [ -f "$_HYGIENE" ] && _wai_detach /dev/null python3 "$_HYGIENE" --spoke-root "$PROJECT_DIR"
 
+# TasteGraph self-heal (bug-no-oracle-proves-spokes-share-the-same-tastegraph-v1).
+#
+# The operator teaches the wheel ONCE and expects every spoke to behave accordingly
+# without him. Measured 2026-08-01: 15 of 16 active spokes were injecting a stale
+# compiled snapshot, or none at all. The source was fine and identical everywhere —
+# nothing ever recompiled the per-spoke snapshot when the source moved, and nothing
+# compared them, so his teaching aged differently on every spoke undetected.
+#
+# --if-stale compares the snapshot's recorded source md5s against disk and compiles
+# ONLY on mismatch, printing nothing when current. That matters: this runs at every
+# session start, and a line of output on the ordinary path is noise that trains
+# people to stop reading. SYNCHRONOUS on purpose, unlike the backgrounded probes
+# above — the snapshot must be correct BEFORE the first injection of this session,
+# and a background recompile would race the very hook that reads it.
+# Presence-guarded, timeout-bounded, best-effort: a broken compiler must never
+# delay or break session start.
+_TGCOMPILE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/compile_tastegraph.py"
+[ -f "$_TGCOMPILE" ] && timeout 30 python3 "$_TGCOMPILE" --spoke-path "$PROJECT_DIR" --if-stale 2>&1 >/dev/null | head -2 >&2 || true
+
 # Standing silent-failure oracles, surfaced to STDERR at every session start.
 # Cron (07:15) writes them to a log nobody opens; this puts the non-green lines
 # in front of the agent BEFORE it can describe the spoke as healthy. Session 139:

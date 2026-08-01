@@ -4,11 +4,12 @@
 
 Quick start:
 - Read this `AGENTS.md`
-- Read `WAI-Harness/spoke/WAI-State.json`
+- Read `WAI-Harness/spoke/local/WAI-State.json` (v3 coexist spokes: `WAI-Harness/spoke/WAI-State.json`)
 - Do not read `CLAUDE.md` by default.
-- If the user explicitly asks for `/wai` or wakeup behavior, load the smallest relevant file only:
-  - `WAI-Harness/spoke/commands/wai.md`
-  - `WAI-Harness/spoke/skills/wai/wai.md`
+- If the user explicitly asks for `/wai` or wakeup behavior, load the first file that exists:
+  - `.claude/commands/wai.md` (v4 — invoke `/wai`)
+  - `WAI-Harness/spoke/commands/wai.md` (v3 coexist fallback)
+  - `WAI-Harness/spoke/skills/wai/wai.md` (v3 coexist fallback)
 - During wakeup, finish the WAI Point briefing before asking for teaching approval.
 - Do not read full teaching bodies during wakeup unless the user explicitly asks to review them now.
 - During `/wai`, output the briefing directly instead of narrating the bootstrap steps you ran.

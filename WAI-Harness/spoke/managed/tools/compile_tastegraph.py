@@ -49,6 +49,104 @@ except Exception as exc:  # pragma: no cover - environment guard
     raise
 
 
+def _file_md5(path) -> str | None:
+    """md5 of a source file, or None when absent. None is meaningful: a spoke with
+    no user taste is a different state from one whose user taste changed."""
+    try:
+        import hashlib
+        return hashlib.md5(Path(path).read_bytes()).hexdigest()
+    except (OSError, TypeError, AttributeError):
+        return None
+
+
+def _humanise_age(iso: str | None) -> str:
+    """'3h ago' / '2d ago' — an AGE, not a timestamp.
+
+    Operator, session 140: "a timestamp or better yet an age from now". The reason
+    it is better is that an age answers the question directly. A timestamp makes
+    the reader do date arithmetic in their head before they know whether to care,
+    and the whole point of surfacing this is that staleness should be obvious at a
+    glance rather than computed.
+    """
+    if not iso:
+        return "never"
+    try:
+        then = datetime.datetime.fromisoformat(str(iso).replace("Z", "+00:00"))
+        if then.tzinfo is None:
+            then = then.replace(tzinfo=datetime.timezone.utc)
+        secs = (datetime.datetime.now(datetime.timezone.utc) - then).total_seconds()
+    except (ValueError, TypeError):
+        return "unreadable"
+    if secs < 0:
+        return "in the future (clock skew)"
+    for cutoff, div, unit in ((90, 1, "s"), (5400, 60, "m"), (172800, 3600, "h")):
+        if secs < cutoff:
+            return f"{int(secs // div)}{unit} ago"
+    return f"{int(secs // 86400)}d ago"
+
+
+def snapshot_age(project_root: str | Path = ".", mode: str | None = None) -> dict:
+    """{compiled_at, age, in_force, present} — the one-glance answer.
+
+    Deliberately reports IN_FORCE (accepted/verified preferences that actually
+    bind) rather than the raw entry count. A number that rises when the operator
+    REJECTS something is not measuring anything he cares about.
+    """
+    project_root = Path(project_root)
+    base_str, _ = wai_paths.resolve_wai_root(str(project_root), mode)
+    if not base_str:
+        return {"present": False, "compiled_at": None, "age": "never", "in_force": 0}
+    snap = Path(base_str) / "tastegraph.json"
+    if not snap.exists():
+        return {"present": False, "compiled_at": None, "age": "never", "in_force": 0}
+    try:
+        g = json.loads(snap.read_text()) or {}
+    except (OSError, ValueError):
+        return {"present": True, "compiled_at": None, "age": "unreadable", "in_force": 0}
+    prov = g.get("provenance") or {}
+    prefs = g.get("preferences") or []
+    in_force = sum(1 for p in prefs
+                   if str(p.get("confidence", "")).lower() in ("verified", "stated"))
+    return {"present": True, "compiled_at": prov.get("compiled_at"),
+            "age": _humanise_age(prov.get("compiled_at")), "in_force": in_force}
+
+
+def is_stale(project_root: str | Path = ".", mode: str | None = None,
+             hub_path: str | None = None) -> tuple[bool, str]:
+    """(stale, why) — does the on-disk snapshot match the sources it claims?
+
+    Three ways to be stale, reported distinctly because they need different fixes:
+      - no snapshot at all (the spoke injects nothing)
+      - a snapshot with no provenance (compiled before stamping existed)
+      - a snapshot whose recorded source md5s no longer match disk
+    """
+    project_root = Path(project_root)
+    base_str, _ = wai_paths.resolve_wai_root(str(project_root), mode)
+    if not base_str:
+        return False, "no harness tree"
+    base = Path(base_str)
+    snap = base / "tastegraph.json"
+    if not snap.exists():
+        return True, "no snapshot — this spoke compiles nothing and injects nothing"
+    try:
+        prov = (json.loads(snap.read_text()) or {}).get("provenance")
+    except (OSError, ValueError):
+        return True, "snapshot unreadable"
+    if not prov:
+        return True, "snapshot predates provenance stamping — cannot be proven current"
+
+    hub = resolve_hub_path(project_root, mode, hub_path)
+    want = {
+        "user_md5": _file_md5((hub / "local" / "taste.user.yaml") if hub else None),
+        "spoke_md5": _file_md5(base / "taste.spoke.yaml"),
+        "levels_md5": _file_md5(Path(__file__).resolve().parent.parent / "config" / "taste_levels.yaml"),
+    }
+    drifted = [k for k, v in want.items() if prov.get(k) != v]
+    if drifted:
+        return True, "source changed since compile: " + ", ".join(drifted)
+    return False, "current"
+
+
 def _now() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
@@ -242,6 +340,19 @@ def compile_tastegraph(
             "spoke_entries": sum(1 for p in preferences if "[level:spoke]" in p.get("source", "")),
         },
         "preferences": preferences,
+        # PROVENANCE — which bytes this snapshot was built from.
+        #
+        # Without it, "is this snapshot stale?" is unanswerable, and unanswerable
+        # is what it was: measured 2026-08-01, 15 of 16 active spokes carried a
+        # snapshot that disagreed with the hub (or none at all) and nothing could
+        # have told anyone, because no snapshot recorded its own source.
+        # A stamp turns staleness from an opinion into a comparison.
+        "provenance": {
+            "user_md5": _file_md5(user_yaml),
+            "spoke_md5": _file_md5(spoke_yaml),
+            "levels_md5": _file_md5(levels_yaml),
+            "compiled_at": _now(),
+        },
     }
 
     out_path = base / "tastegraph.json"
@@ -260,11 +371,39 @@ def compile_tastegraph(
 def _main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Compile the TasteGraph (user + spoke taste -> tastegraph.json).")
     parser.add_argument("--spoke-path", default=".", help="Spoke project root (contains WAI-Harness/WAI-Spoke).")
+    parser.add_argument("--if-stale", action="store_true",
+                        help="compile ONLY when the snapshot disagrees with its sources "
+                             "(cheap enough to run at every wakeup)")
+    parser.add_argument("--check", action="store_true",
+                        help="report staleness and exit; never writes")
+    parser.add_argument("--age", action="store_true",
+                        help="print how old this spoke's compiled TasteGraph is, and exit")
     parser.add_argument("--mode", default=None, help="v4-only | v3-only (else $WAI_HARNESS_MODE / auto).")
     parser.add_argument("--hub-path", default=None, help="Override hub directory holding local/taste.user.yaml.")
     parser.add_argument("--dry-run", action="store_true", help="Compile and print summary without writing the file.")
     parser.add_argument("--json", action="store_true", help="Print the full compiled graph as JSON.")
     args = parser.parse_args(argv)
+
+    if args.age:
+        a = snapshot_age(args.spoke_path, getattr(args, "mode", None))
+        if not a["present"]:
+            print("TasteGraph: NEVER COMPILED — this spoke injects nothing")
+            return 1
+        print(f"TasteGraph: {a['in_force']} preference(s) in force, compiled {a['age']}"
+              f"  ({a['compiled_at'] or 'no stamp'})")
+        return 0
+
+    if args.check or args.if_stale:
+        stale, why = is_stale(args.spoke_path, getattr(args, "mode", None),
+                              getattr(args, "hub_path", None))
+        if args.check:
+            print(f"tastegraph: {'STALE' if stale else 'current'} — {why}")
+            return 1 if stale else 0
+        if not stale:
+            # Silent no-op: this runs at every wakeup, and a line of output on the
+            # ordinary path is noise that trains people to stop reading it.
+            return 0
+        print(f"tastegraph: recompiling — {why}", file=sys.stderr)
 
     result = compile_tastegraph(
         project_root=args.spoke_path,

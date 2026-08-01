@@ -4422,6 +4422,18 @@ class OziAutopilot:
 
         _tokens_before = self._tokens_used
         _t_lug = time.monotonic()
+        # Snapshot HEAD before dispatch so a real per-lug commit_sha can be
+        # attributed after the worker returns, instead of stamping every lug
+        # with the run's shared end-of-run bookkeeping commit.
+        _head_before_lug = ""
+        try:
+            _hb = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=str(self.spoke_root),
+                capture_output=True, text=True, timeout=10,
+            )
+            _head_before_lug = _hb.stdout.strip() if _hb.returncode == 0 else ""
+        except (subprocess.TimeoutExpired, OSError):
+            _head_before_lug = ""
         print(f"[autopilot]   → dispatching {lug_id} (model={model_fit}, timeout={timeout_secs}s)…", file=sys.stderr)
         try:
             # A dispatched agent is NOT a session. Without this marker each child
@@ -4601,24 +4613,57 @@ class OziAutopilot:
                 activity_log=self.activity_log,
                 uat_evidence={"run_id": self.run_id, "spoke_id": self.spoke_id},
             )
-            if _gl_status == "completed":
-                # update_lug_status() emits the UAT request onto a freshly-loaded
-                # copy of the lug (impl-exitclarity-5) -- read the uat fields back
-                # onto THIS in-memory `lug` so the phase-5 activity-log/track
-                # writers (which use this same object) record the real
-                # post-emission uat_status instead of a stale hardcoded value.
-                try:
-                    _lt = lug.get("type") or lug.get("_fs_type") or "unknown"
-                    _p = self._config.bytype_dir / _lt / "completed" / f"{lug_id}.json"
-                    if _p.exists():
-                        _u = json.loads(_p.read_text())
-                        if _u.get("uat_status"):
-                            lug["uat_status"] = _u["uat_status"]
-                        if _u.get("uat_review_lug_id"):
-                            lug["uat_review_lug_id"] = _u["uat_review_lug_id"]
-                except Exception:
-                    pass
+            # update_lug_status() runs its OWN independent completion-certifier
+            # choke-point and can silently downgrade "completed" to "open" or
+            # "needs_attention" internally -- it returns a bare bool, not the
+            # final status. Trusting the pre-call _gl_status here would repeat
+            # this same bug one level deeper (log the status we asked for, not
+            # the status that was actually persisted). Resolve the real final
+            # status from which directory the lug file actually landed in.
+            _lt = lug.get("type") or lug.get("_fs_type") or "unknown"
+            _final_status = _gl_status
+            for _cand in ("completed", "needs_attention", "open"):
+                _p = self._config.bytype_dir / _lt / _cand / f"{lug_id}.json"
+                if _p.exists():
+                    _final_status = _cand
+                    if _cand == "completed":
+                        # update_lug_status() emits the UAT request onto a freshly-
+                        # loaded copy of the lug (impl-exitclarity-5) -- read the uat
+                        # fields back onto THIS in-memory `lug` so the phase-5
+                        # activity-log/track writers (which use this same object)
+                        # record the real post-emission uat_status instead of a
+                        # stale hardcoded value.
+                        try:
+                            _u = json.loads(_p.read_text())
+                            if _u.get("uat_status"):
+                                lug["uat_status"] = _u["uat_status"]
+                            if _u.get("uat_review_lug_id"):
+                                lug["uat_review_lug_id"] = _u["uat_review_lug_id"]
+                        except Exception:
+                            pass
+                    break
+            _gl_status = _final_status
             print(f"[autopilot]   ✓ {lug_id} done ({_elapsed_lug}s, tokens={lug_tokens}) [{_gl_status}]", file=sys.stderr)
+            # Stamp the CERTIFIED status and real timing onto the lug object so
+            # phase-5's activity-log/track writers (which read this same dict)
+            # report what actually happened, not "the subprocess exited 0".
+            lug["_gl_status"] = _gl_status
+            lug["_elapsed_seconds"] = _elapsed_lug
+            _head_after_lug = ""
+            try:
+                _ha = subprocess.run(
+                    ["git", "rev-parse", "HEAD"], cwd=str(self.spoke_root),
+                    capture_output=True, text=True, timeout=10,
+                )
+                _head_after_lug = _ha.stdout.strip() if _ha.returncode == 0 else ""
+            except (subprocess.TimeoutExpired, OSError):
+                _head_after_lug = ""
+            # Only credit this lug with a commit if HEAD actually moved during
+            # its dispatch -- a shared end-of-run bookkeeping commit is not
+            # evidence of any single lug's work.
+            lug["_commit_sha"] = (
+                _head_after_lug if _head_after_lug and _head_after_lug != _head_before_lug else ""
+            )
             return True, ""
         else:
             print(
@@ -4726,7 +4771,15 @@ class OziAutopilot:
         did_work is true if the run completed lugs, adopted teachings, or has gastown pending.
         """
         now = datetime.now(timezone.utc)
-        track_file = f"WAI-Spoke/sessions/{run_id}/track.jsonl"
+        # v4-first resolver: self.spoke_wai already resolves to
+        # WAI-Harness/spoke/local (or WAI-Spoke only while a spoke is still in
+        # coexist/v3) -- derive track_file from it instead of hardcoding the
+        # graveyarded v3 base.
+        _track_path_for_run = self.spoke_wai / "sessions" / run_id / "track.jsonl"
+        try:
+            track_file = _track_path_for_run.relative_to(self.spoke_root).as_posix()
+        except ValueError:
+            track_file = _track_path_for_run.as_posix()
         commit_sha = ""
 
         # Compute did_work early: check if run accomplished anything worth recording.
@@ -4745,8 +4798,7 @@ class OziAutopilot:
         if not self.dry_run and result.completed_lug_objects:
             for lug in result.completed_lug_objects:
                 lug_id = lug.get("id") or lug.get("i") or "unknown"
-                raw_qs = lug.get("quality_score", 7)
-                confidence = round(min(1.0, max(0.0, float(raw_qs) / 10.0)), 2)
+                raw_qs = lug.get("quality_score")
                 entry = {
                     "ts": now.isoformat(),
                     "session_id": run_id,
@@ -4756,11 +4808,14 @@ class OziAutopilot:
                     "lug_id": lug_id,
                     "lug_title": lug.get("title") or lug.get("t") or lug_id,
                     "model_fit": lug.get("model_fit", "haiku"),
-                    "duration_seconds": 0,   # v1: no per-lug timing
+                    "duration_seconds": lug.get("_elapsed_seconds", 0),
                     "tokens_used": result.tokens_per_lug.get(lug_id, 0),
-                    "confidence_score": confidence,
-                    "commit_sha": "",         # backfilled after git commit
-                    "outcome": "completed",
+                    "commit_sha": lug.get("_commit_sha", ""),
+                    # Certified status (grounded-loop / completion-certifier
+                    # verdict), not "the worker subprocess exited 0" -- a lug
+                    # dispatched successfully can still land in open or
+                    # needs_attention.
+                    "outcome": lug.get("_gl_status", "completed"),
                     # impl-exitclarity-5: real value once the completion choke-point
                     # (wai_ozi_dispatch.update_lug_status) has run emit_uat_request;
                     # "pending" only survives here for skipped/internal completions.
@@ -4779,6 +4834,15 @@ class OziAutopilot:
                     "urgency_tier": lug.get("urgency_tier"),
                     "sort_rank": lug.get("sort_rank"),
                 }
+                # confidence_score is only a real measurement when the lug
+                # actually carries a quality_score; a hardcoded default (e.g.
+                # 7/10 -> 0.7) presented as a per-lug reading is noise, so the
+                # field is omitted rather than defaulted.
+                if raw_qs is not None:
+                    try:
+                        entry["confidence_score"] = round(min(1.0, max(0.0, float(raw_qs) / 10.0)), 2)
+                    except (TypeError, ValueError):
+                        pass
                 with self.activity_log.open("a") as fh:
                     fh.write(json.dumps(entry) + "\n")
 
@@ -4872,8 +4936,8 @@ class OziAutopilot:
                         "lug_type": lug.get("type") or lug.get("_fs_type") or "unknown",
                         "model_fit": lug.get("model_fit", "haiku"),
                         "tokens_used": result.tokens_per_lug.get(lug_id, 0),
-                        "outcome": "completed",
-                        "commit_sha": "",  # backfilled after git commit below
+                        "outcome": lug.get("_gl_status", "completed"),
+                        "commit_sha": lug.get("_commit_sha", ""),
                     }) + "\n")
                 for snap in self._failed_lug_snapshots:
                     turn_no += 1
@@ -4962,46 +5026,13 @@ class OziAutopilot:
                             timeout=10,
                         )
                         commit_sha = sha_proc.stdout.strip() if sha_proc.returncode == 0 else ""
-
-                        # Backfill commit_sha into activity-log.jsonl and track.jsonl for this run
-                        if commit_sha and did_work:
-                            for _backfill_path in [self.activity_log]:
-                                if not _backfill_path.exists():
-                                    continue
-                                raw_lines = _backfill_path.read_text().splitlines()
-                                updated_lines = []
-                                for raw_line in raw_lines:
-                                    if not raw_line.strip():
-                                        continue
-                                    try:
-                                        entry = json.loads(raw_line)
-                                        if (entry.get("run_id") == run_id or entry.get("session_id") == run_id) and entry.get("commit_sha") == "":
-                                            entry["commit_sha"] = commit_sha
-                                        updated_lines.append(json.dumps(entry))
-                                    except (json.JSONDecodeError, ValueError):
-                                        updated_lines.append(raw_line)
-                                _backfill_path.write_text(
-                                    "\n".join(updated_lines) + "\n" if updated_lines else ""
-                                )
-                            # Also backfill track.jsonl if it was created
-                            if did_work:
-                                track_path = self.spoke_wai / "sessions" / run_id / "track.jsonl"
-                                if track_path.exists():
-                                    raw_lines = track_path.read_text().splitlines()
-                                    updated_lines = []
-                                    for raw_line in raw_lines:
-                                        if not raw_line.strip():
-                                            continue
-                                        try:
-                                            entry = json.loads(raw_line)
-                                            if (entry.get("run_id") == run_id or entry.get("session_id") == run_id) and entry.get("commit_sha") == "":
-                                                entry["commit_sha"] = commit_sha
-                                            updated_lines.append(json.dumps(entry))
-                                        except (json.JSONDecodeError, ValueError):
-                                            updated_lines.append(raw_line)
-                                    track_path.write_text(
-                                        "\n".join(updated_lines) + "\n" if updated_lines else ""
-                                    )
+                        # NOTE: this is the run's shared end-of-run bookkeeping
+                        # commit (lug status/metadata only). It is intentionally
+                        # NOT backfilled onto per-lug activity-log/track entries
+                        # -- it does not evidence any individual lug's target-
+                        # file work. Per-lug commit_sha (when a lug's own
+                        # dispatch actually moved HEAD) is stamped at write time
+                        # in the loops above.
             except (subprocess.TimeoutExpired, OSError) as exc:
                 print(f"[autopilot] git commit failed: {exc}", file=sys.stderr)
 

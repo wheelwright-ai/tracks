@@ -67,7 +67,10 @@ def work_queue_lines(base):
     idx = _load_json(initiatives_path, default=None)
     if idx:
         for init in idx.get("initiatives", []):
-            initiative_labels[init["id"]] = init["label"]
+            init_id = init.get("id")
+            if not init_id:
+                continue
+            initiative_labels[init_id] = init.get("label") or init.get("title") or init_id
 
     def weighted_roi(item):
         base_roi = item.get("roi", 0)

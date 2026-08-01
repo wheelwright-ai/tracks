@@ -362,6 +362,33 @@ class OziDispatch:
             except Exception:
                 pass
 
+        # NO SILENT PARKING (bug-a-round-with-zero-claims-reports-ok-clean-v1).
+        #
+        # A lug moved to needs_attention with no reason is unactionable: the next
+        # agent inherits a stopped piece of work and no account of why it stopped,
+        # and the operator sees a queue growing with no explanation.
+        #
+        # Measured round-20260801T200536: all three dispatched lugs were parked
+        # here with attention_reason absent. One of them had in fact COMPLETED its
+        # work and merely failed to commit it — indistinguishable, from the lug
+        # alone, from the one that achieved nothing.
+        #
+        # Stamp rather than refuse. Refusing would leave the lug stuck in
+        # in_progress holding a lease, which is a worse failure than a poor reason;
+        # and the marker below is deliberately blunt so it reads as the defect it
+        # is rather than as a real explanation.
+        if status == "needs_attention":
+            extra_fields = dict(extra_fields or {})
+            _reason_keys = ("attention_reason", "escalation_reason", "blocked_reason")
+            if not any(str(extra_fields.get(k) or "").strip() for k in _reason_keys):
+                extra_fields["attention_reason"] = (
+                    "UNRECORDED — the caller parked this lug without a reason. "
+                    "Whatever stopped it is known only to the agent that stopped it, "
+                    "and that agent is gone. Re-read the diff and the activity log "
+                    "before re-dispatching."
+                )
+                extra_fields["attention_reason_missing"] = True
+
         lug_path = self._find_lug_file(lug_id)
         if not lug_path:
             return False
@@ -440,6 +467,93 @@ class OziDispatch:
                         "completion is never auto-approved" % _e)
                 lug["status"] = status
                 lug["s"] = status
+
+        # ---- EVIDENCE FLOOR: a completion without evidence is a CLAIM ----
+        #
+        # change-canon-autopilot-completion-requires-evidence-v1, measured by basher
+        # on run ohr-20260801-2017: 8 lugs dispatched, 89,846 tokens, headline "0
+        # errors", and all THREE lugs moved to completed/ carried completed_at: null
+        # and no evidence field of any kind. The WORK was real in all three — basher
+        # verified by hand. The RECORD is what failed, and an unevidenced completion
+        # is indistinguishable from a false one, which makes the "0 errors" headline
+        # unverifiable. A run cannot certify itself.
+        #
+        # This sits BELOW the certifier deliberately, because the certifier above is
+        # skipped in two ways: `not lug.get("certification")` lets any caller that
+        # supplies its own verdict past (autopilot does exactly that), and non-
+        # CERTIFIABLE_TYPES never enter it at all. Neither path asserted completed_at
+        # or evidence. The floor is unconditional so no caller can opt out of it.
+        #
+        # This is canon's own doctrine finally enforced rather than a new rule — the
+        # exit gate in signal-lug-gate-before-work-v1 and the "false completions"
+        # anti-pattern both already require it; nothing in the dispatch path did.
+        _ev_type = (lug.get("type") or lug.get("_fs_type") or "").lower()
+        if status == "completed" and _ev_type in CERTIFIABLE_TYPES:
+            # Scoped to CERTIFIABLE_TYPES for the SAME reason the certifier is: a
+            # report, notation, signal or received notice is a RECORD — complete
+            # because it arrived, not because work was done. Demanding evidence of
+            # those would be pure noise (124 of the 172 completions in the week
+            # before the certifier shipped were upgrade-reports) and would train
+            # people to route around the floor.
+            #
+            # My first draft gated every type and broke test_records_are_not_gated.
+            # The distinction was already there, deliberate and documented; I had
+            # simply not honoured it.
+            # Write to `lug`, NOT to extra_fields: lug.update(extra_fields) already
+            # ran above, so anything set on extra_fields here would be silently
+            # dropped. Caught by tracing the write order rather than assuming it —
+            # the first draft of this guard set extra_fields and would have enforced
+            # nothing at all while appearing to.
+            # A certification counts as evidence ONLY when the certifier actually
+            # RAN here and checked something. That is the distinction basher's lug
+            # turns on: autopilot supplies its own verdict, which skips the
+            # certifier above, and letting a self-issued claim be its own proof is
+            # the free pass they measured. But a certification this choke-point
+            # produced, having executed the lug's verify steps, is the STRONGEST
+            # evidence available — refusing it would reject exactly the work the
+            # system verified hardest.
+            #
+            # My first draft got this backwards in both directions: it counted a
+            # caller-supplied certification as evidence, and then refused a
+            # genuinely-certified completion for want of a timestamp.
+            def _ran_certification():
+                c = lug.get("certification")
+                if not isinstance(c, dict):
+                    return False
+                return bool(c.get("certified_checks")) or "choke-point" in str(
+                    lug.get("certified_by") or "")
+
+            _ev_keys = ("verification", "completion_note", "completion_notes",
+                        "done_list", "evidence", "uat_evidence")
+
+            def _present(key):
+                v = lug.get(key)
+                return bool(v) and str(v).strip() not in ("", "None", "null", "[]", "{}")
+
+            _has_evidence = any(_present(k) for k in _ev_keys) or _ran_certification()
+            _has_stamp = _present("completed_at")
+
+            # A missing timestamp is a RECORDING gap the system can close itself,
+            # and refusing a properly evidenced completion over it would punish the
+            # wrong thing. Missing EVIDENCE is not recoverable that way — nobody can
+            # reconstruct what was done. So: stamp the one, refuse the other.
+            if _has_evidence and not _has_stamp:
+                lug["completed_at"] = datetime.now(timezone.utc).isoformat()
+                lug["completed_at_backfilled"] = True
+                _has_stamp = True
+
+            if not (_has_evidence and _has_stamp):
+                _missing = ["evidence (" + " | ".join(_ev_keys[:5]) + ")"]
+                status = "needs_attention"
+                lug["status"] = status
+                lug["s"] = status
+                lug["unevidenced_completion"] = True
+                lug["attention_reason"] = (
+                    "COMPLETION REFUSED — the lug claimed completed but carries no "
+                    + " and no ".join(_missing) + ". The work may well be real; the "
+                    "RECORD is not, and an unevidenced completion cannot be told "
+                    "apart from a false one. Add the evidence and re-complete."
+                )
 
         # UAT-request-on-completion emission (impl-exitclarity-5): this method is
         # the single sanctioned entry point every completion transition funnels

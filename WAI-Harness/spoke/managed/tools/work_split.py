@@ -67,7 +67,13 @@ LIVE_STATES = (
     "open", "in_progress", "active", "needs_attention", "undelivered",
     "draft", "deferred", "parked", "flagged", "acknowledged",
 )
-TERMINAL_STATES = ("completed", "closed", "done", "resolved", "retired", "delivered")
+# "ratified" is terminal for a SPEC lug: the decision is made and the spec stands as
+# canon. The work it authorises lives in its own implementation lugs, so leaving the
+# spec in a live state would surface a decision that has already been taken as if it
+# were still pending. Added session 140 with spec-wai-interface-contract-v1, the first
+# lug to reach this state (test_wakeup_contract correctly blocked the push until the
+# state was enumerated — an unlisted state is work nothing will ever surface).
+TERMINAL_STATES = ("completed", "closed", "done", "resolved", "retired", "delivered", "ratified")
 
 _STALE_HOURS = 24
 

@@ -65,6 +65,31 @@ def load_track_intents(track_path):
     Accepts both shapes: bare strings (decisions, legacy open) and landing-contract
     objects (open, v2.0.2+). An entry whose text cannot be recovered is COUNTED as
     unparsed rather than dropped -- silence is the failure class here."""
+    # DECISIONS ARE NOT ASKS (change-canon-intent-gate-treats-decisions-as-unmet-asks-v1,
+    # basher). A decision is a RATIONALE record — "chose a declared ledger over a
+    # heuristic", "verified landing by fetch rather than trusting push stdout". It is
+    # already durable in the track. It has no artifact because it is not work, and it
+    # never will have one.
+    #
+    # Counting them inverted the gate. MEASURED at basher s120: "63 intents, 53
+    # captured, 10 MISSING" — all 10 verbatim decisions[], zero asks. Measured again
+    # in mywheel s140, first-hand: the two entries this gate demanded be drained were
+    # "accepted the certifier's refutation and corrected its implied cause" and
+    # "verified landing by fetch + rev-list rather than trusting push stdout". Both
+    # pure rationale. Both had to be written as lugs and immediately closed to reach
+    # a safe exit.
+    #
+    # The incentive is the real damage: the cheapest way to pass is to STOP RECORDING
+    # DECISIONS. A gate that punishes the documentation it exists to encourage is
+    # worse than no gate, because it degrades the record it is meant to protect. This
+    # session recorded 61 decisions and would have been penalised for every one that
+    # happened not to resemble an artifact name.
+    #
+    # open[] is already the ask channel, already carries machine-checkable landing
+    # conditions, and the gate already resolves those correctly. Only the input set
+    # was wrong.
+    INTENT_FIELDS = ("open",)
+
     intents = {}
     unparsed = 0
     with open(track_path, encoding="utf-8") as fh:
@@ -77,7 +102,7 @@ def load_track_intents(track_path):
             except json.JSONDecodeError:
                 continue
             turn = row.get("turn", "?")
-            for field in ("decisions", "open"):
+            for field in INTENT_FIELDS:
                 for item in row.get(field) or []:
                     text, landing = _intent_text(item)
                     if not text or len(text) < 12:
