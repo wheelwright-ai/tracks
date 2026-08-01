@@ -1,0 +1,50 @@
+{
+  "id": "review-untracked-project-source-v1",
+  "type": "review",
+  "status": "open",
+  "routed_to": "LOCAL",
+  "va": "review",
+  "model_fit": "sonnet",
+  "model_fit_reason": "sonnet \u2014 judging whether each file is wanted needs project context, but the decision per file is small and the list is bounded.",
+  "impact": 6,
+  "effort_score": 2,
+  "created_at": "2026-07-31T17:59:47.825730+00:00",
+  "created_by": "mywheel session-20260730-1728 (fleet git-health sweep)",
+  "source_spoke": "mywheel",
+  "title": "Review 2 untracked source file(s) \u2014 keep, ignore, or delete",
+  "perceive": [
+    "A fleet-wide git health sweep on 2026-07-31 found 2 untracked SOURCE file(s) in this spoke \u2014 real code, not harness state.",
+    "mywheel committed every generated harness record across the fleet, but deliberately did NOT touch project source: committing unreviewed code blind is laundering, and only this spoke knows whether these files are wanted.",
+    "Untracked source is the last thing standing between this spoke and a clean git state. It is also a loss risk \u2014 nothing here exists anywhere but this machine.",
+    "Files:\n  AGENTS.md\n  ARCHITECTURE.md"
+  ],
+  "execute": [
+    "Review this list WITH THE OPERATOR in the next session \u2014 that is the point of routing it here rather than deciding it centrally.",
+    "For each file decide one of three: COMMIT (wanted work), IGNORE (add to .gitignore with a reason), or DELETE (scratch that was never meant to live).",
+    "Do not bulk-commit to clear the list. A file nobody can account for is the one worth asking about.",
+    "Where a whole directory is generated output, add the directory to .gitignore rather than listing files."
+  ],
+  "verify": [
+    "git status --porcelain | grep '^??' | grep -v WAI-Harness",
+    "the command above returns nothing, OR every remaining entry is explained in this lug's completion note"
+  ],
+  "verify_kinds": [
+    "command",
+    "manual"
+  ],
+  "acceptance_criteria": [
+    "Every listed file is committed, ignored-with-a-reason, or deleted \u2014 none left unexplained.",
+    "The decision was made with the operator present, not inferred.",
+    "This spoke reports GREEN on the next fleet git-health run, or states why not."
+  ],
+  "file_targets": [
+    ".gitignore",
+    "AGENTS.md",
+    "ARCHITECTURE.md"
+  ],
+  "_improvement_lenses": {
+    "skeptic": "The cheap close is `git add -A`, which buries whatever should not have been committed inside a large diff nobody reads. The lug exists precisely because the central sweep refused to do that.",
+    "architect": "Untracked source is the one category a fleet-level tool cannot judge \u2014 it needs the project's own context, which is why it routes to the spoke rather than being decided in the hub.",
+    "naive_reader": "There are files here that were never saved to the repo. Someone should say whether they matter before they are lost or committed by accident."
+  }
+}
