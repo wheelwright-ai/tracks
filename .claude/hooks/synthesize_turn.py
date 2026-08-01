@@ -233,6 +233,60 @@ def _base_dir(project_dir):
     return Path(d) if d else Path(project_dir) / "WAI-Spoke"
 
 
+def _parse_jsonl_text(text):
+    rows = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return rows
+
+
+def _resolve_directory_transcript(path, project_dir):
+    """Layout-aware probe for when transcript_path resolves to a directory instead
+    of the flat <session_id>.jsonl file CC hands this hook.
+
+    Confirmed real shape (impl-transcript-schema-probe-v1: 16 live diagnostic-probe
+    samples on this machine, all `type=isdir`, none containing turn content) — the
+    directory holds only subagents/ (per-Task-tool-subagent transcripts — NOT this
+    session's own turns; reading them would misattribute another agent's
+    conversation as this session's) and tool-results/ (oversized hook-stdout
+    offload). For that confirmed shape this returns None on purpose — there is
+    genuinely no content to recover, and the caller's existing unknown-layout
+    logging covers it.
+
+    Still probes defensively for a top-level *.jsonl sibling in case a future CC
+    version relocates the real transcript INTO the directory (rather than
+    alongside it) — so that layout change doesn't need another bug report to
+    catch. Never raises; returns None if nothing file-shaped is found at the
+    top level."""
+    try:
+        candidates = sorted(
+            (f for f in path.iterdir() if f.is_file() and f.suffix == ".jsonl"),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+    except OSError:
+        return None
+    if not candidates:
+        return None
+    chosen = candidates[0]
+    if project_dir is not None:
+        note = "" if len(candidates) == 1 else f" ({len(candidates)} candidates, picked newest mtime)"
+        _log_track_error(
+            project_dir,
+            f"directory transcript resolved: {path!r} -> {chosen.name!r}{note}",
+        )
+    try:
+        return _parse_jsonl_text(chosen.read_text())
+    except OSError:
+        return None
+
+
 def _load_jsonl(path, project_dir=None):
     """Read a JSONL file into a list of dicts, tolerating unreadable paths.
 
@@ -242,26 +296,21 @@ def _load_jsonl(path, project_dir=None):
     <session_id>.jsonl this hook is told about no longer exists; only a same-named
     directory does). Distinguish the two so track-errors.log carries a legible
     signal instead of one generic message. Still never raises; still returns []."""
-    rows = []
     try:
-        for line in Path(path).read_text().splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                rows.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
+        return _parse_jsonl_text(Path(path).read_text())
     except FileNotFoundError:
         if project_dir is not None:
             _log_track_error(project_dir, f"transcript path not found: {path!r}")
     except IsADirectoryError:
+        resolved = _resolve_directory_transcript(Path(path), project_dir)
+        if resolved is not None:
+            return resolved
         if project_dir is not None:
             _log_track_error(project_dir, f"transcript path is a directory: {path!r}")
     except OSError as exc:
         if project_dir is not None:
             _log_track_error(project_dir, f"transcript path unreadable ({exc!r}): {path!r}")
-    return rows
+    return []
 
 
 def _diagnose_transcript_path(project_dir, transcript_path):

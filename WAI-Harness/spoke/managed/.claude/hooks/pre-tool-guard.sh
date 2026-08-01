@@ -182,9 +182,17 @@ fi
 # placed here by Basher and distributed to every spoke: inert where these paths do
 # not exist, protective where they do. Edits to this substrate go through the
 # sanctioned tools (atomic_write/event_bus/db_writer), never raw rm/truncate/mv.
+# Exception: managed/ SOURCE retirement (not harness.db, not patterns/*.jsonl) is a
+# normal authoring operation for mywheel (is_master) and goes through
+# managed/tools/managed_retire.py, which snapshots to refs/recovery/ before deleting —
+# same recoverability guarantee as the raw-rm block below, so it is let through here.
 if echo "$first_line" | grep -qE '(^|[[:space:]/])harness\.db([[:space:]]|$)|/patterns/[^[:space:]]*\.jsonl([[:space:]]|$)|/managed/'; then
-  if echo "$first_line" | grep -qE '^\s*\\?(rm|shred|truncate)\s|^\s*mv\s'; then
+  if echo "$first_line" | grep -qE '(^|[[:space:]/])managed_retire\.py([[:space:]]|$)' \
+     && ! echo "$first_line" | grep -qE '(^|[[:space:]/])harness\.db([[:space:]]|$)|/patterns/[^[:space:]]*\.jsonl([[:space:]]|$)'; then
+    _guard_audit_log "PROTECTED_SUBSTRATE_RETIRE_ALLOWED" "managed/ retirement via managed_retire.py allowed"
+  elif echo "$first_line" | grep -qE '^\s*\\?(rm|shred|truncate)\s|^\s*mv\s'; then
     echo "BLOCKED: destructive op on a protected harness path (harness.db / patterns/*.jsonl journal / managed/). Append-only substrate — use the sanctioned tool, not raw rm/truncate/mv." >&2
+    echo "  Retiring a managed/ source file? Use:  WAI-Harness/spoke/managed/tools/managed_retire.py <path>   (snapshots to refs/recovery/ first)" >&2
     _guard_audit_log "PROTECTED_SUBSTRATE" "destructive op on harness.db / patterns/*.jsonl / managed/ blocked"
     exit 2
   fi

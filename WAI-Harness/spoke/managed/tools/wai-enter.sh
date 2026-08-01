@@ -534,12 +534,19 @@ _wai_isolation_apply() {
 # ── Duplicate-session guard: DECIDE (read-only) ──────────────────────────────
 # A second INTERACTIVE claude in the same PROJECT_DIR receives mirrored keystrokes
 # via zellij's dual-layer focus (the floating-twin bug). Sets _DUP_STATE
-# (fired/skipped) + _DUP_WHY + _dup_pids.
-# NOTE: the /proc scan stays. A later wave retires it once the lane registry is
-# proven authoritative; retiring it now would trade false positives for false
-# negatives, which is strictly worse.
+# (fired/skipped) + _DUP_WHY + _dup_pids + _DUP_ISO_FAILED.
+# LANE-GATED (bug-wcl-dup-guard-false-positive-cwd-only-liveness-v1): the /proc scan
+# used to be the guard's ONLY liveness test, competing with the lane registry the
+# isolation block above already reaped and trusted. Observed false positive: pid
+# 2149597 (tty pts/7, same tty as the launcher) had NO lane — lanes read 0, so
+# isolation stayed silent — yet the pure /proc scan still matched it and blocked a
+# legitimate launch. _wai_isolation_decide (just above) already computed _LANE_LIVE
+# from the authoritative, reaped registry (excluding our own just-reserved token);
+# reuse it instead of re-deriving liveness from /proc alone. Full retirement of the
+# scan is still deferred (kept as the one path that catches a live lane whose
+# isolation apply failed) — only gating changed.
 _wai_dupguard_decide() {
-    _DUP_STATE="skipped"; _DUP_WHY=""; _dup_pids=()
+    _DUP_STATE="skipped"; _DUP_WHY=""; _dup_pids=(); _DUP_ISO_FAILED=no
     if [[ "${_WAI_HELP:-false}" == "true" ]]; then _DUP_WHY="--help/--version passthrough"; return 0; fi
     if [[ "$TOOL" != "claude" ]]; then _DUP_WHY="tool is ${TOOL}, not claude"; return 0; fi
     if [[ "${WAI_ALLOW_DUP:-0}" == "1" ]]; then _DUP_WHY="WAI_ALLOW_DUP=1"; return 0; fi
@@ -549,11 +556,25 @@ _wai_dupguard_decide() {
        || [[ "$_WAI_DRY" == "1" && "${_ISO_SHOULD:-no}" == "yes" ]]; then
         _DUP_WHY="source-isolated in its own worktree (different CWD)"; return 0
     fi
-    local _a _pd _dp
+    local _a
     for _a in "${_TOOL_ARGS[@]}"; do
         if [[ "$_a" == "-p" || "$_a" == "--print" ]]; then _DUP_WHY="headless (-p)"; return 0; fi
     done
-    local _st
+    # The authoritative registry says nothing else is live — trust it, do not scan
+    # /proc. (_ISO_SHOULD is "no" iff _LANE_LIVE==0, by construction in
+    # _wai_isolation_decide, in BOTH dry and real runs — see the invariant note
+    # there. Checking the count directly here keeps this readable on its own.)
+    if [[ "${_LANE_LIVE:-0}" -eq 0 ]]; then
+        _DUP_WHY="0 live lanes in the registry (authoritative) — not scanning /proc"
+        return 0
+    fi
+    # _LANE_LIVE>=1 here means isolation SHOULD have fired (_ISO_SHOULD=yes, set
+    # above) but _WAI_ISOLATED is still 0 — wt-new failed, or WAI_NO_ISOLATE=1
+    # disabled it. That is the one case that genuinely still warrants this guard.
+    _DUP_ISO_FAILED=yes
+    local _my_tty
+    _my_tty=$(ps -o tty= -p "$$" 2>/dev/null | tr -d ' ')
+    local _st _pd _dp _cmd1
     for _pd in /proc/[0-9]*; do
         _dp="${_pd#/proc/}"
         [[ "$_dp" == "$$" ]] && continue
@@ -569,11 +590,33 @@ _wai_dupguard_decide() {
         case "$_st" in Z|X|x|"") continue ;; esac
         [[ "$(readlink "$_pd/cwd" 2>/dev/null)" == "$PROJECT_DIR" ]] || continue
         tr '\0' ' ' 2>/dev/null < "$_pd/cmdline" | grep -qE ' -p( |$)| --print' && continue
+        # cwd is CORROBORATION, not identity. Exclude non-interactive claude
+        # subcommands (mcp, doctor, auth, ...) parked in the project dir: argv[0] is
+        # "claude" for those too. A denylist of known subcommand names, not a blanket
+        # "argv[1] has no leading dash" rule — a hand-run `claude "some prompt"`
+        # (positional, non-flag) is a real interactive launch and must NOT be swept
+        # up with `claude mcp ...`. Extend this list if claude grows new subcommands.
+        _cmd1=$(tr '\0' '\n' 2>/dev/null < "$_pd/cmdline" | sed -n '2p')
+        case "$_cmd1" in
+            mcp|doctor|auth|config|update|install|migrate-installer|setup-token) continue ;;
+        esac
+        # Same tty as us => this terminal's own predecessor/exiting session, never a
+        # floating twin (zellij's dual-layer mirroring is across DIFFERENT ptys).
+        # "?" (no controlling tty) is NOT a tty identity -- two unrelated headless
+        # processes both reporting "?" are not "the same terminal"; treating them as
+        # a match would suppress a genuine twin exactly when we have the least other
+        # information to go on. Only a real, matching tty ever skips a candidate.
+        [[ -n "$_my_tty" && "$_my_tty" != "?" \
+           && "$(ps -o tty= -p "$_dp" 2>/dev/null | tr -d ' ')" == "$_my_tty" ]] && continue
         _dup_pids+=("$_dp")
     done
     if [[ "${#_dup_pids[@]}" -gt 0 ]]; then
         _DUP_STATE="fired"
-        _DUP_WHY="${#_dup_pids[@]} live interactive claude session(s) in ${PROJECT_DIR} (pid: ${_dup_pids[*]})"
+        if [[ "$_DUP_ISO_FAILED" == "yes" ]]; then
+            _DUP_WHY="isolation failed for ${_LANE_LIVE} other live lane(s) — sharing ${PROJECT_DIR} (pid: ${_dup_pids[*]})"
+        else
+            _DUP_WHY="${#_dup_pids[@]} live interactive claude session(s) in ${PROJECT_DIR} (pid: ${_dup_pids[*]})"
+        fi
     else
         _DUP_WHY="no live interactive claude in ${PROJECT_DIR}"
     fi
@@ -583,7 +626,12 @@ _wai_dupguard_decide() {
 _wai_dupguard_apply() {
     local _dp _dup_ans
     printf "\n  ${_W_YLW}⚠ duplicate-session guard${_W_RST}\n"
-    printf "  A live Claude session already runs in this project (%s):\n" "$(basename "$PROJECT_DIR")"
+    if [[ "${_DUP_ISO_FAILED:-no}" == "yes" ]]; then
+        printf "  Source isolation failed for %s other live session(s) — this launch would SHARE %s:\n" \
+            "${_LANE_LIVE:-?}" "$(basename "$PROJECT_DIR")"
+    else
+        printf "  A live Claude session already runs in this project (%s):\n" "$(basename "$PROJECT_DIR")"
+    fi
     for _dp in "${_dup_pids[@]}"; do
         printf "    pid %s  tty %s\n" "$_dp" "$(ps -o tty= -p "$_dp" 2>/dev/null | tr -d ' ')"
     done
@@ -598,8 +646,11 @@ _wai_dupguard_apply() {
             exit 0
         fi
     else
+        # A non-TTY launch that hits this guard is not a safe silent no-op: an exit 0
+        # here reads as SUCCESS to anything checking $?, while the tool never ran.
+        # Fail loudly instead (WAI_ALLOW_DUP=1 still forces past this entirely).
         printf "  ${_W_DIM}No TTY — aborting to avoid a silent twin (WAI_ALLOW_DUP=1 to force).${_W_RST}\n"
-        exit 0
+        exit 1
     fi
 }
 

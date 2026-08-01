@@ -479,31 +479,6 @@
       }
     },
     {
-      "id": "cap-wai-closeout-feedback-v2-slim",
-      "name": "wai-closeout-feedback-v2-slim",
-      "kind": "command",
-      "tier": "awareness",
-      "situation": "WAI Closeout Feedback — Fast Path",
-      "solution": "Use wai-closeout-feedback-v2-slim (templates/commands/wai-closeout-feedback-v2-slim.md).",
-      "owner_advisor": null,
-      "file_paths": [
-        "templates/commands/wai-closeout-feedback-v2-slim.md"
-      ],
-      "symbol_refs": [],
-      "verification_ref": null,
-      "requires_tools": [],
-      "source": "spoke",
-      "status": "present",
-      "auto_generated": true,
-      "judgement": {
-        "status": "unjudged",
-        "reason": "auto-generated; description present but never reviewed by an author",
-        "judged_by": null,
-        "judged_at": null,
-        "note": "Counted as UNJUDGED, never as a card of no value. An unjudged card is honest; an auto-filled one that reads as authored is the verified=true-with-no-check pathology in a new location."
-      }
-    },
-    {
       "id": "cap-wai-closeout-reference",
       "name": "wai-closeout-reference",
       "kind": "command",

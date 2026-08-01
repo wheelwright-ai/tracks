@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.14.32",
+  "harness_version": "4.14.34",
   "is_master": false,
-  "generated_at": "2026-07-31T19:21:08.255733+00:00",
-  "master_sha": "b61d4d1103bc7d0106d0faf04f59312d2788ef43",
+  "generated_at": "2026-08-01T16:05:11.625143+00:00",
+  "master_sha": "8e5bafe7faf60fed49e38c1e6fbbda99ede7f528",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -631,7 +631,7 @@
     },
     ".claude/hooks/pre-tool-guard.sh": {
       "version": "4.6.5",
-      "md5": "852664076ab5cef3cc8e8c7919c46529",
+      "md5": "04f58bfb8bd615ed67e042866db35a50",
       "owner": "basher"
     },
     ".claude/hooks/pre-write-guard.sh": {
@@ -671,7 +671,7 @@
     },
     ".claude/hooks/synthesize_turn.py": {
       "version": "4.6.5",
-      "md5": "a51e8a28ff9839a556aa2501171aed80",
+      "md5": "886997e917fe2dce4304823d5a2c4153",
       "owner": "basher"
     },
     ".claude/hooks/turn_insight.py": {
@@ -681,7 +681,7 @@
     },
     ".claude/hooks/user-prompt-submit.sh": {
       "version": "4.6.5",
-      "md5": "c6c089143c7f779c8397dd397cec1f5b",
+      "md5": "85e35620134e58284a4c5200f47c4b5e",
       "owner": "basher"
     },
     ".claude/hooks/validate_track_buffer.py": {
@@ -896,7 +896,7 @@
     },
     "capabilities-graph.json": {
       "version": "4.6.5",
-      "md5": "f3fc75ee1f670a1fd8ddb6608e1d3d0a",
+      "md5": "e763a0a2c392a966b768bc645d89a2ab",
       "owner": "basher"
     },
     "config/.gitkeep": {
@@ -3964,6 +3964,11 @@
       "md5": "280fc8100a9a3506b0caabd4f9ab3f04",
       "owner": "basher"
     },
+    "tools/managed_retire.py": {
+      "version": "4.14.34",
+      "md5": "1cadf34fd43b227a672900a0d36ef2e2",
+      "owner": "basher"
+    },
     "tools/managed_sentinel.py": {
       "version": "4.14.5",
       "md5": "b5376cca1f6e37516f77368a77bc4ba6",
@@ -4072,6 +4077,11 @@
     "tools/qwen_advisor.py": {
       "version": "4.6.5",
       "md5": "396661a92983b39c3deeb795baab7390",
+      "owner": "basher"
+    },
+    "tools/realized_outcome_join.py": {
+      "version": "4.14.34",
+      "md5": "4338608a0df002db18525c48392c9866",
       "owner": "basher"
     },
     "tools/recertification_sweep.py": {
@@ -4476,7 +4486,7 @@
     },
     "tools/wai-enter.sh": {
       "version": "4.6.9",
-      "md5": "190d07a062b3a6e62a19d2bb09657379",
+      "md5": "236480872949ac0f36548b51418c7380",
       "owner": "basher"
     },
     "tools/wai_assurance.py": {

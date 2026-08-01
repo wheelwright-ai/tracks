@@ -66,9 +66,58 @@ fi
 # Gold count. tz uses %Z (PDT/PST), never hardcoded.
 if [[ -n "$_UPS_SID" ]]; then
   _TR_GUARD="$BASE/runtime/lanes/$_UPS_SID/session-guard.json"
+  # TURN NUMBER MUST SURVIVE A RESUME.
+  #
+  # The lane guard is keyed by the CLAUDE CODE session id, and a --resume mints a
+  # NEW id — so its turn_count restarts at 0 and the statusline announces "Turn 1"
+  # in the middle of a long session. Observed 2026-08-01: an interrupted session
+  # resumed and reported Turn 1 on what was the fourteenth exchange, which is
+  # exactly the place-awareness the statusline exists to give.
+  #
+  # The TRACK is the durable record — it is per-WAI-session and survives any number
+  # of resumes. Take the larger of the two: the track for continuity across
+  # resumes, the lane for turns not yet flushed to it.
   _TR_TC=$(python3 -c "import json;print(json.load(open('$_TR_GUARD')).get('turn_count',0))" 2>/dev/null || echo 0)
   [[ "$_TR_TC" =~ ^[0-9]+$ ]] || _TR_TC=0
-  _TR_N=$(( _TR_TC + 1 ))
+  _TR_TRK=$(python3 - "$BASE" <<'TRKEOF' 2>/dev/null || echo 0
+import glob, json, os, sys
+base = sys.argv[1]
+# Sort by the TRACK FILE's mtime, not the directory's. Measured 2026-08-01: the
+# newest session DIRECTORY was session-20260731-1823 (stale, 1 line, last written
+# the previous morning) while the live track was session-20260730-1728 (10 lines,
+# written minutes ago). A directory's mtime moves for reasons that have nothing to
+# do with turns. _session_state.track_path was also wrong — it named the stale one
+# — so the file actually being appended to is the only trustworthy signal.
+tracks = [t for t in glob.glob(os.path.join(base, "sessions", "session-*", "track.jsonl"))]
+if not tracks:
+    print(0); raise SystemExit
+tracks.sort(key=os.path.getmtime)
+n = 0
+try:
+    with open(tracks[-1]) as fh:
+        for line in fh:
+            try:
+                if json.loads(line).get("event") == "turn":
+                    n += 1
+            except Exception:
+                continue
+except OSError:
+    pass
+print(n)
+TRKEOF
+)
+  [[ "$_TR_TRK" =~ ^[0-9]+$ ]] || _TR_TRK=0
+  _TR_N=$(( (_TR_TC > _TR_TRK ? _TR_TC : _TR_TRK) + 1 ))
+
+  # SESSION NUMBER, so the operator can see WHICH session at a glance. Canonical
+  # source is _session_state.session_count — the same value the wakeup banner
+  # prints as "Session 140 initialized". Omitted entirely rather than guessed if
+  # it cannot be read.
+  _TR_SNO=$(python3 -c "
+import json
+d=json.load(open('$BASE/WAI-State.json'))
+n=(d.get('_session_state') or {}).get('session_count')
+print('s%s' % n if n else '')" 2>/dev/null || echo "")
   _TR_DATE=$(TZ=America/Los_Angeles date '+%a, %b %-d, %Y' 2>/dev/null)
   _TR_TIME=$(TZ=America/Los_Angeles date '+%-I:%M %p %Z' 2>/dev/null)
   # Live model id from the transcript's last assistant message; fall back to state, then a
@@ -217,7 +266,10 @@ print("v" + ver + marker)
 HVEOF
 )"
   [ -n "$_TR_HV" ] && _TR_HV=" | ${_TR_HV}"
-  _TR_SL="Turn ${_TR_N} | ${_TR_DATE} | ${_TR_TIME} | ${_TR_MODEL}${_TR_HV} | Gold: +{count}"
+  # s### first: the operator asked for session identity at a glance, and it is the
+  # field that tells him WHICH session a turn belongs to after a resume.
+  _TR_SP=""; [ -n "$_TR_SNO" ] && _TR_SP="${_TR_SNO} | "
+  _TR_SL="${_TR_SP}Turn ${_TR_N} | ${_TR_DATE} | ${_TR_TIME} | ${_TR_MODEL}${_TR_HV} | Gold: +{count}"
   printf '%s\n' "<wai-track-turn>"
   printf '%s\n' "WAI Track v2.0.2 per-turn obligations (an INSTRUCTION to act on, not a message to acknowledge):"
   printf '%s\n' "1. RICH ENTRY (Layer-1, full-feature): before your statusline, READ the pre-seeded ${_TR_BUF}"
