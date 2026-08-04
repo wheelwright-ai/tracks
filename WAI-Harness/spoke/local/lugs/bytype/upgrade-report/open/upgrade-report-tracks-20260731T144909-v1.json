@@ -3,7 +3,7 @@
   "type": "upgrade-report",
   "status": "open",
   "routed_to": "LOCAL",
-  "title": "Upgrade to 4.14.32 on tracks \u2014 validation PARTIAL",
+  "title": "Upgrade to 4.14.32 on tracks — validation PARTIAL",
   "created_at": "2026-07-31T14:49:09.477160+00:00",
   "created_by": "harness_upgrade.emit_upgrade_report",
   "spoke_id": "tracks",
@@ -28,7 +28,7 @@
       {
         "check": "paths",
         "status": "skip",
-        "detail": "spoke has a WAI-Spoke tree (v3 coexist) \u2014 v3 paths are legitimate here",
+        "detail": "spoke has a WAI-Spoke tree (v3 coexist) — v3 paths are legitimate here",
         "evidence": []
       },
       {
@@ -66,7 +66,7 @@
     ],
     "verdict": "clean-with-preexisting"
   },
-  "summary": "942 file(s) applied; bytes verified; validation clean-with-preexisting \u2014 3/4 check(s) passed, 1 FAILED: health (1 skipped)",
+  "summary": "942 file(s) applied; bytes verified; validation clean-with-preexisting — 3/4 check(s) passed, 1 FAILED: health (1 skipped)",
   "friction_points": [
     {
       "step": "health",
@@ -78,7 +78,10 @@
   "effort": 2,
   "disposition": "needs_you",
   "disposition_reason": "missing both file_targets and acceptance_criteria -- needs human scoping",
-  "disposition_at": "2026-07-31T14:49:09.891922+00:00",
+  "disposition_at": "2026-08-01T17:00:54.127618+00:00",
   "_migrated_by": "disposition_migrate",
-  "_migrated_at": "2026-07-31T14:49:09.886849+00:00"
+  "_migrated_at": "2026-07-31T14:49:09.886849+00:00",
+  "execution_mode": "subagent",
+  "execution_substrate": null,
+  "gt_convoy_hint": "low-quality dispatch (absorbed: was tender, quality=0)"
 }

@@ -1,0 +1,54 @@
+{
+  "status": "open",
+  "va": "build",
+  "routed_to": "LOCAL",
+  "source_spoke": "track-prompt-lab",
+  "created_at": "2026-08-03T17:39:23.743693+00:00",
+  "spec_id": "spec-track-prompt-promotion-chain-v1",
+  "blocked_by": [
+    "fix-harness-track-prompt-provenance-and-stale-base-gate-v1",
+    "T4 endurance gate: v3.0.0 FAILED (16/20 vs baseline 20/20) - publishable requires T4 pass"
+  ],
+  "done_list": [],
+  "id": "impl-tracks-publish-sanitized-prompt-v1",
+  "type": "impl",
+  "priority": "P2",
+  "title": "Stage 3: publish the sanitized v3.0.0 track prompt to the public tracks repo",
+  "model_fit": "sonnet",
+  "effort_score": 2,
+  "estimated_seconds": 900,
+  "impact": 6,
+  "file_targets": [
+    "prompts/",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "perceive": "Measured from track-prompt-lab 2026-08-03. This repo's prompts/ carries 'WAI Track v0.24' while the lab has validated through v2.0.4 and the harness is being moved to it. Stage 3 of the track-prompt-chain wagon (hub groups.json) has not run in a long time - the public repo is many versions behind what actually runs, so anyone reading it is reading a prompt nobody uses. This lug is BLOCKED until stage 2 lands: publishing before the harness carries v2.0.4 would be exactly the stage-skip the chain exists to prevent.",
+  "execute": "BLOCKED until fix-harness-track-prompt-provenance-and-stale-base-gate-v1 completes AND the lab marks v3.0.0 active. Then: 1. Take track-prompt-lab prompts/v3.0.0.md (sha256 288ea2ac8954ea21f13440d8b443027832232b5adfe017f054b5c682251715c5) as the source. 2. Sanitize: strip operator-specific paths (/home/mario/...), spoke names, wheel ids and internal identifiers. The sanitized copy must be usable by someone with no Wheelwright install. NOTE: v3.0.0 is explicitly dual-surface - the cc-tier harness sections (harness_buffer_protocol, harness_turn_entry, harness_ceremony_carve_out, harness_format footer) reference Wheelwright internals. Decide per section: generalize it, or gate it behind a clearly-labelled 'if your harness provides X' condition. Do not silently delete them - the cw/gw path must still read as a complete prompt, and the file's own portability_intent says everything below mission/operator_working_agreement is mechanism meant to survive forks. 3. Rewrite user_defaults.timezone and the operator_working_agreement section to neutral template values - the file itself names these as the two fork seams. 4. Record in the published file which lab version it derives from, and its source sha256. 5. Retire or archive the v0.24 material so only one version is presented as current. 6. Update CHANGELOG.md and README.md to name v3.0.0.",
+  "verify": "1. `grep -rho 'WAI Track v[0-9.]*' prompts/ | sort -u` returns exactly one version: v3.0.0. 2. `grep -rn '/home/mario' prompts/` returns nothing. 3. `grep -rn 'WAI-Harness/spoke/local' prompts/` returns nothing, or only inside a labelled harness-conditional block. 4. The published file names its lab source version and sha256. 5. `python3 tools/check_promotion_chain.py` in track-prompt-lab reports no stage-3 finding.",
+  "acceptance_criteria": [
+    "Exactly one track-prompt version is published, and it is v3.0.0",
+    "No operator paths, spoke names or internal identifiers survive sanitization",
+    "Harness-only sections are generalized or explicitly conditional, never silently dropped",
+    "The two fork seams (user_defaults, operator_working_agreement) are reset to template values",
+    "The published copy records the lab version and sha256 it derives from",
+    "The stage-3 chain check is clean"
+  ],
+  "thinking": "Filed blocked rather than held back, so the chain is visible end to end and stage 3 is not rediscovered later as a surprise. Sanitization is named as a real step with a checkable test (no /home/mario paths) because a sanitized copy that still leaks internals is worse than none.",
+  "related": [
+    "spec-track-prompt-promotion-chain-v1",
+    "impl-hub-group-track-prompt-chain-v1"
+  ],
+  "retargeted": {
+    "at": "2026-08-03T18:47:07.963813+00:00",
+    "from": "v2.0.4",
+    "to": "v3.0.0",
+    "why": "The operator produced v1.2.8 - the prompt he had given the harness, which the harness never applied and the lab had never ingested. v3.0.0 is that prompt normalized for dual-surface use. v2.0.4 keeps its evidence but is no longer the promotion target."
+  },
+  "t4_block": {
+    "at": "2026-08-03T19:26:27.453287+00:00",
+    "verdict": "FAIL",
+    "detail": "v3.0.0 executed 16/20 on run-til-failure-20t against a cached v2.0.2 baseline of 20/20. Per CLAUDE.md, deployable = T2 pass, publishable = T4 pass. v3.0.0 is deployable but NOT publishable. DO NOT publish until a v3.0.x clears T4. The harness (stage 2) is unaffected.",
+    "unblocks_when": "a v3.0.x variant records a T4 run with 20/20 completeness"
+  }
+}
