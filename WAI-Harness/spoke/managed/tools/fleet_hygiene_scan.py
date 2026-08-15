@@ -63,12 +63,24 @@ def _now_iso():
 
 # ── session classification ────────────────────────────────────────────────────
 
-def classify_session(track_path):
+# Recency window for interrupted session review queue (shared with wai_enter_metrics.py)
+INTERRUPTED_SESSION_RECENCY_DAYS = 7
+
+def _lane_kind(session_name):
+    """Classify session lane kind by name.
+
+    ohr-* = headless runner (Open House Renovation, autopilot, etc.)
+    otherwise = operator session
+    """
+    return "headless" if session_name.startswith("ohr-") else "operator"
+
+def classify_session(track_path, session_name=None):
     """Classify a session lane by its track.jsonl.
 
-    husk        : no real work (0 turns; only session_start / empty / missing track)
-    closed      : last entry is a closeout OR a completed turn
-    interrupted : has work turns but no closeout (needs review)
+    husk            : no real work (0 turns; only session_start / empty / missing track)
+    closed          : last entry is a closeout OR a completed turn
+    headless-complete : ohr-* lane with work (headless runners exit without closeout)
+    interrupted     : operator session with work turns but no closeout (needs review)
     """
     p = Path(track_path)
     if not p.exists() or p.stat().st_size == 0:
@@ -92,6 +104,9 @@ def classify_session(track_path):
         return "husk"
     if entries[-1].get("completed") is True:
         return "closed"
+    # Headless runners (ohr-*) are expected to exit without closeout
+    if session_name and _lane_kind(session_name) == "headless":
+        return "headless-complete"
     return "interrupted"
 
 
@@ -139,10 +154,11 @@ def scan_spoke_sessions(spoke_root, apply=False, grace_hours=24):
     protected = _pending_savepoint_sessions(base)
     archive_dir = sessions_dir / "_archive"
     now = datetime.now(timezone.utc).timestamp()
+    recency_cutoff = now - (INTERRUPTED_SESSION_RECENCY_DAYS * 86400)
     for sess in sorted(sessions_dir.iterdir()):
         if not sess.is_dir() or sess.name == "_archive":
             continue
-        klass = classify_session(sess / "track.jsonl")
+        klass = classify_session(sess / "track.jsonl", session_name=sess.name)
         if sess.name in protected:
             report["savepoint_protected"] += 1
             report["kept"] += 1
@@ -161,8 +177,13 @@ def scan_spoke_sessions(spoke_root, apply=False, grace_hours=24):
                     sess.rename(dst)
             report["husk_archived"] += 1
         elif klass == "interrupted":
-            report["interrupted"].append(sess.name)
-            report["review_queued"] += 1
+            # Only queue recent operator sessions for review (headless-complete excluded above)
+            age_s = sess.stat().st_mtime
+            if age_s >= recency_cutoff:
+                report["interrupted"].append(sess.name)
+                report["review_queued"] += 1
+            else:
+                report["kept"] += 1
         else:
             report["kept"] += 1
     if report["interrupted"]:
@@ -308,7 +329,7 @@ def rescue_worktrees(wheel_path, stranded, dry_run=True):
 
 
 def count_stale_sessions(path, stale_days):
-    """Sessions without a closeout, older than N days."""
+    """Sessions without a closeout, older than N days (excludes ohr-* headless lanes)."""
     sdir = os.path.join(path, "WAI-Harness/spoke/local/sessions")
     if not os.path.isdir(sdir):
         return None
@@ -318,6 +339,9 @@ def count_stale_sessions(path, stale_days):
         if not d.is_dir():
             continue
         total += 1
+        # Skip ohr-* headless lanes; they are expected to exit without closeout
+        if _lane_kind(d.name) == "headless":
+            continue
         track = os.path.join(d.path, "track.jsonl")
         if not os.path.exists(track):
             interrupted += 1
