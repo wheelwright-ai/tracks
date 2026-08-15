@@ -38,6 +38,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import symbol_loss  # noqa: E402 -- sibling module, same dir on sys.path
+
 MANIFEST_NAME = "MANIFEST.json"
 VERSION_FILE = "VERSION"          # WAI-Harness root; same source of truth manifest_build reads
 DEFAULT_VERSION = "4.0.0-pre"
@@ -286,20 +289,151 @@ def compute_clean_retire_set(master_files, target_managed, local_allow=None):
     return out
 
 
+AHEAD_LEDGER = "harness-ahead.json"
+
+
+def load_ahead_ledger(target_managed):
+    """Files this spoke has deliberately fixed AHEAD of canon.
+
+    THE BUG THIS CLOSES. compute_home_map used to classify md5-inequality as
+    `change` unconditionally, and apply() then overwrote the spoke's file with
+    master's. The diff has no notion of direction, so a spoke that FIXES a bug is
+    by definition "different from master" and therefore "behind" — every local
+    fix is reverted by the next pull. Observed repeatedly in basher: wai-enter.sh
+    (s119), resident_digest.py (s119 and again s120, 97 lines lost with zero
+    gained, restored by hand both times), and a pending pull that was about to
+    revert thread_landing.py and wai-closeout.md the same way.
+
+    The ledger is a DECLARATION, not a guess. Each entry names the file and the
+    change-lug that was sent to canon, so an entry is a promise that the fix is
+    in flight upstream — not a licence to fork. It auto-retires: once master's
+    md5 equals the spoke's, canon has absorbed the fix and the pin is dropped,
+    which is also the proof that the round trip closed.
+
+    Shape — {BASE_MANAGED}/harness-ahead.json:
+      {"pins": [{"path": "tools/resident_digest.py",
+                 "change_lug": "change-canon-...-v1",
+                 "reason": "retired_threads suppression canon lacks",
+                 "declared_at": "2026-08-01T..."}]}
+
+    Absent file = no pins. A malformed file = no pins AND a loud caller-visible
+    error, never a silent empty set: failing open here would restore the exact
+    data loss the ledger exists to prevent.
+    """
+    p = Path(target_managed) / AHEAD_LEDGER
+    if not p.exists():
+        return {}, None
+    try:
+        doc = json.loads(p.read_text())
+    except (OSError, json.JSONDecodeError) as e:
+        return {}, f"{AHEAD_LEDGER} is unreadable ({e}) — pins NOT applied"
+    pins = {}
+    for entry in doc.get("pins") or []:
+        if isinstance(entry, dict) and entry.get("path"):
+            if not entry.get("change_lug"):
+                # A pin with no upstream lug is a fork, not a fix in flight.
+                continue
+            pins[entry["path"]] = entry
+    return pins, None
+
+
+# ABSORBED FROM BASHER, 2026-08-12. Basher authored the net-symbol-loss guard and master
+# never took it -- so master, the canonical author, was the one distribution path with NO
+# protection against a pull that silently reverts a file to an older version. Measured on
+# basher: thread_landing.py lost screen_command, COMMAND_DENY_LIST and
+# DEFAULT_COMMAND_TIMEOUT with zero symptom.
+SYMBOL_LOSS_OVERRIDE_ENV = "WAI_ALLOW_SYMBOL_LOSS"
+
+
+def _detect_symbol_loss(master_managed, target_managed, changed_rels):
+    """For every rel in changed_rels (home_map['change'] -- files a pull is about
+    to overwrite), diff the target's CURRENT bytes (before) against the
+    master's NEW bytes (after) with symbol_loss.net_symbol_loss().
+
+    Returns {rel: [lost symbol names]} -- only files with actual loss appear, so
+    an empty dict means clean. Missing/unreadable files are skipped (nothing
+    provable to compare); this check only ever asserts loss it can name."""
+    master_root, target_root = Path(master_managed), Path(target_managed)
+    # Declared renames come from the MASTER side, because the master is the author making
+    # the claim. A spoke cannot forgive its own incoming deletions.
+    declared = symbol_loss.load_supersessions(master_root)
+    losses = {}
+    for rel in changed_rels:
+        src, dst = master_root / rel, target_root / rel
+        if not src.is_file() or not dst.is_file():
+            continue
+        try:
+            before_text = dst.read_text(encoding="utf-8", errors="replace")
+            after_text = src.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        lost = symbol_loss.net_symbol_loss(before_text, after_text, rel,
+                                           supersessions=declared.get(rel))
+        if lost:
+            losses[rel] = lost
+    return losses
+
+
+def _record_symbol_loss_halt(target_managed, losses, overridden=False):
+    """Append a halt record to {target_managed}/harness-ahead.json -- never only
+    printed, so a headless/autopilot pull leaves durable evidence even when no
+    human sees stdout. Uses a SEPARATE `halts` array from `pins`: a pin is a
+    declared, deliberate fork-in-flight; a halt is an ALARM the guard raised,
+    which load_ahead_ledger() (only reads `pins`) correctly never treats as a
+    pin. Best-effort: a ledger-write failure must not be the reason a real
+    symbol-loss halt goes unenforced, so failures here are swallowed -- the
+    halt/abort decision in upgrade() happens independently of this write."""
+    p = Path(target_managed) / AHEAD_LEDGER
+    try:
+        doc = json.loads(p.read_text()) if p.exists() else {}
+    except (OSError, json.JSONDecodeError):
+        doc = {}
+    if not isinstance(doc, dict):
+        doc = {}
+    doc.setdefault("schema", "harness-ahead/1.0.0")
+    doc.setdefault("pins", [])
+    halts = doc.setdefault("halts", [])
+    halts.append({
+        "detected_at": datetime.now(timezone.utc).isoformat(),
+        "losses": losses,
+        "overridden": overridden,
+        "override_env": SYMBOL_LOSS_OVERRIDE_ENV,
+    })
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(doc, indent=2) + "\n")
+    except OSError:
+        pass
+
+
 def compute_home_map(master_managed, target_managed):
     """Diff the master MANIFEST against the target's current managed files.
-    Returns {add, change, unchanged, orphan, retire} lists of relpaths. No writes."""
+    Returns {add, change, unchanged, orphan, retire, ahead} lists of relpaths.
+    No writes.
+
+    `ahead` is the direction-aware bucket: a file that differs from master AND is
+    declared in the spoke's harness-ahead.json ledger. It is reported, never
+    copied over. See load_ahead_ledger for why this bucket has to exist.
+    """
     master_files = load_manifest(master_managed)["files"]
     target_root = Path(target_managed)
-    add, change, unchanged = [], [], []
+    pins, pin_error = load_ahead_ledger(target_managed)
+    add, change, unchanged, ahead = [], [], [], []
     for rel, meta in master_files.items():
         tp = target_root / rel
         if not tp.exists():
             add.append(rel)
         elif _md5(tp) != meta["md5"]:
-            change.append(rel)
+            if rel in pins:
+                ahead.append(rel)
+            else:
+                change.append(rel)
         else:
             unchanged.append(rel)
+            if rel in pins:
+                # Master now matches us: canon absorbed the fix. The pin has done
+                # its job and is reported as retirable — a closed round trip.
+                pins[rel] = dict(pins[rel], absorbed=True)
     # orphans: managed files present in the target but not in the master manifest
     present = set(_iter_files(target_managed)) if target_root.exists() else set()
     orphan = sorted(present - set(master_files))
@@ -307,23 +441,64 @@ def compute_home_map(master_managed, target_managed):
     # them, the new one does not). The only bucket apply() is allowed to delete.
     return {"add": sorted(add), "change": sorted(change),
             "unchanged": sorted(unchanged), "orphan": orphan,
-            "retire": compute_retire_set(master_files, target_managed)}
+            "retire": compute_retire_set(master_files, target_managed),
+            "ahead": sorted(ahead),
+            "ahead_detail": {k: v for k, v in pins.items()},
+            "ahead_absorbed": sorted(k for k, v in pins.items() if v.get("absorbed")),
+            "ahead_error": pin_error}
 
 
-def verify(managed_root, manifest):
+def verify(managed_root, manifest, pins=None):
     """Recompute md5s under managed_root and compare to manifest. Returns
-    {ok, mismatches:[{file,expected,actual}], missing:[file]}."""
+    {ok, mismatches:[{file,expected,actual}], missing:[file], ahead:[{file,...}]}.
+
+    ABSORBED FROM BASHER, 2026-08-12, where it was authored and master never took it --
+    which is precisely why a master-to-basher pull was refused: it would have deleted the
+    fix for the deadlock described below.
+
+    THE DEADLOCK THIS CLOSES. compute_home_map() is direction-aware: a file in the
+    harness-ahead ledger lands in the `ahead` bucket and apply() deliberately does NOT
+    overwrite it, which is the whole point of the ledger. verify() then recomputed md5
+    against the manifest with no knowledge of that ledger -- so every pin the upgrade
+    correctly refused to clobber was reported as a MISMATCH, and verify_post_ok went
+    false because the upgrade had done exactly the right thing.
+
+    That is unwinnable, not flaky. A spoke holding ANY ahead-pin can never self-certify:
+    the two halves of the same tool disagree about whether a pinned file is supposed to
+    match. MEASURED on basher, the distributor spoke: 5 upgrade-reports for 4.14.46 over
+    two days, every one 981 files applied / verify_post_ok=false, with 3 of the 5 named
+    mismatches being declared pins carrying change-lugs already in flight to canon. And
+    because registry_version_stamp's evidence gate requires verify_post_ok, basher could
+    not prove its own version either -- the fleet's version column stayed fiction.
+
+    A pinned file that differs is `ahead`, and reported as such. It is NOT a mismatch and
+    does not poison `ok`. A pin auto-retires the moment master's bytes match, so this
+    cannot become a permanent exemption: when canon absorbs the fix, the pin drops and
+    the file falls back under the ordinary md5 rule.
+
+    pins=None keeps the old strict behaviour for callers that genuinely want a raw
+    byte-for-byte check (the certifier's extract comparison, for one).
+    """
     root = Path(managed_root)
-    mismatches, missing = [], []
+    pins = pins or {}
+    mismatches, missing, ahead = [], [], []
     for rel, meta in manifest["files"].items():
         p = root / rel
         if not p.exists():
             missing.append(rel)
             continue
         actual = _md5(p)
-        if actual != meta["md5"]:
-            mismatches.append({"file": rel, "expected": meta["md5"], "actual": actual})
-    return {"ok": not mismatches and not missing, "mismatches": mismatches, "missing": missing}
+        if actual == meta["md5"]:
+            continue
+        if rel in pins:
+            entry = pins[rel]
+            ahead.append({"file": rel, "expected": meta["md5"], "actual": actual,
+                          "change_lug": entry.get("change_lug"),
+                          "reason": entry.get("reason")})
+            continue
+        mismatches.append({"file": rel, "expected": meta["md5"], "actual": actual})
+    return {"ok": not mismatches and not missing, "mismatches": mismatches,
+            "missing": missing, "ahead": ahead}
 
 
 def apply(master_managed, target_managed, manifest, report=None, clean=False,
@@ -360,12 +535,27 @@ def apply(master_managed, target_managed, manifest, report=None, clean=False,
                                               local_allow=local_allow)
     else:
         retire_set = compute_retire_set(manifest["files"], target_managed)
+    # Direction-awareness. Reporting an `ahead` bucket while still copying over it
+    # would be a report with no teeth — the copy loop is where the data was
+    # actually lost. A pinned file is SKIPPED and named in the report; it is never
+    # silently preserved, because a silent skip is how a spoke forks by accident.
+    pins, pin_error = load_ahead_ledger(target_managed)
+    skipped = []
     written = 0
     for rel in manifest["files"]:
         src, dst = master_root / rel, target_root / rel
+        if rel in pins and dst.exists() and _md5(dst) != manifest["files"][rel]["md5"]:
+            skipped.append({"path": rel,
+                            "change_lug": pins[rel].get("change_lug"),
+                            "reason": pins[rel].get("reason")})
+            continue
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         written += 1
+    if report is not None:
+        report["ahead_skipped"] = skipped
+        if pin_error:
+            report["ahead_error"] = pin_error
     res = retire(target_managed, retire_set)
     if report is not None:
         report["retired"] = res["retired"]
@@ -436,6 +626,45 @@ def upgrade(master_managed, target_managed, dry_run=False, expect_version=None,
         report["ok"] = True   # a preview always "succeeds"; it asserts nothing applied
         return report
 
+    # NET SYMBOL LOSS GATE. ABSORBED FROM BASHER, 2026-08-12.
+    # md5-diff alone cannot distinguish "master improved this file" from "master
+    # silently reverted it to an older version" -- session-120 proved that: a pull
+    # rolled thread_landing.py back a full minor version (screen_command,
+    # COMMAND_DENY_LIST, DEFAULT_COMMAND_TIMEOUT gone) with zero local symptom.
+    # Before anything is written, diff every file home_map already marked CHANGE
+    # (never `ahead` -- those are pinned and apply() skips them anyway) against
+    # what the target currently holds. A net loss of a python def/class or shell
+    # function HALTS the pull here, names the lost symbols, and records the halt
+    # to harness-ahead.json -- never only printed, so a headless run still leaves
+    # durable evidence. WAI_ALLOW_SYMBOL_LOSS=1 is the deliberate-removal escape
+    # hatch: the caller has looked at the named symbols and confirms the loss is
+    # intended, not a revert.
+    #
+    # KNOWN LIMIT, measured on hub the day this was absorbed: the guard compares
+    # symbol NAMES, so a deliberate RENAME reads as a deletion. hub aborted on
+    # test_install_ships_always_clean_gitignore and
+    # test_overloaded_counts_only_human_items, both renamed on purpose in commit
+    # ed32cb4c3 with the reasons written down. The escape hatch is the correct
+    # answer there, and teaching the guard to read a declared supersession is
+    # tracked separately -- it must not be papered over by widening the gate.
+    symbol_losses = _detect_symbol_loss(master_managed, target_managed, home_map["change"])
+    report["symbol_loss"] = symbol_losses
+    if symbol_losses:
+        overridden = os.environ.get(SYMBOL_LOSS_OVERRIDE_ENV) == "1"
+        report["symbol_loss_overridden"] = overridden
+        _record_symbol_loss_halt(target_managed, symbol_losses, overridden=overridden)
+        if not overridden:
+            report["applied"] = 0
+            report["verify_post"] = None
+            report["ok"] = False
+            lost_desc = "; ".join(f"{rel}: {', '.join(syms)}"
+                                  for rel, syms in symbol_losses.items())
+            report["aborted"] = (
+                "NET SYMBOL LOSS detected before apply -- refusing (this pull would revert "
+                f"symbols) [{lost_desc}]. If this removal is deliberate, set "
+                f"{SYMBOL_LOSS_OVERRIDE_ENV}=1 and re-run.")
+            return report
+
     # DOES IT STILL WORK — the question md5 cannot ask (operator model 2026-07-22:
     # validation runs at upgrade time and is validated by the spoke that took it).
     # verify_post proves the bytes landed; it cannot notice that they landed broken.
@@ -454,7 +683,12 @@ def upgrade(master_managed, target_managed, dry_run=False, expect_version=None,
 
     report["applied"] = apply(master_managed, target_managed, manifest, report=report,
                               clean=clean, local_allow=local_allow)
-    report["verify_post"] = verify(target_managed, manifest)
+    # PIN-AWARE POST-VERIFY. apply() deliberately skips a pinned file; verifying it
+    # byte-for-byte afterwards then condemns the upgrade for doing the right thing.
+    _post_pins, _post_pin_err = load_ahead_ledger(target_managed)
+    report["verify_post"] = verify(target_managed, manifest, pins=_post_pins)
+    if _post_pin_err:
+        report["verify_post"]["pin_error"] = _post_pin_err
     report["ok"] = report["verify_post"]["ok"]
 
     if validate:
@@ -500,6 +734,67 @@ def run_validation(spoke_root):
     except Exception as exc:
         return {"outcome": "fail", "summary": f"validator raised: {type(exc).__name__}: {exc}",
                 "checks": [], "failed": ["validator"], "skipped": []}
+
+
+def _invoker():
+    """WHAT RAN THIS, not which function wrote the record.
+
+    MEASURED 2026-08-12. An upgrade-report from a repo the registry had marked inactive two
+    months earlier arrived in a live inbox and read as a fleet blocker. Establishing that it
+    was noise took a session. Establishing WHAT RAN IT was not possible at all: the record
+    said `created_by: harness_upgrade.emit_upgrade_report`, which names the pen and not the
+    hand. Cron was searched, the nightly sweep was read and cleared, logs were grepped, and
+    the target tree had no file written at that minute. The trail simply ended.
+
+    So the report now carries argv, pid and the parent command. None of it is sensitive --
+    it is this machine's own process table -- and all of it collapses that search into one
+    read. Best-effort throughout: an unidentifiable invoker must never be the reason an
+    upgrade report fails to be written.
+    """
+    out = {"argv": " ".join(sys.argv)[:300], "pid": os.getpid(), "parent": ""}
+    try:
+        ppid = os.getppid()
+        out["ppid"] = ppid
+        with open(f"/proc/{ppid}/cmdline", "rb") as fh:
+            out["parent"] = fh.read().replace(b"\x00", b" ").decode(
+                "utf-8", "replace").strip()[:300]
+    except Exception:  # noqa: BLE001 -- no /proc, no parent, no problem
+        pass
+    return out
+
+
+def _holds(rep):
+    """What this spoke holds that the master does not, computed spoke-side and SENT.
+
+    OPERATOR RULING, 2026-08-12: "I dont want bytes being pushed to idle spokes
+    unnecessarially. If I intentionally ask for a push good otherwise spoke pulls from the
+    hub." Bytes already obey that -- nothing is pushed, ever. The violation was quieter and
+    ran the other way: to find out whether a spoke held unabsorbed work, the MASTER walked
+    17 spoke trees and hashed every managed file in each. Reading, never writing, but still
+    the hub going out and touching idle spokes to answer a question only the spoke can
+    answer cheaply.
+
+    And it was pure waste, because the spoke ALREADY KNOWS. `verify(pins=...)` runs at the
+    end of every pull and returns the exact three-way split -- mismatches, ahead, missing.
+    The receipt then kept ONE BIT of it, `verify_post_ok`, and threw the rest away.
+
+    So the spoke now says what it holds, once, at a moment it was already awake and already
+    hashing. No new work, no new traffic, no listener on an idle spoke. An idle spoke stays
+    silent and stays untouched.
+
+      undeclared  differs, nothing declaring why -- the class that made basher unpullable
+      declared    differs, and an ahead-pin names the change-lug for it
+      absent      the master has a file this spoke does not
+    """
+    post = rep.get("verify_post") or {}
+    if not post:
+        return None
+    return {
+        "undeclared": [m.get("file") for m in (post.get("mismatches") or []) if m.get("file")],
+        "declared": [{"file": a.get("file"), "change_lug": a.get("change_lug", "")}
+                     for a in (post.get("ahead") or []) if a.get("file")],
+        "absent": list(post.get("missing") or []),
+    }
 
 
 def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
@@ -567,6 +862,8 @@ def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
                   f"validation {outcome.upper()}"),
         "created_at": stamp.isoformat(),
         "created_by": "harness_upgrade.emit_upgrade_report",
+        # Which function wrote it is not which thing ran it. See _invoker().
+        "invoked_by": _invoker(),
         "spoke_id": spoke_id,
         "spoke_path": str(Path(spoke_root).resolve()),
         "harness_version": master_version,
@@ -574,6 +871,8 @@ def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
         "applied": rep.get("applied", 0),
         "retired": rep.get("retired", []),
         "verify_post_ok": bool((rep.get("verify_post") or {}).get("ok")),
+        # THE SPOKE SAYS WHAT IT HOLDS, so the hub never has to walk its tree. See _holds.
+        "holds": _holds(rep),
         "aborted": rep.get("aborted"),
         "validation": validation,
         # An upgrade that ABORTED before validation and one that RAN validation and
@@ -824,6 +1123,34 @@ def canon_cut_ok(master_root, canon_ref=CANON_REF):
         return False, f"canon_cut_ok error: {e}"
 
 
+def registry_status(master_root, spoke_root):
+    """That spoke's registry status, or "" when the registry does not name it.
+
+    MEASURED 2026-08-12. An upgrade-report arrived from /wheelwright/hub, a repo the
+    registry has carried as INACTIVE since 2026-06-10 and whose function moved inside
+    mywheel months ago. It aborted on NET SYMBOL LOSS, delivered a FAIL into a live inbox,
+    and cost a session's attention chasing a fleet blocker that was a deprecated repo
+    talking to itself. The tree it wanted to write into had 3,742 uncommitted files and sat
+    42 versions back; applying anything there would have been unrecoverable, not merely
+    wrong.
+
+    "" for an unknown path is deliberate and is NOT treated as inactive: most spoke roots
+    the pull sees are legitimately absent from the hub registry, and refusing those would
+    break the ordinary session-start self-update on every one of them.
+    """
+    try:
+        data = json.loads((Path(master_root) / "hub" / "local" / "hub-registry.json")
+                          .read_text())
+    except Exception:  # noqa: BLE001 -- an unreadable registry decides nothing
+        return ""
+    target = os.path.realpath(str(spoke_root))
+    for entry in data.get("wheels", []) or []:
+        path = entry.get("path")
+        if path and os.path.realpath(path) == target:
+            return str(entry.get("status") or "")
+    return ""
+
+
 def _load_registry_path_map(master_root):
     """Best-effort realpath(entry.path) -> wheel_id map from hub-registry.json.
     Missing/unreadable registry -> empty map (never raises)."""
@@ -946,6 +1273,17 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
     if not wh.is_dir():
         return {"pulled": 0, "status": "no-harness", "current": None}
 
+    # A RETIRED WHEEL IS NOT UPGRADED. Only a status the registry states explicitly stops
+    # this; an unlisted path proceeds as normal, because most spoke roots are not registry
+    # members and refusing those would break session-start self-update everywhere.
+    status = registry_status(master_root, spoke_root)
+    if status and status.lower() != "active":
+        return {"pulled": 0, "status": "retired", "current": None,
+                "registry_status": status,
+                "why": (f"the registry carries this wheel as {status!r}. A retired repo is "
+                        "not brought current -- it is left where it was decommissioned, and "
+                        "an upgrade report from one is noise in a live inbox.")}
+
     # MANAGED IGNORE RUNS ON EVERY PULL, not just a fresh install.
     #
     # The fleet distributes through pull(), never install() — so wiring the ignore
@@ -997,7 +1335,13 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
     # is a retired file leaves add+change at 0, so this returns the cheap "current"
     # no-op and the retirement never lands on the spoke — the file survives forever,
     # invisible (it is absent from the master manifest, so nothing else looks at it).
+    # `ahead` is deliberately NOT counted as pending: a spoke whose only diffs are
+    # declared-ahead IS current, plus fixes in flight to canon. It is still carried
+    # into every report below — an unreported pin is how a spoke forks quietly.
     pending = len(hm["add"]) + len(hm["change"]) + len(hm["retire"])
+    _ahead_report = {"ahead": hm.get("ahead", []),
+                     "ahead_absorbed": hm.get("ahead_absorbed", []),
+                     "ahead_error": hm.get("ahead_error")}
     master_manifest = load_manifest(master_managed)
     master_version = master_manifest.get("harness_version")
     master_sha = master_manifest.get("master_sha") or _master_head_sha(master_root)
@@ -1014,6 +1358,7 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
                        files_checked=len(master_manifest.get("files", {})), mismatches=0,
                        branch=branch, sha=sha)
         return {"pulled": 0, "status": "current", "current": True,
+                **_ahead_report,
                 "commands_deployed": _deploy_active_commands(spoke_root),
                 "hooks_deployed": _deploy_active_hooks(spoke_root),
                 "settings_deployed": _deploy_active_settings(spoke_root),
@@ -1035,6 +1380,7 @@ def pull(spoke_root, master_root=None, side="spoke", dry_run=False, expect_versi
     if dry_run:
         return {"pulled": 0, "status": "behind", "pending": pending,
                 "current": False, "dry_run": True, "home_map": hm,
+                **_ahead_report,
                 "master_version": master_version}
     rep = upgrade(master_managed, target_managed, dry_run=False, expect_version=expect_version,
                   validate=validate, spoke_root=spoke_root)
@@ -1187,6 +1533,161 @@ def _deploy_active_commands(spoke_root):
         return {"ok": False, "error": str(e)[:120]}
 
 
+# --- DEPLOY PROVENANCE: never overwrite a file somebody deliberately authored -------
+#
+# MEASURED, reported independently by the pathfinder spoke and located here in the same
+# session (bug-spoke-authored-harness-fixes-lost-at-adopt-v1). The deployers below used to
+# ask only "do these files DIFFER" and then let managed win:
+#
+#     if dst.exists() and _md5(dst) == _md5(src): skip
+#     shutil.copy2(src, dst)          # else canon wins, unconditionally
+#
+# Differing is not the same question as stale. pathfinder fixed stop-test-runner.sh on
+# 2026-08-03 in both its live and managed copies; the next adopt of a distributed cut
+# restored canon's older content over it, and the commit that did so was labelled as
+# routine hygiene. The fix was gone and nothing said so.
+#
+# THE FIX IS PROVENANCE, NOT A BETTER COMPARISON. The deploy records the hash of what it
+# wrote. The next deploy overwrites only a file that still matches that record -- i.e. one
+# nobody has touched since. A file that has diverged was changed on purpose, so it is
+# REPORTED and left alone. That is also what the master-authorship rule already requires:
+# a non-master spoke does not edit distributed source, it routes a lug.
+#
+# WHY NOT MTIME, the obvious cheap answer: clone and checkout rewrite mtimes, so on a fresh
+# clone every live file looks newer than canon and the deploy would stop deploying
+# entirely. That trades silent data loss for silent coverage loss, which is worse because
+# it is fleet-wide.
+#
+# THE MIGRATION CASE IS THE ONE THAT BITES. No spoke has a record yet, so a strict
+# "unrecorded means diverged" rule would freeze every deploy on first run. First run is
+# therefore a BOOTSTRAP: it copies as before, but any live file that differs is first
+# QUARANTINED to .claude/.deploy-quarantine/ and reported. Nothing is lost even on the one
+# run where provenance cannot be proven.
+_RECORD_REL = ".claude/.deploy-record.json"
+_QUARANTINE_REL = ".claude/.deploy-quarantine"
+
+
+def _record_path(spoke_root):
+    return Path(spoke_root) / _RECORD_REL
+
+
+def _load_deploy_record(spoke_root):
+    """Return (record_dict, is_bootstrap). Corrupt is treated as absent, ON PURPOSE:
+    refusing to deploy because a provenance file is unreadable would make a cosmetic
+    problem block every spoke's updates."""
+    p = _record_path(spoke_root)
+    try:
+        data = json.loads(p.read_text())
+        if isinstance(data, dict) and isinstance(data.get("files"), dict):
+            return data["files"], False
+    except (OSError, ValueError):
+        pass
+    return {}, True
+
+
+def _save_deploy_record(spoke_root, files):
+    p = _record_path(spoke_root)
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        payload = {"_note": "hash of each distributed file AS DEPLOYED. A live file that no "
+                            "longer matches was authored locally and is never overwritten.",
+                   "updated_at": datetime.now(timezone.utc).isoformat(),
+                   "files": files}
+        tmp = p.with_suffix(p.suffix + ".tmp")
+        tmp.write_text(json.dumps(payload, indent=2, sort_keys=True))
+        os.replace(tmp, p)
+    except OSError:
+        pass  # best-effort: a missing record degrades to bootstrap next run, never fatal
+
+
+def _quarantine(spoke_root, rel, dst):
+    """Copy a divergent live file aside before a bootstrap overwrite. Returns True if kept."""
+    try:
+        q = Path(spoke_root) / _QUARANTINE_REL / rel
+        q.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(dst, q)
+        return True
+    except OSError:
+        return False
+
+
+def _deploy_one(spoke_root, src, dst, rel, record, is_bootstrap, report, label=None):
+    """Deploy `src` over `dst` ONLY when provenance allows it.
+
+    Returns "copied" | "current" | "diverged". Appends to report lists as a side effect,
+    so a skip is always visible rather than a silent no-op.
+
+    `rel` is the RECORD key and is namespaced (hooks/x.sh, skills/y/SKILL.md) so one
+    subtree's provenance can never answer for another's. `label` is what the human-facing
+    report shows, and defaults to `rel`. They are separate because the caller already names
+    the subtree -- "hooks/session-start.sh" inside a hooks report is noise, and callers
+    (plus their tests) have always been given bare names there.
+    """
+    label = rel if label is None else label
+    src_md5 = _md5(src)
+    if not dst.exists():
+        shutil.copy2(src, dst)
+        record[rel] = src_md5
+        report["copied"].append(label)
+        return "copied"
+
+    dst_md5 = _md5(dst)
+    if dst_md5 == src_md5:
+        record[rel] = src_md5           # converged; record it so provenance is complete
+        report["already_current"].append(label)
+        return "current"
+
+    recorded = record.get(rel)
+    if recorded is not None and recorded != dst_md5:
+        # Provenance says the live file changed after we deployed it. Deliberate. Leave it.
+        report["diverged"].append(label)
+        return "diverged"
+    if recorded is None and not is_bootstrap:
+        # Managed knows this file but we never recorded deploying it, and this is not the
+        # bootstrap run. Cannot prove it is unmodified, so treat it as authored.
+        report["diverged"].append(label)
+        return "diverged"
+
+    if recorded is None and is_bootstrap:
+        # One-time: provenance is unknowable, so preserve a copy before overwriting.
+        if _quarantine(spoke_root, rel, dst):
+            report["quarantined"].append(label)
+
+    shutil.copy2(src, dst)
+    record[rel] = src_md5
+    report["copied"].append(label)
+    return "copied"
+
+
+def _new_report():
+    return {"copied": [], "already_current": [], "diverged": [], "quarantined": []}
+
+
+def _finish_report(report, extra=None):
+    """Collapse a report into the caller's return shape, keeping divergence PROMINENT.
+
+    `diverged` is surfaced with its file list uncapped up to 20 and its own explanatory
+    note, because a truncated-to-nothing divergence list is how this bug stayed invisible.
+    """
+    out = {"ok": True,
+           "synced": len(report["copied"]),
+           "copied": report["copied"][:20],
+           "already_current": len(report["already_current"])}
+    if report["diverged"]:
+        out["diverged"] = report["diverged"][:20]
+        out["diverged_count"] = len(report["diverged"])
+        out["diverged_note"] = ("NOT overwritten: these live files were authored after they "
+                               "were deployed. Route them upstream as a lug, or delete the "
+                               "local change deliberately.")
+    if report["quarantined"]:
+        out["quarantined"] = report["quarantined"][:20]
+        out["quarantined_note"] = (f"first run with deploy provenance: previous content saved "
+                                   f"under {_QUARANTINE_REL}/ before overwriting")
+    if extra:
+        out.update(extra)
+    return out
+
+
 def _deploy_active_hooks(spoke_root):
     """Best-effort: sync <spoke_root>/.claude/hooks from the ONE canonical hook
     source, <spoke_root>/WAI-Harness/spoke/managed/.claude/hooks. Mirrors
@@ -1203,25 +1704,24 @@ def _deploy_active_hooks(spoke_root):
         if not managed_hooks.is_dir():
             return {"ok": False, "error": f"managed hooks dir not found: {managed_hooks}"}
         active_hooks.mkdir(parents=True, exist_ok=True)
-        copied, current = [], []
+        record, is_bootstrap = _load_deploy_record(spoke_root)
+        report = _new_report()
         managed_names = set()
         for src in sorted(p for p in managed_hooks.iterdir()
                           if p.is_file() and not p.name.startswith(".")):
             managed_names.add(src.name)
             dst = active_hooks / src.name
-            if dst.exists() and _md5(dst) == _md5(src):
-                current.append(src.name)
-                continue
-            shutil.copy2(src, dst)
-            if src.suffix == ".sh":
+            rel = f"hooks/{src.name}"
+            verdict = _deploy_one(spoke_root, src, dst, rel, record, is_bootstrap, report,
+                                  label=src.name)
+            if verdict == "copied" and src.suffix == ".sh":
                 dst.chmod(0o755)
-            copied.append(src.name)
+        _save_deploy_record(spoke_root, record)
         preserved_local = sorted(
             p.name for p in active_hooks.glob("*")
             if p.is_file() and p.name not in managed_names and not p.name.startswith(".")
         )
-        return {"ok": True, "synced": len(copied), "copied": copied,
-                "already_current": len(current), "preserved_local": preserved_local}
+        return _finish_report(report, {"preserved_local": preserved_local})
     except Exception as e:  # noqa: BLE001 — best-effort, never fatal
         return {"ok": False, "error": str(e)[:120]}
 
@@ -1251,7 +1751,9 @@ def _deploy_active_tree(spoke_root, subdir):
         if not managed_dir.is_dir():
             return {"ok": True, "skipped": f"no managed .claude/{subdir}"}
         active_dir.mkdir(parents=True, exist_ok=True)
-        copied, current, managed_rel = [], [], set()
+        record, is_bootstrap = _load_deploy_record(spoke_root)
+        report = _new_report()
+        managed_rel = set()
         for src in sorted(p for p in managed_dir.rglob("*") if p.is_file()):
             rel = src.relative_to(managed_dir)
             if any(part.startswith(".") for part in rel.parts):
@@ -1259,23 +1761,22 @@ def _deploy_active_tree(spoke_root, subdir):
             managed_rel.add(str(rel))
             dst = active_dir / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
-            if dst.exists() and _md5(dst) == _md5(src):
-                current.append(str(rel))
-                continue
-            shutil.copy2(src, dst)
-            if src.suffix in (".sh", ".js"):
+            # Namespaced by subdir: agents/x.md and skills/x.md are different files, and a
+            # flat key would let one subtree's provenance answer for another's.
+            verdict = _deploy_one(spoke_root, src, dst, f"{subdir}/{rel}", record,
+                                 is_bootstrap, report, label=str(rel))
+            if verdict == "copied" and src.suffix in (".sh", ".js"):
                 try:
                     dst.chmod(0o755)
                 except OSError:
                     pass
-            copied.append(str(rel))
+        _save_deploy_record(spoke_root, record)
         preserved_local = sorted(
             str(p.relative_to(active_dir)) for p in active_dir.rglob("*")
             if p.is_file() and str(p.relative_to(active_dir)) not in managed_rel
             and not any(part.startswith(".") for part in p.relative_to(active_dir).parts)
         )
-        return {"ok": True, "synced": len(copied), "copied": copied[:20],
-                "already_current": len(current), "preserved_local": preserved_local[:20]}
+        return _finish_report(report, {"preserved_local": preserved_local[:20]})
     except Exception as e:  # noqa: BLE001 — best-effort, never fatal
         return {"ok": False, "error": str(e)[:120]}
 

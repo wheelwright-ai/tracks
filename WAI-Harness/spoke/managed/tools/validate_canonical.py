@@ -32,26 +32,71 @@ validate_canonical_primary = importlib.util.module_from_spec(spec)
 sys.modules["validate_canonical_primary"] = validate_canonical_primary
 spec.loader.exec_module(validate_canonical_primary)
 
-# Re-export everything from the primary module
-SPEC_REL = validate_canonical_primary.SPEC_REL
-MANAGED_SPEC_FROM_ROOT = validate_canonical_primary.MANAGED_SPEC_FROM_ROOT
-OPEN_STATUSES = validate_canonical_primary.OPEN_STATUSES
-INPROGRESS_STATUSES = validate_canonical_primary.INPROGRESS_STATUSES
-DONE_STATUSES = validate_canonical_primary.DONE_STATUSES
-MODEL_FITS = validate_canonical_primary.MODEL_FITS
-_base = validate_canonical_primary._base
-_load_json = validate_canonical_primary._load_json
-SPEC_SUFFIX = validate_canonical_primary.SPEC_SUFFIX
-_lugs_root = validate_canonical_primary._lugs_root
-_spec_path = validate_canonical_primary._spec_path
-_all_lug_ids = validate_canonical_primary._all_lug_ids
-_active_spec_ids = validate_canonical_primary._active_spec_ids
-_nonempty = validate_canonical_primary._nonempty
-validate_lug = validate_canonical_primary.validate_lug
-validate_track = validate_canonical_primary.validate_track
-validate_spec = validate_canonical_primary.validate_spec
-run = validate_canonical_primary.run
-main = validate_canonical_primary.main
+# Re-export everything from the primary module.
+#
+# Guarded, because a bare `module.ATTR` here is a silent kill switch. Every name
+# below is resolved against whatever primary the SPOKE happens to carry, and
+# those primaries drift: a spoke whose tools/validate_canonical.py predates
+# MANAGED_SPEC_FROM_ROOT raised AttributeError at IMPORT time, so canonical
+# object validation did not run at all on that spoke — no error surfaced to the
+# operator, lugs simply stopped being validated. That is the suspected upstream
+# of the 114 "repairable" lugs found on track-prompt-lab: the gate meant to
+# reject incomplete lugs at creation was raising instead of validating.
+#
+# So: never crash at import. Resolve what exists, record what does not, and make
+# any attempt to USE a missing symbol fail loudly with the version mismatch
+# named. A missing gate must announce itself; it must never read as a pass.
+
+_REEXPORTS = (
+    "SPEC_REL", "MANAGED_SPEC_FROM_ROOT", "OPEN_STATUSES", "INPROGRESS_STATUSES",
+    "DONE_STATUSES", "MODEL_FITS", "_base", "_load_json", "SPEC_SUFFIX",
+    "_lugs_root", "_spec_path", "_all_lug_ids", "_active_spec_ids", "_nonempty",
+    "validate_lug", "validate_track", "validate_spec", "run", "main",
+)
+
+#: Names this shim expected but the local primary does not define. Empty on a
+#: levelled spoke. Read by callers that want to report drift rather than guess.
+MISSING_FROM_PRIMARY = []
+
+_SENTINEL = object()
+
+
+def _version_mismatch(name):
+    """Build a callable that refuses, explaining exactly what is out of date."""
+    def _refuse(*_args, **_kwargs):
+        raise ImportError(
+            "validate_canonical: %r cannot run — this spoke's primary is out of "
+            "date.\n"
+            "  primary: %s\n"
+            "  missing: %s\n"
+            "The managed shim expects those names, so canonical validation is "
+            "NOT running on this spoke.\n"
+            "Fix: level this spoke's tools/validate_canonical.py to the current "
+            "harness cut, or vendor the primary into managed/."
+            % (name, tools_module_path, ", ".join(MISSING_FROM_PRIMARY) or name)
+        )
+    _refuse.__name__ = name
+    _refuse.missing_from_primary = True
+    return _refuse
+
+
+for _name in _REEXPORTS:
+    _value = getattr(validate_canonical_primary, _name, _SENTINEL)
+    if _value is _SENTINEL:
+        MISSING_FROM_PRIMARY.append(_name)
+        _value = _version_mismatch(_name)
+    globals()[_name] = _value
+
+# A missing CONSTANT cannot announce itself the way a missing function can — it
+# would just be None threaded into a path join, which is the silent degradation
+# this guard exists to end. So if ANYTHING is missing, the entry points refuse,
+# even the ones that resolved fine. Partial validation reported as validation is
+# worse than no validation: it is a green light nobody earned.
+if MISSING_FROM_PRIMARY:
+    for _name in ("validate_lug", "validate_track", "validate_spec", "run", "main"):
+        globals()[_name] = _version_mismatch(_name)
+
+del _name, _value, _SENTINEL
 
 __all__ = [
     'SPEC_REL',

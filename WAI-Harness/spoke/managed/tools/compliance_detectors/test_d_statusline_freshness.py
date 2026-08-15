@@ -201,3 +201,54 @@ def test_reset_clears_history_for_a_reused_pref_object():
     assert last, "setup: the third same-minute turn should have fired"
     D.reset()
     assert D.detect(line(1, "5:17 PM PDT"), pref) == []
+
+
+# --- format tolerance -----------------------------------------------------------------
+#
+# MEASURED 2026-08-07: `_STATUS_RE` was `^Turn (\d+)`, while the hook had been emitting
+# "s140 | Turn 7 | ..." since the session prefix was added. The detector therefore matched
+# NOTHING and had been dead for every transcript since -- reporting a clean statusline
+# record by never inspecting one. A detector suite built to catch greens over nothing had
+# one inside it, and it was found only because the operator asked to shorten the stamp.
+#
+# These tests exist so the next format change fails loudly here instead of silently going
+# blind in production. Every shape the hook has ever emitted must stay recognised.
+
+FORMATS = {
+    "current short form":
+        "s140 | T7 | Aug 7 10:29PM | f20e3c70b | claude-opus-5 | v4.14.47 | Gold: +0",
+    "previous long form":
+        "s140 | Turn 7 | Fri, Aug 7, 2026 | 10:21 PM PDT | claude-opus-5 | v4.14.47 | Gold: +0",
+    "no session prefix":
+        "Turn 7 | Aug 7 10:29PM | claude-opus-5 | Gold: +0",
+}
+
+
+@pytest.mark.parametrize("label", sorted(FORMATS))
+def test_every_emitted_statusline_format_is_recognised(label):
+    assert D._STATUS_RE.match(FORMATS[label]), (
+        f"{label} is not matched -- the detector is blind to a format the hook emits, "
+        "which is the exact failure this file was extended to prevent")
+
+
+@pytest.mark.parametrize("label", sorted(FORMATS))
+def test_every_format_yields_a_parseable_timestamp(label):
+    key, (stamp, _tz) = D._timestamp(FORMATS[label])
+    assert key is not None, f"{label} produced no equality key"
+    assert stamp is not None, (
+        f"{label} produced no datetime -- comparison silently degrades to key-equality, "
+        "which still catches a duplicate render but loses ordering and says nothing")
+
+
+def test_the_short_stamp_does_not_land_in_1900():
+    """strptime defaults a yearless date to 1900; two turns minutes apart would then
+    sort a year apart across a December/January boundary."""
+    import datetime as _dt
+    _key, (stamp, _tz) = D._timestamp(FORMATS["current short form"])
+    assert stamp.year == _dt.datetime.now().year
+
+
+def test_ordinary_prose_mentioning_a_turn_is_not_a_statusline():
+    """The loosened anchor must not start matching narrative text."""
+    assert not D._STATUS_RE.match("This is ordinary prose about Turn 7 of something.")
+    assert not D._STATUS_RE.match("Turn 7 was where the lock landed.")

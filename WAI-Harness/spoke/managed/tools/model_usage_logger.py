@@ -45,14 +45,42 @@ def ensure_dir():
     USAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def running_harness_version(spoke_root="."):
+    """The harness version ACTUALLY on disk, read from managed/MANIFEST.json.
+
+    Deliberately NOT WAI-Harness/VERSION: that file is stamped only by
+    harness_upgrade._stamp_harness_version, so any harness content that arrives
+    by another route (a repo pull, a hand sync) leaves it stale. Measured in
+    basher 2026-08-01: VERSION said 4.14.32 while the managed tree was 4.14.34,
+    and every instrument downstream inherited the lie. The manifest is written
+    from the bytes themselves, so it cannot drift from the content it describes.
+    """
+    for cand in (Path(spoke_root) / "WAI-Harness" / "spoke" / "managed" / "MANIFEST.json",):
+        try:
+            return json.load(open(cand)).get("harness_version")
+        except Exception:
+            continue
+    return None
+
+
+_HARNESS_VERSION = running_harness_version()
+
+
 def log_event(event_type, **kwargs):
-    """Log a model usage event to the usage file."""
+    """Log a model usage event to the usage file.
+
+    Every row carries the harness version that produced it. Without it a usage
+    log cannot answer the only question that makes it a feedback loop — "did
+    this cut make things better or worse" — because rows from two versions are
+    indistinguishable after the fact.
+    """
     ensure_dir()
 
     event = {
         "event": event_type,
         "ts": datetime.now(timezone.utc).isoformat(),
         "spoke_id": "framework",  # Should be configurable per spoke
+        "harness_version": _HARNESS_VERSION,
         **kwargs,
     }
 
@@ -74,8 +102,16 @@ def log_usage(
     quality_rating=None,
     rework_required=None,
     session_id=None,
+    error=None,
+    error_kind=None,
 ):
-    """Log a model usage event."""
+    """Log a model usage event.
+
+    `error` / `error_kind` are the minimal failure capture: a run that failed
+    costs tokens and time exactly like one that succeeded, so a log that records
+    only successes reports a cost with no denominator. Keep `error` short — a
+    one-line reason, not a traceback; the traceback belongs in the run log.
+    """
     return log_event(
         "model_usage",
         provider=provider,
@@ -89,6 +125,8 @@ def log_usage(
         quality_rating=quality_rating,
         rework_required=rework_required,
         session_id=session_id,
+        error=error,
+        error_kind=error_kind,
     )
 
 

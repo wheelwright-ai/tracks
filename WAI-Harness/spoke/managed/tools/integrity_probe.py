@@ -183,6 +183,107 @@ def probe_terminal_dirs(root="."):
     return _result("terminal-dirs", GREEN, "completed/ is the only terminal dir", cmd=cmd)
 
 
+_FIRED_RE = None  # compiled lazily in probe_track_capture (keeps import cost at zero for callers who never run this probe)
+
+
+def probe_track_capture(root=".", window_hours=48):
+    """The track's own memory must not go silent while turns keep happening.
+
+    bug-track-records-zero-turns-and-mints-a-session-per-turn-v1 (MEASURED
+    2026-08-06, Ruling 37): 33 session dirs, ZERO turn events, for a full day.
+    Nothing caught it because every OTHER surface reported health — the Stop
+    hook fired, files got written, the statusline rendered a number. The only
+    thing missing was the content, and nothing was watching for an ABSENT
+    turn event, only for an ERRONEOUS one.
+
+    THE CHECK IS DELIBERATELY GROUNDED IN capture-fired.log, NOT track.jsonl
+    ALONE. stop-track-flush.sh appends one line to capture-fired.log every
+    time the Stop hook actually runs, independent of whatever flush_buffer.py
+    / synthesize_turn.py do afterward — it is the closest thing this harness
+    has to an eyewitness that a turn genuinely occurred. Cross-referencing it
+    against the track file's own turn-event count is what lets this probe
+    fail on SILENCE (fired-but-empty) rather than only on a bad value —
+    exactly the asymmetry that let this hide for a day: a check that only
+    reacts to errors would have seen zero errors, same as everything else did.
+    """
+    import re
+    global _FIRED_RE
+    if _FIRED_RE is None:
+        # Deliberately does NOT require the trailing "(N turns, buffer=B)" on the
+        # same line. capture-fired.log is appended by concurrent Stop-hook
+        # invocations with no lock (MEASURED 2026-08-06: back-to-back duplicate
+        # timestamps from two racing fires), which sometimes splits that
+        # parenthetical across two physical lines. Anchoring only on "fired ->
+        # <path>" survives that corruption; the turn COUNT is recomputed directly
+        # from the track file below rather than trusted from this log at all.
+        _FIRED_RE = re.compile(r'^(\S+)\s+fired\s+->\s+(\S+track\.jsonl)')
+
+    cmd = "cat WAI-Harness/spoke/local/runtime/capture-fired.log"
+    base = os.path.join(root, "WAI-Harness", "spoke", "local")
+    fired_log = os.path.join(base, "runtime", "capture-fired.log")
+    if not os.path.isfile(fired_log):
+        return _result("track-capture", UNKNOWN,
+                       "capture-fired.log not found — cannot prove the Stop hook ever fires",
+                       cmd=cmd)
+
+    try:
+        now = _dt.datetime.now(_dt.timezone.utc)
+        cutoff = now - _dt.timedelta(hours=window_hours)
+        fired_by_track = {}
+        with open(fired_log, "r", errors="replace") as f:
+            for line in f:
+                m = _FIRED_RE.match(line.strip())
+                if not m:
+                    continue  # tolerate the occasional interleaved/corrupted line — never crash
+                ts_raw, track_path = m.group(1), m.group(2)
+                try:
+                    ts = _dt.datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
+                except ValueError:
+                    continue
+                if ts < cutoff:
+                    continue
+                fired_by_track.setdefault(track_path, 0)
+                fired_by_track[track_path] += 1
+    except Exception as e:
+        return _result("track-capture", UNKNOWN,
+                       f"could not parse capture-fired.log: {type(e).__name__}: {e}", cmd=cmd)
+
+    if not fired_by_track:
+        return _result("track-capture", GREEN,
+                       f"no Stop-hook activity in the last {window_hours}h — nothing to check", cmd=cmd)
+
+    silent = []
+    healthy = 0
+    for track_path, fired_count in fired_by_track.items():
+        actual_turns = 0
+        try:
+            with open(track_path, "r", errors="replace") as tf:
+                for line in tf:
+                    if '"event": "turn"' in line or '"event":"turn"' in line:
+                        actual_turns += 1
+        except OSError:
+            # capture-fired.log says the Stop hook fired against this path, and the
+            # path does not even exist -- that is the SAME failure class (evidence of
+            # a turn, and no record of it), not a reason to stay quiet.
+            silent.append((track_path, fired_count, "MISSING"))
+            continue
+        if actual_turns == 0:
+            silent.append((track_path, fired_count, "0 turn events"))
+        else:
+            healthy += 1
+
+    if silent:
+        detail = [f"{os.path.relpath(p, root)}: Stop fired {n}x, track holds {why}"
+                   for p, n, why in silent[:8]]
+        return _result("track-capture", RED,
+                       f"{len(silent)} session(s) had turns confirmed by capture-fired.log but "
+                       f"ZERO turn events in track.jsonl",
+                       detail, cmd)
+    return _result("track-capture", GREEN,
+                   f"{healthy} recently-active session(s) all have turn events matching Stop-hook activity",
+                   cmd=cmd)
+
+
 ACTIVATION_MANIFEST = "WAI-Harness/hub/local/registry/activation-manifest.json"
 
 
@@ -393,8 +494,8 @@ def probe_deprecated_repo_refs(root="."):
 
 
 PROBES = (probe_master_selfverify, probe_routing, probe_live_hooks,
-          probe_pending_deploys, probe_terminal_dirs, probe_activation_liveness,
-          probe_deprecated_repo_refs)
+          probe_pending_deploys, probe_terminal_dirs, probe_track_capture,
+          probe_activation_liveness, probe_deprecated_repo_refs)
 
 RANK = {RED: 0, UNKNOWN: 1, YELLOW: 2, GREEN: 3}
 

@@ -30,10 +30,30 @@ Commands:
   absorb-contributions  [--master M]
       Master reads all pending harness-contribution lugs from its incoming/,
       reconciles each, marks lugs processed.
+
+  classify-live  --spoke-root R [--master M]
+      READ-ONLY. Classifies every file in managed/.claude/** vs the spoke's own
+      live .claude/** as IDENTICAL / BEHIND / AHEAD / CONFLICT / DECLARED_OVERRIDE.
+      See converge_preflight.py for the operator-facing "what would converge
+      take from me?" wrapper.
+
+  absorb-live  --spoke-root R [--master M] [--dry-run]
+      The actual managed(.claude) -> live(.claude) redeploy. IDENTICAL/BEHIND
+      absorb cleanly; DECLARED_OVERRIDE is skipped and recorded; AHEAD/CONFLICT
+      HALT that file, preserve its current content to a refs/recovery/ git ref,
+      and never overwrite it silently. Always emits a converge receipt under
+      hub/local/maintenance/receipts/.
+
+  pull-exposure  --spoke-root R [--master M]
+      READ-ONLY. The OTHER exposure direction (bug-converge-silently-reverts-
+      locally-authored-behavior-v1): what would `harness_upgrade pull` take
+      from THIS spoke's own managed/ tree, i.e. which files diverge from
+      master's canon undeclared and would be silently overwritten today.
 """
 from __future__ import annotations
 
 import argparse
+import difflib
 import hashlib
 import json
 import os
@@ -249,6 +269,356 @@ def _recut_manifest(master_harness, new_version):
     mpath = managed / hu.MANIFEST_NAME
     mpath.write_text(json.dumps(m, indent=2) + "\n")
     return m
+
+
+# ── live-vs-managed classify + absorb (bug-converge-silently-reverts-locally-
+#    authored-behavior-v1) ───────────────────────────────────────────────────
+#
+# THE BUG THIS CLOSES. A fix lands in the LIVE copy of a file (e.g.
+# .claude/hooks/wakeup-canonical.sh). The canonical source is the copy under
+# managed/. Redeploy/converge restores live from managed and the fix is gone —
+# no error, no log, success reported while behavior regresses. Endemic on
+# basher, which holds a standing population of locally-authored files under
+# managed/ itself; caught once in mywheel (s140) by hand-diffing live vs
+# managed, which is not a strategy.
+#
+# OPERATOR RULING (s140, verbatim, sharpening the original ask): "On converging
+# they should absolutely do a diff and evaluate the change its absorbing dont
+# blindly overwright files." The floor is detect-and-halt; the actual ask is
+# detect-and-CLASSIFY: converge must say what the difference IS, not only that
+# one exists.
+#
+# SCOPE: this covers the 1:1 mirrored subtree managed/.claude/** <->
+# <spoke_root>/.claude/** (hooks, commands, agents, skills, workflows) — the
+# exact subtree the operator's incident and this bug's file_targets concern.
+# The wider managed/ tree (tools/, templates/, etc.) has no live mirror; its
+# spoke<->master convergence is handled by reconcile()/list_contributions()
+# below, using a parallel but distinct base (master's managed tree, not git
+# HEAD) — see classify_pull_exposure().
+#
+# CLASSIFICATION, not arbitration. This code reports which side changed and by
+# how much. It never decides whether a change is GOOD — that judgment call
+# belongs to the operator. A tool that pretended to arbitrate quality would
+# make a confident wrong choice at exactly the wrong moment.
+
+LIVE_MIRROR_SUBTREE = ".claude"
+AHEAD_LEDGER_NAME = getattr(hu, "AHEAD_LEDGER", "harness-ahead.json")
+
+
+def _read_bytes_or_none(path):
+    try:
+        return Path(path).read_bytes()
+    except (OSError, FileNotFoundError):
+        return None
+
+
+def _git_hash_object_write(repo_root, content_bytes):
+    """Write CONTENT (working-tree bytes, possibly uncommitted/untracked) to the
+    git object database as a blob and return its SHA. Pure content-addressed
+    storage — does not touch the working tree, the index, or any ref by itself.
+    Returns None on any failure (never raises)."""
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(repo_root), "hash-object", "-w", "--stdin"],
+            input=content_bytes, capture_output=True, timeout=30,
+        )
+        sha = r.stdout.decode().strip()
+        return sha if r.returncode == 0 and sha else None
+    except Exception:
+        return None
+
+
+def _git_update_ref(repo_root, ref, sha):
+    """Point REF at SHA (git update-ref). This is the ONE sanctioned git write
+    this tool performs — the recovery-ref preservation mechanism itself (same
+    pattern as managed_retire.py's refs/recovery/retire-*). Returns True/False."""
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(repo_root), "update-ref", ref, sha],
+            capture_output=True, timeout=30,
+        )
+        return r.returncode == 0
+    except Exception:
+        return False
+
+
+def _diff_stat(managed_bytes, live_bytes, max_sample=6):
+    """Line-level summary of what converge would ABSORB: lines it would remove
+    from live (present in live, not in managed) and lines it would add (present
+    in managed, not in live), plus a short human-readable sample so a halt can be
+    read without opening two files."""
+    m_lines = (managed_bytes or b"").decode("utf-8", "replace").splitlines()
+    l_lines = (live_bytes or b"").decode("utf-8", "replace").splitlines()
+    diff = list(difflib.unified_diff(m_lines, l_lines, fromfile="managed", tofile="live",
+                                      lineterm="", n=0))
+    added = sum(1 for ln in diff if ln.startswith("+") and not ln.startswith("+++"))
+    removed = sum(1 for ln in diff if ln.startswith("-") and not ln.startswith("---"))
+    sample = [ln for ln in diff if ln[:1] in "+-" and ln[:3] not in ("+++", "---")][:max_sample]
+    return {
+        "managed_line_count": len(m_lines),
+        "live_line_count": len(l_lines),
+        "added_in_live_vs_managed": added,
+        "removed_from_live_vs_managed": removed,
+        "sample": sample,
+    }
+
+
+def _iter_live_mirrored(spoke_managed):
+    """Files under managed/.claude/** — the subtree mirrored 1:1 (identical
+    relpath) into the spoke's live .claude/**. Yields relpaths like
+    '.claude/hooks/x.sh', rooted at the spoke root (git-relative)."""
+    base = Path(spoke_managed) / LIVE_MIRROR_SUBTREE
+    if not base.is_dir():
+        return
+    for p in sorted(base.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(spoke_managed).as_posix()
+        if "__pycache__" in rel:
+            continue
+        yield rel
+
+
+def classify_live_file(spoke_root, rel, spoke_managed, pins=None):
+    """Classify ONE mirrored file. READ-ONLY — makes no writes of any kind.
+
+    rel is relative to both spoke_root (the live path) and spoke_managed (the
+    managed path) — e.g. '.claude/hooks/wakeup-canonical.sh'.
+
+    Returns a dict: {rel, status, ...}. status is one of:
+      IDENTICAL         — live == managed byte-for-byte. Proceed, no noise.
+      LIVE_MISSING       — only in managed (new distribution). Proceed, install.
+      BEHIND             — managed changed since HEAD, live did not. Proceed,
+                            absorbing is an upgrade.
+      AHEAD               — live changed since HEAD (uncommitted or untracked),
+                            managed did not. Undeclared local authorship about
+                            to be destroyed. HALT.
+      CONFLICT            — both changed since HEAD and disagree. Genuine
+                            conflict; HALT and show both sides.
+      DECLARED_OVERRIDE   — differs, but declared in harness-ahead.json (pins).
+                            Proceed WITHOUT copying; record the override.
+    """
+    spoke_root = Path(spoke_root)
+    spoke_managed = Path(spoke_managed)
+    live_path = spoke_root / rel
+    managed_path = spoke_managed / rel
+
+    live_bytes = _read_bytes_or_none(live_path)
+    managed_bytes = _read_bytes_or_none(managed_path)
+
+    if live_bytes is None:
+        return {"rel": rel, "status": "LIVE_MISSING"}
+    if managed_bytes is None:
+        return {"rel": rel, "status": "MANAGED_MISSING"}  # not actionable here
+    if live_bytes == managed_bytes:
+        return {"rel": rel, "status": "IDENTICAL"}
+
+    # Differ. Classify direction using each side's own git-committed HEAD content
+    # as its base — no stored "last sync" state needed, and it directly answers
+    # the real-world shape of this bug: an edit landed on disk without a commit.
+    managed_git_rel = f"WAI-Harness/spoke/managed/{rel}"
+    live_head = _git_file_at_sha(str(spoke_root), "HEAD", rel)
+    managed_head = _git_file_at_sha(str(spoke_root), "HEAD", managed_git_rel)
+
+    live_dirty = (live_head is None) or (live_bytes != live_head)
+    managed_dirty = (managed_head is None) or (managed_bytes != managed_head)
+
+    if live_dirty and not managed_dirty:
+        status = "AHEAD"
+    elif managed_dirty and not live_dirty:
+        status = "BEHIND"
+    else:
+        # both dirty, or both settled-but-disagreeing-in-history: either way this
+        # is two sides that moved independently — a real conflict, not a clean
+        # direction. Never guess; halt and let a human read the diff.
+        status = "CONFLICT"
+
+    result = {"rel": rel, "status": status, "diff": _diff_stat(managed_bytes, live_bytes)}
+
+    if status in ("AHEAD", "CONFLICT") and pins is not None and rel in pins:
+        result["status"] = "DECLARED_OVERRIDE"
+        result["pin"] = {"change_lug": pins[rel].get("change_lug"),
+                         "reason": pins[rel].get("reason")}
+        result["underlying_status"] = status
+    return result
+
+
+def classify_live_tree(spoke_root, master=None):
+    """Classify EVERY file in the live-mirrored subtree. Pure read — no writes.
+    This is what converge_preflight.py calls to answer 'what would converge
+    take from me?' for the redeploy (managed -> live) direction."""
+    spoke_root = Path(spoke_root).resolve()
+    spoke_managed = spoke_root / "WAI-Harness" / "spoke" / "managed"
+    if not spoke_managed.is_dir():
+        return {"ok": False, "error": f"no managed/ at {spoke_managed}"}
+    pins, pin_error = hu.load_ahead_ledger(str(spoke_managed))
+    files = []
+    for rel in _iter_live_mirrored(spoke_managed):
+        files.append(classify_live_file(spoke_root, rel, spoke_managed, pins=pins))
+    by_status = {}
+    for f in files:
+        by_status.setdefault(f["status"], []).append(f["rel"])
+    return {
+        "ok": True,
+        "spoke_root": str(spoke_root),
+        "checked": len(files),
+        "by_status": {k: sorted(v) for k, v in by_status.items()},
+        "files": files,
+        "ahead_ledger_error": pin_error,
+    }
+
+
+def _converge_receipt_dir(spoke_root):
+    d = Path(spoke_root) / "WAI-Harness" / "hub" / "local" / "maintenance" / "receipts"
+    return d
+
+
+def _write_converge_receipt(spoke_root, kind, entries, extra=None):
+    """Persist a converge receipt naming every file whose live content differed,
+    what was done with it, and where any preserved copy lives. A converge that
+    changed behavior and reported nothing IS the bug this closes — so this is
+    never optional and never silent, even when every file was IDENTICAL (an
+    empty differs-list is itself the receipt's content in that case)."""
+    ts = _utcnow()
+    receipt = {
+        "receipt_id": f"converge-{kind}-{Path(spoke_root).name}-{ts.replace(':', '').replace('+00:00', 'Z')}",
+        "kind": kind,
+        "ts": ts,
+        "spoke_root": str(spoke_root),
+        "entries": entries,
+        "summary": {
+            "differed": len(entries),
+            "halted": sum(1 for e in entries if e.get("disposition") == "halted_preserved"),
+            "absorbed": sum(1 for e in entries if e.get("disposition") == "absorbed"),
+            "overridden": sum(1 for e in entries if e.get("disposition") == "overridden"),
+        },
+    }
+    if extra:
+        receipt.update(extra)
+    try:
+        rdir = _converge_receipt_dir(spoke_root)
+        rdir.mkdir(parents=True, exist_ok=True)
+        path = rdir / f"{receipt['receipt_id']}.json"
+        path.write_text(json.dumps(receipt, indent=2) + "\n")
+        receipt["receipt_path"] = str(path)
+    except Exception as e:  # noqa: BLE001 — a receipt-write failure must still SURFACE
+        receipt["receipt_write_error"] = str(e)
+    return receipt
+
+
+def absorb_live(spoke_root, master=None, dry_run=False):
+    """The actual converge action for the managed(.claude) -> live(.claude)
+    direction. For every mirrored file:
+      IDENTICAL          -> no-op.
+      LIVE_MISSING/BEHIND -> copy managed -> live (an upgrade). Recorded 'absorbed'.
+      DECLARED_OVERRIDE   -> skip the copy; live keeps its declared local content.
+                             Recorded 'overridden'.
+      AHEAD/CONFLICT      -> HALT: live is NOT touched. The live file's CURRENT
+                             on-disk content (which may be uncommitted) is
+                             snapshotted to a git blob and a refs/recovery/ ref
+                             is created pointing at it — the same preservation
+                             pattern managed_retire.py uses for retirement.
+                             Recorded 'halted_preserved' with the ref name.
+    Always emits a converge receipt, even when nothing differed. Never raises;
+    a per-file failure is recorded in that file's entry, not fatal to the run.
+    """
+    spoke_root = Path(spoke_root).resolve()
+    classified = classify_live_tree(str(spoke_root), master=master)
+    if not classified.get("ok"):
+        return classified
+
+    ts_tag = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    entries = []
+    for f in classified["files"]:
+        rel = f["rel"]
+        status = f["status"]
+        entry = dict(f)
+        live_path = spoke_root / rel
+        managed_path = spoke_root / "WAI-Harness" / "spoke" / "managed" / rel
+
+        if status in ("IDENTICAL", "MANAGED_MISSING"):
+            entry["disposition"] = "no_action"
+        elif status in ("LIVE_MISSING", "BEHIND"):
+            entry["disposition"] = "absorbed"
+            if not dry_run:
+                try:
+                    live_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(managed_path, live_path)
+                except Exception as e:  # noqa: BLE001
+                    entry["disposition"] = "absorb_failed"
+                    entry["error"] = str(e)
+        elif status == "DECLARED_OVERRIDE":
+            entry["disposition"] = "overridden"
+        elif status in ("AHEAD", "CONFLICT"):
+            entry["disposition"] = "halted_preserved"
+            if not dry_run:
+                live_bytes = _read_bytes_or_none(live_path)
+                blob = _git_hash_object_write(str(spoke_root), live_bytes or b"")
+                if blob:
+                    ref = f"refs/recovery/converge-live-{rel.replace('/', '-').lstrip('.')}-{ts_tag}"
+                    if _git_update_ref(str(spoke_root), ref, blob):
+                        entry["recovery_ref"] = ref
+                        entry["recovery_blob"] = blob
+                    else:
+                        entry["preservation_error"] = f"update-ref failed for blob {blob}"
+                else:
+                    entry["preservation_error"] = "hash-object failed"
+        entries.append(entry)
+
+    # The receipt names every file whose live content DIFFERED — not the whole
+    # tree. A receipt that repeats 160 unchanged files to report on 1 halted one
+    # is noise, and noise is how a check earns being disabled within a week
+    # (operator ruling, s140). `checked` still carries the full scan count so
+    # "nothing differed" is provably distinct from "nothing was checked".
+    differed_entries = [e for e in entries if e["status"] != "IDENTICAL"]
+    receipt = _write_converge_receipt(
+        spoke_root, "live", differed_entries,
+        extra={"dry_run": dry_run, "checked": classified["checked"]},
+    )
+    return {
+        "ok": all(e.get("disposition") not in ("absorb_failed",) and "preservation_error" not in e
+                  for e in entries),
+        "dry_run": dry_run,
+        "spoke_root": str(spoke_root),
+        "entries": entries,
+        "receipt": receipt,
+    }
+
+
+def classify_pull_exposure(spoke_root, master=None):
+    """What would a `harness_upgrade pull` (master managed/ -> this spoke's
+    managed/) currently take from this spoke? Pure read — delegates to
+    harness_upgrade.compute_home_map, which already carries direction-aware
+    'ahead' pins (declared overrides). The 'change' bucket it returns is exactly
+    the undeclared-local-authorship-at-risk set: apply() copies master's bytes
+    over every one of those files with no halt today.
+
+    This is the OTHER exposure surface named in the bug report ('basher holds
+    locally-authored files under managed/ itself') — distinct from the
+    managed-vs-live direction above, and it is why basher is measured here on
+    ITS OWN managed/ tree against master's, not on live files at all."""
+    master_harness = Path(_resolve_master_harness(master)).resolve()
+    mm = _master_managed(str(master_harness))
+    spoke_root = Path(spoke_root).resolve()
+    sm = spoke_root / "WAI-Harness" / "spoke" / "managed"
+    if not sm.is_dir():
+        return {"ok": False, "error": f"no managed/ at {sm}"}
+    try:
+        home_map = hu.compute_home_map(mm, str(sm))
+    except Exception as e:
+        return {"ok": False, "error": f"compute_home_map failed: {e}"}
+    return {
+        "ok": True,
+        "spoke_root": str(spoke_root),
+        "master_managed": mm,
+        "identical": sorted(home_map.get("unchanged", [])),
+        "behind": sorted(home_map.get("add", [])),                 # spoke lacks it -> safe pull
+        "ahead_undeclared": sorted(home_map.get("change", [])),    # AT RISK: pull would overwrite silently today
+        "ahead_declared": sorted(home_map.get("ahead", [])),       # pinned in harness-ahead.json
+        "ahead_declared_detail": home_map.get("ahead_detail", {}),
+        "ahead_ledger_error": home_map.get("ahead_error"),
+        "orphans": sorted(home_map.get("orphan", [])),
+    }
 
 
 # ── list-contributions ────────────────────────────────────────────────────────
@@ -552,6 +922,19 @@ def main(argv=None):
     ab = sub.add_parser("absorb-contributions", help="(master-side) process all pending contribution lugs")
     ab.add_argument("--master", default=None)
 
+    cl = sub.add_parser("classify-live", help="READ-ONLY: classify managed(.claude)/live divergence")
+    cl.add_argument("--spoke-root", required=True)
+    cl.add_argument("--master", default=None)
+
+    al = sub.add_parser("absorb-live", help="apply managed(.claude) -> live, halting+preserving undeclared local authorship")
+    al.add_argument("--spoke-root", required=True)
+    al.add_argument("--master", default=None)
+    al.add_argument("--dry-run", action="store_true")
+
+    pe = sub.add_parser("pull-exposure", help="READ-ONLY: what a pull would take from a spoke's own managed/ tree")
+    pe.add_argument("--spoke-root", required=True)
+    pe.add_argument("--master", default=None)
+
     args = ap.parse_args(argv)
 
     if args.cmd == "list-contributions":
@@ -571,6 +954,21 @@ def main(argv=None):
 
     if args.cmd == "absorb-contributions":
         result = absorb_contributions(args.master)
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("ok") else 1
+
+    if args.cmd == "classify-live":
+        result = classify_live_tree(args.spoke_root, args.master)
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("ok") else 1
+
+    if args.cmd == "absorb-live":
+        result = absorb_live(args.spoke_root, args.master, dry_run=args.dry_run)
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("ok") else 1
+
+    if args.cmd == "pull-exposure":
+        result = classify_pull_exposure(args.spoke_root, args.master)
         print(json.dumps(result, indent=2))
         return 0 if result.get("ok") else 1
 

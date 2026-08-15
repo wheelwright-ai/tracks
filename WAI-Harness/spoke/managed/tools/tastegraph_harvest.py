@@ -18,10 +18,17 @@ preference marker.
 
 THREE COMMITMENTS, because a bad harvester is worse than none:
 
-  VERBATIM, NOT PARAPHRASED. A proposal's statement is the operator's own
-  sentence. A model-written summary of what he meant is a second artifact that
-  can drift from the first, and the drift is invisible precisely because the
-  summary reads better than the quote.
+  VERBATIM, NOT PARAPHRASED — BUT DISTILLED. A proposal's statement is built
+  only from the operator's own sentences; nothing is reworded. A model-written
+  summary of what he meant is a second artifact that can drift from the first,
+  and the drift is invisible precisely because the summary reads better than the
+  quote. What DID change (operator ruling, 2026-08-01): the proposal is no longer
+  the whole turn. A turn typically carries one transferable instruction wrapped in
+  project context, and proposing the turn proposed the context — three of three
+  proposals that day were unusable for exactly that reason. `essence()` selects
+  the instruction-bearing sentences and drops the rest, keeping the raw turn as
+  evidence under `distilled_from` so the selection can be audited. Selection is
+  verbatim; only the boundaries move.
 
   PROPOSED IS NEVER BINDING. Harvested entries land as `status: proposed`, which
   compile_tastegraph maps to `inferred`, which the Cardinal rule filters OUT of
@@ -83,6 +90,128 @@ MARKERS = [
 
 # Messages that are not the operator speaking about behaviour.
 SKIP = re.compile(r"^\s*(/|\[background notification|\[system|\[mid-turn)", re.I)
+
+# ---------------------------------------------------------------------------
+# DISTILLATION
+#
+# OPERATOR RULING (2026-08-01, s140): "The harvester should find the reusable
+# essence of what i say to understand when im giving advice or direction on how i
+# want to work more optimally that can be applied widely in all projects."
+#
+# What it was doing instead: proposing the verbatim message. All three proposals
+# that day were raw transcript. One was three unrelated project questions ("where
+# to host Wilbur", "call it Otto", "build a revision plan") — not a preference at
+# all. Two were near-restatements of entries that already existed. Every one
+# landed in category `other` with confidence null.
+#
+# The cost is not noise, it is a stalled loop: ratifying meant rewriting from
+# scratch, so ratification stopped happening and the queue grew. A harvester that
+# proposes work is worse than one that proposes nothing.
+#
+# So a candidate must now survive four rejections before it is proposed. Each is
+# deterministic and testable — no model call, no judgement, and every rejection is
+# COUNTED and reported rather than silently swallowed.
+
+# 1. A numbered/bulleted list of asks is a task list, not a preference.
+_ENUMERATED = re.compile(r"(?:^|\s)(?:[2-9]|1[0-9])[.)]\s+\S")
+
+# 2. Names of things that exist only in this wheel. A preference that cannot be
+#    understood in a spoke that never heard of this conversation is not reusable.
+_PROJECT_NOUN = re.compile(
+    r"\b(?:impl|epic|bug|spec|change|feature|task|notation|ack|signal|review)-[a-z0-9-]{6,}"
+    # Version strings, but NOT bare ordinals: "nest the numerators so i can choose
+    # 1.1 or 2.1.3" is a preference ABOUT numbering and was being thrown out as a
+    # version reference. A version needs a v-prefix or a two-digit component.
+    r"|\bv\d+\.\d+\.\d+\b|\b\d+\.\d{2,}\.\d+\b|\b\d+\.\d+\.\d{2,}\b"
+    r"|\b(?:vercel|supabase|caddy|wilbur|otto|octo|ozi|basher|minder|nurturator|pathfinder"
+    r"|ezorg|herald|gastown|tender)\b",
+    re.I)
+
+# 3. Deictic language — "these", "those three", "did you also achieve" — binds the
+#    sentence to a conversation the reader does not have.
+_DEICTIC = re.compile(
+    r"\b(?:these|those|the (?:above|following|three|two|four|first|second|last))\b"
+    r"|\b(?:did|have) you (?:also|already)\b"
+    r"|\byes to all\b|\bon your open\b|\bthis session'?s?\b",
+    re.I)
+
+# 4. A preference states how to WORK. Without a behavioural verb it is an opinion.
+_BEHAVIOURAL = re.compile(
+    # `keep` and `start` were here and had to come out: "keep going, nice work"
+    # is encouragement, not an instruction, and it scored as one. A verb that
+    # fires on praise makes the gate worse than no gate.
+    r"\b(?:always|never|must|should|prefer|instead|rather than|stop asking|"
+    r"report|surface|write|use|run|verify|check|finish|complete|land|"
+    r"lead with|avoid|include|treat|default|"
+    # Presentation/structure directives. Added after the gate rejected "nest the
+    # numerators so i can choose 1.1 or 2.1.3" — a durable formatting preference —
+    # as having no behavioural instruction. Every verb here is imperative in
+    # ordinary use; none of them fire on praise.
+    r"nest|number|format|organi[sz]e|structure|order|rank|sort|group|separate|"
+    r"split|deliver|route|escalate|state|name|show)\b", re.I)
+
+_SENTENCE = re.compile(r"(?<=[.!?;])\s+|\n+")
+
+# 5. Information-seeking questions. "What should I submit?" and "Why not run it
+#    now?" are the operator ASKING, not directing — they carry marker words and
+#    scored as preferences. Request-shaped questions ("can you use X instead of
+#    Y?") ARE directions and are deliberately NOT caught here: on 2026-08-01 the
+#    operator's "can you use color icons instead of words?" was exactly the kind
+#    of durable preference this loop exists to capture.
+_REQUEST_FORM = re.compile(r"\b(?:can|could|would|will)\s+you\b|\bplease\b", re.I)
+
+
+def _is_question(sentence):
+    """A sentence that ASKS rather than directs.
+
+    The test is not "does it end in a question mark" — the operator routinely
+    phrases a durable preference as a polite request, and "can you use color
+    icons instead of words?" is exactly the kind of thing this loop exists to
+    capture. So a question is rejected only when it carries no request form.
+    """
+    if "?" not in sentence:
+        return False
+    return not _REQUEST_FORM.search(sentence)
+
+
+def essence(text):
+    """The reusable core of a message, or (None, reason) if there isn't one.
+
+    Returns (statement, None) on success and (None, reason) on rejection. The
+    reason is kept because a harvester that drops silently cannot be tuned — the
+    counts are what tell you whether the gate is too tight or too loose.
+    """
+    raw = (text or "").strip()
+    if not raw:
+        return None, "empty"
+
+    if _ENUMERATED.search(raw):
+        return None, "enumerated-asks: a task list, not a preference"
+
+    # Keep only sentences that actually carry an instruction. This is the
+    # distillation: a long turn usually contains one transferable sentence and a
+    # lot of project context, and proposing the whole turn proposes the context.
+    sentences = [s.strip() for s in _SENTENCE.split(raw) if s.strip()]
+    kept = [s for s in sentences
+            if _BEHAVIOURAL.search(s)
+            and not _PROJECT_NOUN.search(s)
+            and not _DEICTIC.search(s)
+            and not _is_question(s)]
+    if not kept:
+        if any(_is_question(s) for s in sentences):
+            return None, "a question, not a direction"
+        if any(_PROJECT_NOUN.search(s) for s in sentences):
+            return None, "project-specific: names artifacts that do not exist elsewhere"
+        if any(_DEICTIC.search(s) for s in sentences):
+            return None, "context-bound: unreadable without this conversation"
+        return None, "no behavioural instruction"
+
+    statement = " ".join(kept).strip()
+    if len(statement) < MIN_LEN:
+        return None, "distilled to less than a usable statement"
+    if len(statement) > MAX_LEN:
+        statement = statement[:MAX_LEN].rsplit(" ", 1)[0]
+    return statement, None
 
 
 def _now():
@@ -289,6 +418,7 @@ def scan(root=None, base=None, cap=DEFAULT_CAP, dup_threshold=DROP_CEILING):
 
     best = {}
     dropped_dupe = 0
+    rejected = {}
     for sid, turn, msg in msgs:
         s, names = score(msg)
         if s < MIN_SCORE:
@@ -307,7 +437,16 @@ def scan(root=None, base=None, cap=DEFAULT_CAP, dup_threshold=DROP_CEILING):
             dropped_dupe += 1
             continue
 
-        cand = {"id": cid, "score": s, "markers": names, "statement": msg,
+        distilled, why_not = essence(msg)
+        if distilled is None:
+            rejected[why_not] = rejected.get(why_not, 0) + 1
+            continue
+
+        cand = {"id": cid, "score": s, "markers": names,
+                # The PROPOSAL is the distilled essence. The raw turn is kept as
+                # evidence so a ratifier can audit the distillation, but it is not
+                # what gets ratified.
+                "statement": distilled, "raw": msg,
                 "session_source": sid, "turn": turn,
                 "nearest_existing": near_id,
                 "nearest_similarity": round(near_score, 3)}
@@ -319,7 +458,10 @@ def scan(root=None, base=None, cap=DEFAULT_CAP, dup_threshold=DROP_CEILING):
                     key=lambda c: (-c["score"], c["session_source"], str(c["turn"])))
     return {"messages_read": len(msgs), "candidates": ranked[:cap],
             "candidates_total": len(ranked), "already_known": len(seen),
-            "dropped_as_org_canon": dropped_dupe, "base": str(base)}
+            "dropped_as_org_canon": dropped_dupe,
+            # Counted, never silent: these numbers are how the gate gets tuned.
+            "rejected_by_distillation": rejected,
+            "base": str(base)}
 
 
 def _write_yaml(path, doc):
@@ -358,7 +500,10 @@ def propose(root=None, base=None, cap=DEFAULT_CAP):
             "evidence": {"markers": c["markers"], "score": c["score"],
                          "turn": c["turn"],
                          "nearest_existing": c.get("nearest_existing"),
-                         "nearest_similarity": c.get("nearest_similarity")},
+                         "nearest_similarity": c.get("nearest_similarity"),
+                         # The turn the essence was distilled FROM, so a ratifier
+                         # can check the distillation did not invent intent.
+                         "distilled_from": c.get("raw")},
         })
         added.append(c["id"])
 

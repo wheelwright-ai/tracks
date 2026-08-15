@@ -50,16 +50,37 @@ def _resolve_track(state_path, project_dir):
     return None
 
 
-def main() -> None:
+def main() -> bool:
+    """Returns True iff a turn event was actually appended to track.jsonl.
+
+    bug-track-records-zero-turns-and-mints-a-session-per-turn-v1 (MEASURED
+    2026-08-06): commit 81fafd1ad turned validate_track_buffer's documented
+    "ANNOTATE-don't-drop... never blocks a flush" contract into a hard reject —
+    "Do NOT flush incomplete entries." Every turn this session lacked the
+    model-authored rich fields (user_msg, thinking, ...), so EVERY turn was
+    rejected, for a full day, with zero errors anywhere. The caller
+    (stop-track-flush.sh) treated the buffer's mere on-disk PRESENCE as proof
+    of a successful flush and set BUFFER_PRESENT=1 regardless — which told
+    synthesize_turn.py's Layer-2 safety net "layer 1 already wrote this turn,
+    nothing to do," so the net that exists specifically to catch this never
+    fired either. Two independent layers, both silently defeated by one
+    over-strict gate: the return value here is instrumentation FOR the caller
+    to make BUFFER_PRESENT mean "actually flushed," not "file exists."
+
+    Fix: honor the validator's own contract. A degraded (annotated,
+    _validation-flagged) entry always lands — recoverable — instead of a
+    perfect one or nothing, which was the unrecoverable failure mode Ruling 37
+    scores at the top of the criticality scale.
+    """
     if len(sys.argv) < 4:
-        return
+        return False
 
     state_path, buffer_path, project_dir = sys.argv[1], sys.argv[2], sys.argv[3]
 
     try:
         track_path = _resolve_track(state_path, project_dir)
         if track_path is None:
-            return
+            return False
 
         track_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -69,18 +90,20 @@ def main() -> None:
         # hook-owned envelope before the buffer is deleted below.
         _check_restamp(entry, buffer_path)
 
-        # VALIDATE AND REJECT on missing REQUIRED fields. Best-effort — if the
-        # validator is broken, log it and proceed (never block the turn).
-        validation_passed = True
+        # VALIDATE AND ANNOTATE (never reject — validate_track_buffer.py's own
+        # contract is "annotate-don't-drop": an incomplete entry still lands,
+        # degraded and flagged, so it is recoverable instead of silently gone).
+        # Best-effort — if the validator itself is broken, log it and proceed
+        # with the entry unchanged (never block the turn).
         try:
             sys.path.insert(0, str(Path(__file__).resolve().parent))
             import validate_track_buffer as _vtb
             _res = _vtb.validate(entry, _vtb._spoke_from_state(state_path))
 
-            # Hard gate: reject writes with missing REQUIRED fields.
             if _res.get("errors"):
-                validation_passed = False
-                # Log the rejection with full context for audit/backfill.
+                # Log for audit/backfill visibility, but STILL FLUSH — degraded,
+                # not dropped. Same log name kept for continuity with prior audit
+                # trails; entries after this fix are DEGRADED-FLUSHED, not rejected.
                 log_path = Path(buffer_path).resolve().parent / "track-validation-rejections.log"
                 ts = datetime.now(timezone.utc).isoformat()
                 session_id = "unknown"
@@ -92,12 +115,10 @@ def main() -> None:
                 turn_n = entry.get("turn", "?")
                 errors_str = "; ".join(_res.get("errors", []))
                 with log_path.open("a") as f:
-                    f.write(f"{ts} REJECTED session={session_id} turn={turn_n} errors=[{errors_str}] buffer={buffer_path}\n")
-                # Do NOT flush incomplete entries.
-                return
-
-            # Annotate with warnings even if valid (for soft-required fields).
-            if _res.get("warnings"):
+                    f.write(f"{ts} DEGRADED-FLUSHED session={session_id} turn={turn_n} errors=[{errors_str}] buffer={buffer_path}\n")
+                entry = _res.get("annotated_entry", entry)
+            elif _res.get("warnings"):
+                # Annotate with warnings even if valid (for soft-required fields).
                 entry = _res.get("annotated_entry", entry)
         except Exception as e:
             # Validator broken or missing — log and proceed (never block).
@@ -110,9 +131,10 @@ def main() -> None:
             f.write(json.dumps(entry) + "\n")
 
         Path(buffer_path).unlink()
+        return True
     except Exception:
-        pass  # silent fail — track is best-effort
+        return False  # silent fail — track is best-effort, but the caller must know
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(0 if main() else 1)

@@ -7,6 +7,7 @@ Proves the verify-apply-verify loop for BOTH a spoke and the hub:
   - verify catches a corrupted managed file (md5 mismatch)
   - the hub managed tree upgrades by the same engine
 """
+import os
 import json
 from pathlib import Path
 
@@ -333,3 +334,112 @@ def test_distribute_neutralizes_is_master_on_target(tmp_path):
     assert rep["ok"] is True and rep["verify_post"]["ok"] is True
     assert json.loads((target / hu.MANIFEST_NAME).read_text())["is_master"] is False
     assert hu.load_manifest(master)["is_master"] is True
+
+
+# ---------------------------------------------------------------------------
+# RETIRED WHEELS ARE NOT UPGRADED
+#
+# MEASURED 2026-08-12. An upgrade-report arrived from /wheelwright/hub, a repo
+# the registry has carried as INACTIVE since 2026-06-10 and whose function moved
+# inside mywheel months ago. It aborted on NET SYMBOL LOSS, delivered a FAIL into
+# a live inbox, and cost a session's attention chasing a "fleet blocker" that was
+# a deprecated repo talking to itself. The tree it wanted to write into held
+# 3,742 uncommitted files and sat 42 versions back -- applying there would have
+# been unrecoverable, not merely wrong.
+# ---------------------------------------------------------------------------
+
+def _registry(master_root, entries):
+    """A hub-registry.json alongside the master, as the real one sits."""
+    reg = Path(master_root) / "hub" / "local" / "hub-registry.json"
+    reg.parent.mkdir(parents=True, exist_ok=True)
+    reg.write_text(json.dumps({"wheels": entries}))
+    return reg
+
+
+def _spoke_at(root, files):
+    managed = Path(root) / "WAI-Harness" / "spoke" / "managed"
+    for rel, txt in files.items():
+        _write(managed / rel, txt)
+    return root
+
+
+def test_a_wheel_the_registry_calls_inactive_is_not_pulled(tmp_path):
+    master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
+    spoke = _spoke_at(tmp_path / "retired", {"tools/a.py": "v1\n"})
+    _registry(master, [{"wheel_id": "retired", "path": str(spoke), "status": "inactive"}])
+    rep = hu.pull(spoke, master_root=master, dry_run=True)
+    assert rep["status"] == "retired"
+    assert rep["pulled"] == 0
+    assert rep["registry_status"] == "inactive"
+
+
+def test_an_active_wheel_is_pulled_normally(tmp_path):
+    """The guard must not become a reason nothing upgrades."""
+    master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
+    spoke = _spoke_at(tmp_path / "live", {"tools/a.py": "v1\n"})
+    _registry(master, [{"wheel_id": "live", "path": str(spoke), "status": "active"}])
+    assert hu.pull(spoke, master_root=master, dry_run=True)["status"] != "retired"
+
+
+def test_a_spoke_the_registry_does_not_name_is_pulled_normally(tmp_path):
+    """LOAD-BEARING. Most spoke roots a pull sees are not registry members at all --
+    worktrees, fresh clones, anything not yet registered. Treating unknown as inactive
+    would break session-start self-update on every one of them, which is a far worse
+    failure than the noise this guard exists to stop."""
+    master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
+    spoke = _spoke_at(tmp_path / "stranger", {"tools/a.py": "v1\n"})
+    _registry(master, [{"wheel_id": "someone-else", "path": "/nowhere", "status": "active"}])
+    assert hu.pull(spoke, master_root=master, dry_run=True)["status"] != "retired"
+
+
+def test_a_missing_registry_does_not_stop_a_pull(tmp_path):
+    master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
+    spoke = _spoke_at(tmp_path / "s", {"tools/a.py": "v1\n"})
+    assert hu.registry_status(master, spoke) == ""
+    assert hu.pull(spoke, master_root=master, dry_run=True)["status"] != "retired"
+
+
+def test_the_refusal_says_why_rather_than_only_refusing(tmp_path):
+    master = _make_master_tree(tmp_path / "master", {"tools/a.py": "v2\n"})
+    spoke = _spoke_at(tmp_path / "retired", {"tools/a.py": "v1\n"})
+    _registry(master, [{"wheel_id": "retired", "path": str(spoke), "status": "deprecated"}])
+    rep = hu.pull(spoke, master_root=master, dry_run=True)
+    assert rep["status"] == "retired"
+    assert "deprecated" in rep["why"]
+
+
+# ---------------------------------------------------------------------------
+# AN UPGRADE REPORT MUST NAME WHAT RAN IT
+#
+# MEASURED 2026-08-12. A report from a repo the registry had marked inactive two
+# months earlier arrived in a live inbox and read as a fleet blocker. Proving it
+# was noise took a session. Proving WHAT RAN IT was not possible at all: the
+# record said `created_by: harness_upgrade.emit_upgrade_report`, which names the
+# pen and not the hand. Cron was searched, the nightly sweep read and cleared,
+# logs grepped, and the target tree had no file written at that minute. The
+# trail ended, and the cause is still open.
+# ---------------------------------------------------------------------------
+
+def test_the_invoker_is_captured_not_just_the_writing_function():
+    got = hu._invoker()
+    assert got["pid"] == os.getpid()
+    assert "argv" in got and isinstance(got["argv"], str)
+
+
+def test_the_invoker_never_raises_even_with_no_parent(monkeypatch):
+    """Best-effort throughout: an unidentifiable invoker must never be the reason
+    an upgrade report fails to be written. A guard that breaks the thing it
+    observes is worse than the blind spot it was closing."""
+    def boom():
+        raise OSError("no /proc here")
+    monkeypatch.setattr(os, "getppid", boom)
+    got = hu._invoker()
+    assert got["pid"] == os.getpid()
+    assert got["parent"] == ""
+
+
+def test_the_invoker_record_is_bounded():
+    """A command line can be enormous; a report is read by humans and by lugs."""
+    got = hu._invoker()
+    assert len(got["argv"]) <= 300
+    assert len(got["parent"]) <= 300

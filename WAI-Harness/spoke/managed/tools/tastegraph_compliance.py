@@ -87,6 +87,20 @@ _NEGATION_CUES = re.compile(
     r"cannot|can't|without|-only|only for|unlike|nobody|none of)\b",
     re.IGNORECASE)
 
+# ONE STATUSLINE PATTERN, SHARED BY EVERY DETECTOR THAT NEEDS ONE.
+#
+# MEASURED 2026-08-07: two call sites here each carried their own `^Turn \d+ \|`,
+# and the hook has emitted "s140 | Turn 7 | ..." since the session prefix landed.
+# Neither matched anything. d_statusline_model_stale therefore reported a clean
+# record by never inspecting a statusline, and d_ask_comes_last counted the
+# statusline as trailing prose because it failed to recognise it as chrome.
+# Two independent copies of a pattern drifted from the format together, which is
+# the argument for there being one.
+#
+# Accepts, in order: the current short form (s140 | T7 | ...), the previous long
+# form (s140 | Turn 7 | ...), and a bare line with no session prefix.
+_STATUSLINE_RE = re.compile(r"^(?:s\d+\s*\|\s*)?T(?:urn)?\s?\d+\s*\|")
+
 
 def _negated(text, start, window=90):
     """Is the match preceded by a negation cue inside a short window?"""
@@ -197,7 +211,7 @@ def d_statusline_model_resolved(text, _pref):
     """
     out = []
     for line in text.strip().splitlines():
-        if not re.match(r"^Turn \d+ \|", line.strip()):
+        if not _STATUSLINE_RE.match(line.strip()):
             continue
         if re.search(r"\|\s*unknown\s*\|", line):
             out.append({"evidence": line.strip()[:120],
@@ -226,7 +240,7 @@ def d_ask_comes_last(text, _pref):
     trailing = 0
     for line in lines[last_q + 1:]:
         s = line.strip()
-        if not s or len(s) < 40 or re.match(r"^Turn \d+ \|", s):
+        if not s or len(s) < 40 or _STATUSLINE_RE.match(s):
             continue
         trailing += len(s)
     if trailing > 400:

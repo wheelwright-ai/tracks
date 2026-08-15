@@ -6,6 +6,30 @@ Every WAI component must embody these principles. Details and examples: `wai-pri
 
 ---
 
+## P0: Low Trust  (TENET -- the substrate the others stand on)
+
+**The wheel assumes its own output is unverified until an independent check says otherwise.**
+
+Not because the work is bad -- because no one, human or model, can review every response
+to the depth reality demands. Low trust is what lets us go fast without lying. Operator,
+2026-08-02: "Not as a jab but as a badge of quality."
+
+- **C1** A control that depends on the model choosing to comply is not a control.
+  It is a hope with good manners. *(Read P2 against this: "verify with commands" is
+  addressed to the agent, so it is a request, not a gate.)*
+- **C2** An unverified claim decays to UNKNOWN. It never persists as TRUE because it
+  was TRUE once.
+- **C3** The thing that checks is never the thing that did it.
+- **C4** Nothing that predates the approach is trusted. A spoke starts at zero and
+  earns its floor -- via warmup -- before it builds anything new.
+
+P0 is not a fourth entry in the March 2026 virtuous circle (Conversation -> Sageness ->
+Acceleration). It is the floor that circle stands on: acceleration without it is faster
+ghost-making.
+
+Live mechanisms: `trust_epoch.py` (what is trusted), `warmup.py` (the floor),
+`floor_gate.py` (build work blocked off-floor). Full spec: `spec-low-trust-tenet-v1`.
+
 ## P1: Persistence
 
 **Nothing survives without explicit save.**
@@ -110,6 +134,7 @@ Every WAI component must embody these principles. Details and examples: `wai-pri
 
 | # | Name | Core Idea |
 |---|------|-----------|
+| P0 | Low Trust | Unverified until independently checked; nothing pre-approach is trusted |
 | P1 | Persistence | Save explicitly or lose it |
 | P2 | Verification | Verify, don't assume |
 | P3 | Stewardship | Responsible partner |

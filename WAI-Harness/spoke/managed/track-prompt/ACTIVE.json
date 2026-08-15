@@ -1,0 +1,23 @@
+{
+  "_note": "SINGLE SOURCE OF TRACK-PROMPT VERSION TRUTH. Every surface that names a track-prompt version reads THIS file. Four version strings were live at once (v0.10, v0.18, v1.0.2, v2.0.2) because each surface carried its own literal; that is how a version number came to name two different documents.",
+  "active_version": "3.0.0",
+  "declared_as": "WAI Track v3.0.0",
+  "payload": "WAI-Harness/spoke/managed/track-prompt/v3.0.0.md",
+  "sha256": "288ea2ac8954ea21f13440d8b443027832232b5adfe017f054b5c682251715c5",
+  "bytes": 54610,
+  "injection": "session_start_once",
+  "injection_note": "Injected ONCE per session, not per turn. Measured 2026-08-03: cache read is 82.3% of spend and scales with per-call context, so a 54610-byte body on a per-turn hook would be the single most expensive line in the harness. The per-turn hook carries only what genuinely lapses: the buffer write and the computed statusline.",
+  "provenance": {
+    "authored_in": "track-prompt-lab",
+    "source_path": "prompts/v3.0.0.md",
+    "verified_at": "2026-08-04T01:30:00+00:00",
+    "rule": "The hook may ONLY inject bytes that exist as a versioned file in track-prompt-lab prompts/, and must declare which version. Authoring a track prompt inside the harness is forbidden (spec-track-prompt-promotion-chain-v1)."
+  },
+  "retired_versions": {
+    "_note": "RETIRED. Never reuse — each is already bound to a different document, so any measurement keyed to one is unattributable.",
+    "0.10": "no lab file ever existed",
+    "0.18": "no lab file ever existed",
+    "1.0.2": "bound to a different lab body",
+    "2.0.2": "bound to a different lab body; the harness ran a hand-authored block under this name"
+  }
+}

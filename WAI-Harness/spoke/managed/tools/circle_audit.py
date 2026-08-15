@@ -32,6 +32,7 @@ Usage:
 Exit: 0 clean; 1 findings (phantom/open/unknown-ownership/bound-missing); 2 cannot audit.
 """
 import argparse
+import datetime
 import hashlib
 import json
 import os
@@ -419,6 +420,44 @@ def unmerged_lane_findings(root):
     return findings
 
 
+def budget_guard_freshness(root, now=None):
+    """impl-budget-guard-staleness-warning-v1: budget-guard.json is human-owned
+    and sat 15 days stale (96%/blocked) while reality was 48%/allowed — nothing
+    refreshed it but operator eyes. Surface age + resets_at-in-past here so the
+    cheap session-start tier catches drift, same threshold as
+    navigator_capacity_probe.py's STALE-GATE check."""
+    guard_path = Path(root) / "WAI-Harness" / "hub" / "local" / "model-routing" / "budget-guard.json"
+    guard = _load_json(guard_path)
+    if guard is None:
+        return {"present": False, "fresh": False, "detail": f"{guard_path} missing or unreadable"}
+
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+
+    def _parse_ts(s):
+        if not s:
+            return None
+        try:
+            ts = datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return ts if ts.tzinfo else ts.replace(tzinfo=datetime.timezone.utc)
+
+    observed = _parse_ts(guard.get("observed_at"))
+    resets = _parse_ts(guard.get("resets_at"))
+    if observed is None:
+        return {"present": True, "fresh": False, "age_hours": None,
+                "detail": "observed_at missing/unparseable"}
+
+    age_hours = (now - observed).total_seconds() / 3600
+    if resets is not None and now > resets:
+        return {"present": True, "fresh": False, "age_hours": round(age_hours, 2),
+                "detail": f"resets_at ({guard.get('resets_at')}) has already passed — window rolled over"}
+    if age_hours > 48:
+        return {"present": True, "fresh": False, "age_hours": round(age_hours, 2),
+                "detail": f"observed_at {age_hours:.1f}h old (> 48h)"}
+    return {"present": True, "fresh": True, "age_hours": round(age_hours, 2), "detail": "fresh"}
+
+
 def hub_checks(root):
     """The hub child has its own scope and mission — audit its instruments."""
     hub = Path(root) / "WAI-Harness" / "hub"
@@ -441,6 +480,9 @@ def hub_checks(root):
         out["contract_validate_scheduled"] = any("contract_validate" in ln or "conductor" in ln for ln in live)
     except Exception:
         out["contract_validate_scheduled"] = None  # unknown, reported as such
+    budget_guard = budget_guard_freshness(root)
+    out["budget_guard_fresh"] = budget_guard["fresh"]
+    out["budget_guard_detail"] = budget_guard
     return out
 
 

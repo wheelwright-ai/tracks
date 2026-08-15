@@ -6,21 +6,23 @@ WAI gives you persistent memory, structured work tracking, and cross-session con
 
 ## Bootstrap (First Turn)
 
-1. **Review inbox first** — Check `WAI-Harness/spoke/local/lugs/incoming/` for any unprocessed lugs *(v3 coexist spokes: `WAI-Harness/spoke/lugs/incoming/`)*. List what arrived (file names + titles). Triage in place: note each item, defer actioning to the appropriate session goal. Do this before any other work regardless of the stated session goal.
-2. Read `WAI-Harness/spoke/local/WAI-State.json` — project identity, session state, hub connection
-   *(v3 coexist spokes: `WAI-Harness/spoke/WAI-State.json`)*
-3. Load the first wakeup file that exists:
-   - `.claude/commands/wai.md` (v4 — invoke `/wai`)
-   - `WAI-Harness/spoke/commands/wai.md` (v3 coexist fallback)
-   - `WAI-Harness/spoke/skills/wai/wai.md` (v3 coexist fallback)
-4. Follow that wakeup file to produce the WAI Point briefing
-5. Discover teachings (wai.md Step 5 covers this, but if skipped — do it here):
-   - Local: check `WAI-Harness/spoke/local/seed/ingest/` for `.teaching` files not yet in `processed/`
-     *(v3 coexist spokes: `WAI-Harness/spoke/seed/ingest/`)*
-   - Hub: read `wheel.hub_path` from WAI-State.json → scan `{hub_path}/teachings_repo/framework/current/*.teaching`
-   - Surface pending teachings in the briefing first; do not stop wakeup before the briefing is complete
-   - During wakeup, summarize teachings from filenames/frontmatter only. Do not read full teaching bodies unless the user explicitly asks to review them now
-6. Then respond to the user's message
+This spoke runs the **v6 kernel**. The kernel IS the bootstrap — behaviour is code with
+contracts, not instructions you have to carry.
+
+1. Run `WAI-Harness/kernel/bin/wai brief` and print its output verbatim. It is a query
+   over state, so it returns the same answer twice. It returns mission, session, what was
+   handed forward, and what is next.
+2. **Review inbox** — check `WAI-Harness/spoke/local/lugs/incoming/` for unprocessed lugs. List what arrived (file names + titles). Triage in place: note each item, defer actioning to the appropriate session goal. Do this before any other work regardless of the stated session goal.
+3. Then respond to the user's message.
+
+**Older layouts are DETECTED, never assumed.** Tooling expects v6; on meeting an older
+spoke it interrogates rather than guessing — `source .claude/hooks/harness_mode.sh <root>`
+and read `$HARNESS_ACTIVE`. Only when that resolves to `v4`/`v3` do the pre-v6 surfaces
+apply: `WAI-Harness/spoke/local/WAI-State.json` for state, then the first wakeup file you
+have CONFIRMED exists on disk among `.claude/commands/wai.md` (v4),
+`WAI-Harness/spoke/commands/wai.md` (v3), `WAI-Harness/spoke/skills/wai/wai.md` (v3).
+Probe with `test -e` first; never follow a path you have not just checked. On many spokes
+the two v3 paths no longer exist, and that is expected, not an error.
 
 ## Codex Optimization
 

@@ -634,6 +634,72 @@ def read_assurance_health(spoke: "Optional[Path]") -> "Optional[dict]":
     return out or None
 
 
+def read_trust_floor(spoke: "Optional[Path]") -> "Optional[dict]":
+    """The LOW TRUST floor, surfaced every wakeup instead of when someone remembers.
+
+    This function is the tenet's own guard against itself. The defect that motivated
+    LOW TRUST was measured on 2026-08-02: five assurance tools existed on this spoke,
+    the epic that built them was marked complete, and the advisor meant to run them
+    had never run once. Building three more tools and trusting them to be invoked
+    would have reproduced that failure exactly, with better docstrings.
+
+    So the floor appears on the ordinary path. A spoke that has never warmed up reads
+    UNKNOWN at every wakeup until somebody warms it up -- which is a nag by design,
+    because the alternative is silence that reads as fine.
+
+    Read-only and cheap: it reads floor.json and the epoch state, and never runs a
+    probe. Establishing a floor costs a test run; reporting one must not.
+    """
+    if spoke is None:
+        return None
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import trust_epoch as _te  # noqa: PLC0415
+        import warmup as _wu  # noqa: PLC0415
+        import floor_gate as _fg  # noqa: PLC0415
+
+        root = str(_project_root_for(spoke))
+        st = _wu.status(root)
+        scan = _te.scan(root)
+        out = {
+            "verdict": st.get("verdict"),
+            "cleared_to_build": bool(st.get("cleared_to_build")),
+            "reason": st.get("reason"),
+            "expires_at": st.get("expires_at"),
+            "gaps": [g.get("id") for g in (st.get("delta") or [])],
+            "trust_epoch": scan.get("trust_epoch"),
+            "trust_ratio_display": scan.get("trust_ratio_display"),
+            "counts": scan.get("counts"),
+            "override_count": len(_fg.read_ledger(root)),
+        }
+        try:
+            import oracle_liveness as _ol  # noqa: PLC0415
+
+            liveness = _ol.check(root)
+            out["oracles"] = {
+                "line": _ol.worst_line(liveness),
+                "counts": liveness["counts"],
+                "silent_total": liveness["silent_total"],
+            }
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            import commitment_register as _cr  # noqa: PLC0415
+
+            reg = _cr.check(root, run_landings=False)
+            out["commitments"] = {
+                "line": _cr.line(reg),
+                "counts": reg["counts"],
+                "oldest_open": reg.get("oldest_open"),
+                "crowded": reg.get("crowded"),
+            }
+        except Exception:  # noqa: BLE001
+            pass
+        return out
+    except Exception:  # noqa: BLE001 — a brief must never fail on an optional read
+        return None
+
+
 def read_integrity_probe(project_root: "Optional[Path]") -> "Optional[dict]":
     """Standing silent-failure oracles, surfaced at wakeup instead of on request.
 
@@ -1215,6 +1281,7 @@ def main() -> None:
     qa_health_data = read_qa_health(SPOKE)
     lug_staleness_data = read_lug_staleness(SPOKE)
     assurance_health_data = read_assurance_health(SPOKE)
+    trust_floor_data = read_trust_floor(SPOKE)
     integrity_probe_data = read_integrity_probe(PROJECT_ROOT)
     refresh_position_map(SPOKE)
     position_map_data = read_position_map(SPOKE)
@@ -1271,6 +1338,7 @@ def main() -> None:
                and hasattr(compile_tastegraph, "snapshot_age") else None),
         "assurance_health": assurance_health_data,
         "integrity_probe": integrity_probe_data,
+        "trust_floor": trust_floor_data,
     }
 
     # Atomic write

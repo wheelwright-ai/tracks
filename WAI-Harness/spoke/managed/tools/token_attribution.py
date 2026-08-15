@@ -141,11 +141,16 @@ def usage_from_cli_json(stdout):
 
 def attribute(pass_name, actor, model, usage=None, lug_id=None, run_id=None,
               session_id=None, duration_ms=None, spoke_id=None, root=".",
-              provider="anthropic"):
+              provider="anthropic", error=None, error_kind=None):
     """Record one attributed call. Returns the event written, or None if it wrote nothing.
 
     A call with no usage numbers is NOT recorded: an event of all zeros is worse
     than a missing one, because it reports as free spend rather than as a gap.
+
+    `error` / `error_kind` mirror `model_usage_logger.log_usage` — this module
+    extends the owner's event shape, it never forks it. A failed call burns the
+    same tokens as a successful one, so dropping the failure fields here would
+    make attributed spend look cheaper than logged spend for the same work.
     """
     usage = usage or {}
     tokens_in = int(usage.get("input_tokens") or 0)
@@ -178,6 +183,8 @@ def attribute(pass_name, actor, model, usage=None, lug_id=None, run_id=None,
         "quality_rating": None,
         "rework_required": None,
         "session_id": session_id,
+        "error": error,
+        "error_kind": error_kind,
     }
     path = usage_file(root)
     try:

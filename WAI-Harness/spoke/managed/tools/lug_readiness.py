@@ -336,10 +336,38 @@ def cmd_audit(args):
         print(f"  {k:22}: {v}")
 
 
+def _bridge_findings_to_lugs(target):
+    """Opt-in groom-time step (impl-circle-findings-to-lugs-bridge-v1): mint AP-executable
+    lugs from circle_audit hard findings before this groom pass gates them. Wired here, not
+    in hygiene_run, because hygiene's contract is signal-only (never writes) — minting lugs
+    is intake work, which is what `groom` already is. Best-effort: a missing/unreadable
+    report never fails the groom pass, it just means nothing to bridge this round."""
+    root = os.path.abspath(target)
+    while root != os.path.dirname(root):
+        if os.path.isdir(os.path.join(root, "WAI-Harness")):
+            break
+        root = os.path.dirname(root)
+    else:
+        return None
+    try:
+        import circle_findings_bridge
+        return circle_findings_bridge.run(root)
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def cmd_groom(args):
     """Gate a single lug file, or every lug under a directory, through groom_gate.
     Exit 1 if any impl lug fails (missing file_targets/effort_score/verify) --
     designed to be called at lug creation/intake time, not just periodic audit."""
+    if getattr(args, "with_findings_bridge", False):
+        bridge_result = _bridge_findings_to_lugs(args.target)
+        if bridge_result and not args.json:
+            if bridge_result.get("error"):
+                print(f"groom: findings bridge skipped ({bridge_result['error']})")
+            else:
+                print(f"groom: findings bridge minted={len(bridge_result['minted'])} "
+                      f"self_resolved={len(bridge_result['self_resolved'])}")
     targets = [args.target] if os.path.isfile(args.target) else lug_files(args.target)
     failures = []
     for f in targets:
@@ -513,7 +541,7 @@ def main():
     vc = sub.add_parser("verify-completed"); vc.add_argument("--spokes"); vc.add_argument("--root"); vc.add_argument("--all", action="store_true", help="include behavioral (no-file-target) lugs in the work-list"); vc.add_argument("--show", action="store_true"); vc.add_argument("--json", action="store_true"); vc.set_defaults(fn=cmd_verify_completed)
     pr = sub.add_parser("promote"); pr.add_argument("lug"); pr.add_argument("--write", action="store_true"); pr.set_defaults(fn=cmd_promote)
     rt = sub.add_parser("retire"); rt.add_argument("lug"); rt.add_argument("--write", action="store_true"); rt.set_defaults(fn=cmd_retire)
-    gr = sub.add_parser("groom"); gr.add_argument("target", help="a lug file, or a directory to scan"); gr.add_argument("--flag-only", action="store_true", help="report but do not fail exit code"); gr.add_argument("--json", action="store_true"); gr.set_defaults(fn=cmd_groom)
+    gr = sub.add_parser("groom"); gr.add_argument("target", help="a lug file, or a directory to scan"); gr.add_argument("--flag-only", action="store_true", help="report but do not fail exit code"); gr.add_argument("--json", action="store_true"); gr.add_argument("--with-findings-bridge", action="store_true", help="mint AP-executable lugs from circle_audit hard findings before gating (impl-circle-findings-to-lugs-bridge-v1)"); gr.set_defaults(fn=cmd_groom)
     args = ap.parse_args()
     args.fn(args)
 

@@ -34,8 +34,12 @@ LANDING CONDITION KINDS (all mechanically checkable — no LLM judgment)
   commit          {"kind":"commit","sha":"abc1234"}
                   Lands when that commit is an ancestor of HEAD.
   command         {"kind":"command","cmd":"pytest -q tests/x.py"}
-                  Lands when the command exits 0. Opt-in via --run-commands;
-                  never executed during a wakeup read.
+                  Lands when the command exits 0. Opt-in via --run-commands,
+                  which CLOSEOUT passes and wakeup never does — wakeup stays
+                  cheap and read-only. Every execution is bounded by
+                  --command-timeout (default 120s) and screened against
+                  COMMAND_DENY_LIST; a denied or timed-out condition reports
+                  its reason and leaves the thread OPEN.
   manual          {"kind":"manual"}  — explicitly needs a human. Never lands.
   (absent)        Unlanded and UNCHECKABLE. Reported separately and loudly:
                   these are the chatter the doctrine warns about.
@@ -58,8 +62,42 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 
-LANDING_VERSION = "1.0.0"
+LANDING_VERSION = "1.1.0"
 DONE_DIRS = {"completed", "done", "closed", "resolved"}
+
+DEFAULT_COMMAND_TIMEOUT = 120
+
+# Conditions that must NEVER be executed, each with the reason it is refused.
+# Screened as substrings against the raw command. The rule for adding an entry:
+# a denied condition is one whose EXECUTION can damage the repo or the session,
+# not one that is merely slow or likely to fail. A denial is always reported —
+# a silent skip would be indistinguishable from the bug this file exists to fix.
+COMMAND_DENY_LIST = [
+    ("tests/run.sh",
+     "full suite has a known fixture escape into the shared .git; running it "
+     "from a closeout can corrupt the repo it is meant to certify"),
+    ("git reset --hard",
+     "destroys uncommitted work in a tree worked by concurrent lanes (CSRP)"),
+    ("git clean",
+     "deletes untracked files, including a peer lane's in-flight work"),
+    ("git checkout --",
+     "bare path-revert discards uncommitted changes with no recovery ref"),
+    ("push --force",
+     "rewrites published history from an unattended check"),
+    ("rm -rf",
+     "recursive delete must never be a side effect of a status check"),
+    ("sudo ",
+     "a landing check has no business escalating privilege"),
+]
+
+
+def screen_command(cmd):
+    """Returns (denied: bool, reason: str|None). Substring match, explicit list."""
+    low = (cmd or "").lower()
+    for needle, reason in COMMAND_DENY_LIST:
+        if needle.lower() in low:
+            return True, f"DENIED ({needle}): {reason}"
+    return False, None
 
 
 def _now():
@@ -141,13 +179,24 @@ def _check_commit(p, cond):
         else (False, f"{sha[:8]} not in history")
 
 
-def _check_command(p, cond, run_commands):
+def _check_command(p, cond, run_commands, timeout=DEFAULT_COMMAND_TIMEOUT):
     cmd = cond.get("cmd")
     if not cmd:
         return False, "landing condition has no cmd"
+    denied, reason = screen_command(cmd)
+    if denied:
+        # Reported whether or not --run-commands was passed, so the deny-list is
+        # visible at wakeup too. Never silently skipped.
+        return False, f"{reason} — `{cmd}`"
     if not run_commands:
         return False, f"command not run (pass --run-commands): {cmd}"
-    r = subprocess.run(cmd, shell=True, cwd=p["root"], capture_output=True, text=True)
+    try:
+        r = subprocess.run(cmd, shell=True, cwd=p["root"],
+                           capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return False, f"TIMEOUT after {timeout}s — `{cmd}` killed; thread stays open"
+    except OSError as e:
+        return False, f"could not run `{cmd}`: {e}"
     return (r.returncode == 0, f"`{cmd}` exit {r.returncode}")
 
 
@@ -159,7 +208,7 @@ CHECKS = {
 }
 
 
-def evaluate(p, thread, run_commands=False):
+def evaluate(p, thread, run_commands=False, timeout=DEFAULT_COMMAND_TIMEOUT):
     """Returns (state, reason) where state is landed | open | uncheckable."""
     # Guards (s138, second Fable pass): a malformed thread must degrade to
     # uncheckable, never crash the wakeup and never read as landed.
@@ -175,7 +224,7 @@ def evaluate(p, thread, run_commands=False):
     if kind == "manual":
         return "open", cond.get("note") or "explicitly manual — needs a human"
     if kind == "command":
-        ok, why = _check_command(p, cond, run_commands)
+        ok, why = _check_command(p, cond, run_commands, timeout)
         return ("landed" if ok else "open"), why
     fn = CHECKS.get(kind)
     if not fn:
@@ -194,7 +243,7 @@ def load_digest(p):
         return None
 
 
-def assess(p, run_commands=False):
+def assess(p, run_commands=False, timeout=DEFAULT_COMMAND_TIMEOUT):
     d = load_digest(p)
     if d is None:
         return None, []
@@ -205,7 +254,7 @@ def assess(p, run_commands=False):
         return d, None
     out = []
     for t in threads:
-        state, why = evaluate(p, t, run_commands)
+        state, why = evaluate(p, t, run_commands, timeout)
         # A non-dict thread cannot be **-unpacked; wrap it so a malformed entry
         # degrades to a visible uncheckable row instead of crashing wakeup.
         base = dict(t) if isinstance(t, dict) else {"text": str(t)}
@@ -215,7 +264,7 @@ def assess(p, run_commands=False):
 
 
 def cmd_check(args, p):
-    d, rows = assess(p, args.run_commands)
+    d, rows = assess(p, args.run_commands, args.command_timeout)
     if d is None:
         print("thread_landing: DEGRADED — no readable resident digest at "
               f"{p['digest']}. Threads UNKNOWN, not zero.", file=sys.stderr)
@@ -229,34 +278,70 @@ def cmd_check(args, p):
     landed = [r for r in rows if r["_state"] == "landed"]
     still = [r for r in rows if r["_state"] == "open"]
     unchk = [r for r in rows if r["_state"] == "uncheckable"]
+    # Denied and timed-out conditions stay OPEN — they are never landed — but
+    # they are broken out so a refusal can never be mistaken for a check that ran.
+    denied = [r for r in still if str(r.get("_why", "")).startswith("DENIED")]
+    timedout = [r for r in still if str(r.get("_why", "")).startswith("TIMEOUT")]
 
     if args.format == "json":
         print(json.dumps({"version": LANDING_VERSION, "total": len(rows),
                           "landed": landed, "open": still,
-                          "uncheckable": unchk}, indent=2, ensure_ascii=False))
-        return 0
+                          "uncheckable": unchk,
+                          "denied": denied, "timed_out": timedout},
+                         indent=2, ensure_ascii=False))
+        return _strict_rc(args, still, unchk)
 
+    extra = ""
+    if denied:
+        extra += f", {len(denied)} denied"
+    if timedout:
+        extra += f", {len(timedout)} timed out"
     print(f"THREAD LANDING — {len(rows)} thread(s): "
-          f"{len(landed)} landed, {len(still)} open, {len(unchk)} uncheckable")
+          f"{len(landed)} landed, {len(still)} open, {len(unchk)} uncheckable{extra}")
     if landed:
         print(f"\nLANDED ({len(landed)}) — provable, clear with `thread_landing.py clear`:")
         for r in landed:
             print(f"  [x] {str(r.get('text',''))[:100]}\n        {r['_why']}")
-    if still:
-        print(f"\nOPEN ({len(still)}) — landing condition checked and NOT met:")
-        for r in still:
+    plain = [r for r in still if r not in denied and r not in timedout]
+    if plain:
+        print(f"\nOPEN ({len(plain)}) — landing condition checked and NOT met:")
+        for r in plain:
             print(f"  [ ] {str(r.get('text',''))[:100]}\n        {r['_why']}")
+    if denied:
+        print(f"\nDENIED ({len(denied)}) — condition refused by the deny-list; "
+              "thread stays OPEN and was NOT evaluated:")
+        for r in denied:
+            print(f"  [!] {str(r.get('text',''))[:100]}\n        {r['_why']}")
+    if timedout:
+        print(f"\nTIMED OUT ({len(timedout)}) — condition killed at the timeout; "
+              "thread stays OPEN:")
+        for r in timedout:
+            print(f"  [~] {str(r.get('text',''))[:100]}\n        {r['_why']}")
     if unchk:
         print(f"\nUNCHECKABLE ({len(unchk)}) — no landing condition. Doctrine: an open "
               "thread without one is chatter.\n  Give each a landing condition or route it to a lug:")
         for r in unchk:
             print(f"  [?] {str(r.get('text',''))[:100]}")
-    return 0
+    return _strict_rc(args, still, unchk)
+
+
+def _strict_rc(args, still, unchk):
+    """Exit code for `check`.
+
+    Default stays 0: `check` is a reporter and the closeout banner calls it for
+    its text, not its status. `--strict` makes it a GATE — nonzero while any
+    thread is still open or uncheckable — so it can be used as a lug verify
+    step. Without this a verify step naming `check` passes unconditionally,
+    which is the false-green class the harvest exists to find.
+    """
+    if not getattr(args, "strict", False):
+        return 0
+    return 1 if (still or unchk) else 0
 
 
 def cmd_clear(args, p):
     """Remove provably-landed threads from the digest. The only mutating path."""
-    d, rows = assess(p, args.run_commands)
+    d, rows = assess(p, args.run_commands, args.command_timeout)
     if d is None:
         print("thread_landing: DEGRADED — no readable digest; refusing to clear.",
               file=sys.stderr)
@@ -266,8 +351,17 @@ def cmd_clear(args, p):
               file=sys.stderr)
         return 3
     landed = [r for r in rows if r["_state"] == "landed"]
+    # Refusals are surfaced on the clear path too — the closeout banner reports
+    # them, so a denied condition can never read as "checked and not met".
+    denied = [r for r in rows if str(r.get("_why", "")).startswith("DENIED")]
+    timedout = [r for r in rows if str(r.get("_why", "")).startswith("TIMEOUT")]
+    for r in denied:
+        print(f"thread_landing: {r['_why']}")
+    for r in timedout:
+        print(f"thread_landing: {r['_why']}")
     if not landed:
-        print("thread_landing: nothing provably landed — digest unchanged.")
+        print(f"thread_landing: nothing provably landed — digest unchanged. "
+              f"({len(denied)} denied, {len(timedout)} timed out)")
         return 0
     keep = [t for t, r in zip(d.get("open_threads", []), rows) if r["_state"] != "landed"]
     if args.dry_run:
@@ -287,7 +381,8 @@ def cmd_clear(args, p):
             fh.write(json.dumps({"ts": _now(), "event": "thread_landed",
                                  "text": r["text"], "why": r["_why"],
                                  "session": r.get("session")}, ensure_ascii=False) + "\n")
-    print(f"thread_landing: cleared {len(landed)} landed thread(s); {len(keep)} remain.")
+    print(f"thread_landing: cleared {len(landed)} landed thread(s); {len(keep)} remain "
+          f"({len(denied)} denied, {len(timedout)} timed out).")
     for r in landed:
         print(f"  [x] {r['text'][:100]}")
     return 0
@@ -297,10 +392,18 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Check and clear landed open threads")
     ap.add_argument("--spoke-path", default=None)
     ap.add_argument("--run-commands", action="store_true",
-                    help="execute command-kind landing conditions (never during wakeup)")
+                    help="execute command-kind landing conditions (closeout passes "
+                         "this; the wakeup path must never reach it)")
+    ap.add_argument("--command-timeout", type=int, default=DEFAULT_COMMAND_TIMEOUT,
+                    help=f"per-condition timeout in seconds (default {DEFAULT_COMMAND_TIMEOUT}); "
+                         "a condition that exceeds it is killed and its thread stays open")
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("check", help="read-only assessment")
     c.add_argument("--format", choices=["text", "json"], default="text")
+    c.add_argument("--strict", action="store_true",
+                   help="exit 1 while any thread is open or uncheckable, so this "
+                        "command can serve as a lug verify step (default 0: the "
+                        "closeout banner wants the text, not a gate)")
     cl = sub.add_parser("clear", help="remove provably-landed threads from the digest")
     cl.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)

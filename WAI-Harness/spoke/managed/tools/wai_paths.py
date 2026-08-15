@@ -82,6 +82,29 @@ def _normalize_mode(mode):
     return ""
 
 
+def _sanitize_root(spoke_root):
+    """Correct a spoke_root that is itself already inside a WAI-Harness tree
+    (e.g. `.../WAI-Harness/spoke` or `.../WAI-Harness/spoke/local`) back to the
+    real project root above it.
+
+    A legitimate spoke root is the directory that CONTAINS WAI-Harness/, never a
+    path inside it — but several callers have passed the already-resolved v4 base
+    (or its parent) back into this resolver by mistake. When that happens, a
+    `WAI-Spoke` directory nested under WAI-Harness/spoke/ (there was one, created
+    by this exact bug) satisfies `has_v3` at the WRONG root, so the resolver keeps
+    reporting v3-only/coexist and keeps steering writes at the nested WAI-Spoke —
+    a self-reinforcing phantom (WAI-Harness/spoke/WAI-Spoke). Stripping back to the
+    true root before any has_v3/has_v4 check makes that loop structurally
+    unreachable instead of relying on every caller to pass the right value."""
+    root = os.path.abspath(spoke_root)
+    parts = root.split(os.sep)
+    if "WAI-Harness" in parts:
+        idx = len(parts) - 1 - parts[::-1].index("WAI-Harness")
+        fixed = os.sep.join(parts[:idx]) or os.sep
+        return fixed
+    return root
+
+
 def _v4_activated(root):
     """True if a coexist spoke has been explicitly cut over to v4. Mirrors the
     activation signal used by .claude/hooks/harness_mode.sh (lines 42-52): a
@@ -113,8 +136,12 @@ def _select_active(want, has_v3, has_v4, v4_activated=False):
 
 def detect(spoke_root="."):
     """Pure detection (never raises): which trees exist + the resolved active mode."""
-    root = os.path.abspath(spoke_root)
-    has_v3 = os.path.isdir(os.path.join(root, "WAI-Spoke"))
+    root = _sanitize_root(spoke_root)
+    # v6 REUSES THE NAME `WAI-Spoke`, so directory presence no longer means v3. The kernel
+    # stamps installed.json there and v3 never did, so that marker is what separates them.
+    # Without this a v6 spoke reports a phantom v3 tree and the estate steers at legacy paths.
+    _v6 = os.path.isfile(os.path.join(root, "WAI-Spoke", "installed.json"))
+    has_v3 = os.path.isdir(os.path.join(root, "WAI-Spoke")) and not _v6
     has_v4 = os.path.isdir(os.path.join(root, "WAI-Harness"))
     if has_v3 and has_v4:
         harness_mode = "coexist"
@@ -143,8 +170,12 @@ def resolve_wai_root(spoke_root=".", mode=None):
     working_base is the directory under which the working-state categories live for
     the active harness. active_mode is "v4" | "v3" | "none". An explicit `mode` arg
     wins over $WAI_HARNESS_MODE wins over auto (prefer v4, else v3)."""
-    root = os.path.abspath(spoke_root)
-    has_v3 = os.path.isdir(os.path.join(root, "WAI-Spoke"))
+    root = _sanitize_root(spoke_root)
+    # v6 REUSES THE NAME `WAI-Spoke`, so directory presence no longer means v3. The kernel
+    # stamps installed.json there and v3 never did, so that marker is what separates them.
+    # Without this a v6 spoke reports a phantom v3 tree and the estate steers at legacy paths.
+    _v6 = os.path.isfile(os.path.join(root, "WAI-Spoke", "installed.json"))
+    has_v3 = os.path.isdir(os.path.join(root, "WAI-Spoke")) and not _v6
     has_v4 = os.path.isdir(os.path.join(root, "WAI-Harness"))
     want = _normalize_mode(mode)
     active = _select_active(want, has_v3, has_v4, _v4_activated(root))
@@ -158,7 +189,7 @@ def resolve_wai_root(spoke_root=".", mode=None):
 def advisors_dir(spoke_root=".", mode=None):
     """Advisors are the one category not under the working base.
     v3: <root>/WAI-Spoke/advisors ; v4: <root>/WAI-Harness/spoke/advisors."""
-    root = os.path.abspath(spoke_root)
+    root = _sanitize_root(spoke_root)
     _, active = resolve_wai_root(spoke_root, mode)
     if active == "v4":
         return os.path.join(root, "WAI-Harness", "spoke", "advisors")

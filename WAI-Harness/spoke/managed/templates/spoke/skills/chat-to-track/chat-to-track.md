@@ -36,7 +36,7 @@ On start you MUST:
 
 Then display:
 
-Activated — WAI Track v0.10
+Activated — WAI Track (version per track-prompt/ACTIVE.json)
 
 I am capturing:
 - Verbatim turns (user + assistant)

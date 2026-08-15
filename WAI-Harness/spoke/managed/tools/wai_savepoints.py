@@ -16,33 +16,47 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 
-def resolve_spoke_path() -> Path:
-    """Resolve the spoke path (v3/v4 compatible)."""
-    # Try v4 first
-    v4_path = Path("WAI-Harness/spoke/local")
-    if v4_path.joinpath("WAI-State.json").exists():
-        return v4_path
+def interrogate(root: Path) -> Optional[tuple]:
+    """Given a SPOKE ROOT, return (state_dir, layout) or None.
 
-    # Fallback to v3
-    v3_path = Path("WAI-Spoke")
-    if v3_path.joinpath("WAI-State.json").exists():
-        return v3_path
+    OPERATOR RULING 2026-08-14: expect v6, and on meeting an older spoke DETECT and
+    interrogate it rather than assume a layout. v6 REUSES the name `WAI-Spoke`, so the
+    kernel's installed.json marker — not directory presence — separates v6 from v3.
+    Order matters: a v6 spoke usually ALSO carries a WAI-Harness tree, so checking the
+    marker first is what stops it reading as v4.
+    """
+    root = Path(root)
+    if root.joinpath("WAI-Spoke/installed.json").is_file() and \
+       root.joinpath("WAI-Spoke/WAI-State.json").is_file():
+        return (root / "WAI-Spoke", "v6")
+    if root.joinpath("WAI-Harness/spoke/local/WAI-State.json").is_file():
+        return (root / "WAI-Harness/spoke/local", "v4")
+    if root.joinpath("WAI-Spoke/WAI-State.json").is_file():
+        return (root / "WAI-Spoke", "v3")
+    # The root may itself BE the state dir (callers that pass a resolved local/ tree).
+    if root.joinpath("WAI-State.json").is_file():
+        return (root, "state-dir")
+    return None
 
-    # Try searching up
+
+def resolve_spoke_path(root: Optional[Path] = None) -> tuple:
+    """Resolve (state_dir, layout) from a spoke root, else by searching upward."""
+    if root is not None:
+        found = interrogate(root)
+        if found:
+            return found
+        return (Path(root), "unresolved")
+
     current = Path.cwd()
     for _ in range(10):
-        for candidate in [
-            current / "WAI-Harness/spoke/local",
-            current / "WAI-Spoke",
-        ]:
-            if candidate.joinpath("WAI-State.json").exists():
-                return candidate
-        current = current.parent
+        found = interrogate(current)
+        if found:
+            return found
         if current == current.parent:
             break
+        current = current.parent
 
-    # Default to v4
-    return Path("WAI-Harness/spoke/local")
+    return (Path("WAI-Harness/spoke/local"), "unresolved")
 
 
 def load_state(spoke_path: Path) -> Optional[Dict[str, Any]]:
@@ -160,20 +174,23 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Resolve spoke path
-    if args.spoke_path:
-        spoke_path = args.spoke_path
-    else:
-        spoke_path = resolve_spoke_path()
+    # Resolve spoke path. --spoke-path names the spoke ROOT and is INTERROGATED, not
+    # used verbatim as the state dir — passing a v6 spoke root used to fail outright.
+    spoke_path, layout = resolve_spoke_path(args.spoke_path)
 
     # Load state
     state = load_state(spoke_path)
     if not state:
         print(
-            f"Error: Could not find WAI-State.json in {spoke_path}",
+            f"Error: no WAI-State.json found for {args.spoke_path or Path.cwd()} "
+            f"(layout={layout}; looked for v6 WAI-Spoke/installed.json+WAI-State.json, "
+            f"v4 WAI-Harness/spoke/local/WAI-State.json, v3 WAI-Spoke/WAI-State.json)",
             file=sys.stderr,
         )
         sys.exit(1)
+    # Always name the store that was read. A bare "No savepoints recorded." is ambiguous
+    # between "none pending" and "read the wrong tree" — never leave that unstated.
+    print(f"[layout: {layout}] {spoke_path}", file=sys.stderr)
 
     # Get savepoints array
     savepoints = state.get("_savepoints", [])

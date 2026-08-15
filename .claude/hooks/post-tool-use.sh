@@ -18,6 +18,21 @@ tool=$(echo "$input" | jq -r '.tool_name // ""')
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // ""')
 [[ -z "$file_path" || ! -f "$file_path" ]] && exit 0
 
+# Observe-only collision recording (change-isolation-is-a-value-curve-...-v1 step 0).
+# Records WHICH paths this session touches so the real overlap rate between concurrent
+# sessions can be measured before any isolation gate is built on a guess. It gates nothing
+# and cannot fail this hook: backgrounded, output discarded, always-true.
+_PC="${CLAUDE_PROJECT_DIR:-.}/WAI-Harness/spoke/managed/tools/path_claims.py"
+_PC_BASE="${CLAUDE_PROJECT_DIR:-.}/WAI-Harness/spoke/local"
+if [[ -f "$_PC" && -d "$_PC_BASE" ]]; then
+  # Pass the Claude Code session id so attribution resolves from the LANE REGISTRY rather
+  # than from newest-track. This spoke had eight session dirs written in one evening while
+  # exactly one lane was live; mtime picked a dead stub.
+  _PC_SID=$(echo "$input" | jq -r '.session_id // ""' 2>/dev/null)
+  (python3 "$_PC" --base "$_PC_BASE" observe --root "${CLAUDE_PROJECT_DIR:-.}" \
+      --cc-session-id "$_PC_SID" >/dev/null 2>&1 &) || true
+fi
+
 if [[ "$file_path" == *.py ]]; then
   RESULT=$(python3 -m py_compile "$file_path" 2>&1)
   if [[ $? -ne 0 ]]; then

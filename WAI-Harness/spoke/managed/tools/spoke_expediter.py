@@ -45,35 +45,63 @@ except Exception:
     _CAPGRAPH_AVAILABLE = False
 
 
+def _sanitize_spoke_path(spoke_path):
+    """Correct a spoke_path that is itself already inside a WAI-Harness tree
+    (e.g. `.../WAI-Harness/spoke` or `.../WAI-Harness/spoke/local`) back to the
+    real project root above it.
+
+    A legitimate spoke root is the directory that CONTAINS WAI-Harness/, never a
+    path inside it. When a caller passes the already-resolved v4 base (or its
+    parent) as spoke_path, the fallbacks below would append "WAI-Spoke" onto that
+    WRONG root and write WAI-Harness/spoke/WAI-Spoke — a phantom nested inside the
+    harness itself. This is the exact tree found live on this spoke, still being
+    recreated. Stripping back to the true root before any fallback path is built
+    makes that phantom structurally unreachable regardless of which caller passed
+    the wrong root."""
+    p = os.path.abspath(str(spoke_path))
+    parts = p.split(os.sep)
+    if "WAI-Harness" in parts:
+        idx = len(parts) - 1 - parts[::-1].index("WAI-Harness")
+        return os.sep.join(parts[:idx]) or os.sep
+    return p
+
+
 def _v4_activated(spoke_path):
     """True when the spoke is v4-activated — has WAI-Harness/spoke/local or the
     .activated marker. Used to keep fallbacks from writing to a phantom WAI-Spoke."""
-    sp = os.path.join(str(spoke_path), "WAI-Harness", "spoke")
-    return os.path.isdir(os.path.join(sp, "local")) or os.path.exists(os.path.join(sp, ".activated"))
+    root = _sanitize_spoke_path(spoke_path)
+    sp = os.path.join(root, "WAI-Harness", "spoke")
+    return (
+        os.path.isdir(os.path.join(sp, "local"))
+        or os.path.exists(os.path.join(sp, ".activated"))
+        or os.path.exists(os.path.join(sp, "local", ".activated"))
+    )
 
 
 def _base(spoke_path):
     """Return the active working base (WAI-Spoke in v3; WAI-Harness/spoke/local in v4).
     Falls back to the v4 local tree on activated spokes — NEVER a phantom WAI-Spoke
     (that fallback created dead advisor trees fleet-wide; close-the-loop gap-001/002)."""
-    b, _ = wai_paths.resolve_wai_root(str(spoke_path))
+    root = _sanitize_spoke_path(spoke_path)
+    b, _ = wai_paths.resolve_wai_root(root)
     if b:
         return b
-    if _v4_activated(spoke_path):
-        return os.path.join(str(spoke_path), "WAI-Harness", "spoke", "local")
-    return os.path.join(str(spoke_path), "WAI-Spoke")
+    if _v4_activated(root):
+        return os.path.join(root, "WAI-Harness", "spoke", "local")
+    return os.path.join(root, "WAI-Spoke")
 
 
 def _advisors_dir(spoke_path):
     """Return the advisors directory (sibling in v4: WAI-Harness/spoke/advisors;
     nested in v3: WAI-Spoke/advisors). Falls back to the v4 advisors dir on activated
     spokes — never a phantom WAI-Spoke/advisors."""
-    d = wai_paths.advisors_dir(str(spoke_path))
+    root = _sanitize_spoke_path(spoke_path)
+    d = wai_paths.advisors_dir(root)
     if d:
         return d
-    if _v4_activated(spoke_path):
-        return os.path.join(str(spoke_path), "WAI-Harness", "spoke", "advisors")
-    return os.path.join(str(spoke_path), "WAI-Spoke", "advisors")
+    if _v4_activated(root):
+        return os.path.join(root, "WAI-Harness", "spoke", "advisors")
+    return os.path.join(root, "WAI-Spoke", "advisors")
 
 
 def expedition_report_path(spoke_path, report_id):
@@ -434,6 +462,29 @@ def assign_execution_mode(lug, quality_score, all_open_lugs, spoke_path):
 
     Returns: (execution_mode, execution_substrate, gt_convoy_hint_or_None)
     """
+    # OPERATOR GATE WINS -- checked FIRST, before any re-derivation.
+    #
+    # This function used to ignore the lug's existing execution_mode entirely and
+    # had no return path to "manual", so thread_materialize's execution_mode=
+    # "manual" (set for kind=manual threads whose ruling is the operator's) was
+    # overwritten on the next scan -- model_fit=opus fell through to the OPUS
+    # branch and came back "subagent". The dispatch filter in count_dispatchable
+    # DOES exclude manual, but the flag was clobbered before that filter ran, so
+    # the last operator gate was inert. MEASURED: th-fed95cc978 (an operator
+    # go/no-go ruling) was dispatched to an autonomous subagent three times
+    # (2026-08-01, 2026-08-02, 2026-08-06) while carrying awaiting_human=true.
+    #
+    # Any of these three markers parks a lug in the manual lane:
+    #   do_not_dispatch  -- explicit local brake set by an agent or the operator
+    #   awaiting_human   -- the remaining step is a human judgement
+    #   execution_mode=manual -- already parked; do not re-derive it away
+    if lug.get("do_not_dispatch"):
+        return ("manual", None, "operator gate: do_not_dispatch set on lug")
+    if lug.get("awaiting_human"):
+        return ("manual", None, "operator gate: awaiting_human set on lug")
+    if str(lug.get("execution_mode", "")).lower() == "manual":
+        return ("manual", None, "operator gate: execution_mode already manual")
+
     model_fit = (lug.get("model_fit") or lug.get("mf") or "").upper()
     routed_to = lug.get("routed_to") or "LOCAL"
     blocked_by = lug.get("blocked_by") or []
@@ -612,6 +663,13 @@ def compute_disposition(lug, quality_score, spoke_path):
     unresolved = [str(b) for b in blocked_by if not is_blocker_resolved(b, spoke_path)]
     if unresolved:
         return "blocked", f"unresolved blocker(s): {', '.join(unresolved[:2])}"
+    # Operator gate (mirrors assign_execution_mode): a lug parked for human
+    # judgement must not be re-scored auto_build just because its spec is
+    # complete. AC+targets+PEV are always present on a materialised thread, so
+    # without this the disposition flipped back to auto_build on every scan.
+    if lug.get("do_not_dispatch") or lug.get("awaiting_human") or \
+            str(lug.get("execution_mode", "")).lower() == "manual":
+        return "needs_you", "operator gate: awaiting human judgement, not autonomously dispatchable"
     if lug_type in NEEDS_YOU_TYPES:
         return "needs_you", f"type={lug_type} always requires human judgment"
     if lug_type in CHURN_TYPES:
@@ -1275,7 +1333,7 @@ def main():
         args.hygiene = True
         args.triage = True
 
-    spoke_path = os.path.abspath(args.spoke_path)
+    spoke_path = _sanitize_spoke_path(args.spoke_path)
     advisor_dir = os.path.join(_advisors_dir(spoke_path), "expediter")
     os.makedirs(advisor_dir, exist_ok=True)
 
@@ -1298,7 +1356,7 @@ def main():
         print(f"Initiative priority gating active: {len(affiliation_map)} epic(s) in Tier 0 initiatives")
 
     scored = []
-    routing_summary = {"gastown": 0, "subagent": 0, "tender": 0}
+    routing_summary = {"gastown": 0, "subagent": 0, "tender": 0, "manual": 0}
 
     for lug in lugs:
         quality, missing = score_lug_quality(lug)
@@ -1559,7 +1617,9 @@ def main():
     print(f"  Lugs scored: {len(scored)}  |  Needs refinement: {len(needs_refinement)}  |  Avg quality: {stats['last_quality_avg']}/10")
     disp_str = " | ".join(f"{k}={disp_counts.get(k,0)}" for k in ("auto_build", "review", "needs_you", "blocked") if disp_counts.get(k,0))
     print(f"  Disposition: {disp_str or 'none'}")
-    print(f"  Routed: {routing_summary['gastown']} gastown | {routing_summary['subagent']} subagent | {routing_summary['tender']} tender")
+    # `manual` is printed unconditionally, not only when non-zero: operator-gated
+    # work that is invisible in the summary is work nobody knows is waiting.
+    print(f"  Routed: {routing_summary['gastown']} gastown | {routing_summary['subagent']} subagent | {routing_summary['tender']} tender | {routing_summary['manual']} manual (operator-gated)")
     print(f"  Mode: {'FULL (fast sort + scout expedition)' if hygiene else 'FAST sort only'} -- {hyg_reason}")
     if signal_results:
         print(f"  Signals triaged: {len(signal_results)}  |  Teaching candidates: {stats.get('teaching_candidates_found', 0)}")

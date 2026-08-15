@@ -268,6 +268,25 @@ def detect_unfinished(working_base, root):
     return (bool(locks) or bool(dirty) or bool(rec)), signals
 
 
+def _resolve_existing_path(savepoints_dir, existing):
+    """savepoint_exists_for_session returns a BASENAME; refresh needs the real path."""
+    if not existing:
+        return ""
+    if os.path.isabs(existing) and os.path.isfile(existing):
+        return existing
+    for pat in (os.path.join(savepoints_dir, "**", os.path.basename(existing)),
+                os.path.join(os.path.dirname(os.path.dirname(savepoints_dir)),
+                             "savepoints", os.path.basename(existing))):
+        hits = glob.glob(pat, recursive=True)
+        if hits:
+            return hits[0]
+    return ""
+
+
+def _now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
 def build_autoeject(session_id, working_base, root, signals, mode):
     p = _paths(working_base)
     init_dir = resolve_init_dir(working_base)
@@ -294,9 +313,27 @@ def build_autoeject(session_id, working_base, root, signals, mode):
         "degraded": True,
         "schema_version": 2,
         "harness_mode": mode,
+        # Timestamps so a stale auto-eject is VISIBLE. Before these, the record carried no
+        # time at all: one written at turn 1 looked identical to one written at turn 40,
+        # and the only way to notice it had frozen was to stat the file.
+        "created_at": _now_iso(),
+        "updated_at": _now_iso(),
+        "refresh_count": 0,
         "git_sha": _git_sha(root),
         "git_branch": _git_branch(root),
         "work_done": work_done,
+        # THE TWO FIELDS THE WAKEUP BRIEF ACTUALLY READS, and they were both absent.
+        # Measured 2026-08-08: an auto-eject savepoint carried work_done and first_actions
+        # but no resume_note and no work_summary, so the next session's briefing rendered
+        # "Next: None" and the operator saw a savepoint that handed forward nothing. The
+        # guarantee being enforced was "a savepoint file exists", which is a green over
+        # nothing inside the mechanism built to stop work being lost. Both are mechanically
+        # derivable from what is already in this record -- there was never a reason for a
+        # human to supply them.
+        "resume_note": str(rec)[:500],
+        "work_summary": (
+            f"{len(work_done)} reconstructed step(s) from the track tail at "
+            f"{_git_sha(root) or 'no-sha'}; degraded, refresh before trusting"),
         "where_we_are": "AUTO-EJECT: this session ended without a savepoint or closeout. State below is machine-reconstructed from the track tail, in_progress lugs, and git status — treat as a lead, not a contract.",
         "first_actions": [{
             "order": 1,
@@ -351,7 +388,7 @@ def _git_branch(root):
         return None
 
 
-def run(session_id, root, mode=None, dry_run=False):
+def run(session_id, root, mode=None, dry_run=False, refresh=False):
     """Core entry. Returns a status dict (also the structure tests assert on)."""
     working_base, active = resolve_working_base(root, mode)
     if working_base is None:
@@ -359,7 +396,42 @@ def run(session_id, root, mode=None, dry_run=False):
     p = _paths(working_base)
     existing = savepoint_exists_for_session(p["initiative_savepoints"], session_id)
     if existing:
-        return {"action": "skip", "reason": "savepoint already exists for session", "savepoint": existing, "mode": active}
+        # MEASURED 2026-08-06 (s140): this skip made the safety net create-once. The
+        # auto-eject was written at turn 1 and never touched again; three hours and four
+        # commits later the only durable record of the session still described turn 1.
+        # A crash at that point would have resumed from a savepoint that was accurate for
+        # about ninety seconds. The net existed, and it was catching the wrong session.
+        #
+        # --refresh rewrites it in place from the current track. It is deliberately
+        # narrow: ONLY a record this tool itself wrote (status == "auto-eject") may be
+        # overwritten. A hand-authored savepoint from /wai-savepoint is a contract the
+        # operator wrote, and nothing automatic gets to replace it.
+        if not refresh:
+            return {"action": "skip", "reason": "savepoint already exists for session",
+                    "savepoint": existing, "mode": active}
+        existing_path = _resolve_existing_path(p["initiative_savepoints"], existing)
+        prior = {}
+        if existing_path:
+            try:
+                prior = json.load(open(existing_path, encoding="utf-8"))
+            except Exception:
+                prior = {}
+        if prior.get("status") and prior.get("status") != "auto-eject":
+            return {"action": "skip", "reason": "hand-authored savepoint — refusing to overwrite",
+                    "savepoint": existing, "status": prior.get("status"), "mode": active}
+        unfinished, signals = detect_unfinished(working_base, root)
+        sp = build_autoeject(session_id, working_base, root, signals, active)
+        # Carry the ORIGINAL created_at forward: the record's age is when the session
+        # first needed a net, not when it was last rewritten.
+        sp["created_at"] = prior.get("created_at") or sp["created_at"]
+        sp["refresh_count"] = int(prior.get("refresh_count") or 0) + 1
+        dest = existing_path or os.path.join(
+            p["initiative_savepoints"], sp["initiative_id"], sp["id"] + ".json")
+        if not dry_run:
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            json.dump(sp, open(dest, "w"), indent=2)
+        return {"action": "refreshed" if not dry_run else "would-refresh", "savepoint": dest,
+                "refresh_count": sp["refresh_count"], "mode": active, "signals": signals}
     unfinished, signals = detect_unfinished(working_base, root)
     if not unfinished:
         return {"action": "skip", "reason": "no substantive unfinished work", "mode": active, "signals": signals}
@@ -391,8 +463,10 @@ def main():
     ap.add_argument("--root", default=".", help="spoke root (default .)")
     ap.add_argument("--mode", choices=["v3", "v4"], default=None)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--refresh", action="store_true",
+                    help="rewrite an existing AUTO-EJECT savepoint in place (never a hand-authored one)")
     a = ap.parse_args()
-    status = run(a.session, os.path.abspath(a.root), a.mode, a.dry_run)
+    status = run(a.session, os.path.abspath(a.root), a.mode, a.dry_run, refresh=a.refresh)
     print(json.dumps(status))
     return 0  # a safety net never blocks Stop
 

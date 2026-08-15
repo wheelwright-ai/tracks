@@ -41,9 +41,11 @@ if [[ -f "$HM" ]]; then
   # shellcheck disable=SC1090
   source "$HM" "$PROJECT_DIR"
 else
-  # Degraded fallback: infer presence from on-disk dirs.
-  HARNESS_V3=0; HARNESS_V4=0
-  [[ -d "$PROJECT_DIR/WAI-Spoke" ]]   && HARNESS_V3=1
+  # Degraded fallback: infer presence from on-disk dirs. v6 REUSES the name WAI-Spoke,
+  # so the kernel's installed.json marker — not directory presence — separates v6 from v3.
+  HARNESS_V3=0; HARNESS_V4=0; HARNESS_V6=0
+  [[ -f "$PROJECT_DIR/WAI-Spoke/installed.json" ]] && HARNESS_V6=1
+  [[ -d "$PROJECT_DIR/WAI-Spoke" && "$HARNESS_V6" == 0 ]] && HARNESS_V3=1
   [[ -d "$PROJECT_DIR/WAI-Harness" ]] && HARNESS_V4=1
 fi
 
@@ -74,7 +76,9 @@ if [[ -z "$DATA_ACTIVE" ]]; then
 fi
 
 # Working base (where sessions/ + savepoints/ live for the data-plane mode).
-if [[ "$DATA_ACTIVE" == v4 ]]; then BASE="$PROJECT_DIR/WAI-Harness/spoke/local"; else BASE="$PROJECT_DIR/WAI-Spoke"; fi
+# v6 shares v4's DATA plane (the kernel writes sessions to WAI-Harness/spoke/local). The
+# old `== v4` test sent every v6 spoke down the else-branch into the legacy WAI-Spoke/ tree.
+if [[ "$DATA_ACTIVE" == v4 || "$DATA_ACTIVE" == v6 ]]; then BASE="$PROJECT_DIR/WAI-Harness/spoke/local"; else BASE="$PROJECT_DIR/WAI-Spoke"; fi
 
 # Locate the tool: v4 managed canon first, then v3 dogfood copy.
 TOOL=""
@@ -111,9 +115,16 @@ if [[ -z "$SESSION" && -d "$BASE/sessions" ]]; then
 fi
 [[ -z "$SESSION" ]] && exit 0
 
-RESULT=$(python3 "$TOOL" --session "$SESSION" --root "$PROJECT_DIR" --mode "$DATA_ACTIVE" 2>/dev/null || true)
+# --refresh: rewrite our own auto-eject each Stop instead of writing it once and
+# letting it freeze. MEASURED s140: the net fired at turn 1 and never again, so the
+# only durable record of a three-hour session described its first ninety seconds.
+# The flag never overwrites a hand-authored savepoint -- the tool refuses that.
+RESULT=$(python3 "$TOOL" --session "$SESSION" --root "$PROJECT_DIR" --mode "$DATA_ACTIVE" --refresh 2>/dev/null || true)
 ACTION=$(printf '%s' "$RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('action',''))" 2>/dev/null || true)
 
+# Announce only the FIRST write. A refresh happens on every Stop, so emitting there
+# would put a notice under every single turn -- and a notice that fires constantly
+# is one the operator learns to skip, which is how the real one gets missed.
 if [[ "$ACTION" == "wrote" ]]; then
   emit "Auto-eject savepoint written (session ended with unfinished work and no savepoint). It is degraded/machine-reconstructed — run /wai-closeout or refresh it next session."
 fi

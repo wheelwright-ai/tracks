@@ -521,12 +521,63 @@ def converge_line(findings):
     return "CONVERGE RECOMMENDED: no (no absorbable peer lanes)", ""
 
 
+
+def check_track_judgment(base, repo, session_id=None):
+    """Report this session's judgment coverage. INFO, deliberately non-blocking.
+
+    Adopted from basher (change-canon-track-judgment-layer-decay-v1 item 3) with
+    their reasoning kept intact: at 37% fleet-wide a blocking finding fires every
+    single close, and a finding that always fires AND blocks is the precise
+    cry-wolf pattern that let this defect survive -- basher's own gate printed
+    "[BLOCK] unflushed turn buffer" at every savepoint and was waved through each
+    time as benign mid-turn noise.
+
+    The advice points FORWARD only. There is no recovery command, because there is
+    no recovery: the judgment layer of a floor-only turn was never written down and
+    cannot be reconstructed by any tool. Offering one would promise back the single
+    thing that is genuinely gone. The T0 floor probe is where this becomes binding.
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import track_judgment_coverage as _tjc  # noqa: PLC0415
+    except Exception:  # noqa: BLE001
+        return []
+    try:
+        sessions = _tjc.scan_spoke(str(base))
+    except Exception:  # noqa: BLE001
+        return []
+    if not sessions:
+        return []
+    rec = sessions.get(session_id) if session_id else None
+    if rec is None:
+        rec = sessions[sorted(sessions)[-1]]
+        session_id = sorted(sessions)[-1]
+    turns, pct = rec.get("turns", 0), rec.get("pct", 0)
+    if not turns:
+        return []
+    out = []
+    if rec.get("malformed"):
+        out.append(_finding(
+            "track-judgment", REMEDIABLE,
+            "%d malformed line(s) in %s -- the session is unreadable to every consumer"
+            % (rec["malformed"], session_id),
+            "cd %s && python3 WAI-Harness/spoke/managed/tools/track_repair.py --root . repair --apply" % repo))
+    if pct < 80:
+        out.append(_finding(
+            "track-judgment", INFO,
+            "%s: %d%% of %d turn(s) carry reasoning -- the floor-only ones are "
+            "already unrecoverable; the fix is forward, on the next turn"
+            % (session_id, pct, turns)))
+    return out
+
+
 def run_checks(repo, base, session_id):
     findings = []
     findings += check_git(repo)
     findings += check_csrp(repo, base)
     findings += check_lanes(base, session_id, repo)
     findings += check_track(base, repo)
+    findings += check_track_judgment(base, repo, session_id)
     findings += check_savepoint(base, repo)
     findings += check_intent_capture(base, session_id, repo)
     findings += check_uncertified_completions(base, session_id, repo)

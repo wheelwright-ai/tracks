@@ -130,6 +130,77 @@ def removal_candidates():
     return out
 
 
+PUBLIC_REPO = "https://github.com/wheelwright-ai/harness"
+
+# Identity markers that must never reach a public payload. Measured on a real cut
+# 2026-08-03: 60 files carried the operator's home path, 1 the GitHub handle, and 2
+# named PRIVATE CLIENT-WORK spokes. The client names were the serious finding --
+# those are other people's engagements and they never agreed to appear in public.
+#
+# ALLOW-SHAPED, NOT DENY-SHAPED. A deny-list of secret formats passes the first
+# thing it was not taught. These are the specific identity facts about THIS operator
+# and THIS fleet; the check asks "does the payload know who we are", which is a
+# question with a bounded answer, rather than "does it contain a secret", which is not.
+def identity_markers(root=None):
+    root = Path(root) if root else ROOT
+    markers = {
+        "home path": str(Path.home()),
+        "projects root": str(Path.home() / "projects"),
+    }
+    # Every OTHER wheel in the registry is someone else's project -- client work
+    # especially. Read them rather than hardcoding, so a new client added tomorrow
+    # is covered without anyone remembering to update this list.
+    reg = root / "WAI-Harness" / "hub" / "local" / "hub-registry.json"
+    try:
+        data = json.loads(reg.read_text())
+        for w in data.get("wheels", []) or []:
+            wid = (w.get("wheel_id") or "").strip()
+            if not wid or wid in ("mywheel", "basher") or len(wid) <= 4:
+                continue
+            markers[f"wheel_id {wid}"] = wid
+            # The STEM too. Replacing only the full id left "thehinessystem"
+            # behind when the registry entry was "thehinessystem-website" --
+            # the client's name survived the scrub that was meant to remove it.
+            for suffix in ("-website", "-site", "-app", "-toolkit"):
+                if wid.endswith(suffix) and len(wid) - len(suffix) > 4:
+                    stem = wid[: -len(suffix)]
+                    markers[f"wheel_stem {stem}"] = stem
+    except Exception:
+        pass
+
+    # The operator's GitHub handle, read from the remote rather than hardcoded so
+    # it stays correct if the account changes. It reached the payload through test
+    # fixtures using real "owner/repo" strings.
+    try:
+        import subprocess as _sp
+        url = _sp.run(["git", "-C", str(root), "remote", "get-url", "origin"],
+                      capture_output=True, text=True, timeout=10).stdout.strip()
+        m = re.search(r"[:/]([A-Za-z0-9-]+)/[^/]+?(?:\.git)?$", url)
+        if m and len(m.group(1)) > 3:
+            markers["github handle"] = m.group(1)
+    except Exception:
+        pass
+    return markers
+
+
+def identity_scan(payload_root, root=None):
+    """Every (marker, file) pair found in the assembled payload. Pure read."""
+    markers = identity_markers(root)
+    hits = []
+    for dirpath, _dirs, files in os.walk(payload_root):
+        for name in files:
+            p = Path(dirpath) / name
+            try:
+                text = p.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+            for label, needle in markers.items():
+                if needle and needle in text:
+                    hits.append({"marker": label,
+                                 "file": str(p.relative_to(payload_root))})
+    return hits
+
+
 def build(out_dir, dry=False):
     out = Path(out_dir)
     report = {"ok": True, "dry_run": dry, "out": str(out), "copied": {}, "payload_files": 0}
@@ -168,7 +239,61 @@ def build(out_dir, dry=False):
         (out / "harness" / "VERSION").write_text(version + "\n")
         _write_install(out, version, report)
         _write_install_sh(out)
+
+        # SANITISE, THEN GATE. Sanitising the derived payload rather than editing 60
+        # working files is deliberate: those hardcoded defaults are CORRECT here and
+        # wrong only for a stranger, so the fix belongs at the derivation boundary.
+        # The gate then re-scans and refuses to hand back an ok payload if anything
+        # survived -- a sanitiser trusted without a check is the same false green
+        # this project has been removing all week.
+        report["sanitised"] = sanitise(out)
+        hits = identity_scan(out)
+        report["identity_hits"] = hits
+        if hits:
+            report["ok"] = False
+            report["publishable"] = False
+            report["why_not_publishable"] = (
+                f"{len(hits)} identity marker(s) survived sanitisation across "
+                f"{len({h['file'] for h in hits})} file(s) -- refusing to certify this "
+                "payload as publishable. Publishing our own paths is a privacy leak; "
+                "publishing another wheel's id can expose client work.")
+        else:
+            report["publishable"] = True
     return report
+
+
+# Replacements applied to the DERIVED payload only. The working tree keeps its real
+# paths, which are correct for this machine; only what leaves gets genericised.
+def sanitise(payload_root, root=None):
+    markers = identity_markers(root)
+    home = str(Path.home())
+    changed = 0
+    for dirpath, _dirs, files in os.walk(payload_root):
+        for name in files:
+            p = Path(dirpath) / name
+            try:
+                text = original = p.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+            # Order matters: the longest, most specific path first, so the generic
+            # home replacement cannot strand a half-rewritten path behind it.
+            text = text.replace(str(Path(home) / "projects" / "wheelwright" / "mywheel"),
+                                "$WAI_MASTER")
+            text = text.replace(str(Path(home) / "projects"), "$WAI_PROJECTS")
+            text = text.replace(home, "$HOME")
+            for label, needle in markers.items():
+                if label.startswith(("wheel_id ", "wheel_stem ", "github handle")) and needle in text:
+                    # Another project's name in prose. Replaced rather than removed:
+                    # the surrounding sentence usually still makes sense, and deleting
+                    # lines from a derived payload risks breaking code.
+                    text = text.replace(needle, "another-wheel")
+            if text != original:
+                try:
+                    p.write_text(text, encoding="utf-8")
+                    changed += 1
+                except OSError:
+                    continue
+    return changed
 
 
 

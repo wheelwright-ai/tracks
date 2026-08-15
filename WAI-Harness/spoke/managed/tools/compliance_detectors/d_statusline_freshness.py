@@ -68,10 +68,28 @@ _FENCE_RE = re.compile(r"```.*?```", re.DOTALL)
 # The anchor does most of the quotation guarding on its own: an emitted
 # statusline starts a line. A quoted one is prefixed ("> Turn 3 |"), wrapped
 # (`Turn 3 |`, "Turn 3 |"), or indented into a code sample — none of which match.
-_STATUS_RE = re.compile(r"^ {0,3}(Turn (\d+)\s*\|[^\n]*)$", re.MULTILINE)
+#
+# THE ANCHOR MUST TOLERATE THE SESSION PREFIX AND THE SHORT TURN FORM. MEASURED
+# 2026-08-07: the pattern was `^Turn (\d+)`, but the hook has emitted
+# "s140 | Turn 7 | ..." since the s### prefix was added, so this detector matched
+# NOTHING and had been silently dead for every transcript since. It reported a clean
+# statusline record by never looking at one -- a green over nothing inside the
+# detector suite built to catch greens over nothing. It surfaced only because the
+# operator asked to shorten the stamp and the format had to be re-read.
+#
+# Three shapes are accepted deliberately, so old transcripts stay measurable:
+#   s140 | Turn 7 | Fri, Aug 7, 2026 | 10:21 PM PDT | ...   (pre-2026-08-07)
+#   s140 | T7 | Aug 7 10:29PM | f20e3c70b | ...             (current)
+#   Turn 7 | ...                                            (no session prefix)
+_STATUS_RE = re.compile(
+    r"^ {0,3}((?:s\d+\s*\|\s*)?T(?:urn)?\s?(\d+)\s*\|[^\n]*)$", re.MULTILINE)
 
 _TIME_RE = re.compile(r"\b(\d{1,2}:\d{2})\s*(AM|PM)\b(?:\s+([A-Z]{2,5}))?")
-_DATE_RE = re.compile(r"\b([A-Z][a-z]{2}, [A-Z][a-z]{2} \d{1,2}, \d{4})\b")
+# Weekday and year are optional: the short stamp is "Aug 7", the long one was
+# "Fri, Aug 7, 2026". Matching only the long form would reintroduce the blindness
+# above the moment the format shortened.
+_DATE_RE = re.compile(
+    r"\b((?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2}(?:, \d{4})?)\b")
 
 # A run of statuslines introduced as evidence ("the hook supplied:") is a
 # transcript OF renderings, not renderings. Narrow and cue-based on purpose.
@@ -132,11 +150,22 @@ def _timestamp(line):
     key = f"{dm.group(1) if dm else ''}|{tm.group(1)} {tm.group(2)}|{tz}"
     stamp = None
     if dm:
-        try:
-            stamp = datetime.strptime(
-                f"{dm.group(1)} {tm.group(1)} {tm.group(2)}", "%a, %b %d, %Y %I:%M %p")
-        except ValueError:
-            stamp = None
+        # Both stamp formats must parse, or a format change silently downgrades every
+        # comparison to key-equality only -- which still detects a duplicate render but
+        # loses ordering, and does it without saying so.
+        raw = f"{dm.group(1)} {tm.group(1)} {tm.group(2)}"
+        for fmt in ("%a, %b %d, %Y %I:%M %p", "%b %d %I:%M %p"):
+            try:
+                stamp = datetime.strptime(raw, fmt)
+                break
+            except ValueError:
+                continue
+        # The short stamp carries no year, and strptime defaults to 1900 -- harmless
+        # for ordering inside one transcript, wrong across a December/January
+        # boundary, where two turns minutes apart would sort a year apart. Fill the
+        # current year rather than leave a landmine that fires once every twelve months.
+        if stamp is not None and stamp.year == 1900:
+            stamp = stamp.replace(year=datetime.now().year)
     return key, (stamp, tz)
 
 
@@ -172,6 +201,23 @@ def detect(text, pref=None):
         key, (stamp, tz) = _timestamp(line)
         st.count += 1
         first = st.count == 1
+
+        # A SESSION BOUNDARY resets the comparison window. The turn counter is
+        # per-session, so it legitimately returns to 1 when a new session starts,
+        # and a transcript file can hold more than one session. Proof of a boundary
+        # is a turn regression accompanied by a LATER calendar date -- a copy of an
+        # earlier rendering cannot carry tomorrow's date. Without this, every new
+        # session's turn 1 and turn 2 were reported as carried-forward statuslines.
+        # Found 2026-08-02 by the first warmup floor probe, which is the whole point
+        # of running one: 387 tests passed and this detector was quietly wrong.
+        if (st.max_turn is not None and turn <= st.max_turn
+                and stamp is not None and st.max_stamp is not None
+                and st.max_stamp[0] is not None
+                and stamp.date() > st.max_stamp[0].date()):
+            st.max_turn = None
+            st.max_stamp = None
+            st.stamp_turns = {}
+            first = True
 
         if not first:
             # R1 — the counter must advance.

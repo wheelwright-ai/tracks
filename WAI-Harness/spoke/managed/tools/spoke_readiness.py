@@ -156,25 +156,56 @@ def assess_health(root="."):
     }
 
 
-def render(operational, health):
+# Status reads as a colour, not a word. The operator has dyslexia + ADHD and asked
+# for a scannable christmas tree (output-format-traffic-light-status): the eye should
+# find the red line without reading the sentence that says FAIL. These are ANSI-tinted
+# dots, deliberately NOT emoji (taste-user-004 forbids emoji anywhere).
+_DOT = "●"
+_ANSI = {"green": "\033[32m", "amber": "\033[33m", "red": "\033[31m", "off": "\033[0m"}
+# Plain fallback when colour is stripped: still an icon, still scannable, no words.
+_PLAIN = {"green": "[+]", "amber": "[~]", "red": "[!]"}
+
+
+def icon(state, color=True):
+    """One status glyph. state in {green, amber, red}."""
+    if not color:
+        return _PLAIN[state]
+    return "%s%s%s" % (_ANSI[state], _DOT, _ANSI["off"])
+
+
+def _use_color():
+    # NO_COLOR is the de-facto standard opt-out; a non-tty (hook capture, pipe into
+    # a brief, CI log) gets the plain glyphs so escape codes never land in a record.
+    if os.environ.get("NO_COLOR"):
+        return False
+    return sys.stdout.isatty()
+
+
+def render(operational, health, color=None):
+    if color is None:
+        color = _use_color()
     lines = []
-    verdict = "OPERATIONAL" if operational["ok"] else "NOT OPERATIONAL"
     lines.append("SPOKE READINESS")
-    lines.append("  Q1 will it operate as expected?   %s (%s)" % (verdict, operational["mode"]))
+    q1 = icon("green" if operational["ok"] else "red", color)
+    lines.append("  %s Q1 will it operate as expected?   (%s)" % (q1, operational["mode"]))
     for check in operational["checks"]:
         if not check["ok"]:
-            lines.append("       FAIL %s — %s" % (check["name"], check["detail"]))
+            lines.append("       %s %s — %s" % (icon("red", color), check["name"], check["detail"]))
 
     if health.get("available"):
-        lines.append("  Q2 next action to health?         %d/%d dispatchable (%.0f%%)"
-                     % (health["runnable_now"], health["total_lugs"],
-                        health["autonomy_ratio"] * 100))
+        ratio = health["autonomy_ratio"]
+        # Autonomy is a spectrum, so it earns amber rather than a binary verdict.
+        q2 = "green" if ratio >= 0.60 else ("amber" if ratio >= 0.25 else "red")
+        lines.append("  %s Q2 next action to health?         %d/%d dispatchable (%.0f%%)"
+                     % (icon(q2, color), health["runnable_now"], health["total_lugs"],
+                        ratio * 100))
         lines.append("       -> %s" % health["next_action"])
         if health.get("top_blocker") and health["top_blocker"]["unblocks"]:
             lines.append("       top blocker: %s (unblocks %d)"
                          % (health["top_blocker"]["id"], health["top_blocker"]["unblocks"]))
     else:
-        lines.append("  Q2 next action to health?         UNKNOWN — %s" % health["next_action"])
+        lines.append("  %s Q2 next action to health?         %s"
+                     % (icon("amber", color), health["next_action"]))
     return "\n".join(lines)
 
 

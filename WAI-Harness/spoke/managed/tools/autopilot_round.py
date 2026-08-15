@@ -33,8 +33,10 @@ worth of work, and `--undo` reverts precisely that.
 
 import argparse
 import json
+import re
 import os
 import subprocess
+import time
 import sys
 from datetime import datetime, timezone
 
@@ -70,7 +72,27 @@ TIER_ORDER = ["haiku", "sonnet", "opus"]
 
 IMPLEMENTER_MODEL = os.environ.get("WAI_AP_IMPLEMENTER_MODEL", "sonnet")
 VERIFIER_MODEL = os.environ.get("WAI_AP_VERIFIER_MODEL", "opus")
-VERIFIER_TIMEOUT = 300
+# BUDGETS. The implementer gets 900s (see remediate dispatches below). The
+# verifier used to get 300s, and that asymmetry is backwards: verification is the
+# step chain mode exists to protect, and it was the one being starved.
+#
+# MEASURED 2026-08-02 across all 19 recorded rounds — 22 steps:
+#     CONFIRMED 8 (36%) | NO-WORK 5 | NO-COMPLETION 3
+#     UNVERIFIABLE 3    <- every one of them "verifier timed out after 300s"
+#     PROCESS-FAULT 2   | REFUTED 1
+#
+# UNVERIFIABLE is the worst square in that table. The lug is already implemented
+# and committed; only the verdict is missing. The chain then halts (correctly —
+# it refuses to build on unverified work), so one slow review ends the run and
+# strands real work in an uncertified state. Three of twenty-two steps died that
+# way, and each one cost a whole round.
+IMPLEMENTER_TIMEOUT = int(os.environ.get("WAI_AP_IMPLEMENTER_TIMEOUT", "900"))
+VERIFIER_TIMEOUT = int(os.environ.get("WAI_AP_VERIFIER_TIMEOUT",
+                                      str(IMPLEMENTER_TIMEOUT)))
+# A slow review is not a failed review. One retry at double budget before the
+# chain is allowed to call a landed lug unverifiable.
+VERIFIER_RETRY_TIMEOUT = int(os.environ.get("WAI_AP_VERIFIER_RETRY_TIMEOUT",
+                                            str(VERIFIER_TIMEOUT * 2)))
 
 
 def tier_rank(model: str) -> int:
@@ -230,24 +252,57 @@ Rules:
 - UNVERIFIABLE if the criteria are too vague to check against a diff.
 - DEFAULT TO REFUTED WHEN UNCERTAIN. A rubber stamp is worse than no check."""
 
-    try:
-        _rc, out = _dispatch(VERIFIER_MODEL, prompt, "verify", "verifier",
-                             VERIFIER_TIMEOUT, root=root, lug_id=lug_id)
-        out = (out or "").strip()
-        start, end = out.find("{"), out.rfind("}")
-        if start >= 0 and end > start:
-            parsed = json.loads(out[start:end + 1])
-            parsed["lug_id"] = lug_id
-            parsed.setdefault("verdict", "UNVERIFIABLE")
-            return parsed
-        return {"lug_id": lug_id, "verdict": "UNVERIFIABLE",
-                "reasoning": "verifier returned no parseable verdict"}
-    except subprocess.TimeoutExpired:
-        return {"lug_id": lug_id, "verdict": "UNVERIFIABLE",
-                "reasoning": f"verifier timed out after {VERIFIER_TIMEOUT}s"}
-    except Exception as exc:
-        return {"lug_id": lug_id, "verdict": "UNVERIFIABLE",
-                "reasoning": f"verifier failed: {exc}"}
+    # Elapsed time is recorded on EVERY attempt, not only on the failures.
+    # Without the durations of SUCCESSFUL verifications there is no distribution
+    # to set a budget from, and any new number is a guess wearing a fix's
+    # clothes. That data did not exist before this change: the only timing
+    # evidence in nineteen rounds was three timeouts.
+    attempts = []
+    budgets = [VERIFIER_TIMEOUT, VERIFIER_RETRY_TIMEOUT]
+    for i, budget in enumerate(budgets):
+        started = time.monotonic()
+        try:
+            _rc, out = _dispatch(VERIFIER_MODEL, prompt, "verify", "verifier",
+                                 budget, root=root, lug_id=lug_id)
+            elapsed = round(time.monotonic() - started, 1)
+            out = (out or "").strip()
+            start, end = out.find("{"), out.rfind("}")
+            if start >= 0 and end > start:
+                parsed = json.loads(out[start:end + 1])
+                parsed["lug_id"] = lug_id
+                parsed.setdefault("verdict", "UNVERIFIABLE")
+                attempts.append({"budget_s": budget, "elapsed_s": elapsed,
+                                 "outcome": parsed.get("verdict")})
+                parsed["verifier_elapsed_s"] = elapsed
+                parsed["verifier_attempts"] = attempts
+                return parsed
+            # No parseable verdict is NOT a timeout — retrying a confused
+            # verifier just burns budget, so this answers immediately.
+            attempts.append({"budget_s": budget, "elapsed_s": elapsed,
+                             "outcome": "unparseable"})
+            return {"lug_id": lug_id, "verdict": "UNVERIFIABLE",
+                    "reasoning": "verifier returned no parseable verdict",
+                    "verifier_elapsed_s": elapsed, "verifier_attempts": attempts}
+        except subprocess.TimeoutExpired:
+            elapsed = round(time.monotonic() - started, 1)
+            attempts.append({"budget_s": budget, "elapsed_s": elapsed,
+                             "outcome": "timeout"})
+            if i + 1 < len(budgets):
+                # Retry ONCE at a larger budget. Slow is not the same as failed,
+                # and the lug under review has already been implemented and
+                # committed — declaring it unverifiable strands real work.
+                continue
+            return {"lug_id": lug_id, "verdict": "UNVERIFIABLE",
+                    "reasoning": (f"verifier timed out at {budgets[0]}s and again "
+                                  f"at {budgets[-1]}s on retry"),
+                    "verifier_elapsed_s": elapsed, "verifier_attempts": attempts}
+        except Exception as exc:
+            elapsed = round(time.monotonic() - started, 1)
+            attempts.append({"budget_s": budget, "elapsed_s": elapsed,
+                             "outcome": "error"})
+            return {"lug_id": lug_id, "verdict": "UNVERIFIABLE",
+                    "reasoning": f"verifier failed: {exc}",
+                    "verifier_elapsed_s": elapsed, "verifier_attempts": attempts}
 
 
 def completions_since(root, since_iso):
@@ -351,7 +406,7 @@ def close_round(root, round_rec, verify=True):
     step_verdicts = [{"lug_id": st.get("lug_id"), "verdict": st.get("verdict"),
                       "reasoning": st.get("reasoning")}
                      for st in round_rec.get("steps", [])
-                     if st.get("verdict") not in (None, "NO-WORK")]
+                     if st.get("verdict") not in (None, "NO-WORK", "NO-COMPLETION")]
     all_verdicts = list(round_rec["verdicts"]) + step_verdicts
 
 
@@ -401,10 +456,19 @@ def settle_step(root, lug_id, step_baseline, on_refute="remediate",
     attempts = []
     for attempt in range(1, max_attempts + 1):
         verdict = verify_claim(root, lug_id, step_baseline)
+        # Carry the verifier timing THROUGH this layer. verify_claim measures
+        # elapsed on every path — success, unparseable, timeout and error — but
+        # this dict used to copy only the five verdict fields, so every duration
+        # it measured was discarded one frame above the measurement. That is why
+        # the round files still reported verifier_elapsed_s: null after the
+        # timing work was done: the instrument worked and the recorder threw the
+        # reading away. Measured s140 on round-20260802T093806 step 4.
         attempts.append({"attempt": attempt, "verdict": verdict.get("verdict"),
                          "fault_domain": verdict.get("fault_domain"),
                          "reasoning": verdict.get("reasoning"),
-                         "fix_hint": verdict.get("fix_hint")})
+                         "fix_hint": verdict.get("fix_hint"),
+                         "verifier_elapsed_s": verdict.get("verifier_elapsed_s"),
+                         "verifier_attempts": verdict.get("verifier_attempts")})
         if verbose:
             print(f"    attempt {attempt}: {verdict.get('verdict')}"
                   + (f" ({verdict.get('fault_domain')})" if verdict.get("fault_domain") else ""),
@@ -465,7 +529,7 @@ one thing you must not do.
 Do not touch the implementation. Work in {root}, commit referencing {lug_id}."""
     try:
         rc, out = _dispatch(IMPLEMENTER_MODEL, prompt, "remediate", "remediate:criteria",
-                            900, root=root, lug_id=lug_id, cwd=root)
+                            IMPLEMENTER_TIMEOUT, root=root, lug_id=lug_id, cwd=root)
         return {"kind": "criteria", "rc": rc, "output": (out or "")[-500:]}
     except Exception as exc:
         return {"kind": "criteria", "error": str(exc)}
@@ -532,6 +596,84 @@ def _raise_process_lug(root, lug_id, verdict):
         return {"created": False, "error": str(exc)}
 
 
+def _runner_blob(stdout):
+    """The runner's JSON report, or {} if it did not produce one.
+
+    Parsed defensively: the runner prints human lines around its JSON, and a
+    parse failure must never be mistaken for a fact about the backlog.
+    """
+    raw = (stdout or "").strip()
+    if not raw:
+        return {}
+
+    # Scan for the LAST complete JSON object rather than spanning first-{ to
+    # last-}. A live runner prints more than one JSON blob (phase reports, the
+    # round summary), and the span approach hands json.loads two concatenated
+    # objects -> "Extra data" -> {} -> dispatched unknown. Measured 2026-08-01
+    # (s140): the first live chain run after the no-work fix logged
+    # "dispatched -1" on all four steps for exactly this reason, while the same
+    # runner parsed cleanly under --dry-run because a dry run emits only one
+    # object. The unit tests missed it because they were written against a
+    # single-object fixture -- a parser must be tested against the real shape,
+    # not the shape that is convenient to construct.
+    dec = json.JSONDecoder()
+    best = {}
+    idx = raw.find("{")
+    while idx >= 0:
+        try:
+            obj, end = dec.raw_decode(raw, idx)
+        except ValueError:
+            idx = raw.find("{", idx + 1)
+            continue
+        if isinstance(obj, dict):
+            best = obj
+        idx = raw.find("{", end)
+    return best
+
+
+def _dispatched_count(stdout):
+    """How many lugs the runner actually dispatched this step.
+
+    Returns -1 when unknown. UNKNOWN IS NOT ZERO: reporting an unparseable run as
+    "dispatched nothing" would end the chain on a parsing bug, which is the same
+    class of false-empty this branch exists to stop.
+    """
+    blob = _runner_blob(stdout)
+    if not blob:
+        return -1
+    phase = str((blob.get("phases") or {}).get("phase_3_execute") or "")
+    m = re.search(r"dispatched=(\d+)", phase)
+    if m:
+        return int(m.group(1))
+    _log_unparsed(stdout, "no dispatched= in phase_3_execute: %r" % phase[:200])
+    return -1
+
+
+def _log_unparsed(stdout, why, root="."):
+    """Keep the runner output that could not be read.
+
+    OPERATOR DIRECTIVE (2026-08-01): gather data at a level adequate to catch a
+    fault before he reports it. An unexplained -1 in a console line is not that.
+    The raw output is written once per occurrence so the NEXT parse failure is
+    diagnosed by reading a file rather than by reproducing the run.
+    """
+    try:
+        path = os.path.join(root, "WAI-Harness", "spoke", "local", "runtime",
+                            "autopilot-unparsed.log")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a") as fh:
+            fh.write("=== %s | %s\n" % (_now().isoformat(), why))
+            fh.write((stdout or "")[-4000:])
+            fh.write("\n")
+    except Exception:
+        pass   # logging must never break a run
+
+
+def _runner_skipped_no_work(stdout):
+    """The runner's OWN verdict that there was nothing to do."""
+    return bool(_runner_blob(stdout).get("skipped_no_work"))
+
+
 def run_chain(root, steps, scope_flag, runner, on_refute="remediate", verbose=True):
     """Execute lugs ONE AT A TIME, verifying each before the next begins.
 
@@ -583,13 +725,16 @@ def run_chain(root, steps, scope_flag, runner, on_refute="remediate", verbose=Tr
             #
             # The runner reports its own phase errors in its JSON, so ask it
             # rather than inferring from the silence.
-            phase_errors = []
-            try:
-                blob = json.loads((proc.stdout or "").strip()[
-                    (proc.stdout or "").find("{"):(proc.stdout or "").rfind("}") + 1])
-                phase_errors = blob.get("errors") or []
-            except Exception:
-                pass
+            # Uses the SAME shared parser as the dispatch-count check below.
+            # It did not, and that is the point: this branch carried its own
+            # brace-span parse — first-{ to last-} — which fails with "Extra
+            # data" the moment a live runner emits more than one JSON object.
+            # So on exactly the runs where a phase HAD thrown, phase_errors came
+            # back empty and the chain reported a false empty queue. The fix
+            # below was made for the neighbouring branch on 2026-08-02 and not
+            # generalised here; the same defect one branch away is the same
+            # defect (operator ruling: breaking problems are P0).
+            phase_errors = _runner_blob(proc.stdout).get("errors") or []
 
             if phase_errors:
                 if verbose:
@@ -605,8 +750,36 @@ def run_chain(root, steps, scope_flag, runner, on_refute="remediate", verbose=Tr
                 round_rec["stopped_early"] = "runner error: " + "; ".join(phase_errors[:3])
                 break
 
+            # DID THE QUEUE RUN OUT, OR DID ONE LUG FAIL TO LAND?
+            #
+            # These were the same branch and they are opposite facts. "No lug
+            # completed" was read as "queue exhausted" and ENDED THE CHAIN, so a
+            # single lug that dispatched and did not finish killed every
+            # remaining step. Measured 2026-08-01 (s140): a chain of 6 reported
+            # NO-PROGRESS after step 1 while the runner, asked directly with the
+            # same arguments, answered `phase_3_execute: ok: dispatched=1` and
+            # `skipped_no_work: false` — there was plenty of work. The operator's
+            # standing complaint is that Ozi does not FINISH work; a chain that
+            # stops at the first non-completion is that complaint mechanised.
+            #
+            # The runner already reports which case it is. Ask it, rather than
+            # inferring from the silence — the same correction the phase_errors
+            # branch above already got, for the same reason.
+            dispatched = _dispatched_count(proc.stdout)
+            genuinely_empty = (dispatched == 0) or _runner_skipped_no_work(proc.stdout)
+
+            if not genuinely_empty:
+                if verbose:
+                    print(f"    dispatched {dispatched} but nothing completed — the LUG "
+                          f"did not land; the queue is not empty. Continuing.", flush=True)
+                round_rec["steps"].append({"step": index, "lug_id": None,
+                                           "verdict": "NO-COMPLETION",
+                                           "dispatched": dispatched,
+                                           "baseline": step_baseline})
+                continue
+
             if verbose:
-                print(f"    no lug completed — queue exhausted, ending chain", flush=True)
+                print(f"    no lug dispatched — queue exhausted, ending chain", flush=True)
             round_rec["steps"].append({"step": index, "lug_id": None,
                                        "verdict": "NO-WORK", "baseline": step_baseline})
             break
@@ -629,6 +802,13 @@ def run_chain(root, steps, scope_flag, runner, on_refute="remediate", verbose=Tr
                 "attempts": settled["attempts"],
                 "settled_on_attempt": settled.get("settled_on"),
                 "process_lug": settled.get("process_lug"),
+                # Verifier timing on EVERY step, not just the ones that timed
+                # out. Nineteen rounds produced three timeouts and zero
+                # successful durations, so the 300s budget could only ever be
+                # re-guessed. These fields are what let the next budget be set
+                # from the distribution instead.
+                "verifier_elapsed_s": last.get("verifier_elapsed_s"),
+                "verifier_attempts": last.get("verifier_attempts"),
                 "tokens": claims[-1].get("tokens_used"),
                 "commits": [c for c in _git(root, "log", "--oneline",
                                             f"{step_baseline}..HEAD").splitlines() if c.strip()]}
@@ -893,7 +1073,7 @@ def decide_round_verdict(rec):
     """
     steps = rec.get("steps", []) or []
     step_verdicts = [{"lug_id": st.get("lug_id"), "verdict": st.get("verdict")}
-                     for st in steps if st.get("verdict") not in (None, "NO-WORK")]
+                     for st in steps if st.get("verdict") not in (None, "NO-WORK", "NO-COMPLETION")]
     all_verdicts = list(rec.get("verdicts") or []) + step_verdicts
 
     def _of(kind):
@@ -925,7 +1105,10 @@ def decide_round_verdict(rec):
         return "GAPS"
     if _of("UNVERIFIABLE"):
         return "UNVERIFIED"
-    passing = {"CONFIRMED", "NO-WORK", None}
+    passing = {"CONFIRMED", "NO-WORK", None}   # NO-COMPLETION is NOT passing:
+    # a lug that dispatched and never landed is the failure this whole mode
+    # exists to surface, and laundering it into a clean round is how "Ozi
+    # ran" becomes indistinguishable from "Ozi finished".
     other = [v for v in all_verdicts if v.get("verdict") not in passing]
     if other:
         # Named by its own verdict rather than flattened, so the header says the
@@ -959,7 +1142,8 @@ def render_chain(rec):
     ]
     for step in steps:
         mark = {"CONFIRMED": "+", "REFUTED": "X", "UNVERIFIABLE": "?",
-                "NO-WORK": "-"}.get(step.get("verdict"), "?")
+                "NO-WORK": "-",
+                "NO-COMPLETION": "!"}.get(step.get("verdict"), "?")
         lines.append(f"  {mark} step {step['step']}: {str(step.get('lug_id'))[:48]}"
                      f"  [{step.get('verdict')}]")
         if step.get("verdict") != "CONFIRMED" and step.get("reasoning"):

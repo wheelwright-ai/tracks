@@ -23,6 +23,67 @@ from pathlib import Path
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 PROMPT_FILE = Path(__file__).parent / "knowme_prompt.md"
 
+# Where a spoke's self-portrait may live, in resolution order. A spoke has ONE.
+# README.md is listed first because a portrait the reader already opens beats one
+# they must be told about — but the declared path in WAI-State.json wins over both.
+PORTRAIT_CANDIDATES = (
+    Path("README.md"),
+    Path("KnowMe.md"),
+    Path("WAI-Harness/dev/root-docs/KnowMe.md"),
+)
+# A stub is a pointer, not a portrait: it must not count as an existing portrait
+# and must not block a real one being written.
+STUB_MARKERS = ("superseded", "no longer maintained")
+
+
+def _is_stub(path: Path) -> bool:
+    try:
+        head = path.read_text(errors="replace")[:600].lower()
+    except OSError:
+        return False
+    return any(m in head for m in STUB_MARKERS)
+
+
+def resolve_portrait_destination(spoke_path: Path):
+    """Return (destination, conflict) for this spoke's single portrait.
+
+    `destination` is where the portrait should be written. `conflict` is a
+    DIFFERENT path that already holds a real (non-stub) portrait, or None.
+
+    Resolution order:
+      1. wheel.portrait_path in WAI-State.json — an explicit operator decision.
+      2. The first existing non-stub candidate — respect where the spoke already
+         keeps it rather than relocating it silently.
+      3. KnowMe.md — the historical default, for a spoke that has none yet.
+
+    The conflict return is the point of the function. Writing a portrait beside
+    an existing one is how a repo ends up with two, drifting apart, both read as
+    authoritative — measured on mywheel 2026-08-01, eight minor versions apart.
+    """
+    declared = None
+    state_file = spoke_path / "WAI-Harness" / "spoke" / "local" / "WAI-State.json"
+    if not state_file.exists():
+        state_file = spoke_path / "WAI-Harness" / "spoke" / "WAI-State.json"
+    if state_file.exists():
+        try:
+            declared = (json.loads(state_file.read_text())
+                        .get("wheel", {}).get("portrait_path"))
+        except (json.JSONDecodeError, OSError):
+            declared = None
+
+    existing = [spoke_path / c for c in PORTRAIT_CANDIDATES
+                if (spoke_path / c).exists() and not _is_stub(spoke_path / c)]
+
+    if declared:
+        dest = spoke_path / declared
+    elif existing:
+        dest = existing[0]
+    else:
+        dest = spoke_path / "KnowMe.md"
+
+    conflict = next((p for p in existing if p.resolve() != dest.resolve()), None)
+    return dest, conflict
+
 
 # ---------------------------------------------------------------------------
 # Context extraction
@@ -229,8 +290,28 @@ def main() -> int:
         print("[generate_knowme] ERROR: API returned empty content", file=sys.stderr)
         return 1
 
-    # Write KnowMe.md
-    out_path = spoke_path / "KnowMe.md"
+    # Write the portrait to the spoke's ONE portrait destination.
+    #
+    # This used to hardcode <spoke>/KnowMe.md, which quietly created a SECOND
+    # portrait wherever a spoke already kept one elsewhere. mywheel measured the
+    # result on 2026-08-01: README.md (the live portrait) had drifted eight minor
+    # harness versions while dev/root-docs/KnowMe.md carried its own independent
+    # version, and BOTH were being read as authoritative. Two writers and two
+    # readers for one logical artifact is the defect; resolving a single
+    # destination and refusing to write a competing one removes the class.
+    # (fix-knowme-single-portrait-destination-v1)
+    out_path, conflict = resolve_portrait_destination(spoke_path)
+    if conflict is not None:
+        print(
+            "[generate_knowme] REFUSING to write a second portrait.\n"
+            f"  would write : {out_path}\n"
+            f"  already have: {conflict}\n"
+            "  A spoke has one portrait. Point 'portrait_path' in WAI-State.json\n"
+            "  at the one you want, or remove the other.",
+            file=sys.stderr,
+        )
+        return 1
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(content if content.endswith("\n") else content + "\n")
     line_count = content.count("\n")
     print(f"[generate_knowme] Written: {out_path} ({line_count} lines)")

@@ -294,7 +294,36 @@ def bare_command_candidate(step):
 # verdicts against genuinely-completed lugs. Caught because --apply is off by default.
 _PATH_RE = re.compile(
     r"(?<![\w/])((?:/|~/|\./)?[\w.@-]+(?:/[\w.@-]+)+\.(?:py|sh|md|json|jsonl|yaml|yml|txt))")
-_LUG_RE = re.compile(r"\b((?:impl|bug|fix|spec|epic|task|change|notation|ask)-[a-z0-9-]+-v\d+)\b")
+
+
+# ABSORBED FROM BASHER, 2026-08-12, where it was authored and master never took it.
+#
+# Two defects in the hardcoded alternation it replaces. First, the type list was a list
+# nobody maintains: a lug of any type outside those nine -- notice, upgrade-report, ack --
+# simply did not match, so a completed lug citing one was read as citing nothing. Second,
+# `\b` matches at a hyphen, so `notice-pull-gate-fix-something-v1` matched starting at
+# `fix-`, yielding a lug id that does not exist and a REFUTED verdict against work that
+# was fine. The negative lookbehind is what makes the match start at a real boundary.
+def _build_lug_re(base_dir=None):
+    """Build the lug id regex from the type dirs on disk, or fall back to known types."""
+    types = [
+        "impl", "bug", "fix", "spec", "epic", "task", "change", "notation", "ask",
+        "notice", "feature", "upgrade-report", "review", "signal", "decision",
+        "improvement", "refinement", "completion", "addendum", "ack", "foundation",
+        "needs-you", "needs_you", "test", "work", "other", "unknown", "implementation",
+    ]
+    if base_dir:
+        try:
+            bytype = Path(base_dir) / "lugs" / "bytype"
+            if bytype.is_dir():
+                types = sorted(p.name for p in bytype.iterdir() if p.is_dir())
+        except Exception:  # noqa: BLE001 -- an unreadable tree falls back, never crashes
+            pass
+    type_pattern = "|".join(re.escape(t) for t in types)
+    return re.compile(rf"(?<![a-z0-9-])((?:{type_pattern})-[a-z0-9-]+-v\d+)\b")
+
+
+_LUG_RE = _build_lug_re()
 
 
 def _check_command(cmd, repo):

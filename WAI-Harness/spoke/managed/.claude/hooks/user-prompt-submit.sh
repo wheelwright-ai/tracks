@@ -45,6 +45,49 @@ else
 fi
 [[ -z "$_UPS_SID" && -n "$_UPS_TRANSCRIPT" ]] && _UPS_SID=$(basename "$_UPS_TRANSCRIPT" .jsonl)
 
+# ── Repeat-submission guard (s140, operator-reported) ─────────────────────────
+# SYMPTOM the operator described: on a fresh session he types /wai, nothing comes
+# back, so he types it again — and again — and then all of them execute in
+# sequence, each running a full wakeup.
+#
+# CAUSE, measured: SessionStart blocked for ~31s (21.4s of it the integrity probe,
+# now detached). Claude Code will not accept input until SessionStart returns, so
+# every keystroke he made during that window queued and then replayed. The repeats
+# were never a mis-click — they were the interface having no way to say "still
+# loading", and the harness having no way to notice it had been asked twice.
+#
+# This does not suppress the prompt (a hook silently eating operator input would be
+# a worse failure than the repeat). It TELLS the agent the prompt is a queued
+# duplicate so the second and third copies acknowledge instead of re-running a
+# ceremony. Idempotence by notification, not by censorship.
+_UPS_PROMPT=$(printf '%s' "$_UPS_INPUT" \
+  | python3 -c "import json,sys; print(json.load(sys.stdin).get('prompt',''))" 2>/dev/null)
+if [[ -n "$_UPS_PROMPT" && -n "$_UPS_SID" ]]; then
+  _DUP_WINDOW_S=90
+  _DUP_FILE="$RUNTIME_DIR/last-prompt-${_UPS_SID}.txt"
+  _DUP_HASH=$(printf '%s' "$_UPS_PROMPT" | md5sum | cut -d' ' -f1)
+  _DUP_NOW=$(date +%s)
+  if [[ -f "$_DUP_FILE" ]]; then
+    _DUP_PREV_HASH=$(cut -d' ' -f1 "$_DUP_FILE" 2>/dev/null)
+    _DUP_PREV_TS=$(cut -d' ' -f2 "$_DUP_FILE" 2>/dev/null)
+    _DUP_PREV_N=$(cut -d' ' -f3 "$_DUP_FILE" 2>/dev/null)
+    [[ -z "$_DUP_PREV_N" ]] && _DUP_PREV_N=1
+    if [[ "$_DUP_PREV_HASH" == "$_DUP_HASH" ]] \
+       && [[ $((_DUP_NOW - ${_DUP_PREV_TS:-0})) -lt $_DUP_WINDOW_S ]]; then
+      _DUP_N=$((_DUP_PREV_N + 1))
+      _DUP_AGO=$((_DUP_NOW - _DUP_PREV_TS))
+      printf '<wai-repeat-submission>\nThis is submission #%s of an IDENTICAL prompt within %ss (last one %ss ago).\nThe operator almost certainly typed it more than once because the interface had\nnot responded yet, not because he wants it done again.\nDo NOT re-run the ceremony or repeat the full output. Say in one line that the\nearlier submission is already in flight or already answered, and carry on with\nthat work.\n</wai-repeat-submission>\n' \
+        "$_DUP_N" "$_DUP_WINDOW_S" "$_DUP_AGO"
+      printf '%s %s %s\n' "$_DUP_HASH" "$_DUP_NOW" "$_DUP_N" > "$_DUP_FILE" 2>/dev/null
+    else
+      printf '%s %s 1\n' "$_DUP_HASH" "$_DUP_NOW" > "$_DUP_FILE" 2>/dev/null
+    fi
+  else
+    mkdir -p "$RUNTIME_DIR" 2>/dev/null
+    printf '%s %s 1\n' "$_DUP_HASH" "$_DUP_NOW" > "$_DUP_FILE" 2>/dev/null
+  fi
+fi
+
 # ── Mid-session inbox notify (impl-basher-mid-session-inbox-notify-v1) ────────
 # Surface lugs that land in lugs/incoming/ DURING a live session so routed-in work
 # gets near-real-time action instead of waiting for the next wakeup. Cheap (listdir +
@@ -99,6 +142,33 @@ if [[ -n "$_UPS_SID" ]]; then
   # resumes, the lane for turns not yet flushed to it.
   _TR_TC=$(python3 -c "import json;print(json.load(open('$_TR_GUARD')).get('turn_count',0))" 2>/dev/null || echo 0)
   [[ "$_TR_TC" =~ ^[0-9]+$ ]] || _TR_TC=0
+  # MIRROR THE WRITER'S FALLBACK.
+  #
+  # synthesize_turn.py writes turn_count into _lane_dir(), which falls back to the
+  # TOP-LEVEL runtime dir whenever stop-track-flush.sh could not resolve a lane.
+  # Reading only the per-lane path meant the count was written to one file and read
+  # from another; a missing file is indistinguishable from a fresh session to a
+  # reader that defaults to 0, so every turn rendered "Turn 1" and never said why.
+  # MEASURED 2026-08-01: top-level guard held turn_count=6, lane guard did not exist.
+  _TR_GUARD_TOP="$BASE/runtime/session-guard.json"
+  # FALLBACK ONLY -- consulted when the lane guard is ABSENT, never merged with it.
+  #
+  # This used to take the MAX of the two counts, which assumed the top-level guard was
+  # always either current or missing. It is neither: it is a long-lived file that no
+  # session resets. MEASURED 2026-08-06 (s140) it held session_id
+  # "mario-2026-04-14-164612" and turn_count 27 -- an artifact from APRIL -- while the
+  # lane guard for the live session correctly held 5. max() picked 27, so every turn of
+  # a five-turn session rendered "Turn 28", and it would have kept rendering 28 forever
+  # because a frozen number is always larger than a small honest one.
+  #
+  # The lane guard is keyed to the live Claude Code session, so when it exists it IS the
+  # answer. The 2026-08-01 case this fallback was built for is specifically the case
+  # where it does NOT exist.
+  if [[ ! -f "$_TR_GUARD" ]]; then
+    _TR_TC_TOP=$(python3 -c "import json;print(json.load(open('$_TR_GUARD_TOP')).get('turn_count',0))" 2>/dev/null || echo 0)
+    [[ "$_TR_TC_TOP" =~ ^[0-9]+$ ]] || _TR_TC_TOP=0
+    (( _TR_TC_TOP > _TR_TC )) && _TR_TC="$_TR_TC_TOP"
+  fi
   _TR_TRK=$(python3 - "$BASE" <<'TRKEOF' 2>/dev/null || echo 0
 import glob, json, os, sys
 base = sys.argv[1]
@@ -138,8 +208,19 @@ import json
 d=json.load(open('$BASE/WAI-State.json'))
 n=(d.get('_session_state') or {}).get('session_count')
 print('s%s' % n if n else '')" 2>/dev/null || echo "")
-  _TR_DATE=$(TZ=America/Los_Angeles date '+%a, %b %-d, %Y' 2>/dev/null)
-  _TR_TIME=$(TZ=America/Los_Angeles date '+%-I:%M %p %Z' 2>/dev/null)
+  # DATE/TIME ARE ONE SHORT FIELD (operator, 2026-08-07: "shorten the date stamp info").
+  # The weekday, the year and the timezone all cost width and told him nothing he did not
+  # already know while sitting at the machine. "Aug 7 10:21PM" carries the entire usable
+  # signal -- which day and roughly when -- in a third of the characters.
+  _TR_DATE=$(TZ=America/Los_Angeles date '+%b %-d' 2>/dev/null)
+  _TR_TIME=$(TZ=America/Los_Angeles date '+%-I:%M%p' 2>/dev/null)
+  # HEAD AT TURN START (operator, 2026-08-07: "can add the commit id to the turn stats").
+  # It answers, without a tool call, the question that recurred all through s140: is what I
+  # am reading about actually committed, and to WHICH commit. A turn that lands work shows a
+  # different sha next turn; one that does not, does not. Short form only -- the full sha
+  # belongs in the commit, not in his read (communication-altitude).
+  _TR_SHA=$(git -C "$PROJECT_DIR" rev-parse --short HEAD 2>/dev/null || echo "")
+  [ -n "$_TR_SHA" ] && _TR_SHA=" | ${_TR_SHA}"
   # Live model id from the transcript's last assistant message; fall back to state, then a
   # placeholder the model fills from its own system context.
   _TR_MODEL=$(python3 -c "
@@ -289,36 +370,34 @@ HVEOF
   # s### first: the operator asked for session identity at a glance, and it is the
   # field that tells him WHICH session a turn belongs to after a resume.
   _TR_SP=""; [ -n "$_TR_SNO" ] && _TR_SP="${_TR_SNO} | "
-  _TR_SL="${_TR_SP}Turn ${_TR_N} | ${_TR_DATE} | ${_TR_TIME} | ${_TR_MODEL}${_TR_HV} | Gold: +{count}"
+  _TR_SL="${_TR_SP}T${_TR_N} | ${_TR_DATE} ${_TR_TIME}${_TR_SHA} | ${_TR_MODEL}${_TR_HV} | Gold: +{count}"
+  # Version from the SINGLE SOURCE OF TRUTH. A literal here is how four different
+  # version strings came to be live in managed/ at once, one of them naming a
+  # document that never existed in the lab.
+  _TR_PROMPT_VER="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["declared_as"])' "$PROJECT_DIR/WAI-Harness/spoke/managed/track-prompt/ACTIVE.json" 2>/dev/null || echo "(version unresolved)")"
+  # PER-TURN BLOCK: only what genuinely lapses between turns.
+  #
+  # The full contract (WAI Track v3.0.0, 54610 bytes, lab-provenanced) is injected
+  # ONCE at SessionStart by session-start.sh. Restating it here cost ~13650 tokens
+  # a turn against a measured spend where cache read — which scales with per-call
+  # context — is 82.3% of the bill. What remains is the two obligations that a
+  # session-start injection genuinely cannot carry: the buffer path, and the
+  # statusline, whose values (turn number, time, model) are computed THIS turn.
+  #
+  # Deliberately NOT hoisted away: the required-field list. Measured in s138,
+  # TasteGraph injected once had near-zero compliance, so the fields that must be
+  # written every single turn are named every single turn. Cheap, and the failure
+  # it prevents is expensive.
   printf '%s\n' "<wai-track-turn>"
-  printf '%s\n' "WAI Track v2.0.2 per-turn obligations (an INSTRUCTION to act on, not a message to acknowledge):"
-  printf '%s\n' "1. RICH ENTRY (Layer-1, full-feature): before your statusline, READ the pre-seeded ${_TR_BUF}"
-  printf '%s\n' "   (the hook already wrote hook-owned keys: event, turn, source, ts, ts_source, model)."
-  printf '%s\n' "   Do NOT overwrite the hook-owned keys — ADD your own judgment fields, then write the"
-  printf '%s\n' "   full MERGED object back (hook-owned keys preserved verbatim + your fields added)."
-  printf '%s\n' "   REQUIRED every turn (never omit): user_msg (verbatim <=500c), user_intent, action, outcome,"
-  printf '%s\n' "   thinking (3-8 sentences: why/tradeoffs/what-was-rejected), focus (one line), phase."
-  printf '%s\n' "   Soft-required unless empty this turn: decisions, insights, open. History is append-only."
-  printf '%s\n' "   INSIGHT CONTRACT (feeds the lens insights view [s], place-awareness): make insights a look-BACK over the WHOLE"
-  printf '%s\n' "   session so far, reconciling loose threads into one ACTIONABLE read for this turn; open = work the user"
-  printf '%s\n' "   requested that is not yet verified or completed. As verbose as possible WHILE brief: dense and skimmable,"
-  printf '%s\n' "   LANDING CONTRACT (non-negotiable): every \`open\` entry is an OBJECT, never a bare string:"
-  printf '%s\n' "     {\"text\": \"...\", \"landing\": {\"kind\": \"...\", ...}}"
-  printf '%s\n' "   A thread without a landing condition is chatter, not work. Pick the kind that can be"
-  printf '%s\n' "   CHECKED BY A MACHINE with no judgement:"
-  printf '%s\n' "     lug_completed {\"kind\":\"lug_completed\",\"id\":\"impl-foo-v1\"}      lug reaches completed/"
-  printf '%s\n' "     file_exists   {\"kind\":\"file_exists\",\"path\":\"tools/foo.py\"}      path exists"
-  printf '%s\n' "     file_contains {\"kind\":\"file_contains\",\"path\":\"x.sh\",\"needle\":\"FOO\"}"
-  printf '%s\n' "     commit        {\"kind\":\"commit\",\"sha\":\"abc1234\"}                 sha is an ancestor of HEAD"
-  printf '%s\n' "     command       {\"kind\":\"command\",\"cmd\":\"pytest -q tests/x.py\"}    exits 0"
-  printf '%s\n' "     manual        {\"kind\":\"manual\",\"note\":\"why a human is required\"}  never auto-lands"
-  printf '%s\n' "   The condition must be FALSE right now and become TRUE only when the work is genuinely"
-  printf '%s\n' "   done. A condition satisfiable by partial work is a Goodhart target, not an oracle —"
-  printf '%s\n' "   if you cannot write an honest one, use manual and say why. Never invent a passing check."
-  printf '%s\n' "   so the reader gets place-awareness here and opens chat for full detail."
-  printf '%s\n' "2. STATUSLINE (mandatory, NON-WAIVABLE — the LAST line of your response, even on a question/options"
-  printf '%s\n' "   list and even if the user says 'no footer'). Emit EXACTLY, replacing {count} with the number of"
-  printf '%s\n' "   durable Gold (project/identity-defining) entries you added this turn (0 if none):"
+  printf '%s\n' "${_TR_PROMPT_VER} — full contract injected at session start. Per-turn obligations:"
+  printf '%s\n' "1. RICH ENTRY: merge YOUR judgment fields into ${_TR_BUF} and write the whole object back."
+  printf '%s\n' "   Hook owns (never overwrite): event, turn, source, ts, ts_source, model."
+  printf '%s\n' "   Required every turn: user_msg (verbatim <=500c), user_intent, action, outcome,"
+  printf '%s\n' "   thinking (3-8 sentences), focus (one line), phase. Soft: decisions, insights, open."
+  printf '%s\n' "   Every \`open\` entry is an OBJECT with a machine-checkable landing, never a bare string."
+  printf '%s\n' "2. STATUSLINE (NON-WAIVABLE — the LAST line of your response, even on a question/options"
+  printf '%s\n' "   list and even if the user says 'no footer'). Emit EXACTLY, replacing {count} with the"
+  printf '%s\n' "   number of durable Gold entries you added this turn (0 if none):"
   printf '%s\n' "${_TR_SL}"
   printf '%s\n' "Omit BOTH only in plan mode."
   printf '%s\n' "</wai-track-turn>"

@@ -35,6 +35,7 @@ Emits (stdout, safe for `eval`):
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timezone, timedelta
@@ -269,7 +270,142 @@ def _is_closed(rec):
         return False
     # Closeout entries use event+summary schema (no `completed` field); resumable
     # turns may set completed=true. Either marks the session as cleanly ended.
-    return rec.get("event") == "closeout" or rec.get("completed") is True
+    #
+    # A SAVEPOINT ALSO ENDS A SESSION. Canon (taste work-style-savepoint-must-stand-
+    # alone): "The operator OFTEN leaves a session having done only a savepoint and no
+    # closeout. A savepoint must therefore leave the wheel fully durable on its own."
+    # This function did not honour that, so a savepoint-closed session stayed
+    # "interrupted" forever. Measured on basher 2026-08-01: 10 of the 11 sessions on
+    # the interrupted list had a savepoint. The list was not detecting interruption —
+    # it was detecting that the operator does not run /wai-closeout, which canon says
+    # he does not have to.
+    #
+    # An `exit` record (written by wai-exit) is only terminal when it says the
+    # session was actually made durable. wai-exit stamps durable=false when the
+    # session left neither a closeout nor a deliberate savepoint — that session
+    # must keep surfacing. Quieting the list by accepting every exit would trade a
+    # noisy signal for a lying one, which is the failure this whole change is about.
+    if rec.get("event") == "exit":
+        return rec.get("durable") is True
+    return (rec.get("event") in ("closeout", "savepoint_created", "savepoint_updated")
+            or rec.get("completed") is True)
+
+
+def _track_has_closeout(track_path):
+    """True if ANY record in the track marks the session closed.
+
+    Deliberately scans the whole file rather than the tail: the caller only ever sees
+    the LAST record, and a trailing turn written after the closeout hides it. Reuses
+    _is_closed per record so "what counts as closed" has exactly one definition.
+    (Ported from the basher fork 2026-08-14 — see epic-launcher-reconciliation-v1.
+    Three copies of this scanner had diverged; this rule and _is_operator_session
+    below existed only in the forks, and their absence here made the two copies
+    disagree by 47 sessions on the same tree.)"""
+    try:
+        with open(track_path, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                if _is_closed(rec):
+                    return True
+    except Exception:
+        pass
+    return False
+
+
+# Agent-session tells in a track's first real user message. MIRRORED from
+# scripts/claude-resume-picker.sh (_scan) and bin/claude-resume — that picker is the
+# canonical list. An autonomous run (Ozi/autopilot, Herald responder, chain worker) is a
+# single-shot `claude -p`, never an operator chat worth offering to resume.
+_AGENT_MARKERS = re.compile(
+    r"^\[HERALD RESPONDER"
+    r"|^HERALD RESPONDER"
+    r"|^\[(OZI|AUTOPILOT|AUTONOMOUS|CHAIN)\b"
+    r"|single-shot\.?\s+Do NOT run full wakeup"
+    r"|Do NOT run full wakeup; do NOT claim chains"
+    r"|SCHEDULED Autopilot"
+    r"|servicing this spoke.?s backlog"
+    r"|Autopilot \(Ozi\)"
+    r"|^reply with exactly:",
+    re.IGNORECASE)
+
+
+def _is_operator_session(track):
+    """True iff this track could be an operator's session worth resuming.
+
+    Operator, s117 2026-07-24: "Interrupted sessions shown only if it was a user
+    session." The interrupted list is a RESUME OFFER, so a machine run does not belong
+    in it — there is no operator intent to pick up. Deliberately narrow:
+      * first real user_msg is agent-marked -> EXCLUDE (single-shot `claude -p` worker)
+      * otherwise -> INCLUDE
+    Everything ambiguous or unreadable fails OPEN: over-offering one session is
+    recoverable, silently hiding the operator's interrupted work is not. (The
+    no-records case is already handled upstream by _turn_count.)"""
+    try:
+        with track.open(encoding="utf-8", errors="replace") as fh:
+            for ln in fh:
+                try:
+                    rec = json.loads(ln)
+                except Exception:
+                    continue
+                if not isinstance(rec, dict):
+                    continue
+                msg = rec.get("user_msg")
+                if not msg or not str(msg).strip():
+                    continue
+                return not _AGENT_MARKERS.search(" ".join(str(msg).split()))
+    except OSError:
+        return True          # unreadable -> do not hide it
+    return True              # no user_msg anywhere -> not proof of a machine run
+
+
+def _turn_count(track_path):
+    """Real turns on this track — `turn` events only, not session_start/autoeject."""
+    n = 0
+    try:
+        with open(track_path, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                if isinstance(rec, dict) and (rec.get("event") == "turn" or rec.get("turn")):
+                    n += 1
+    except Exception:
+        return 0
+    return n
+
+
+def _has_savepoint(wai_local, session_id):
+    """Did this session leave a savepoint? An AUTO-EJECT does not count.
+
+    An auto-eject is the harness catching a session that ran out of room — it is a
+    crash cushion, not a deliberate close, so a session whose only savepoint is an
+    auto-eject IS genuinely interrupted and must stay on the list.
+    """
+    sp_root = Path(wai_local) / "initiatives" / "savepoints"
+    if not sp_root.exists():
+        return False
+    for f in sp_root.glob("*/*.json"):
+        try:
+            with open(f, encoding="utf-8", errors="replace") as fh:
+                d = json.load(fh)
+        except Exception:
+            continue
+        if not isinstance(d, dict) or d.get("session_id") != session_id:
+            continue
+        if d.get("status") == "auto-eject" or "autoeject" in f.name:
+            continue
+        return True
+    return False
 
 
 def scan_interrupted(wai_local, now=None):
@@ -291,7 +427,27 @@ def scan_interrupted(wai_local, now=None):
         if track.stat().st_mtime < cutoff:
             continue
         last = _track_last_record(track)
-        if _is_closed(last):
+        # Whole-file scan, not just the tail: a turn appended after the closeout
+        # would otherwise hide it and keep the session "interrupted" forever.
+        if _is_closed(last) or _track_has_closeout(track):
+            continue
+        # A machine run (Ozi/autopilot, Herald, chain worker) is not resumable work.
+        if not _is_operator_session(track):
+            continue
+        # A session with NO TURNS was never interrupted — nothing happened in it.
+        # These are launcher spawns: basher measured four on 2026-07-29 inside a
+        # 12-minute window, each one line of session_start and nothing else. They
+        # carry no actionable context at all, which is the same reason the >7d rule
+        # already skips old ones (the "stale interrupted sessions" anti-pattern).
+        # Surfacing them costs wakeup attention and produces retroactive closeouts
+        # on empty shells.
+        if _turn_count(track) == 0:
+            continue
+        # A session closed by SAVEPOINT is durably closed even if its last track
+        # record is an ordinary turn — the savepoint, not the track, is the contract.
+        # Checked on disk rather than trusting the track's tail, because the Stop
+        # hook can append a turn AFTER the savepoint is written.
+        if _has_savepoint(wai_local, d.name):
             continue
         # Title: the last meaningful summary/note from the track, else the id.
         title = ""

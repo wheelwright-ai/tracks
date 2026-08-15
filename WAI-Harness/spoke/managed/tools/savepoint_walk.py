@@ -35,9 +35,19 @@ VERDICTS, per work_done entry:
 Usage:
     savepoint_walk.py walk [--run-commands] [--json] [--limit N]
     savepoint_walk.py coverage          # how much of the trail is checkable at all
+    savepoint_walk.py close [--dry-run] # complete pending savepoints that still hold
+
+A savepoint had no TERMINAL state in practice until `close` existed. Measured on
+basher 2026-08-01: 120 savepoints on disk, 0 ever claimed, 22 pending named ones
+going back to 2026-07-02. Nothing wrote claimed_at or completed_at, so the trail
+only ever grew and the operator paid attention rent on it at every wakeup. `close`
+completes a pending savepoint only when its own declared checks re-run and hold,
+and refuses to close one that has no runnable check at all — closing on an absence
+of evidence is the self-graded pattern this whole tool exists to kill.
 """
 
 import argparse
+import datetime
 import glob
 import json
 import os
@@ -64,26 +74,25 @@ SAVEPOINT_GLOB = "WAI-Harness/spoke/local/initiatives/savepoints/**/*.json"
 # That divergence is exactly what produced the 23/48 false "uncheckable" verdicts
 # described above; keeping a second copy in this file would guarantee it recurs.
 try:
-    from validate_savepoint import RERUNNABLE_VERBS, SOURCE_ROOTS, SHA_PATTERN
+    from validate_savepoint import (RERUNNABLE_VERBS, SOURCE_ROOTS, SHA_PATTERN,
+                                    extract_command)
+    from thread_landing import screen_command
 except ImportError:  # pragma: no cover — same-dir import, as lug_gate does with wai_assurance
     import os as _os
     import sys as _sys
     _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
-    from validate_savepoint import RERUNNABLE_VERBS, SOURCE_ROOTS, SHA_PATTERN
+    from validate_savepoint import (RERUNNABLE_VERBS, SOURCE_ROOTS, SHA_PATTERN,
+                                    extract_command)
+    from thread_landing import screen_command
 
-_PYTEST_RE = re.compile(r"(python3? -m pytest[^\n;|&]*)")
-_CMD_RE = re.compile(r"^\s*`?((?:%s)\b[^\n`]+)`?\s*$" % RERUNNABLE_VERBS)
-# Embedded (not whole-field) shell/pytest invocations, e.g. "bash tests/x.bash
-# (T39/T40; 40/40 pass)". Bounded to a bare word so trailing prose — which may
-# itself contain ";" from a human's parenthetical note — is never swept into a
-# string that later gets passed to shell=True.
-# Allows intermediate subcommand tokens before the path, so `npx vitest run
-# lib/x.test.ts` matches as one command. The token charset stays deliberately narrow
-# (\w . @ / -) — no ; | & $ ` — so trailing human prose can never be swept into a
-# string this module later runs with shell=True.
-_EMBEDDED_CMD_RE = re.compile(
-    r"((?:%s)(?:\s+[\w.@/-]+){0,4}\s+[\w./-]+\.\w+)" % RERUNNABLE_VERBS
-)
+# The find-truncate-PARSE grammar now lives in validate_savepoint.extract_command,
+# imported above. It used to be three regexes here, and two of them leaked prose into
+# the string this module runs: _PYTEST_RE's charset excluded ; | & but not '(', so
+# `pytest -q x.py  (17 passed)` was captured WHOLE — and it ran BEFORE the bounded
+# pattern that would have handled it correctly. The anchored whole-field pattern had
+# the same flaw by design ("only safe when the ENTIRE field is nothing but the
+# command") with nothing checking that precondition. Result: 19 of this spoke's 43
+# drifted verdicts were unparseable strings reported as regressed work.
 _PATH_RE = re.compile(r"((?:%s)/[\w./-]+\.\w+)" % SOURCE_ROOTS)
 _SHA_RE = re.compile(SHA_PATTERN)
 
@@ -98,14 +107,14 @@ def _classify(verification):
     if not verification or not verification.strip():
         return None, None
     v = verification.strip()
-    # Order matters for safety: the two search-based patterns truncate at the
-    # first sign of trailing prose (so a parenthetical human note can never be
-    # swept into a string later run via shell=True) and must be tried before
-    # the anchored _CMD_RE, whose capture is greedy to end-of-string and is
-    # only safe when the ENTIRE field is nothing but the command itself.
-    m = _PYTEST_RE.search(v) or _EMBEDDED_CMD_RE.search(v) or _CMD_RE.match(v)
-    if m:
-        return "command", m.group(1).strip()
+    # ONE grammar, two tools — find, strip the trailing result annotation, and
+    # require that bash can PARSE what is left. A string that is not a command is
+    # prose: it must fall through to "uncheckable" (honest, prompts a backfill),
+    # never be run and reported as "drifted" (which sends someone to re-do
+    # finished work).
+    cmd = extract_command(v)
+    if cmd:
+        return "command", cmd
     m = _PATH_RE.search(v)
     if m:
         return "path", m.group(1)
@@ -122,8 +131,20 @@ def _classify(verification):
 
 def _run_command(cmd, root, timeout=120):
     try:
-        p = subprocess.run(cmd, shell=True, cwd=root, capture_output=True,
-                           text=True, timeout=timeout)
+        # BASH, not the platform /bin/sh. shell=True defaults to /bin/sh, which is
+        # dash on Debian/Ubuntu — so a recorded verification using bash syntax
+        # (process substitution, `[[ ]]`, arrays, `(( ))`) dies with a parse error
+        # and the walk reports the WORK as DRIFTED.
+        #
+        # HONEST SCOPE (corrected after measuring, 2026-08-01): this reclaimed zero
+        # entries on basher. The 8 verdicts first blamed on the dash dialect were
+        # really malformed verification strings — `pytest -q x.py  (17 passed)` —
+        # whose trailing '(' is a syntax error under BOTH shells; dash's wording
+        # merely disguised it. That is fixed in extract_command, not here. This stays
+        # because it is independently correct and keeps a bash verification recorded
+        # tomorrow from being scored as drift.
+        p = subprocess.run(cmd, shell=True, executable="/bin/bash", cwd=root,
+                           capture_output=True, text=True, timeout=timeout)
         return p.returncode == 0, (p.stdout or p.stderr)[-200:]
     except subprocess.TimeoutExpired:
         return False, "timed out"
@@ -156,6 +177,21 @@ def _resolve_path(root, rel):
     return None
 
 
+DRAIN_REASON = ("references lugs/incoming/, which DRAINS by design — absence is normal "
+                "lifecycle (the lug was processed, or delivered onward), not drift. "
+                "Assert on the DESTINATION the lug reaches, not on the mailbox it "
+                "passes through.")
+
+
+def _drains_by_design(text):
+    """Does this check assert the presence of something in a directory that empties?
+
+    A lug that has LEFT lugs/incoming/ is the system working. Asserting it is still
+    there turns a peer spoke doing its job into a drift report against you.
+    """
+    return "/lugs/incoming/" in (text or "")
+
+
 def _check_entry(entry, root, run_commands):
     """Re-check ONE work_done entry. Returns a verdict dict; never mutates input."""
     what = (entry.get("what") or "")[:100]
@@ -184,10 +220,9 @@ def _check_entry(entry, root, run_commands):
                     "why": None,
                     "claimed_verified": entry.get("verified") is True,
                     "reconstructed": entry.get("reconstructed") is True}
-        if "/lugs/incoming/" in payload:
+        if _drains_by_design(payload):
             return {"verdict": "unknowable", "what": what, "check": f"exists: {payload}",
-                    "why": "path is in lugs/incoming/, which DRAINS by design — absence is "
-                           "normal lifecycle (processed, or delivered onward), not drift",
+                    "why": DRAIN_REASON,
                     "claimed_verified": entry.get("verified") is True,
                     "reconstructed": entry.get("reconstructed") is True}
         return {"verdict": "drifted", "what": what, "check": f"exists: {payload}",
@@ -211,13 +246,54 @@ def _check_entry(entry, root, run_commands):
                            "and not evidence of drift.",
                     "claimed_verified": entry.get("verified") is True,
                     "reconstructed": entry.get("reconstructed") is True}
-        # It IS our commit, so ancestry is the real question: a commit that was
-        # reverted or rebased away is genuine drift.
         ok, _ = _run_command(f"git merge-base --is-ancestor {payload} HEAD", root, timeout=20)
-        return {"verdict": "still-holds" if ok else "drifted", "what": what,
+        if ok:
+            return {"verdict": "still-holds", "what": what,
+                    "check": f"commit {payload} is an ancestor of HEAD", "why": None,
+                    "claimed_verified": entry.get("verified") is True,
+                    "reconstructed": entry.get("reconstructed") is True}
+        # NOT AN ANCESTOR IS NOT DRIFT. This used to say "drifted (reverted or
+        # rebased away)" — the same over-confidence the sibling-spoke case two
+        # comments up was fixed for, made one step further along.
+        #
+        # A rebase, squash or cherry-pick relands the WORK under a NEW sha, leaving
+        # the original commit in the repo and unreachable. Ancestry cannot tell those
+        # apart from a revert. Proven on basher 2026-08-01: the trail reported
+        # 9e36da62 (hub-currency) as drifted, and scripts/hub-currency.sh plus
+        # tests/test_hub_currency.bash are both present in HEAD — salvaged by
+        # e875d0ab. Re-doing that work on the trail's say-so would have duplicated it.
+        #
+        # So: unknowable, with the one cheap fact that helps a human decide — whether
+        # the files the commit touched are still on disk. Recording a sha as evidence
+        # is inherently fragile under history rewriting; a path or command check
+        # survives it, and that is what a backfill should reach for.
+        _, files = _run_command(
+            f"git show --name-only --format= {payload}", root, timeout=20)
+        names = [f for f in (files or "").split("\n") if f.strip()]
+        present = [f for f in names if os.path.exists(os.path.join(root, f))]
+        hint = (f"{len(present)}/{len(names)} of its files still exist" if names
+                else "could not list its files")
+        return {"verdict": "unknowable", "what": what,
                 "check": f"commit {payload} is an ancestor of HEAD",
-                "why": None if ok else f"commit {payload} exists here but is not an ancestor "
-                                       "of HEAD (reverted or rebased away)",
+                "why": f"commit {payload} exists here but is not an ancestor of HEAD. That "
+                       "is a rebase/squash/cherry-pick OR a revert — ancestry cannot tell "
+                       f"them apart, so this is not evidence of drift ({hint}). Re-record "
+                       "this entry with a path or command check, which survives history "
+                       "rewriting.",
+                "claimed_verified": entry.get("verified") is True,
+                "reconstructed": entry.get("reconstructed") is True}
+
+    # SAME DENY-LIST AS thread_landing, imported not copied — this module executes
+    # recorded strings with shell=True in the REPO ROOT, and one of the verifications
+    # actually on this trail is `tests/run.sh`, which thread_landing already refuses
+    # because the full suite has a known fixture escape into the shared .git. An
+    # auditor that corrupts the repo it is auditing is not an auditor. Reported, never
+    # silently skipped, and never as "drifted" — nothing was checked, so the honest
+    # verdict is unknowable.
+    denied, reason = screen_command(payload)
+    if denied:
+        return {"verdict": "unknowable", "what": what, "check": payload,
+                "why": f"{reason} — re-record this entry with a narrower check",
                 "claimed_verified": entry.get("verified") is True,
                 "reconstructed": entry.get("reconstructed") is True}
 
@@ -228,6 +304,18 @@ def _check_entry(entry, root, run_commands):
                 "reconstructed": entry.get("reconstructed") is True}
 
     ok, out = _run_command(payload, root)
+    # The DRAIN-BY-DESIGN rule applies to commands too, not just bare paths. It lived
+    # only in the path branch, and widening RERUNNABLE_VERBS to include `test`/`ls`
+    # promoted `test -f .../lugs/incoming/X.json` from a path check into a command —
+    # which silently walked it straight past the exemption. Caught by re-walking the
+    # real trail after that change: several entries flipped to "drifted" purely
+    # because the sibling spoke had PROCESSED the lug they asserted was delivered,
+    # i.e. because the system worked. Same rule, one predicate, both branches.
+    if not ok and _drains_by_design(payload):
+        return {"verdict": "unknowable", "what": what, "check": payload,
+                "why": DRAIN_REASON,
+                "claimed_verified": entry.get("verified") is True,
+                "reconstructed": entry.get("reconstructed") is True}
     return {"verdict": "still-holds" if ok else "drifted", "what": what,
             "check": payload, "why": None if ok else f"command failed: {out}",
             "claimed_verified": entry.get("verified") is True,
@@ -328,8 +416,89 @@ def cmd_coverage(args, root):
     return 0
 
 
+def close_eligible(root, run_commands=True):
+    """Which pending savepoints have EARNED completion, and why.
+
+    A savepoint had no terminal state in practice. Measured on basher 2026-08-01:
+    120 savepoints on disk, 0 ever claimed, 22 pending named ones going back to
+    2026-07-02 — because nothing ever wrote claimed_at or completed_at. The trail
+    only ever grew. The walk could already tell you a savepoint's work still holds;
+    there was no way to act on that, so the list stayed a monotonically growing pile
+    and the operator paid attention rent on it every wakeup.
+
+    THE BAR, and why it is set here:
+      - zero drifted entries          — an unresolved regression is not "done"
+      - at least one CHECKABLE entry  — closing on an absence of evidence is the
+                                        self-graded pattern the trail exists to kill
+                                        ("claim is not evidence", validate_savepoint)
+      - status is pending             — auto-ejects are pruned, not completed
+    A savepoint that is all-prose therefore does NOT close. It needs a backfilled
+    verification first, which is the honest outcome: the fix is to record a check,
+    never to relax what counts as one.
+    """
+    rep = walk(root, run_commands=run_commands)
+    by_sp = {}
+    for r in rep["results"]:
+        by_sp.setdefault(r["savepoint"], []).append(r)
+
+    out = []
+    for created, path, sp in load_trail(root):
+        if sp.get("status") != "pending":
+            continue
+        sid = sp.get("id") or os.path.basename(path)
+        rows = by_sp.get(sid, [])
+        holds = sum(1 for r in rows if r["verdict"] == "still-holds")
+        drifted = sum(1 for r in rows if r["verdict"] == "drifted")
+        uncheckable = sum(1 for r in rows if r["verdict"] == "uncheckable")
+        if drifted == 0 and holds > 0:
+            reason = f"{holds} check(s) re-ran and still hold; 0 drifted"
+            eligible = True
+        elif drifted:
+            reason = f"{drifted} check(s) DRIFTED — resolve or retire first"
+            eligible = False
+        else:
+            reason = (f"no re-runnable check ({uncheckable} uncheckable) — "
+                      "backfill a verification; do not close on prose")
+            eligible = False
+        out.append({"id": sid, "path": path, "eligible": eligible, "reason": reason,
+                    "holds": holds, "drifted": drifted, "uncheckable": uncheckable})
+    return out
+
+
+def cmd_close(args, root):
+    rows = close_eligible(root, run_commands=not args.no_run_commands)
+    closed = 0
+    for r in rows:
+        mark = "CLOSE " if r["eligible"] else "keep  "
+        print(f"  {mark} {r['id'][:62]:63} {r['reason']}")
+        if not r["eligible"] or args.dry_run:
+            continue
+        try:
+            with open(r["path"], encoding="utf-8") as fh:
+                d = json.load(fh)
+            d["status"] = "completed"
+            d["completed_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            # Record WHY it closed, so a later reader can audit the decision without
+            # re-running the trail — and so "completed" never means "someone said so".
+            d["completion_evidence"] = {
+                "closed_by": "savepoint_walk close",
+                "checks_rerun": r["holds"],
+                "drifted": r["drifted"],
+                "uncheckable": r["uncheckable"],
+            }
+            with open(r["path"], "w", encoding="utf-8") as fh:
+                json.dump(d, fh, indent=1, ensure_ascii=False)
+            closed += 1
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"         ! could not write {r['path']}: {e}")
+    verb = "would close" if args.dry_run else "closed"
+    print(f"\n{verb} {closed if not args.dry_run else sum(1 for r in rows if r['eligible'])}"
+          f" of {len(rows)} pending savepoint(s)")
+    return 0
+
+
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Walk the savepoint trail (read-only)")
+    ap = argparse.ArgumentParser(description="Walk the savepoint trail")
     ap.add_argument("--root", default=".")
     sub = ap.add_subparsers(dest="cmd", required=True)
     w = sub.add_parser("walk")
@@ -338,9 +507,13 @@ def main(argv=None):
     w.add_argument("--json", action="store_true")
     w.add_argument("--limit", type=int, default=None, help="most recent N savepoints")
     sub.add_parser("coverage")
+    c = sub.add_parser("close", help="complete pending savepoints whose checks all still hold")
+    c.add_argument("--dry-run", action="store_true", help="report only, write nothing")
+    c.add_argument("--no-run-commands", action="store_true",
+                   help="skip executing command checks (path/sha checks only)")
     args = ap.parse_args(argv)
     root = os.path.abspath(args.root)
-    return {"walk": cmd_walk, "coverage": cmd_coverage}[args.cmd](args, root)
+    return {"walk": cmd_walk, "coverage": cmd_coverage, "close": cmd_close}[args.cmd](args, root)
 
 
 if __name__ == "__main__":

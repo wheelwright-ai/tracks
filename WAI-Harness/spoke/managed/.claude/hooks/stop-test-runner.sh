@@ -10,6 +10,34 @@
 
 set -o pipefail 2>/dev/null || true
 
+# Emit a diagnostic on BOTH stdout and stderr.
+#
+# This used to be `... | tee /dev/stderr`, which fails under the Stop hook with
+# "tee: /dev/stderr: No such device or address". /dev/stderr is a symlink to
+# /proc/self/fd/2, and REOPENING fd 2 only works when fd 2 is a file, pipe or
+# tty. Claude Code hands the hook a SOCKET, and opening a socket by path is
+# ENXIO — so the very hook whose job is to make a red suite visible died with
+# an opaque error and reported nothing. Writing to the already-open descriptor
+# with >&2 never reopens anything, so it works whatever fd 2 happens to be.
+# Takes the message as an argument OR on stdin. Both forms exist: the call sites
+# below pass "$(...)" directly, while the gate pipes into it to prove the
+# both-streams guarantee without a subshell. Reading $1 unconditionally made the
+# piped form die with "$1: unbound variable" under set -u and lose BOTH copies.
+#
+# stdout is written FIRST and the stderr copy is allowed to fail: when fd 2 is
+# unwritable the diagnostic must still reach stdout rather than taking the whole
+# hook down with it.
+_emit_both() {
+    local _msg
+    if [ "$#" -gt 0 ]; then
+        _msg="$1"
+    else
+        _msg="$(cat)"
+    fi
+    printf '%s\n' "$_msg"
+    printf '%s\n' "$_msg" >&2 || true
+}
+
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 
 # Bail early if not a git repo
@@ -100,9 +128,28 @@ discover_python_suite() {
 FAIL_MSG="Tests failed after your last change. Fix before continuing."
 
 if [[ -f "package.json" ]] && echo "$ALL_CHANGED" | grep -qE '\.(js|ts|jsx|tsx)$'; then
-  # Node.js project with JS/TS changes
-  if command -v bun &>/dev/null && [[ -f "bun.lock" ]]; then
+  # Node.js project with JS/TS changes.
+  #
+  # `bun test` is a DIFFERENT RUNNER from Vitest/Jest. It does not read
+  # vitest.config, setup files, path aliases, or vi.mock(), so pointing it at a
+  # Vitest suite produces failures that are artefacts of the wrong runner rather
+  # than defects in the code.
+  #
+  # MEASURED on the pathfinder spoke, same commit and same tree:
+  #   bun test  ->  464 pass / 175 fail / 22 errors
+  #   vitest    ->  825 pass /   2 fail
+  # That gate had been reporting roughly 98% fiction on every turn for two days.
+  #
+  # The presence of bun.lock does NOT mean "this project tests with bun". It is
+  # routine for a project to use bun as a RUNTIME (bunx, a worker script) while
+  # testing with something else, which is exactly the shape that broke. So ask
+  # the project what its test command is instead of inferring it from a lockfile.
+  TEST_SCRIPT=$(node -pe "require('./package.json').scripts && require('./package.json').scripts.test || ''" 2>/dev/null)
+  if [[ "$TEST_SCRIPT" == "bun test"* ]] && command -v bun &>/dev/null; then
     RESULT=$(bun test 2>&1); EXIT_CODE=$?
+  elif command -v bun &>/dev/null && [[ -f "bun.lock" ]]; then
+    # bun as the package runner, but the project's OWN configured framework.
+    RESULT=$(bun run test 2>&1); EXIT_CODE=$?
   elif command -v npm &>/dev/null; then
     RESULT=$(npm test 2>&1); EXIT_CODE=$?
   else
@@ -136,7 +183,16 @@ elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
   # run — reporting success while never executing a single test. A bound sized to the
   # CURRENT runtime is a gate with an expiry date; give it real headroom and make the
   # timeout LOUD (below) so growth degrades visibly instead of silently.
-  RESULT=$(timeout "${STOP_TEST_TIMEOUT:-420}" python3 -m pytest "$SUITE" -x -q --tb=short 2>&1); EXIT_CODE=$?
+  # THE KERNEL SUITE ALWAYS RUNS, in addition to the dominant root.
+  #
+  # The root selector picks ONE directory by file count. MEASURED 2026-08-07:
+  # WAI-Harness/spoke/managed/tests holds 256 files and WAI-Harness/kernel/tests holds 6,
+  # so the kernel suite -- the ONLY gate on the generation replacing this harness -- was
+  # never discovered and never run. A suite nothing executes is not a gate, and the kernel
+  # is the one component where that matters most.
+  _KERNEL_SUITE=""
+  [[ -d WAI-Harness/kernel/tests ]] && _KERNEL_SUITE="WAI-Harness/kernel/tests"
+  RESULT=$(timeout "${STOP_TEST_TIMEOUT:-420}" python3 -m pytest "$SUITE" $_KERNEL_SUITE -x -q --tb=short 2>&1); EXIT_CODE=$?
 
   # pytest exit codes:
   #   0 all passed | 1 tests failed | 2 collection error / interrupted
@@ -170,12 +226,12 @@ elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
       # not the idle one — an earlier note here claimed 2.3x headroom by sizing against
       # the idle number alone, which was really 1.4x. 420s is ~2x the loaded measurement.
       # If this fires again, raise the bound AND record the new measurement here.
-      {
+      _emit_both "$(
         echo "<test-gate-not-run>"
         echo "Test gate TIMED OUT after ${STOP_TEST_TIMEOUT:-420}s — the suite did NOT run; this turn is UNVERIFIED."
         echo "Raise STOP_TEST_TIMEOUT or run: python3 -m pytest ${SUITE} -q"
         echo "</test-gate-not-run>"
-      } | tee /dev/stderr
+      )"
       exit 0 ;;
     2) FAIL_MSG="Test collection FAILED after your last change (pytest exit 2 — broken import or conftest). The suite could not run. Fix before continuing." ;;
   esac
@@ -194,13 +250,13 @@ if [[ $EXIT_CODE -ne 0 ]]; then
   # been red on a stranded command template and the message never reached anyone).
   # A gate whose diagnostic does not reach a reader is a silent failure, which is
   # the exact class this hook exists to prevent.
-  {
+  _emit_both "$(
     echo "<test-failure>"
     echo "$FAIL_MSG"
     echo ""
     echo "$RESULT" | tail -20
     echo "</test-failure>"
-  } | tee /dev/stderr
+  )"
   exit 1
 fi
 

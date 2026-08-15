@@ -2333,7 +2333,7 @@
       "name": "wai-track",
       "kind": "command",
       "tier": "awareness",
-      "situation": "WAI Track v1.0.2",
+      "situation": "WAI Track (retired tag v1.0.2 — see track-prompt/ACTIVE.json)",
       "solution": "Use wai-track (templates/commands/wai-track.md).",
       "owner_advisor": null,
       "file_paths": [

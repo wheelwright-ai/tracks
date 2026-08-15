@@ -162,12 +162,31 @@ def section_priority(spoke_root: Path, hub_path: str | None) -> dict:
 
 
 def section_narrative(spoke_root: Path) -> dict:
-    """NARRATIVE — pointer to the KnowMe self-portrait (not regenerated; that costs an API call)."""
-    for p in (spoke_root / "KnowMe.md",
-              spoke_root / "WAI-Harness" / "dev" / "root-docs" / "KnowMe.md"):
-        if p.exists():
-            return {"value": str(p.relative_to(spoke_root)) if p.is_relative_to(spoke_root) else str(p)}
-    return _null("no KnowMe.md (run generate_knowme.py to build the self-portrait)")
+    """NARRATIVE — pointer to the self-portrait (not regenerated; that costs an API call).
+
+    Reads the SAME resolver the writer uses. This used to probe two hardcoded
+    paths, which meant reader and writer could disagree about which file was the
+    portrait — and on mywheel they did, for eight minor versions.
+    (fix-knowme-single-portrait-destination-v1)
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from generate_knowme import resolve_portrait_destination
+        dest, conflict = resolve_portrait_destination(spoke_root)
+    except Exception as e:  # noqa: BLE001
+        return _null(f"portrait resolver unavailable: {e}")
+
+    if not dest.exists():
+        return _null("no portrait (run generate_knowme.py to build the self-portrait)")
+
+    value = str(dest.relative_to(spoke_root)) if dest.is_relative_to(spoke_root) else str(dest)
+    if conflict is not None:
+        other = (str(conflict.relative_to(spoke_root))
+                 if conflict.is_relative_to(spoke_root) else str(conflict))
+        # Surfaced, never silent: two portraits is the condition that made this
+        # spoke read a stale self-description for eight minor versions.
+        return {"value": value, "note": f"CONFLICT: a second portrait exists at {other}"}
+    return {"value": value}
 
 
 # ── fusion + render ─────────────────────────────────────────────────────────

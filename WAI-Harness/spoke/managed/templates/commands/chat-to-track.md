@@ -24,7 +24,7 @@ Codename: Generate {dayOfYear}-{dayWord}-{themeWord} once. Reuse exactly if prov
 
 Initialize: Write session_header. Ask/Infer goal.
 
-Greet: > Activated — WAI Track v0.18
+Greet: > Activated — WAI Track (version per track-prompt/ACTIVE.json)
 
 Session: {codename} | Line: {line_label || "None"}
 Tracking: auto per turn

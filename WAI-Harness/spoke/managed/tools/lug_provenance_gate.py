@@ -181,9 +181,25 @@ def main(argv=None):
             print(f"      ... and {len(paths) - 5} more")
     print()
     print("The PathGraph indexes lugs, not commit messages. Untraceable work cannot")
-    print("be verified later as intended, reviewed, or done. Satisfy this by EITHER:")
-    print("  1. staging the lug that authorises the change alongside it, or")
-    print("  2. naming an existing lug id in the commit message (e.g. impl-foo-v1)")
+    print("be verified later as intended, reviewed, or done.")
+    print()
+    # The message escape is real but UNREACHABLE in --staged mode: pre-commit runs
+    # before a commit object exists, so there is no message to read. The old hint
+    # offered it anyway, and a session that took the advice hit the same refusal
+    # twice with the lug id sitting in the message it had just written. Telling
+    # someone to do something the tool cannot honour is worse than saying nothing.
+    if any(ref == "<staged>" for ref, _ in failures):
+        print("At COMMIT time there is only ONE fix — a lug is not enough; the lug")
+        print("must CLAIM the file. Add each path above to that lug's file_targets:")
+        print()
+        print("  \"file_targets\": [ ..., \"<the path above>\" ]")
+        print()
+        print("(Naming a lug id in the commit message works on a RANGE check, not")
+        print(" here: pre-commit runs before the message exists, so it cannot be read.)")
+    else:
+        print("Satisfy this by EITHER:")
+        print("  1. staging a lug whose file_targets NAME the changed file, or")
+        print("  2. naming an existing lug id in the commit message (e.g. impl-foo-v1)")
     print()
     print("Do NOT write a lug to satisfy this gate. A lug authored to clear a check")
     print("is the placeholder-lug anti-pattern; write the record you actually mean.")

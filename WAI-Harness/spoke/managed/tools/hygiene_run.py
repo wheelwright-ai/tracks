@@ -191,6 +191,9 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Hygiene advisor's innate runner — writes hygiene-latest.json.")
     ap.add_argument("--spoke-root", default=".")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--gate", action="store_true",
+                    help="exit 1 unless the verdict is CLEAN, so this command can serve "
+                         "as a lug verify step (default 0: this is a signal file writer)")
     args = ap.parse_args(argv)
 
     try:
@@ -213,8 +216,14 @@ def main(argv=None) -> int:
         print(json.dumps(report, indent=2))
         return 1
 
-    if args.json or True:  # always print — this is a signal file writer, not a gate
+    if args.json or True:  # always print — this is a signal file writer by default
         print(json.dumps(report, indent=2))
+    # --gate turns the same run into a check something can FAIL. Without it a verify
+    # step naming this tool is green while the verdict says DIRTY, which is the
+    # false-green class the harvest exists to find. UNKNOWN fails too: a verdict the
+    # tool could not compute is not a clean one.
+    if args.gate and report.get("verdict") != "CLEAN":
+        return 1
     return 0
 
 

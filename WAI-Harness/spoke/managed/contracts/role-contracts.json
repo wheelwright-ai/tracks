@@ -1,0 +1,430 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wheelwright.local/contracts/role-contracts.json",
+  "title": "Wheelwright v5 Role Contracts",
+  "description": "Phase 3 (directive §27, Ruling 6): every role in the v5 control plane gets a machine-readable contract — purpose, required inputs, produced outputs, authority, PROHIBITED authority, success conditions, evidence requirements, escalation/rework behaviour. Built ALONGSIDE the v4 harness per Doctrine 2 (strangler cutover): nothing here is wired into any v4 read/write path, and no role loses authority it does not already lack — this document is descriptive contract, not a runtime gate, until a v5 mechanism reads it. The `prohibited` field is the field that matters most: an empty prohibited list is a contract that permits everything, which is not a contract.",
+  "version": "1.0.0",
+  "source": "docs/wheelwright-v5-control-plane-directive.md §9, §16-27, Part III Ruling 6",
+
+  "roles": {
+
+    "Evaluator": {
+      "purpose": "Determines what the user/operator actually needs, whether refinement is necessary before work starts, what should happen first, and what class of intelligence the work requires (directive §1 hierarchy intro).",
+      "required_inputs": [
+        "raw request or signal (operator prompt, lug, teaching, observation)",
+        "current spoke/group goals",
+        "existing initiative graph (to detect duplication or conflict)"
+      ],
+      "produced_outputs": [
+        "a scoped statement of intent (what is actually being asked for)",
+        "a refinement verdict: proceed as-is | needs clarification | needs decomposition",
+        "an initial model-class recommendation (not a full model_profile — that is Planner/Confirmer's job at READY_TO_BUILD)"
+      ],
+      "authority": [
+        "may request clarification before any Planner/Worker time is spent",
+        "may reject a request as out of scope for the spoke/group's declared goals",
+        "may set the initial lug_type and priority signal"
+      ],
+      "prohibited": [
+        "MUST NOT commit the spoke to build work — that authority belongs to Planner/Bursar/capacity allocation, not Evaluator",
+        "MUST NOT fabricate a model-class requirement without stating the basis (directive §40: no LLM call per state change is a Confirmer-level rule but Evaluator likewise must not manufacture unjustified certainty)",
+        "MUST NOT skip clarification for an ambiguous request merely because a deadline exists — ambiguity is a finding, not something to paper over"
+      ],
+      "success_conditions": [
+        "a Planner receiving Evaluator's output can produce executable structure without re-asking the original clarifying questions",
+        "every refinement verdict names the specific ambiguity or gap driving it, not a generic 'needs more detail'"
+      ],
+      "evidence_requirements": [
+        "the scoped statement of intent is attributed (directive §28: creator, model+provider, timestamp)",
+        "a 'needs clarification' verdict is recorded as a needs-you lug per Ruling 19, never only in chat"
+      ],
+      "escalation": "An Evaluator that cannot resolve ambiguity from available context (goals, initiative graph, prior lugs) opens a needs-you lug scoped to the initiative (Ruling 19) rather than guessing.",
+      "rework": "Not applicable — Evaluator does not itself get reworked; a downstream Confirmer/Reviewer finding that the original intent was mis-scoped routes back to Evaluator via the bad_direction rework cause (directive §34)."
+    },
+
+    "Planner": {
+      "purpose": "Turns Evaluator's scoped intent into executable structure: implementation lugs with directions, dependencies, descendant-prompts, and an initial effort forecast (directive §1, §2).",
+      "required_inputs": [
+        "Evaluator's scoped statement of intent and refinement verdict",
+        "inherited goals/impact/directions from parent initiative or lug (lineage.inherited_goals, lineage.inherited_directions)",
+        "known dependency graph (existing lugs this work depends on or blocks)"
+      ],
+      "produced_outputs": [
+        "one or more READY_TO_REVIEW lugs with directions, acceptance_criteria, and a drafted effort value (directive §5/§6)",
+        "descendant_prompt text where the plan implies child work (directive §4)",
+        "declared events (on_ready_to_build, etc. — directive §29) for descendants this plan creates"
+      ],
+      "authority": [
+        "may decompose one initiative into multiple implementation lugs",
+        "may set drafted effort and impact value-triple entries",
+        "may declare dependency relationships (blocked_by)"
+      ],
+      "prohibited": [
+        "MUST NOT transition a lug directly to READY_TO_BUILD — that requires IMPLEMENTATION_REVIEW by the Confirmer first (directive §9; lug_v5.TRANSITIONS has no READY_TO_REVIEW → READY_TO_BUILD edge)",
+        "MUST NOT overwrite an already-recorded value-triple slot — refinement is a new append, never an edit of drafted/ready/actual (directive §5, enforced structurally by lug_v5.set_value)",
+        "MUST NOT invent effort/impact figures with no basis and record them as certain — an unknown value uses the explicit value_unknown marker (directive §37), never a fabricated number"
+      ],
+      "success_conditions": [
+        "every produced lug validates against schemas/lug-v5.schema.json",
+        "every produced lug's directions field is specific enough that a Worker can act without reconstructing intent from conversation history"
+      ],
+      "evidence_requirements": [
+        "drafted effort/impact carry recorded_by (model+provider) and recorded_at (directive §5/§28)",
+        "descendant_prompt carries set_at/set_by when present"
+      ],
+      "escalation": "A plan that cannot be decomposed without a decision only the operator can make opens a needs-you lug (Ruling 19) rather than guessing at scope.",
+      "rework": "Receives rework via bad_direction or insufficient_acceptance_criteria (directive §34, lug_lifecycle.REWORK_ROUTES → READY_TO_REVIEW) when the Confirmer or Reviewer finds the plan does not correctly express inherited intent."
+    },
+
+    "Confirmer": {
+      "alias": "Implementation Reviewer",
+      "purpose": "Asks whether the proposed implementation correctly expresses what the parent intended, BEFORE expensive implementation begins (directive §9). Distinct from verification, which asks whether the built thing actually works.",
+      "required_inputs": [
+        "the READY_TO_REVIEW lug in full (directions, acceptance_criteria, lineage, effort/impact value triples, descendant_prompt, evidence.verify if present, relationships.blocked_by)",
+        "the parent lug's directions/descendant_prompt for lineage comparison (directive §4)",
+        "the dependency graph (to check blocked_by targets exist)"
+      ],
+      "produced_outputs": [
+        "exactly one of three outcomes: APPROVE (transition to READY_TO_BUILD), RETURN (rework, naming what is missing), RECOMMEND (approve-with-findings; does not block the transition but is durable)",
+        "a durable, attributed review record appended to the lug's history — never a silent edit of the lug's own content",
+        "optionally, follow-up lugs for gaps found (never rewritten inline into the reviewed lug)"
+      ],
+      "authority": [
+        "may transition IMPLEMENTATION_REVIEW → READY_TO_BUILD (APPROVE)",
+        "may transition IMPLEMENTATION_REVIEW → REWORK via enter_rework() (RETURN)",
+        "may attach non-blocking findings to a lug it otherwise approves (RECOMMEND)",
+        "may create follow-up lugs for out-of-scope gaps discovered during review"
+      ],
+      "prohibited": [
+        "MUST NOT silently rewrite the reviewed lug's directions, acceptance_criteria, effort, or descendant_prompt — directive §9 is explicit; a Confirmer that edits is not reviewing, it is ghost-authoring",
+        "MUST NOT approve a lug missing a required model_profile field once the lug is being promoted to READY_TO_BUILD, where model_profile becomes required (directive §8 / schema $defs.model_profile: all nine fields required)",
+        "MUST NOT make an LLM call as part of the deterministic check pass — directive §40 forbids an LLM call per state change on a mechanism that runs on every lug; judgement calls are surfaced as flagged findings for a human or a model to resolve, not resolved by a heuristic pretending to be judgement",
+        "MUST NOT be the same identity that authored the lug's directions when acting on goal-alignment judgement calls — review requires perspective diversity (directive §1), not self-confirmation"
+      ],
+      "success_conditions": [
+        "every APPROVE corresponds to a lug that passes all deterministic checks with zero blocking findings",
+        "every RETURN names the specific missing/incorrect element(s), not a generic 'not ready'",
+        "every RECOMMEND still allows the transition but leaves a durable, attributed record of what should be reconsidered"
+      ],
+      "evidence_requirements": [
+        "the review outcome, findings, and deterministic-check results are appended to the lug's history as an attributed record (directive §28)",
+        "input lug dict is provably unchanged in memory after review (structural non-mutation, verified by test)"
+      ],
+      "escalation": "A judgement-class finding (goal alignment nuance, scope-drift severity, implementation-trap plausibility) that the deterministic pass cannot resolve is returned as a flagged_findings entry for a human or LLM reviewer — never silently resolved by a heuristic.",
+      "rework": "Confirmer is the entry point for REWORK via bad_direction, insufficient_acceptance_criteria, and incorrect_forecast (directive §34); RETURN outcome invokes lug_lifecycle.enter_rework() with the matching cause."
+    },
+
+    "Worker": {
+      "purpose": "Builds the implementation described by a READY_TO_BUILD lug (directive §1).",
+      "required_inputs": [
+        "the READY_TO_BUILD lug (directions, acceptance_criteria, model_profile)",
+        "any validation_setup / fixtures referenced by the lug"
+      ],
+      "produced_outputs": [
+        "the built artifact (code, config, doc — whatever the lug specifies)",
+        "a transition to READY_TO_TEST",
+        "actual effort recorded on completion (directive §6)"
+      ],
+      "authority": [
+        "may transition IN_BUILD → READY_TO_TEST",
+        "may request rework/blocked if the directions are unbuildable as written"
+      ],
+      "prohibited": [
+        "MUST NOT validate its own work — directive §27: Validator is independent of Worker; a Worker acting as its own Validator on the same lug is a contract violation regardless of how the assignment happened",
+        "MUST NOT mark a lug COMPLETE — that transition requires VALIDATING → COMPLETE, which is Validator/Reviewer authority, not Worker's",
+        "MUST NOT alter acceptance_criteria to match what was actually built — acceptance criteria are set at planning/review time and only change via a recorded rework cycle"
+      ],
+      "success_conditions": [
+        "the built artifact satisfies every acceptance_criteria entry",
+        "actual effort is recorded as a new value-triple entry, never overwriting drafted/ready"
+      ],
+      "evidence_requirements": [
+        "the transition to READY_TO_TEST is attributed (model+provider, timestamp)",
+        "actual effort carries recorded_by/recorded_at"
+      ],
+      "escalation": "A lug that cannot be built as specified (missing dependency, contradictory directions) routes to BLOCKED with a reason, not a best-effort guess.",
+      "rework": "Receives rework via implementation_defect, missing_setup, insufficient_model_profile, environment_deficiency (directive §34, routes back to READY_TO_BUILD)."
+    },
+
+    "Validator": {
+      "purpose": "Independently checks the result of a build against its acceptance_criteria and verification setup (directive §1, §27).",
+      "required_inputs": [
+        "the READY_TO_TEST / VALIDATING lug and its acceptance_criteria",
+        "the built artifact",
+        "the validation_setup object it will run against (directive §13)"
+      ],
+      "produced_outputs": [
+        "a validation result (pass/fail) with evidence (directive §14)",
+        "a transition to COMPLETE (pass) or REWORK (fail, with a named cause per directive §34)"
+      ],
+      "authority": [
+        "may transition VALIDATING → COMPLETE",
+        "may invoke enter_rework() with cause=implementation_defect (or another named cause) on failure"
+      ],
+      "prohibited": [
+        "MUST NOT be the same identity/session/agent instance that performed the Worker role on this lug — directive §27 hard rule: writer and validator are independent. A Confirmer or scheduler assigning Validator = Worker on the same lug_id is itself a contract violation to be rejected at assignment time, not discovered after the fact",
+        "MUST NOT declare COMPLETE without evidence — a validation outcome with no attached evidence is not a validation (directive §14)",
+        "MUST NOT silently retry past the rework ceiling — directive §41/§32: retry/validation-loop maxima are hard, enforced structurally by lug_lifecycle's ceiling-then-BLOCKED path, and Validator must not attempt to bypass it by re-entering REWORK directly"
+      ],
+      "success_conditions": [
+        "every pass/fail outcome cites the specific acceptance_criteria entries checked",
+        "failures name one of the seven directive-§34 rework causes, never a generic 'failed'"
+      ],
+      "evidence_requirements": [
+        "validation_setup version used is recorded (directive §13: runs identify which setup version they used)",
+        "pass/fail evidence is durable and attached to the transition record"
+      ],
+      "escalation": "Ambiguous acceptance_criteria discovered during validation (criteria too vague to check deterministically) is a Reviewer-level finding, escalated rather than adjudicated unilaterally by the Validator.",
+      "rework": "Validator is the entry point for VALIDATING → REWORK on failure; ceiling exceeded routes to BLOCKED via lug_lifecycle.enter_rework(), never an unbounded loop (directive §41)."
+    },
+
+    "Reviewer": {
+      "purpose": "Interprets validation evidence and determines whether rework is actually necessary, distinguishing implementation defect from bad direction, insufficient acceptance criteria, incorrect forecast, missing setup, insufficient model profile, or environment deficiency (directive §1, §34).",
+      "required_inputs": [
+        "the Validator's pass/fail result and evidence",
+        "the lug's full history (to detect repeated failure patterns)",
+        "the rework_log (to check proximity to the rework ceiling)"
+      ],
+      "produced_outputs": [
+        "a rework-cause classification when validation failed (one of the seven directive-§34 causes)",
+        "an assessment of whether the failure is chronic (candidate for second-order improvement lug, directive §44)"
+      ],
+      "authority": [
+        "may classify the rework cause and select the routing target via lug_lifecycle.REWORK_ROUTES",
+        "may flag a repeated-failure pattern for an improvement lug (reusable setup, shared tool, profile change, calibration update)"
+      ],
+      "prohibited": [
+        "MUST NOT reclassify a validation failure as a pass to avoid a rework cycle — Reviewer interprets evidence, it does not overrule it",
+        "MUST NOT invent a rework cause outside the seven directive-§34 classes (lug_lifecycle.REWORK_CAUSES is a closed set; enter_rework() rejects anything else)",
+        "MUST NOT bypass the rework ceiling by manually forcing a state outside lug_v5.TRANSITIONS"
+      ],
+      "success_conditions": [
+        "every rework classification matches one of the seven closed causes and routes to the correct target state per REWORK_ROUTES",
+        "a chronic pattern (same cause recurring across lugs) produces a durable improvement-lug recommendation rather than being reviewed the same way each time"
+      ],
+      "evidence_requirements": [
+        "the rework classification and routing decision are recorded in the lug's rework_log entry (directive §34)"
+      ],
+      "escalation": "A failure pattern that recurs across multiple lugs escalates to an Analyst-visible improvement-lug candidate (directive §44) rather than being silently re-reworked each time.",
+      "rework": "Reviewer selects the rework cause and target; it does not itself get reworked, but a Reviewer misclassification discovered later is itself evidence for a process-improvement lug."
+    },
+
+    "Menace": {
+      "purpose": "Deliberately attacks assumptions and introduces adversarial pressure so a fragile implementation cannot slip through simply because every other agent involved wanted it to succeed (directive §1).",
+      "required_inputs": [
+        "the built artifact and its acceptance_criteria",
+        "the lug's directions and any stated edge cases or exclusions"
+      ],
+      "produced_outputs": [
+        "adversarial findings: edge cases, contradictions, missing negative-path handling, assumptions that do not hold",
+        "a severity-rated list, not a pass/fail verdict — Menace surfaces risk, it does not itself decide completion"
+      ],
+      "authority": [
+        "may generate rework-candidate findings for Reviewer/Validator to act on",
+        "may block a RECOMMEND-level Confirmer approval from silently sliding to APPROVE by attaching a durable adversarial finding"
+      ],
+      "prohibited": [
+        "MUST NOT be its own validator — directive §27 hard rule, stated explicitly for this role: the Menace that attacked an implementation cannot be the same authority that later certifies the fix as adequate; a separate Validator/Reviewer closes the loop",
+        "MUST NOT be assigned to a lug it also acted as Worker or Planner on — perspective diversity (directive §1) is the entire point of the role; a Menace reviewing its own prior work is not adversarial pressure, it is theater",
+        "MUST NOT run unbounded — directive §41: Menace/reviewer/validator loops have explicit termination; Menace passes are capped and feed the same rework ceiling as any other rework path, never a separate uncapped loop"
+      ],
+      "success_conditions": [
+        "findings are concrete and reproducible (a specific input/scenario that breaks an assumption), not vague skepticism",
+        "every finding is routed to a real rework cause or explicitly dismissed with a recorded reason — never left dangling"
+      ],
+      "evidence_requirements": [
+        "each adversarial finding is attributed and durable, attached to the lug it targets"
+      ],
+      "escalation": "A finding that implicates the original DIRECTIONS or acceptance_criteria (not just the build) escalates as bad_direction rework, not implementation_defect — Menace names which layer it is attacking.",
+      "rework": "Menace findings feed enter_rework() through Reviewer's classification; Menace itself does not call enter_rework() directly on lugs it has no Validator/Reviewer standing on."
+    },
+
+    "SpokeAdvisor": {
+      "alias": "Spoke Advisor",
+      "purpose": "Independently evaluates a spoke's resource need — ON_TARGET / NEEDS_CAPACITY / OFF_TARGET / INVESTIGATE — and may recommend enablement work instead of capacity (directive §17).",
+      "required_inputs": [
+        "the spoke's declared goals, backlog, capacity, burn, forecast (directive §16)",
+        "the spoke's readiness/endorsement state (directive §19)",
+        "historical variance between forecast and actual effort"
+      ],
+      "produced_outputs": [
+        "one of four verdicts: ON_TARGET, NEEDS_CAPACITY, OFF_TARGET, INVESTIGATE",
+        "a recommendation, which may be enablement work rather than more capacity"
+      ],
+      "authority": [
+        "may recommend capacity change to Bursar",
+        "may recommend enablement/process work instead of capacity"
+      ],
+      "prohibited": [
+        "MUST NOT allocate capacity itself — that is Bursar's authority (directive §18); Spoke Advisor recommends, Bursar allocates",
+        "MUST NOT recommend more capacity for a poorly performing spoke as a default response — directive §17 is explicit: a poorly performing spoke does not automatically receive more resources",
+        "MUST NOT issue a verdict without evidence from the spoke's own goals/backlog/capacity/burn data — an opaque trust-score substitute is exactly what directive §19 forbids"
+      ],
+      "success_conditions": [
+        "INVESTIGATE is reserved for genuine ambiguity, not used to avoid a harder ON_TARGET/OFF_TARGET call",
+        "every NEEDS_CAPACITY recommendation is accompanied by the specific gap driving it"
+      ],
+      "evidence_requirements": [
+        "verdict cites the specific goal/backlog/capacity/burn/forecast figures used (directive §16)"
+      ],
+      "escalation": "A verdict that depends on information outside the spoke's visible state (e.g. wheel-level capacity contention) escalates to Bursar/Analyst rather than being guessed.",
+      "rework": "Not applicable in the lug rework sense; a wrong verdict is corrected by re-evaluation on new evidence, not a rework cycle."
+    },
+
+    "Bursar": {
+      "purpose": "The capacity-allocation advisor (directive §18, renamed per Ruling 5). Consumes Spoke Advisor recommendations, goals, endorsement, impact, backlog, forecasts, urgency, dependencies, policy, availability, budget, windows, and produces capacity allotments among spokes, groups, initiatives, work classes, execution windows.",
+      "required_inputs": [
+        "Spoke Advisor recommendations across all spokes in scope",
+        "goals, endorsement, impact, backlog, forecast, urgency, dependency data (directive §18)",
+        "policy, availability, budget, and capacity windows (directive §25)"
+      ],
+      "produced_outputs": [
+        "capacity allotments among spokes/groups/initiatives/work classes/execution windows",
+        "reserved capacity for verification, maintenance, enablement, experiments, urgent blockers (directive §42)"
+      ],
+      "authority": [
+        "may allocate capacity within budget and policy limits",
+        "may reserve capacity against merely-because-work-exists consumption"
+      ],
+      "prohibited": [
+        "MUST NOT choose the provider/model recipe — directive §18 is explicit: that is Alchemist's authority, not Bursar's",
+        "MUST NOT allocate 100% of available capacity merely because backlog exists — directive §42 forbids consuming all capacity by default; reserves for verification/maintenance/enablement/urgent-blockers are mandatory, not optional",
+        "MUST NOT override a Spoke Advisor's evidence-based verdict without recording the reason — allocation decisions must be traceable back to the inputs that justified them"
+      ],
+      "success_conditions": [
+        "every allotment is traceable to the specific goal/impact/urgency/dependency inputs that justified it",
+        "reserved capacity classes (verification, maintenance, enablement, experiments, urgent) are never fully drained by ordinary backlog work"
+      ],
+      "evidence_requirements": [
+        "allotment decisions are attributed and durable (directive §28)",
+        "every execution receipt downstream identifies wheel/spoke/group/initiative/lug/role/provider/model/tokens/cost (directive §26)"
+      ],
+      "escalation": "Contention between spokes/groups for the same scarce window escalates to a needs-you lug at the wheel/group scope rather than a silent tiebreak.",
+      "rework": "Not applicable in the lug rework sense; a wrong allocation is corrected on the next allocation cycle using updated evidence, not a rework transition."
+    },
+
+    "Navigator": {
+      "purpose": "Discovers capabilities — providers, models, quotas, subscription posture — and owns capabilities.json, making degradation visible at wakeup rather than silent (directive §23, Ruling 11).",
+      "required_inputs": [
+        "provider/model availability signals (subscription status, API keys present, quota/rate-limit state)",
+        "current capabilities.json contents"
+      ],
+      "produced_outputs": [
+        "an updated capabilities.json declaring, per feature, its requires/enhanced_by dependencies and current satisfaction state",
+        "a visible degradation signal at wakeup when a capability is unmet (Ruling 11: 'degradation is visible at wakeup, never silent')"
+      ],
+      "authority": [
+        "may update capabilities.json to reflect observed provider/model/quota state",
+        "may mark a capability profile (CORE/STANDARD/FULL) as currently satisfied or degraded"
+      ],
+      "prohibited": [
+        "MUST NOT silently degrade a capability without surfacing it — Ruling 11 is explicit: degradation must be visible at wakeup, never silent",
+        "MUST NOT make LangGraph or any non-stdlib dependency load-bearing for core flow — Ruling 11: LangGraph is not an imperative and must never be load-bearing for core flow; SQLite is the hard default, LiteLLM is enhanced_by only",
+        "MUST NOT expose provider secrets to spokes unnecessarily — directive §26: the hub brokers access, spokes request capabilities, secrets are not pushed downstream beyond need"
+      ],
+      "success_conditions": [
+        "every feature in capabilities.json declares both requires and enhanced_by where applicable",
+        "a spoke running in CORE profile is complete, not crippled (Ruling 11)"
+      ],
+      "evidence_requirements": [
+        "capability state changes are timestamped and attributed"
+      ],
+      "escalation": "A capability required by in-flight work but permanently unavailable (no path to CORE/STANDARD/FULL satisfying it) escalates to a needs-you lug naming the gap.",
+      "rework": "Not applicable in the lug rework sense; capability state is re-derived on each discovery pass, not reworked."
+    },
+
+    "Alchemist": {
+      "purpose": "Continuously evaluates ingredients — providers, models, local models, subscriptions, external APIs, free allocations, quotas, burn, rate limits, latency, quality, observed role/model performance, pricing windows — and chooses the provider/model recipe (directive §23).",
+      "required_inputs": [
+        "a lug's model_profile (directive §8: the WHAT — reasoning/coding/tool capability, context, latency tolerance, quality floor, effort budget, acceptable fallback classes)",
+        "Navigator's capabilities.json (what is actually available)",
+        "observed role/model/provider performance history (directive §23: benchmarks are priors, observed Wheel performance is evidence)"
+      ],
+      "produced_outputs": [
+        "the WHERE/HOW: an actual provider+model selection satisfying the requested model_profile, or a documented fallback substitution",
+        "periodic re-testing results as providers change"
+      ],
+      "authority": [
+        "may substitute a fallback class from model_profile.acceptable_fallback_class when the requested class is unavailable/uneconomical",
+        "may recommend routing rules, calibration updates as second-order improvement lugs (directive §44)"
+      ],
+      "prohibited": [
+        "MUST NOT decide WHAT capability a lug requires — directive §8/§23: the Evaluator/Confirmer decide WHAT is required, Alchemist decides WHERE/HOW to obtain it economically; Alchemist does not override a model_profile's stated requirement",
+        "MUST NOT spend premium reasoning on low-effort mechanical work, nor force a cheap model below the requested quality_floor — directive §24",
+        "MUST NOT select a fallback outside model_profile.acceptable_fallback_class without recording why the substitution was necessary"
+      ],
+      "success_conditions": [
+        "every selection satisfies the requested model_profile's quality_floor and capability minimums, or an explicit documented fallback reason exists",
+        "re-testing cadence keeps pace with observed provider drift (directive §23: 'providers change')"
+      ],
+      "evidence_requirements": [
+        "every execution receipt records wheel/spoke/group/initiative/lug/role/provider/model/model_profile/tokens/cost/latency/result/validation outcome (directive §26)"
+      ],
+      "escalation": "No provider/model in the current capability set can satisfy a requested model_profile — escalate to Navigator (capability gap) and/or a needs-you lug, never silently downgrade below the quality floor.",
+      "rework": "Insufficient model profile discovered post-build routes back through Validator/Reviewer's insufficient_model_profile rework cause (directive §34) — Alchemist consumes that signal on the next selection, it does not retroactively rewrite the completed attempt."
+    },
+
+    "Analyst": {
+      "purpose": "Surfaces spend, burn, remaining allocation, backlog, capacity, windows, rework, failures, coverage, forecast accuracy, recurring effort drivers, provider efficiency, model-role performance, bottlenecks, waste, and improvement opportunities across every dimension (directive §31).",
+      "required_inputs": [
+        "durable execution receipts, transitions, rework logs, escalations across the lug corpus (directive §26, §28)",
+        "the coverage graph: Goals → Initiatives → Implementation Lugs → Verification Items → Verification Results (directive §31)",
+        "standing gauges (legacy/orphan/observed-unverified disposition counts, Ruling 9 item 7)"
+      ],
+      "produced_outputs": [
+        "dashboards/reports across wheel, group, spoke, initiative, lug, role, provider, model, profile, effort, impact, validation outcome, cost, latency, forecast variance",
+        "flagged coverage gaps (uncovered/weakly-covered/redundantly-covered work, directive §11)",
+        "candidate improvement lugs from recurring variance/cost patterns (directive §44)"
+      ],
+      "authority": [
+        "may surface findings and open improvement-lug candidates",
+        "may flag a mismatch between claimed completion and evidence for Reviewer/Confirmer follow-up"
+      ],
+      "prohibited": [
+        "MUST NOT alter the underlying lug records it analyzes — Analyst is read-only over durable history; a dashboard that mutates its source data is not analysis",
+        "MUST NOT report an aggregate without the disposition breakdown that makes it verifiable — directive Ruling 9 item 7: legacy/orphan/observed-unverified counts stay visible until they shrink to zero, never smoothed into a single misleading figure",
+        "MUST NOT declare a coverage gap resolved without re-reading current state — stale cached analysis presented as current is exactly the failure mode the Analyst exists to prevent"
+      ],
+      "success_conditions": [
+        "every surfaced figure is traceable back to the specific receipts/transitions/lugs that produced it",
+        "coverage gaps identify which specific Direction/Goal/Initiative lacks representation, not a generic 'coverage is low'"
+      ],
+      "evidence_requirements": [
+        "every report cites its data window and source set explicitly"
+      ],
+      "escalation": "A recurring failure/variance pattern that crosses spoke boundaries escalates as a wheel-level improvement-lug candidate rather than being reported once per spoke.",
+      "rework": "Not applicable — Analyst does not produce work that gets reworked; a wrong analysis is corrected by re-running against current data."
+    },
+
+    "Ozi": {
+      "purpose": "Local spoke operator; distributes focus within the spoke's allocated capacity (directive §20). Guides warmup operationally, per-session (Ruling 12), and where a wheel has no hub yet, explains the need and instantiates one (Ruling 15).",
+      "required_inputs": [
+        "the spoke's capacity allotment from Bursar",
+        "the spoke's ready backlog (directive §21: count, total effort, weighted impact, blocked effort, forecast confidence, age, model requirements, variance)",
+        "current lug states and dependency graph"
+      ],
+      "produced_outputs": [
+        "a fine-grained portfolio decision: which ready lugs get worked this session, within allocated capacity",
+        "warmup guidance for the operator, reconciled against the PathGraph (Ruling 20: warmup reads lugs as EXPECTED behaviour, reconciles against what code actually does)"
+      ],
+      "authority": [
+        "may sequence/prioritize ready work within the spoke's allotted capacity",
+        "may instantiate a hub for a brand-new wheel with no existing hub, after explaining the need (Ruling 15)"
+      ],
+      "prohibited": [
+        "MUST NOT exceed the spoke's Bursar-allocated capacity — fine-grained portfolio decisions happen strictly within the allotment; Ozi does not self-grant additional capacity",
+        "MUST NOT reorder global prioritization above the Wheel-level order — directive §22: GROUP GOALS → SPOKE GOALS → INITIATIVE IMPACT → READY LUG IMPACT → EFFORT → CAPACITY DEMAND is decided above Ozi's scope; Ozi does fine-grained portfolio locally, it does not re-litigate the Wheel-level order",
+        "MUST NOT mark a lug's completion claim as reconciled without actually running its verify block — Ruling 20: a lug whose verify cannot execute cannot be reconciled, and that inability is itself the finding, not something to wave through"
+      ],
+      "success_conditions": [
+        "warmup surfaces every divergence between a completed lug's claim and the code's actual behavior, not just the ones with an easy fix",
+        "session portfolio stays within allocated capacity while maximizing weighted impact of ready backlog"
+      ],
+      "evidence_requirements": [
+        "warmup reconciliation results are durable and attributed, not left only in chat"
+      ],
+      "escalation": "A reconciliation divergence Ozi cannot resolve locally (code and lug claim disagree and neither is obviously right) is recorded as a needs-you lug (Ruling 19), not silently resolved in either direction.",
+      "rework": "Not applicable in the lug-rework sense; Ozi consumes rework outcomes when sequencing but does not itself enter REWORK."
+    }
+  }
+}

@@ -179,10 +179,39 @@ _TGCOMPILE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/compile_tastegraph.py"
 # in front of the agent BEFORE it can describe the spoke as healthy. Session 139:
 # the agent told the operator "Herald is already active" from a line in this very
 # file — Herald had never run. --brief prints ONLY non-green, so a clean wheel
-# stays silent and a real finding cannot be mistaken for noise. Best-effort and
-# presence-guarded; never delays or breaks session start.
+# stays silent and a real finding cannot be mistaken for noise.
+#
+# READ-CACHE / REFRESH-DETACHED (s140). This block used to run the probe inline
+# and claimed on this very line that it "never delays session start". Measured:
+# 21.4s of a 31s SessionStart — 87% of everything the operator waits through
+# before Claude Code will accept a keystroke. The cost was invisible because the
+# claim was in a comment instead of in a test. The operator's symptom was typing
+# /wai, getting no response, retyping it, and having every queued copy execute.
+#
+# The probe's finding is not needed synchronously — it is a standing oracle, not
+# a gate. So: print the LAST run's findings instantly, then refresh in a detached
+# process whose result lands for the next session. Cron at 07:15 refreshes it too.
 _IPROBE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/integrity_probe.py"
-[ -f "$_IPROBE" ] && timeout 90 python3 "$_IPROBE" --root "$PROJECT_DIR" --brief --emit-lugs 2>/dev/null >&2 || true
+_IPROBE_CACHE="$PROJECT_DIR/WAI-Harness/spoke/local/runtime/integrity-probe-brief.txt"
+if [ -f "$_IPROBE" ]; then
+  # 1. Serve the cached findings immediately (empty file = clean wheel = silent).
+  if [ -s "$_IPROBE_CACHE" ]; then
+    _IP_AGE=$(( ( $(date +%s) - $(stat -c %Y "$_IPROBE_CACHE" 2>/dev/null || echo 0) ) / 3600 ))
+    cat "$_IPROBE_CACHE" >&2
+    [ "$_IP_AGE" -gt 24 ] && printf '  (integrity probe findings are %sh old; refresh is running now)\n' "$_IP_AGE" >&2
+  fi
+  # 2. Refresh detached. setsid+nohup so it outlives this hook and never blocks it.
+  #    Writes atomically via .tmp so a reader never sees a half-written cache.
+  mkdir -p "$(dirname "$_IPROBE_CACHE")" 2>/dev/null
+  #    NOTE: the probe exits 1 when it HAS findings — that is its success case, not
+  #    an error. An `&&` here silently never published the cache (caught in s140 by
+  #    checking for the file instead of trusting the redirect). Publish on anything
+  #    except a timeout kill (124), which is the one case where output is truncated.
+  setsid nohup bash -c "timeout 90 python3 '$_IPROBE' --root '$PROJECT_DIR' --brief --emit-lugs \
+    > '$_IPROBE_CACHE.tmp' 2>/dev/null; [ \$? -ne 124 ] && mv '$_IPROBE_CACHE.tmp' '$_IPROBE_CACHE'" \
+    >/dev/null 2>&1 < /dev/null &
+  disown 2>/dev/null || true
+fi
 
 # v4 on-load trigger: notice the upgrade and, ONLY when WAI-Harness/ACTIVATE
 # exists, migrate. Dormant + idempotent + dry-run-first by design — safe to call
@@ -242,11 +271,22 @@ PY
 # worktrees the 2nd+ live session), never from inside a hook.
 # (impl-basher-concurrent-session-autoisolation-v1: removed the no-op; registration is wakeup-side.)
 
-# v4 liveness indicator: emit ONE visible line so a human can SEE v4 is live in the
-# session banner. This is the only stdout this wrapper produces; v3-only spokes
-# (no WAI-Harness/) stay silent. Printed before exec so it lands above the canonical
-# wakeup output. ASCII separators only (no em-dash) to stay encoding-safe.
-[ "$HARNESS_V4" = "1" ] && echo "[v4 ACTIVE] managed current | mode=$HARNESS_MODE active=$HARNESS_ACTIVE"
+# Harness liveness indicator: emit ONE visible line so a human (and the agent reading
+# turn 1) can SEE which harness is actually driving. Branch on HARNESS_ACTIVE, NEVER on
+# HARNESS_V4: a v6 spoke carries WAI-Harness/ too, so the V4 test is true on every v6
+# spoke and this banner announced "[v4 ACTIVE]" over sessions the resolver had already
+# resolved to v6. That false label is the first line of the session and it set the whole
+# turn's frame (bug-session-entry-surfaces-are-pre-v6-so-every-session-starts-legacy-v1).
+# This is the only stdout this wrapper produces; a spoke with no harness stays silent.
+# Printed before exec so it lands above the canonical wakeup output. ASCII separators
+# only (no em-dash) to stay encoding-safe.
+# `if` form, not an `&&` chain: a short-circuited chain leaves $? = 1 behind. Nothing here
+# runs under `set -e` and the script ends in an explicit `exit 0`, so the old chain was
+# harmless -- but it left a live trap for anyone who later adds `set -e` or moves this
+# nearer the tail. Certifier flagged it 2026-08-14; hardened rather than argued.
+if [ -n "${HARNESS_ACTIVE:-}" ] && [ "$HARNESS_ACTIVE" != "none" ]; then
+  echo "[$HARNESS_ACTIVE ACTIVE] managed current | mode=$HARNESS_MODE root=$HARNESS_ROOT"
+fi
 
 # --- Converge gate (operator directive 2026-07-22) ----------------------------
 # "First session to do work should attempt the converge if needed. This way we are
@@ -277,10 +317,23 @@ _CGATE="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/converge_gate.py"
 # -- a git-writing job racing the session is exactly what concurrency isolation forbids) and
 # best-effort (always exits 0) so it can never block launch; self-gates to a no-op when the
 # tree is clean and main is already current (no commit, no network round-trip).
+#
+# CONCURRENCY SKIP (s140). Backgrounding this is forbidden for the reason stated
+# above, so the only way to stop it stalling launch is to not run it when it
+# cannot succeed. Measured: with an autopilot chain writing git in the same tree,
+# this heal ran to its full 30s timeout (31.6s wall) instead of its usual 1.4s —
+# it was contending for the same index it was trying to tidy. That is a 30s tax
+# on session start AND a git-writer racing another git-writer, which is the exact
+# hazard the paragraph above forbids. Skipping is both faster and safer: the heal
+# is idempotent and the next session runs it on a genuinely quiet tree.
 _GHYG="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/git_hygiene.py"
 if [ "$HARNESS_V4" = "1" ] && [ -f "$_GHYG" ]; then
-  timeout 30 python3 "$_GHYG" heal --base WAI-Harness/spoke/local --root "$PROJECT_DIR" \
-    --session-id "session-start-heal" --best-effort >/dev/null 2>&1 || true
+  if pgrep -f "autopilot_round\.py|ozi_autopilot\.py" >/dev/null 2>&1; then
+    printf '  [hygiene] skipped — an autopilot run is writing git in this tree; heal deferred to the next quiet start\n' >&2
+  else
+    timeout 30 python3 "$_GHYG" heal --base WAI-Harness/spoke/local --root "$PROJECT_DIR" \
+      --session-id "session-start-heal" --best-effort >/dev/null 2>&1 || true
+  fi
 fi
 
 # --- Auto-sync the RUNNING copy from canon (s138) -----------------------------
@@ -346,6 +399,69 @@ PY
 # so this never recurses.
 _HERALD="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/herald_poll.py"
 [ -f "$_HERALD" ] && _wai_detach /dev/null python3 "$_HERALD" --spoke-root "$PROJECT_DIR" start
+
+# ── TRACK PROMPT: the full contract, injected ONCE per session ───────────────
+#
+# WHY HERE AND NOT PER TURN. Measured 2026-08-03 from the harness's own meters:
+# cache read is 82.3% of spend ($12685 of $15421) and scales with how much context
+# every call carries. The active prompt body is 54610 bytes. On the per-turn hook
+# that is ~13650 tokens EVERY turn, fleet-wide, forever — the single most expensive
+# line the harness could write. Injected once, it is paid once.
+#
+# WHY BYTE-FOR-BYTE FROM A VENDORED FILE. The harness previously injected a
+# hand-authored 3126-byte block declaring a retired version tag — one already
+# bound to a DIFFERENT document in track-prompt-lab, so no measurement keyed to
+# that name could be attributed to either. Provenance now runs one way only: the
+# lab authors, ACTIVE.json declares, the hook emits those exact bytes and nothing
+# else. Authoring a track prompt inside the harness is forbidden
+# (spec-track-prompt-promotion-chain-v1).
+#
+# The sha is verified at emit time. A payload that does not match its declared
+# digest is NOT injected silently — the whole point of this block is that what
+# runs is what was measured.
+_TP_DIR="$PROJECT_DIR/WAI-Harness/spoke/managed/track-prompt"
+if [ -f "$_TP_DIR/ACTIVE.json" ]; then
+  python3 - "$_TP_DIR" <<'TPEOF' 2>/dev/null || true
+import hashlib, json, os, sys
+
+tp_dir = sys.argv[1]
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(tp_dir))))
+try:
+    active = json.load(open(os.path.join(tp_dir, "ACTIVE.json")))
+except Exception:
+    sys.exit(0)
+
+payload = os.path.join(root, active.get("payload", ""))
+if not os.path.isfile(payload):
+    payload = os.path.join(tp_dir, os.path.basename(active.get("payload", "")))
+try:
+    body = open(payload, "rb").read()
+except OSError:
+    print("<wai-track-prompt-degraded>")
+    print("The declared track prompt %s could not be read at %s. Track capture is "
+          "running WITHOUT its contract this session — say so rather than guessing "
+          "the obligations." % (active.get("declared_as", "?"), payload))
+    print("</wai-track-prompt-degraded>")
+    sys.exit(0)
+
+digest = hashlib.sha256(body).hexdigest()
+if digest != active.get("sha256"):
+    # Loud, never silent. A prompt that drifted from its declared digest is exactly
+    # the unattributable state this whole change exists to end.
+    print("<wai-track-prompt-degraded>")
+    print("Track prompt DIGEST MISMATCH: %s declares sha256 %s but the payload on "
+          "disk is %s. NOT injecting an unverified contract. Re-cut from "
+          "track-prompt-lab prompts/ or correct ACTIVE.json."
+          % (active.get("declared_as", "?"), active.get("sha256"), digest))
+    print("</wai-track-prompt-degraded>")
+    sys.exit(0)
+
+print("<wai-track-prompt version=\"%s\" injection=\"session-start-once\">"
+      % active.get("declared_as", "unknown"))
+print(body.decode("utf-8", errors="replace").rstrip("\n"))
+print("</wai-track-prompt>")
+TPEOF
+fi
 
 # v4-native wakeup: the single canonical path. wakeup-canonical.sh is mode-aware —
 # it renders the briefing from WAI-Harness/spoke/local (handles coexist + v4-only),

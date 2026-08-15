@@ -232,3 +232,75 @@ def test_malformed_track_lines_do_not_stop_the_scan(base):
         + json.dumps({"event": "turn", "turn": 1, "user_msg": STANDING}) + "\n",
         encoding="utf-8")
     assert th.scan(root=base.parent, base=base)["candidates_total"] == 1
+
+
+# ---------------------------------------------------------------------------
+# DISTILLATION (operator ruling 2026-08-01, s140)
+#
+# Each case below is a REAL message from the corpus that the harvester proposed
+# verbatim on 2026-08-01, plus the transferable messages it must still keep. A
+# gate that only rejects is as broken as one that only accepts, so both
+# directions are asserted.
+
+from tastegraph_harvest import essence  # noqa: E402
+
+
+def test_rejects_an_enumerated_task_list():
+    """Real proposal harvest-b9d45149dfcf: three unrelated project questions."""
+    got, why = essence(
+        "1. We struggle with where to host Wilbur - presentation layer was "
+        "decided to be minder, open to restructuring, what do you propose? "
+        "2. I want to call it Otto, more memorable than Octo. "
+        "3. Based on this updated planning doc build a revision plan.")
+    assert got is None
+    assert "enumerated" in why
+
+
+def test_rejects_a_context_bound_message():
+    """Real proposal harvest-d695008f2a0e: unreadable without the conversation."""
+    got, why = essence(
+        "Yes to all three. These are obvious otherwise we remain broken. I need "
+        "you to take initiative in these situations.")
+    assert got is None
+    assert "context-bound" in why
+
+
+def test_rejects_an_opinion_with_no_instruction():
+    got, why = essence("this is good, nice work, keep going I guess")
+    assert got is None
+
+
+def test_keeps_a_transferable_rule_and_drops_the_project_context_around_it():
+    """The distillation itself: one turn, one keeper sentence."""
+    got, why = essence(
+        "Please nest the numerators so I can choose 1.1 or 2.1.3 without "
+        "confusing either of us. Never restart the count at 1 in a new section.")
+    assert why is None
+    assert got is not None
+    assert "restart the count" in got
+
+
+def test_keeps_a_standing_autonomy_instruction():
+    got, why = essence(
+        "From now on you should always finish ready work without asking me "
+        "first, and report what you completed rather than what you plan.")
+    assert why is None
+    assert "finish ready work" in got
+
+
+def test_statement_is_built_only_from_the_operators_own_words():
+    """Selection may move the boundaries; it may never reword."""
+    raw = ("The deploy is on vercel and it broke. Always verify a claim before "
+           "reporting it as done.")
+    got, why = essence(raw)
+    assert why is None
+    assert got in raw or all(s.strip() in raw for s in got.split(". ") if s.strip())
+
+
+def test_rejection_reasons_are_distinct_so_the_gate_can_be_tuned():
+    reasons = {
+        essence("1. a thing 2. another thing 3. a third")[1],
+        essence("Yes to all three of those.")[1],
+        essence("")[1],
+    }
+    assert len(reasons) == 3

@@ -112,8 +112,22 @@ def load_reports(dirs):
     return reports, unreadable
 
 
-def qualifies(rep):
-    """(ok, reason) -- does this report PROVE a version is on that spoke's disk?"""
+def qualifies(rep, superseded_ids=None):
+    """(ok, reason) -- does this report PROVE a version is on that spoke's disk?
+
+    ABSORBED FROM BASHER, 2026-08-12. Basher authored this and master never took it, so a
+    pull would have deleted it -- which is why the upgrade guard refuses to overwrite a
+    spoke that is ahead.
+
+    superseded_ids: ids named by some LATER report's `supersedes` field. A retry that
+    corrects an earlier attempt does not mutate it -- corrections arrive as NEW reports --
+    so without this the stale attempt stays in the archive looking exactly as qualifying as
+    the correction that replaced it, and can win on a tie or a re-read. A superseded report
+    is not proof of anything, whatever else it says, so this check sits ahead of the content
+    rules rather than after them.
+    """
+    if superseded_ids and rep.get("id") in superseded_ids:
+        return False, "superseded"
     if rep.get("type") != "upgrade-report":
         return False, "not an upgrade-report"
     if not rep.get(K_VERSION):
@@ -138,8 +152,12 @@ def best_reports(reports):
     Returns (winners, rejected) where winners maps key -> report.
     """
     winners, rejected = {}, []
+    # Collect every id some other report claims to supersede BEFORE judging any of them.
+    # This has to be a whole-set pass: a report cannot know it has been corrected by
+    # looking at itself.
+    superseded_ids = {str(r.get("supersedes")) for r in reports if r.get("supersedes")}
     for rep in reports:
-        ok, why = qualifies(rep)
+        ok, why = qualifies(rep, superseded_ids=superseded_ids)
         if not ok:
             rejected.append({"id": rep.get("id"), "spoke": rep.get("spoke_id"), "reason": why})
             continue

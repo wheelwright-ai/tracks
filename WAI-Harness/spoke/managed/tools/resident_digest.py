@@ -70,7 +70,9 @@ def paths(spoke_root):
 def load_digest(p):
     if os.path.exists(p["digest"]):
         with open(p["digest"]) as f:
-            return json.load(f)
+            digest = json.load(f)
+        digest.setdefault("retired_threads", [])
+        return digest
     return {
         "digest_version": DIGEST_VERSION,
         "spoke": os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(p["local"])))),
@@ -81,6 +83,7 @@ def load_digest(p):
         "warm": [],
         "cold": {"summary": [], "sessions_covered": 0},
         "open_threads": [],
+        "retired_threads": [],
         "stats": {"turns_read": 0, "entries_kept": 0, "entries_dropped": 0},
     }
 
@@ -288,6 +291,24 @@ def fold(digest, entry, p, malformed=0):
             thread["landing"] = landing
         _new.append(thread)
     digest["open_threads"] = _others + _new
+
+    # Operator ruling on a thread is final until the operator says otherwise.
+    # Without this, retiring a thread only removed it for one fold — the next
+    # roll of ANY session (the same one restating it, or a different session
+    # that independently mentions it) put it right back, because fold() only
+    # ever adds/merges and never consults what was explicitly closed. Threads
+    # are matched by their stable id, same as landing-condition inheritance
+    # above, so retirement is not defeated by ordinary rewording.
+    _retired_ids = {r["id"] for r in (digest.get("retired_threads") or []) if r.get("id")}
+    if _retired_ids:
+        _kept = [t for t in digest["open_threads"] if t["id"] not in _retired_ids]
+        _dropped = [t for t in digest["open_threads"] if t["id"] in _retired_ids]
+        if _dropped:
+            log_drops(p, entry["session"], [(
+                "operator-retired-thread", len(_dropped), _dropped[0]["text"][:120],
+            )])
+        digest["open_threads"] = _kept
+
     digest["stats"]["turns_read"] += entry["turns"]
     digest["stats"]["entries_kept"] += sum(len(entry[f]) for f in SIGNAL_FIELDS)
     return digest, True

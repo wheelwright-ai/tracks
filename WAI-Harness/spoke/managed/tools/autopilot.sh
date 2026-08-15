@@ -15,8 +15,12 @@
 # USAGE
 #   ./autopilot                 if a run is IN FLIGHT: live status, refreshing
 #                               otherwise: preview (dry-run), changes nothing
-#   ./autopilot --live          actually dispatch (batch: verify at the end)
-#   ./autopilot --chain -n 5    RECOMMENDED while trust is being built:
+#   ./autopilot --live          dispatch AND verify each lug before the next
+#                               (chained by default since s140 — measured 62%
+#                               claim survival vs 35% for batch)
+#   ./autopilot --batch         old behaviour: dispatch all, verify at the end.
+#                               Faster, and two-thirds of its claims do not hold.
+#   ./autopilot --chain -n 5    explicit form of the default:
 #                               one lug at a time, each independently verified
 #                               before the next starts. A refusal is remediated
 #                               and re-validated until it passes — only a
@@ -100,13 +104,30 @@ ACTION_ARG=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --live)      LIVE=1; shift ;;
+    # --live now CHAINS by default (operator ruling s140: "the one i want to
+    # actually happen is for Ozi to take initiative to fix and finish work we
+    # have ready"). Finishing means verified, and the wheel's own measurement
+    # over 13 rounds says chaining is how that happens:
+    #
+    #   chain  8/13 claims survived refutation (62%)
+    #   batch  7/20 claims survived refutation (35%)
+    #   delta  +27% in favour of chain
+    #
+    # Batch's only advantage is wall-clock, and a fast run whose claims are
+    # two-thirds refuted has not finished anything — it has produced work that
+    # still needs doing plus a record saying it does not. Batch stays reachable
+    # via --batch for the case where throughput genuinely matters more than the
+    # claims being true.
+    --live)      LIVE=1; CHAIN=1; shift ;;
+    --batch)     LIVE=1; CHAIN=0; shift ;;
     # The launcher's [a] action execs `autopilot.sh run --budget N`. The old v3
     # stub had no `run` verb at all, so that button died on "Unknown arg: run"
     # on every spoke, every time — the autopilot entry the operator actually
     # uses has never once dispatched. `run` means the human asked for work, so
-    # it implies live; chaining stays opt-in via --chain.
-    run)         LIVE=1; shift ;;
+    # it implies live — and since s140 it chains, like --live. This is the entry
+    # point the operator ACTUALLY uses, so it is the one that most needs to land
+    # verified work rather than dispatch quickly.
+    run)         LIVE=1; CHAIN=1; shift ;;
     # Chain: one lug at a time, each verified before the next begins. Slower than
     # a batch run by design — while confidence in unattended work is still being
     # established, a bad lug must stop the line rather than have nine more built

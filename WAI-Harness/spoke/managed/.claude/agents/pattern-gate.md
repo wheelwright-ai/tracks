@@ -67,7 +67,7 @@ python3 tools/event_bus.py --type gate --actor pattern-gate \
   --subject-ref "<flow_id>/<step_id>"
 ```
 
-Also append the full verdict to `WAI-Harness/spoke/managed/gate-log.jsonl` (append-only) carrying `{disposition, flow_id, step_id, attempt, certified_checks, failed_checks, refinement, evidence}`. When `harness.db` is present the db_writer drain syncs this into the `gate_log` table; when it is not, the JSONL mirror is the record of truth and the table sync happens later (impl-gate-storage-topology-v1). A gate run that emits nothing is itself a defect.
+Also append the full verdict to `WAI-Harness/spoke/local/runtime/gate-log.jsonl` (append-only; LOCAL, never `managed/` -- managed is distributed source, so a verdict written there would ship to every spoke as if it were their own gate history) carrying `{disposition, flow_id, step_id, attempt, certified_checks, failed_checks, refinement, evidence}`. When `harness.db` is present the db_writer drain syncs this into the `gate_log` table; when it is not, the JSONL mirror is the record of truth and the table sync happens later (impl-gate-storage-topology-v1). A gate run that emits nothing is itself a defect.
 
 ## The 5 priority gate points (initial deployment targets, AC2)
 

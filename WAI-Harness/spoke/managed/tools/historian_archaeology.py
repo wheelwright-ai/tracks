@@ -261,8 +261,24 @@ def run_synthesis(spoke_root: Path, dry_run: bool = False) -> list:
                 return json.loads(match.group(0))
     except Exception as e:
         print(f"[run_synthesis] error: {e}", file=sys.stderr)
+        # A failed synthesis returned [] and main() then exited 0, so a broken run
+        # was indistinguishable from a run that legitimately found nothing. Observed
+        # live 2026-08-02: this printed "Expecting value: line 1 column 2" and the
+        # advisor still recorded RAN_OK. An advisor that fails SUCCESSFULLY is worse
+        # than one that never ran -- the liveness instruments read it as healthy.
+        # Raised so main() can exit non-zero; the finding is still written.
+        raise SynthesisFailed(str(e)) from e
 
-    return []
+    # Output that parsed as neither JSON nor an embedded array is also a failure.
+    # It fell through to `return []` before, silently.
+    raise SynthesisFailed(
+        "synthesis produced no parseable candidate list (stdout was neither JSON "
+        "nor an embedded array)")
+
+
+class SynthesisFailed(RuntimeError):
+    """Synthesis ran and did not produce a usable result. Distinct from 'ran and
+    found nothing', which is an empty list and a clean exit."""
 
 
 def write_findings(spoke_root: Path, candidates: list, run_id: str) -> None:
@@ -357,13 +373,18 @@ def main() -> None:
 
     if args.phase == "index" or args.dry_run:
         print("[historian_archaeology] --phase index or --dry-run: stopping after index phase")
-        return
+        return 0
 
     write_bundle_files(spoke_root, bundle)
     findings = run_scouts(spoke_root, context, dry_run=args.dry_run)
     print(f"[historian_archaeology] scouts complete: {len(findings)} raw findings")
 
-    candidates = run_synthesis(spoke_root, dry_run=args.dry_run)
+    synthesis_failed = None
+    try:
+        candidates = run_synthesis(spoke_root, dry_run=args.dry_run)
+    except SynthesisFailed as exc:
+        candidates, synthesis_failed = [], str(exc)
+        print(f"[historian_archaeology] SYNTHESIS FAILED: {exc}", file=sys.stderr)
     print(f"[historian_archaeology] synthesis complete: {len(candidates)} candidates")
 
     run_id = _generate_run_id()
@@ -373,7 +394,16 @@ def main() -> None:
     update_state(spoke_root, run_id, domains_scanned)
 
     print(f"[historian_archaeology] done. run_id={run_id}")
+    # Exit non-zero when synthesis failed. The scan output is still written -- the
+    # excavation half did real work -- but the caller must not read this as a clean
+    # run. run_advisor records a failed run AS a run, so liveness is unaffected and
+    # only the verdict changes, which is exactly the distinction that was missing.
+    if synthesis_failed:
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    # main() now returns an exit code, so it must be propagated. It was called bare,
+    # which is the mechanism by which a failed synthesis exited 0.
+    sys.exit(main() or 0)

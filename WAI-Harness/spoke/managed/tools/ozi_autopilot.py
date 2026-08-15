@@ -204,6 +204,11 @@ class AutopilotResult:
     skipped_no_work: bool = False
     advisor_fallback: bool = False          # ready=0 round redirected to scout work
     advisor_fallback_jobs: int = 0          # scout jobs generated on that path
+    # Per-dispatch productiveness verdicts, in dispatch order. The review surface for
+    # a round: {lug_id, productive, why, model, dispatch_ok}. Persisted to
+    # maintenance/ap-runs.jsonl so run/review/learn does not depend on scrollback.
+    productiveness: List[Dict[str, Any]] = field(default_factory=list)
+    halted_unproductive: bool = False
 
 
 @dataclass
@@ -928,6 +933,15 @@ class OziAutopilot:
     # Failure tracking: lugs that fail dispatch this many times are "stalled"
     # and skipped by autopilot. Clear workflow.autopilot_failures to un-stall.
     AUTOPILOT_STALL_THRESHOLD = 2
+
+    # Productiveness halt (operator ruling 2026-08-14). After this many CONSECUTIVE
+    # dispatches that move nothing, the run stops and leaves its remaining budget
+    # unspent. 3 is deliberately small: the failure mode being prevented is a round
+    # that spends 40 lugs' worth of tokens and lands nothing, and by the third
+    # consecutive empty dispatch the pattern is established. Per-lug stalling
+    # (AUTOPILOT_STALL_THRESHOLD) asks "is THIS lug bad?"; this asks "is this RUN
+    # producing?" -- a different question, and the one that protects the budget.
+    UNPRODUCTIVE_HALT_THRESHOLD = 3
 
     # Groom-gate scoring thresholds (impl-spine-c10-human-owned-weights-v1):
     # sourced from hub/local/config/weights.yaml's groom_thresholds section.
@@ -2150,7 +2164,7 @@ class OziAutopilot:
         # a LIVE bytype/chore/ dir holding a real lug, with no entry here. The
         # in-tree fallback below hides it locally — bytype/chore/ exists, so the
         # dir-check route files it — but a chore lug arriving at a spoke WITHOUT
-        # that dir already present gets wrapped as notation-intake-unknown-type-*
+        # that dir already present is REFUSED to lugs/quarantine/unknown-schema/
         # and never dispatched. Silent on the machine that has the dir, broken on
         # every machine that does not, which is why the live-tree test caught it
         # here and nowhere else.
@@ -2159,7 +2173,7 @@ class OziAutopilot:
         # entry (2026-07-14). Acks are not rare -- the sender-ack rule means every
         # accepted cross-spoke lug returns one, so an unmapped ack landing in a tree
         # without a pre-existing bytype/ack/ dir was wrapped as
-        # notation-intake-unknown-type-* instead of being filed. Caught by
+        # refused to quarantine instead of being filed. Caught by
         # test_intake_completeness_v1, which parameterizes over LIVE bytype dirs and so
         # only grew ack coverage once real acks arrived from basher.
         "ack": "ack",
@@ -2184,6 +2198,14 @@ class OziAutopilot:
         # live-tree test parametrizes a fresh tmp tree that has no
         # pre-existing bytype/note/ dir for the fallback route to find.
         "note": "note",
+        # "change_receipt" is what a spoke emits to tell a sibling "I adopted your
+        # change, here is the commit". Unmapped, all three that arrived on 2026-08-14
+        # were REFUSED to quarantine -- correctly, since intake will not guess, but the
+        # sender got no signal and the receipts stopped moving. The route is not a
+        # guess: bytype/change/open/ already holds change-receipt-basher-* files from
+        # before the alias map existed, so "change" is where receipts have always lived.
+        # There is no bytype/receipt/ dir and inventing one would fork the vocabulary.
+        "change_receipt": "change", "change-receipt": "change",
     }
 
     def _phase0a_intake(self) -> Dict[str, int]:
@@ -2194,7 +2216,7 @@ class OziAutopilot:
         A type with no explicit alias still routes if bytype/<type>/ already exists
         (fallback, keeps pace with new types without a code change). A truly unknown
         type (no alias, no matching bytype dir) is NEVER left to rot silently: it is
-        wrapped in a notation lug (reason_code=intake_unknown_type) and drained.
+        REFUSED to lugs/quarantine/unknown-schema/ with a sidecar naming what was seen.
         Returns {moved, skipped, notated, errors}."""
         summary = {"moved": 0, "skipped": 0, "notated": 0, "errors": 0}
         incoming_dir = self.spoke_wai / "lugs" / "incoming"
@@ -2217,11 +2239,11 @@ class OziAutopilot:
                 # explicit alias map above.
                 folder = ltype
             if not folder:
-                # Truly unknown type — never leave it silently stranded. Wrap it
-                # in a notation lug (reason_code=intake_unknown_type) + emit a
-                # ledger event, then drain the original from incoming/.
+                # Unrecognised schema — HALT AND NAME. Refuse it to quarantine
+                # with a sidecar recording the schema expected and the keys seen.
+                # Intake never assigns a type it did not read from the lug.
                 if not self.dry_run:
-                    self._intake_unknown_type_to_notation(f, lug, ltype, bytype)
+                    self._intake_quarantine_unknown_schema(f, lug, ltype, bytype)
                 summary["notated"] += 1
                 continue
             # Status subfolder: signals live under undelivered; everything else
@@ -2279,48 +2301,88 @@ class OziAutopilot:
                 summary["errors"] += 1
         return summary
 
-    def _intake_unknown_type_to_notation(self, src_file: Path, lug: Dict[str, Any],
+    # Intake quarantine. `notation` means "this IS a notation" — never "I could not
+    # classify this". The two were conflated until 2026-08-14 and the cost was silence.
+    INTAKE_QUARANTINE_REL = ("lugs", "quarantine", "unknown-schema")
+
+    @staticmethod
+    def intake_quarantine_dir(spoke_wai: Path) -> Path:
+        return Path(spoke_wai).joinpath(*OziAutopilot.INTAKE_QUARANTINE_REL)
+
+    @staticmethod
+    def intake_quarantine_count(spoke_wai: Path) -> int:
+        """How many lugs intake REFUSED. Meant to be surfaced at wakeup: a quarantined
+        lug must be impossible not to notice."""
+        d = OziAutopilot.intake_quarantine_dir(spoke_wai)
+        try:
+            # Count REFUSED LUGS, not files: each refusal writes a .refusal.json
+            # sidecar beside the lug, and counting both reports double.
+            return len([p for p in d.glob("*.json")
+                        if p.is_file() and not p.name.endswith(".refusal.json")])
+        except OSError:
+            return 0
+
+    def _intake_quarantine_unknown_schema(self, src_file: Path, lug: Dict[str, Any],
                                           ltype: str, bytype: Path) -> None:
-        """A truly unknown incoming type (no alias, no matching bytype/<type> dir):
-        never leave it silently in incoming/. Wrap the full original lug body in a
-        notation lug (reason_code=intake_unknown_type) under bytype/notation/open/,
-        emit a typed ledger event, then drain the original file. Idempotent: if the
-        notation already exists from a prior pass, just drop the incoming copy."""
+        """HALT AND NAME. Intake could not classify this lug, so it REFUSES it: the lug
+        moves to lugs/quarantine/unknown-schema/ with a sidecar naming the schema it
+        expected and the key set it actually saw, and a loud diagnostic goes to stderr.
+
+        WHY THIS IS NOT A DEMOTION (change-canon-intake-must-halt-not-demote-on-unknown-
+        schema-v1, authored by basher 2026-08-14, adopted by mywheel the same day):
+        this branch used to wrap the lug as notation-intake-unknown-type-* under
+        bytype/notation/open/ and report success. Nothing works that queue. Measured on
+        mywheel: 12 lugs went quiet there, including bug-kernel-not-distributed-to-
+        spokes-v1 and bug-harness-mode-resolver-computes-v6-then-discards-it-v1 — the
+        latter reached a human only because the operator surfaced it by hand.
+
+        The defect was never the schema mismatch; schemas drift during a kernel
+        migration and always will. The defect was that intake answered "I do not
+        understand this" by inventing a plausible home and reporting success. So intake
+        NEVER assigns a type it did not read from the lug. Refusing loudly is
+        recoverable; mislabelling quietly is not.
+        """
         orig_id = str(lug.get("id") or src_file.stem)
-        orig_type = ltype or "(missing)"
-        notation_id = f"notation-intake-unknown-type-{orig_id}"
-        notation_dir = bytype / "notation" / "open"
-        notation_path = notation_dir / f"{notation_id}.json"
-        if not notation_path.exists():
-            notation_dir.mkdir(parents=True, exist_ok=True)
-            notation = {
-                "type": "notation",
-                "status": "open",
-                "id": notation_id,
-                "title": f"Intake: unknown lug type '{orig_type}' for {orig_id}",
-                "reason_code": "intake_unknown_type",
-                "summary": (
-                    f"Lug {orig_id} arrived in lugs/incoming/ with type='{orig_type}', "
-                    "which has no known intake route (no alias in _INTAKE_TYPE_FOLDER "
-                    "and no matching lugs/bytype/<type>/ directory). Wrapped here so it "
-                    "is never silently stranded; the full original lug body is "
-                    "preserved under 'original_lug' for manual triage/reclassification."
-                ),
-                "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-                "original_lug": lug,
-                "original_filename": src_file.name,
-            }
-            notation_path.write_text(json.dumps(notation, indent=2))
-        # Typed ledger event: plain log line until spine B2 lands a contract_event kind.
+        orig_type = ltype or "(absent)"
+        declared = str(lug.get("schema") or "(none declared)")
+        keys = sorted(lug.keys()) if isinstance(lug, dict) else []
+        qdir = self.intake_quarantine_dir(self.spoke_wai)
+        qdir.mkdir(parents=True, exist_ok=True)
+        dest = qdir / src_file.name
+        sidecar = qdir / (src_file.stem + ".refusal.json")
+        sidecar.write_text(json.dumps({
+            "refused_lug_id": orig_id,
+            "refused_file": src_file.name,
+            "reason_code": "intake_unknown_schema",
+            "expected": {
+                "schema": "wai-lug/4 (a `type` naming a known route)",
+                "required_keys": ["type"],
+                "known_routes": sorted(self._INTAKE_TYPE_FOLDER.keys()),
+            },
+            "observed": {"schema": declared, "type": orig_type, "keys": keys},
+            "what_to_do": (
+                "Either declare a `type` this spoke routes, or teach intake the schema "
+                "this producer speaks. Do NOT infer a type from the id — a wrong home "
+                "looks exactly like a right one."
+            ),
+            "refused_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        }, indent=2))
+        try:
+            src_file.replace(dest)
+        except OSError:
+            try:
+                dest.write_text(json.dumps(lug, indent=2))
+                src_file.unlink()
+            except OSError:
+                pass
         print(
-            f"[autopilot] phase0a intake_unknown_type: {orig_id} (type={orig_type}) "
-            f"-> {notation_path}",
+            f"[autopilot] phase0a INTAKE REFUSED {orig_id}: unrecognised schema "
+            f"(declared={declared}, type={orig_type}, keys={','.join(keys[:8])}"
+            f"{'...' if len(keys) > 8 else ''}) -> quarantined at {dest}. "
+            f"Intake will not guess a type. Quarantine now holds "
+            f"{self.intake_quarantine_count(self.spoke_wai)} lug(s).",
             file=sys.stderr,
         )
-        try:
-            src_file.unlink()
-        except OSError:
-            pass
 
     # ------------------------------------------------------------------
     # Phase 0b — Expediter routing
@@ -3887,6 +3949,11 @@ class OziAutopilot:
         completed_lug_objects: List[Dict[str, Any]] = []
         gastown_pending: List[str] = []
         gastown_lugs: List[Dict[str, Any]] = []
+        # Per-round productiveness evidence. Kept on self because _execute_lugs
+        # returns a 3-tuple and has no AutopilotResult in scope; the caller merges.
+        self._productiveness_log: List[Dict[str, Any]] = []
+        self._halted_unproductive: bool = False
+        self._run_errors: List[str] = []
 
         # Expiry sweep at dispatch — auto-release leases past held_at + TTL so
         # the gate's lease-check sees only live holders.
@@ -3965,6 +4032,21 @@ class OziAutopilot:
             print(f"[autopilot] phase 3: debt_rotation exploration slot unavailable: {e}", file=sys.stderr)
 
         dispatched = 0
+        # PRODUCTIVENESS GATE (operator ruling 2026-08-14: "AP should be reliable not
+        # just spend tokens. Ozi should interrogate the productiveness before next AP
+        # item is fed in.")
+        #
+        # Until now the only question asked before feeding the next item was whether
+        # that item was ELIGIBLE (the verify-before-action gate). Nothing ever asked
+        # whether the PREVIOUS item had produced anything. So a run could spend its
+        # whole budget, report completions, and move nothing. Measured on the
+        # 2026-08-14 slice: the two items that completed were lug-prose refinement
+        # campaigns while 15 real impl lugs sat blocked in the same queue.
+        #
+        # Productiveness is measured, not asserted: did the dispatch move HEAD, or
+        # change a file the lug itself named in file_targets. A lug that reports
+        # success while touching nothing is the exact failure this catches.
+        unproductive_streak = 0
         # P1: per-run replan context (loop-safety: one ladder pass per block per run)
         _replan_ctx = goal_planner.new_ctx() if _CAPGRAPH_AVAILABLE else None
 
@@ -4185,6 +4267,52 @@ class OziAutopilot:
 
             # --- Real dispatch ---
             ok, error_code = self._dispatch_subprocess(lug_id, lug, model_fit)
+
+            # --- Productiveness interrogation (before the NEXT item is fed in) ---
+            # Asked of every dispatch, successful or not: did anything actually move?
+            # `ok` only says the subprocess exited cleanly.
+            _productive, _prod_why = self._measure_productiveness(lug, lug_id)
+            # RUN RECORD (s141): the verdict per lug, kept so a round can be REVIEWED
+            # after the fact. Without this the only evidence a round leaves is a
+            # completion count, which is the claim the productiveness gate exists to
+            # distrust. Written to maintenance/ap-runs.jsonl at end of run.
+            self._productiveness_log.append({
+                "lug_id": lug_id,
+                "productive": bool(_productive),
+                "why": _prod_why,
+                "model": model_fit,
+                "dispatch_ok": bool(ok),
+            })
+            if _productive:
+                unproductive_streak = 0
+            else:
+                unproductive_streak += 1
+                print(
+                    f"[autopilot]   UNPRODUCTIVE {lug_id}: {_prod_why} "
+                    f"(streak {unproductive_streak}/{self.UNPRODUCTIVE_HALT_THRESHOLD})",
+                    file=sys.stderr,
+                )
+            if unproductive_streak >= self.UNPRODUCTIVE_HALT_THRESHOLD:
+                print(
+                    f"[autopilot] HALTING: {unproductive_streak} consecutive dispatches "
+                    f"produced nothing (no HEAD move, no file_targets change). "
+                    f"{self.budget - dispatched} of budget left UNSPENT deliberately — "
+                    f"a round that is not landing work should stop, not finish. "
+                    f"Last reason: {_prod_why}",
+                    file=sys.stderr,
+                )
+                # BUG FIX (s141): this branch appended to an AutopilotResult that
+                # _execute_lugs never had in scope, so tripping the gate raised
+                # NameError instead of halting. The gate's entire purpose is this
+                # branch, and no test reached it. Errors accumulate on self and are
+                # merged into the AutopilotResult by the caller.
+                self._run_errors.append(
+                    f"halted_unproductive: {unproductive_streak} consecutive "
+                    f"unproductive dispatches (last: {lug_id} — {_prod_why})"
+                )
+                self._halted_unproductive = True
+                break
+
             if ok:
                 completed.append(lug_id)
                 completed_lug_objects.append(lug)
@@ -4345,6 +4473,97 @@ class OziAutopilot:
         lug["execute"] = dry_run_prefix + existing_execute + rfc_response_step
         return lug
 
+    def _measure_productiveness(self, lug: Dict[str, Any], lug_id: str) -> Tuple[bool, str]:
+        """Did this dispatch actually produce anything? Returns (productive, why).
+
+        MEASURED, never asserted. A dispatch is productive when EITHER:
+          1. it moved HEAD -- _dispatch_subprocess stamps lug["_commit_sha"] only when
+             the per-lug HEAD snapshot actually changed; or
+          2. a file the lug itself named in file_targets is dirty or newly committed.
+
+        Both are things a machine can check after the fact. Deliberately NOT counted:
+        the subprocess exiting 0, the agent saying it finished, or the lug's status
+        being rewritten. Those are all claims, and the whole point of this gate is
+        that a run can be full of claims and empty of work.
+
+        A lug with no file_targets and no HEAD move is unproductive by definition --
+        that is not a gap in the measurement, it is the finding. Work nobody can
+        point at a file for is work that cannot be verified later.
+        """
+        if lug.get("_commit_sha"):
+            return True, f"HEAD moved ({str(lug['_commit_sha'])[:9]})"
+
+        targets = lug.get("file_targets") or lug.get("target_files") or []
+        if not isinstance(targets, list) or not targets:
+            return False, "no HEAD move and the lug names no file_targets"
+
+        existing = [t for t in targets if isinstance(t, str) and t]
+        if not existing:
+            return False, "no HEAD move and file_targets is empty"
+
+        after, err = self._dirty_targets(existing)
+        if err:
+            # Cannot measure is NOT the same as unproductive. Refusing to judge is the
+            # honest answer; treating an unreadable git as a failure would halt healthy
+            # runs on a transient error.
+            return True, f"UNMEASURED (git unavailable: {err}) -- not counted against the streak"
+
+        # DIRTY-TREE PRECONDITION (s141). Comparing `after` against nothing scored a
+        # dispatch productive whenever the tree was ALREADY dirty on those paths --
+        # measured on minder, 159 files dirty before any dispatch, which would have
+        # made every no-op look like work and the halt-streak unreachable. The honest
+        # question is not "are these files dirty" but "did THIS dispatch change them",
+        # so the baseline is snapshotted before dispatch and diffed after.
+        before = lug.get("_dirty_before")
+        if not isinstance(before, dict):
+            # No baseline (older call path, or the snapshot itself failed). Fall back
+            # to presence, but SAY SO -- an unqualified "changed" here would be the
+            # same false positive wearing a better label.
+            if after:
+                return True, (
+                    f"{len(after)} of {len(existing)} file_target(s) dirty "
+                    f"(UNBASELINED -- pre-dispatch snapshot missing, may predate this dispatch)"
+                )
+            return False, f"no HEAD move and none of {len(existing)} file_target(s) dirty"
+
+        moved = [p for p, st in after.items() if before.get(p) != st]
+        if moved:
+            return True, f"{len(moved)} of {len(existing)} file_target(s) changed by this dispatch"
+
+        if after:
+            return False, (
+                f"no HEAD move and all {len(after)} dirty file_target(s) were "
+                f"ALREADY dirty before dispatch -- nothing was produced"
+            )
+        return False, f"no HEAD move and none of {len(existing)} file_target(s) changed"
+
+    def _dirty_targets(self, targets: List[str]) -> Tuple[Dict[str, str], str]:
+        """Porcelain status for exactly `targets`, as {path: status_code}.
+
+        Returns ({}, reason) when git cannot answer -- callers must treat that as
+        UNMEASURED, never as clean. Used on both sides of a dispatch so
+        productiveness is a DIFFERENCE, not a snapshot (see _measure_productiveness).
+        """
+        if not targets:
+            return {}, ""
+        try:
+            cp = subprocess.run(
+                ["git", "status", "--porcelain", "--"] + list(targets),
+                cwd=str(self.spoke_root), capture_output=True, text=True, timeout=15,
+            )
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            return {}, str(exc)
+        if cp.returncode != 0:
+            return {}, f"git status exit {cp.returncode}"
+        out: Dict[str, str] = {}
+        for ln in cp.stdout.splitlines():
+            if not ln.strip():
+                continue
+            code, _, path = ln[:2], ln[2:3], ln[3:].strip()
+            if path:
+                out[path] = code
+        return out, ""
+
     def _dispatch_subprocess(self, lug_id: str, lug: Dict[str, Any], model_fit: str) -> Tuple[bool, str]:
         """Dispatch a lug via `claude --print`. Returns (success, error_code).
 
@@ -4434,6 +4653,20 @@ class OziAutopilot:
             _head_before_lug = _hb.stdout.strip() if _hb.returncode == 0 else ""
         except (subprocess.TimeoutExpired, OSError):
             _head_before_lug = ""
+        # Snapshot the dirt on this lug's OWN file_targets before dispatch, so
+        # _measure_productiveness can ask whether this dispatch changed them rather
+        # than whether they happen to be dirty. Without it, any spoke with a dirty
+        # tree scores every dispatch productive and the halt-streak never trips.
+        # Best-effort by design: a missing snapshot degrades the later verdict to
+        # UNBASELINED (which says so out loud), it does not fail the dispatch.
+        _snapper = getattr(self, "_dirty_targets", None)
+        _pre_targets = lug.get("file_targets") or lug.get("target_files") or []
+        if callable(_snapper) and isinstance(_pre_targets, list):
+            _pre_existing = [t for t in _pre_targets if isinstance(t, str) and t]
+            if _pre_existing:
+                _snap, _snap_err = _snapper(_pre_existing)
+                if not _snap_err:
+                    lug["_dirty_before"] = _snap
         print(f"[autopilot]   → dispatching {lug_id} (model={model_fit}, timeout={timeout_secs}s)…", file=sys.stderr)
         try:
             # A dispatched agent is NOT a session. Without this marker each child
@@ -4986,17 +5219,72 @@ class OziAutopilot:
                 }) + "\n")
 
         # --- Git commit (real runs only, gated on did_work OR actual file changes) ---
+        # Live-session guard (impl-ap-commit-session-guard-v1): if an operator session
+        # holds a live CSRP lane on this spoke, skip the commit and log a deferral.
+        # Background AP must never commit over an active operator's in-flight work —
+        # and the commit below still does a broad `git add`, so an unguarded run sweeps
+        # whatever the operator has half-finished in the shared tree.
+        #
+        # ABSORBED 2026-08-06 from session/herald-apguard-260702-135644, which sat
+        # unmerged for five weeks. Its sibling changes (the root wai-exit.sh push guard)
+        # reached main; this one and two others did not, so the guard was half-deployed
+        # and the half that was missing is the one that protects the working tree.
+        if not self.dry_run:
+            _wg_path = Path(__file__).parent / "worktree_guard.py"
+            _live_lanes = 0
+            if _wg_path.exists():
+                try:
+                    _wg_out = subprocess.run(
+                        [sys.executable, str(_wg_path), "lanes", "--base", str(self.spoke_wai)],
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    _live_lanes = int(json.loads(_wg_out.stdout or "{}").get("count", 0))
+                except Exception:
+                    _live_lanes = 0
+            if _live_lanes > 0:
+                print(
+                    f"[autopilot] DEFERRED commit: {_live_lanes} live operator lane(s) detected "
+                    f"on spoke — skipping git commit to avoid overwriting in-flight work. "
+                    f"(impl-ap-commit-session-guard-v1)",
+                    file=sys.stderr,
+                )
+                return commit_sha
         if not self.dry_run:
             try:
+                # AP OWNS THESE PATHS AND NOTHING ELSE. Everything below is scoped to
+                # this list, because on 2026-08-14 an AP run and a live operator session
+                # collided on the shared index twice in one session.
+                #
+                # The old scope was ["WAI-Spoke/", "tools/"], which is v3-shaped and
+                # wrong in BOTH directions on a modern spoke:
+                #   - WAI-Spoke/ IS the canonical v6 work store, so AP swept operator
+                #     edits to canonical records into its own commit;
+                #   - the v4 lug tree at WAI-Harness/spoke/local/lugs/ was missed, so
+                #     the lug moves AP actually makes were not being staged at all.
+                # Same v3/v4/v6 seam as the resolver and lug_provenance_gate bugs.
+                _ap_paths = [
+                    p for p in (
+                        "WAI-Spoke/",                        # v6 kernel work store
+                        "WAI-Harness/spoke/local/lugs/",     # v4 lug tree
+                        "WAI-Harness/spoke/local/advisors/",
+                        "WAI-Harness/spoke/local/runtime/",
+                        "tools/",
+                    ) if (Path(self.spoke_root) / p).exists()
+                ]
+                if not _ap_paths:
+                    return commit_sha
                 subprocess.run(
-                    ["git", "add", "WAI-Spoke/", "tools/"],
+                    ["git", "add", "--"] + _ap_paths,
                     cwd=str(self.spoke_root),
                     capture_output=True,
                     timeout=30,
                 )
-                # Check if there are actual changes to commit
+                # Are there changes IN AP'S OWN PATHS? The old check read an unfiltered
+                # `git status --porcelain`, so any dirty file anywhere in the tree --
+                # including an operator's half-finished edit -- made has_changes true and
+                # AP committed on a run where it had done nothing itself.
                 git_status = subprocess.run(
-                    ["git", "status", "--porcelain"],
+                    ["git", "status", "--porcelain", "--"] + _ap_paths,
                     cwd=str(self.spoke_root),
                     capture_output=True,
                     text=True,
@@ -5010,8 +5298,13 @@ class OziAutopilot:
                         f"chore: Autopilot run {run_id} -- {len(result.completed)} lugs, "
                         f"{result.teachings_adopted} teachings"
                     )
+                    # `git commit -- <paths>` commits ONLY these paths, whatever else is
+                    # sitting in the shared index. A bare `git commit` takes the entire
+                    # index, which is how AP swallowed an operator's staged work: naming
+                    # paths in `git add` does not constrain a bare commit. Verified by
+                    # test_ap_commit_scope_v1.
                     cp = subprocess.run(
-                        ["git", "commit", "-m", commit_msg, "--no-verify"],
+                        ["git", "commit", "-m", commit_msg, "--no-verify", "--"] + _ap_paths,
                         cwd=str(self.spoke_root),
                         capture_output=True,
                         text=True,
@@ -5870,10 +6163,47 @@ class OziAutopilot:
 
     def run(self) -> AutopilotResult:
         try:
-            return self._run()
+            result = self._run()
         except KeyboardInterrupt:
             self._rollback_claimed_lugs()
             sys.exit(130)
+        self._write_run_record(result)
+        return result
+
+    # Spoke-local, append-only. Deliberately NOT the hub ap-runs ledger: that one is
+    # written by the nightly wrapper and stopped recording on 2026-08-07, so every
+    # round since has been unreviewable. A round must leave its own evidence in the
+    # spoke that ran it, whoever invoked it.
+    RUN_RECORD_PATH = "maintenance/ap-runs.jsonl"
+
+    def _write_run_record(self, result: "AutopilotResult") -> None:
+        """Append one line describing this round. Never raises -- a failure to record
+        must not fail a round that did real work, but it is reported on stderr so it
+        cannot rot silently."""
+        try:
+            verdicts = list(result.productiveness or [])
+            productive = sum(1 for v in verdicts if v.get("productive"))
+            rec = {
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "spoke_root": str(getattr(self, "spoke_root", "")),
+                "budget": getattr(self, "budget", None),
+                "dispatched": len(verdicts),
+                "productive": productive,
+                "unproductive": len(verdicts) - productive,
+                "completed": len(result.completed or []),
+                "tokens_used": result.tokens_used,
+                "duration_seconds": round(result.duration_seconds, 1),
+                "halted_unproductive": bool(result.halted_unproductive),
+                "skipped_no_work": bool(result.skipped_no_work),
+                "errors": list(result.errors or [])[:20],
+                "verdicts": verdicts,
+            }
+            path = Path(self.spoke_wai) / self.RUN_RECORD_PATH
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        except Exception as exc:  # noqa: BLE001 - recording must never break a round
+            print(f"[autopilot] run record NOT written: {exc}", file=sys.stderr)
 
     def _run(self) -> AutopilotResult:
         result = AutopilotResult()
@@ -6273,6 +6603,10 @@ class OziAutopilot:
                 result.needs_attention = list(self._stalled_this_run)
                 result.tokens_used = self._tokens_used
                 result.tokens_per_lug = dict(self._tokens_per_lug)
+                # Productiveness evidence from the dispatch loop -> the run record.
+                result.productiveness = list(getattr(self, "_productiveness_log", []))
+                result.halted_unproductive = bool(getattr(self, "_halted_unproductive", False))
+                result.errors.extend(getattr(self, "_run_errors", []))
                 phases["phase_3_execute"] = (
                     f"ok: dispatched={len(completed)}, gastown_inline={self._gastown_executed_inline}, "
                     f"gastown_deferred={len(gastown)}, tokens={self._tokens_used}, "

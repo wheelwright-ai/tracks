@@ -231,8 +231,13 @@ fi
 if [[ "$SKIP_SESSION_INIT" == "false" ]]; then
 _write_state() {
   TMP=$(mktemp)
+  # session_id (not just last_session_id) is what every recovery path reads. Its
+  # absence made the compact/interrupt recovery silently inert on every spoke in the
+  # fleet -- basher, change-canon-track-judgment-layer-decay-v1 item 1, adopted here
+  # because only canon can make it. One jq line; nothing else could work without it.
   jq --arg sid "$SESSION_NAME" --arg base "$BASE_REL" \
      '._session_state.last_session_id = $sid |
+      ._session_state.session_id = $sid |
       ._session_state.track_path = ($base + "/sessions/" + $sid + "/track.jsonl")' \
      "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
 }
@@ -312,6 +317,55 @@ HUB_STATUS="MISSING"
 TEACH_STATUS="MISSING"
 TEACH_TOTAL=0
 TEACH_ADOPTED=0
+# ── Harness currency: measured against the DISTRIBUTED CUT, never teachings ──
+#
+# This line used to read `TEACH_NEW`, the pending-teachings count. Two different
+# facts were being reported by one number, and it was wrong on both counts:
+#
+#   * The teachings baseline (hub teachings_repo/spoke/base/index.json) has been
+#     frozen at base_version 3.1.0 since 2026-06-04 while spokes run 4.14.x. So
+#     every v4 spoke read a PERMANENT false "N update(s) pending" and was told to
+#     run a 3.1.0 adoption kit against a 4.14.46 spoke — a DOWNGRADE.
+#   * Measured on freshfromthenet 2026-08-03, hours old: it opened on "27
+#     update(s) pending", and the same 27 appeared again as "27 teachings pending
+#     — gated on you". One phantom number, printed twice, addressed to a user who
+#     had created the project that morning.
+#
+# harness_pullcheck.py already resolves this correctly — the spoke's local version
+# against its GROUP's hub-AVAILABLE (certified) version. Use the answer that was
+# already right instead of a proxy that never was.
+#
+# Fail-open by design: if the pull-check cannot resolve a group or an available
+# version, say the currency is UNKNOWN. An unknown is not a green (see
+# feedback-unknown-is-not-failure) and it is certainly not a backlog.
+_wai_harness_currency_line() {
+  local _pc="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/harness_pullcheck.py"
+  local _out _local _avail
+  if [ ! -f "$_pc" ]; then
+    echo "  Harness: unknown (no harness_pullcheck.py — currency not checked)"
+    return 0
+  fi
+  # No --json flag: the tool always emits JSON, and the versions live under .gate.
+  _out=$(python3 "$_pc" check --spoke-root "$PROJECT_DIR" --dry-run 2>/dev/null)
+  _local=$(printf '%s' "$_out" | python3 -c 'import json,sys; print(((json.load(sys.stdin) or {}).get("gate") or {}).get("local_version") or "")' 2>/dev/null)
+  _avail=$(printf '%s' "$_out" | python3 -c 'import json,sys; print(((json.load(sys.stdin) or {}).get("gate") or {}).get("available_version") or "")' 2>/dev/null)
+  if [ -z "$_local" ]; then
+    echo "  Harness: unknown (could not resolve this spoke's version)"
+  elif [ -z "$_avail" ]; then
+    # No published version to compare against — true on the master itself, and on
+    # any group with no certified cut recorded yet. State what is known; do NOT
+    # manufacture a pending-update count out of an absent comparison. That is the
+    # exact failure this function replaced.
+    echo "  Harness: $_local (no published version to compare)"
+  elif [ "$_local" = "$_avail" ]; then
+    echo "  Harness: current ($_local)"
+  elif [ "$(printf '%s\n' "$_local" "$_avail" | sort -V | head -1)" = "$_local" ]; then
+    echo "  Harness: ⚠ $_local — $_avail available (pull at session start)"
+  else
+    echo "  Harness: current ($_local, ahead of published $_avail)"
+  fi
+}
+
 TEACH_NEW=0
 TEACH_BASELINE=0
 NEW_TEACHINGS=""
@@ -362,6 +416,21 @@ elif [[ -n "$HUB_PATH" && -d "$HUB_PATH" ]]; then
   done
 fi
 
+# ── 4a. Wheel home (no-hub detection, Ruling 15) ─────────────────────────────
+# HUB_STATUS above answers "is *this* hub_path reachable?" -- MISSING covers
+# both "no hub_path declared" and "declared but unreachable", which is exactly
+# right for a warm spoke that lost its hub, but says nothing to the FIRST spoke
+# of a brand-new wheel, which has never had one to lose. Ruling 15: onboarding
+# cannot assume a hub is reachable, and the absence must be a visible, explained
+# state at first wakeup (Doctrine 4), never a silent degradation. This must stay
+# a pure read (wheel_home_init.py detect/status take no action) -- instantiating
+# is an advised decision the operator makes explicitly, never a wakeup side effect.
+WHEEL_HOME_STATUS=""
+_WHI_TOOL="$PROJECT_DIR/WAI-Harness/spoke/managed/tools/wheel_home_init.py"
+if [[ "$HUB_STATUS" != "OK" && -f "$_WHI_TOOL" ]]; then
+  WHEEL_HOME_STATUS=$(python3 "$_WHI_TOOL" --root "$PROJECT_DIR" wakeup-line 2>/dev/null)
+fi
+
 # ── 4b. Incoming lug count ───────────────────────────────────────────────────
 INCOMING_LUGS_COUNT=0
 INCOMING_DIR="$BASE/lugs/incoming"
@@ -386,6 +455,19 @@ for _dt_dir in "$BASE/seed/ingest/manual" "$BASE/seed/ingest/incoming"; do
   done
 done
 [[ $DIRECT_TEACH_NEW -gt 0 ]] && TEACH_NEW=$((TEACH_NEW + DIRECT_TEACH_NEW)) && NEW_TEACHINGS="$NEW_TEACHINGS$DIRECT_TEACH_NAMES"
+
+# Teachings render is deprecated at wakeup (feedback-hide-teachings-from-wakeup:
+# never render a Teachings line). The scan above still runs — persist it here so
+# an explicit query path (e.g. /wai intent=teachings) can read it without
+# reintroducing an automatic wakeup surface. Silencing the render must not
+# silently delete the discovery data.
+mkdir -p "$BASE/runtime" 2>/dev/null
+jq -n --arg hub_status "$HUB_STATUS" --arg teach_status "$TEACH_STATUS" \
+  --argjson total "$TEACH_TOTAL" --argjson adopted "$TEACH_ADOPTED" \
+  --argjson new "$TEACH_NEW" --argjson baseline "$TEACH_BASELINE" \
+  --arg new_list "$(printf '%b' "$NEW_TEACHINGS")" \
+  '{hub_status: $hub_status, teachings_repo_status: $teach_status, total: $total, adopted: $adopted, new: $new, baseline_skipped: $baseline, new_teachings_raw: $new_list}' \
+  > "$BASE/runtime/teachings-discovery.json" 2>/dev/null
 
 # ── 5. Hub signals bulletin count ────────────────────────────────────────────
 # Count only framework-targeted signals (incoming/framework/) — hub/ signals are hub-session scope
@@ -494,6 +576,48 @@ if [[ -f "$PROJECT_DIR/tools/spoke_parity_check.py" ]]; then
   fi
 fi
 fi  # end BRIEF_FRESH else block for integrity/parity
+
+# ── 6b. LOW TRUST floor ───────────────────────────────────────────────────────
+# The tenet's guard against its own failure mode. Five assurance tools existed on
+# this wheel and the advisor meant to run them never ran once (measured 2026-08-02);
+# a floor that only appears when someone remembers to ask would land in the same
+# place. Read-only: reads floor.json, never runs a probe.
+TRUST_FLOOR_STATUS=""
+_TF_TOOL=""
+for _c in "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/warmup.py" \
+          "$PROJECT_DIR/tools/warmup.py"; do
+  [[ -f "$_c" ]] && { _TF_TOOL="$_c"; break; }
+done
+if [[ -n "$_TF_TOOL" ]]; then
+  _TF_JSON=$(python3 "$_TF_TOOL" --root "$PROJECT_DIR" status --json 2>/dev/null)
+  if [[ -n "$_TF_JSON" ]]; then
+    _TF_VERDICT=$(printf '%s' "$_TF_JSON" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("verdict","UNKNOWN"))' 2>/dev/null)
+    _TF_REASON=$(printf '%s' "$_TF_JSON" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("reason",""))' 2>/dev/null)
+    _TF_GAPS=$(printf '%s' "$_TF_JSON" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(", ".join(g["id"] for g in (d.get("delta") or [])))' 2>/dev/null)
+    case "$_TF_VERDICT" in
+      ESTABLISHED) TRUST_FLOOR_STATUS="  Trust floor: ESTABLISHED — cleared to build" ;;
+      INCOMPLETE)  TRUST_FLOOR_STATUS="  Trust floor: ⚠ INCOMPLETE — NOT cleared to build (gaps: ${_TF_GAPS}) — run warmup.py" ;;
+      *)           TRUST_FLOOR_STATUS="  Trust floor: ⚠ ${_TF_VERDICT} — ${_TF_REASON} — run: warmup.py --root . run --apply" ;;
+    esac
+  fi
+fi
+
+# ── 6c. LOW TRUST commitment register ─────────────────────────────────────────
+# The operator's objection, 2026-08-02: "you will forget and we will never return
+# to it to verify its impact". An agent promising to remember is a control that
+# depends on the agent complying, which corollary C1 says is not a control. This
+# line is the structural answer: unconditional, aged, and it names the oldest.
+COMMITMENTS_STATUS=""
+_CR_TOOL=""
+for _c in "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/commitment_register.py" \
+          "$PROJECT_DIR/tools/commitment_register.py"; do
+  [[ -f "$_c" ]] && { _CR_TOOL="$_c"; break; }
+done
+if [[ -n "$_CR_TOOL" ]]; then
+  _CR_LINE=$(python3 "$_CR_TOOL" --root "$PROJECT_DIR" line 2>/dev/null)
+  [[ -n "$_CR_LINE" && "$_CR_LINE" != "Commitments: none registered" ]] \
+    && COMMITMENTS_STATUS="  ${_CR_LINE}"
+fi
 
 # ── 7. Git status ─────────────────────────────────────────────────────────────
 GIT_DIRTY=$(git -C "$PROJECT_DIR" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
@@ -901,6 +1025,47 @@ if [[ -n "$STALE_COUNT" ]]; then
   STALE_LUGS_STATUS="  Stale in_progress: ${_N} lug(s) unchanged >4h — ${_LIST}"
 fi
 
+# ── 9b++a. Budget-guard staleness warning (impl-budget-guard-staleness-warning-v1) ──
+# budget-guard.json is human-owned (no API exposes the real 5-day %) and sat 15
+# days stale (96%/blocked) while reality was 48%/allowed — s138. Detection +
+# loud surfacing, not auto-refresh; matches navigator_capacity_probe.py's
+# STALE-GATE/UNKNOWN-GATE check and circle_audit.py's budget_guard_fresh.
+BUDGET_GUARD_STATUS=""
+if [[ -n "$HUB_PATH" ]]; then
+  BUDGET_GUARD_WARN=$(python3 -c "
+import json, datetime
+from pathlib import Path
+p = Path('$HUB_DATA/model-routing/budget-guard.json')
+try:
+    g = json.loads(p.read_text())
+except Exception:
+    print('missing|budget-guard.json missing or unreadable'); raise SystemExit
+def parse(s):
+    if not s: return None
+    try:
+        dt = datetime.datetime.fromisoformat(s.replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=datetime.timezone.utc)
+now = datetime.datetime.now(datetime.timezone.utc)
+observed = parse(g.get('observed_at'))
+resets = parse(g.get('resets_at'))
+if observed is None:
+    print('unknown|observed_at missing/unparseable')
+elif resets is not None and now > resets:
+    print(f'unknown|resets_at {g.get(\"resets_at\")} has passed, window rolled over')
+else:
+    age_h = (now - observed).total_seconds() / 3600
+    if age_h > 48:
+        print(f'stale|observed_at {age_h:.1f}h old (> 48h)')
+" 2>/dev/null)
+  if [[ -n "$BUDGET_GUARD_WARN" ]]; then
+    _BG_KIND=$(echo "$BUDGET_GUARD_WARN" | cut -d'|' -f1)
+    _BG_DETAIL=$(echo "$BUDGET_GUARD_WARN" | cut -d'|' -f2-)
+    BUDGET_GUARD_STATUS="  Budget guard: ⚠ ${_BG_KIND} — ${_BG_DETAIL} (WAI-Harness/hub/local/model-routing/budget-guard.json)"
+  fi
+fi
+
 # ── 9b+++. Newer-savepoint-than-pointer scan ────────────────────────────────
 # Cheap freshness check (impl-w1-wakeup-newer-savepoint-scan-v1): is there a
 # savepoint on disk newer than the last pointer update? The pointer written by
@@ -1048,10 +1213,6 @@ EPICS
 ${EPIC_LIST}
 IN-PROGRESS (non-epic)
 ${IP_LIST}
-TEACHINGS
-  Hub: ${HUB_STATUS} | Teachings repo: ${TEACH_STATUS}
-  Total: ${TEACH_TOTAL} | Adopted: ${TEACH_ADOPTED} | New: ${TEACH_NEW}$(if [[ $TEACH_BASELINE -gt 0 ]]; then printf " | Baseline (skipped): %s" "$TEACH_BASELINE"; fi)
-$(if [[ $TEACH_NEW -gt 0 ]]; then printf "  New teachings:\n%b" "$NEW_TEACHINGS"; fi)
 
 HUB SIGNALS INBOX: ${HUB_SIGNALS} framework items$(if [[ $HUB_SIGNALS_HUB -gt 0 ]]; then printf " | %s hub-only (hub session scope)" "$HUB_SIGNALS_HUB"; fi)
 
@@ -1060,13 +1221,17 @@ $(if [[ -n "$HISTORIAN_ADVICE" ]]; then printf "HISTORIAN ADVICE\n%b\n" "$HISTOR
 CONTEXT HEALTH
   Git: ${GIT_STATUS}
   Hub path: ${HUB_STATUS}
+$(if [[ -n "$WHEEL_HOME_STATUS" ]]; then printf "%b\n" "$WHEEL_HOME_STATUS"; fi)
   Prev session: ${PREV_SESSION_STATUS}$(if [[ -n "$PREV_SESSION_ID" ]]; then echo " (${PREV_SESSION_ID})"; fi)$(if [[ "$PREV_SESSION_STATUS" == "INTERRUPTED" ]]; then echo " ⚠ recovery prompt shown pre-launch"; fi)
 $(if [[ -n "$INTEGRITY_SCORE" ]]; then echo "$INTEGRITY_SCORE"; fi)
 $(if [[ -n "$PARITY_STATUS" ]]; then echo "$PARITY_STATUS"; fi)
-$(if [[ $TEACH_NEW -eq 0 ]]; then echo "  Harness: current"; else echo "  Harness: ⚠ ${TEACH_NEW} update(s) pending — Step 0.5 will adopt at session start"; fi)
+$(_wai_harness_currency_line)
 $(if [[ -n "$WAKEUP_BRIEF_STATUS" ]]; then echo "$WAKEUP_BRIEF_STATUS"; fi)
 $(if [[ -n "$SAVEPOINT_STATUS" ]]; then echo "$SAVEPOINT_STATUS"; fi)
 $(if [[ -n "$STALE_LUGS_STATUS" ]]; then echo "$STALE_LUGS_STATUS"; fi)
+$(if [[ -n "$BUDGET_GUARD_STATUS" ]]; then echo "$BUDGET_GUARD_STATUS"; fi)
+$(if [[ -n "$TRUST_FLOOR_STATUS" ]]; then echo "$TRUST_FLOOR_STATUS"; fi)
+$(if [[ -n "$COMMITMENTS_STATUS" ]]; then echo "$COMMITMENTS_STATUS"; fi)
 $(if [[ -n "$NEWER_SAVEPOINT_STATUS" ]]; then echo "$NEWER_SAVEPOINT_STATUS"; fi)
 $(if [[ $SIGNALS_APPLIED_COUNT -gt 0 ]]; then printf "  Signals: Applied %d patch(es):%b\n" "$SIGNALS_APPLIED_COUNT" "$SIGNALS_APPLIED_PATCHES"; fi)
   Sync: ${SYNC_STATUS}

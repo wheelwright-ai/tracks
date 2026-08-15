@@ -44,11 +44,13 @@ V4_BASE="$PROJECT_DIR/WAI-Harness/spoke/local"
 V3_BASE="$PROJECT_DIR/WAI-Spoke"
 BASE=""
 case "${WAI_HARNESS_MODE:-}" in
-  v4) [[ -f "$V4_BASE/WAI-State.json" ]] && BASE="$V4_BASE" ;;
+  v6|v4) [[ -f "$V4_BASE/WAI-State.json" ]] && BASE="$V4_BASE" ;;
   v3) [[ -f "$V3_BASE/WAI-State.json" ]] && BASE="$V3_BASE" ;;
 esac
 if [[ -z "$BASE" ]]; then
-  if   [[ "$HARNESS_ACTIVE" == v4 && -f "$V4_BASE/WAI-State.json" ]]; then BASE="$V4_BASE"
+  # v6 shares v4's DATA plane (the kernel writes sessions to WAI-Harness/spoke/local), so
+  # it joins the v4 arm. Matching `== v4` alone routed every v6 spoke into the legacy tree.
+  if   [[ ( "$HARNESS_ACTIVE" == v4 || "$HARNESS_ACTIVE" == v6 ) && -f "$V4_BASE/WAI-State.json" ]]; then BASE="$V4_BASE"
   elif [[ "$HARNESS_ACTIVE" == v3 && -f "$V3_BASE/WAI-State.json" ]]; then BASE="$V3_BASE"
   elif [[ -f "$V4_BASE/WAI-State.json" ]]; then BASE="$V4_BASE"
   elif [[ -f "$V3_BASE/WAI-State.json" ]]; then BASE="$V3_BASE"
@@ -160,10 +162,53 @@ BUFFER="$LANE_DIR/track-buffer.json"
 export WAI_TRACK_PATH="$TRACK" WAI_LANE_DIR="$LANE_DIR" WAI_RUNTIME_DIR="$RUNTIME" WAI_BASE_DIR="$BASE" WAI_STATE_PATH="$STATE"
 
 # Layer 1: flush model-authored rich entry if present.
+#
+# BUFFER_PRESENT MUST MEAN "LAYER 1 ACTUALLY WROTE A TURN," NOT "A FILE EXISTS"
+# (bug-track-records-zero-turns-and-mints-a-session-per-turn-v1, MEASURED
+# 2026-08-06). flush_buffer.py's exit code is now the source of truth: 0 means
+# an entry landed in track.jsonl, 1 means it did not. Setting BUFFER_PRESENT=1
+# from mere file-existence — regardless of whether the flush succeeded — is
+# exactly how a whole day's turns vanished: flush_buffer.py rejected every one
+# (missing model-authored fields), left BUFFER_PRESENT=1 anyway, and
+# synthesize_turn.py's Layer-2 safety net read that as "layer 1 already wrote
+# this turn" and never ran. flush_buffer.py no longer hard-rejects (it flushes
+# degraded+annotated instead, per validate_track_buffer.py's own contract),
+# but this exit-code check stays as defense in depth: ANY future Layer-1
+# failure (crash, permissions, a reintroduced hard gate) now falls through to
+# Layer 2 instead of silently losing the turn.
 BUFFER_PRESENT=0
-if [[ -f "$BUFFER" ]]; then
-  python3 "$PROJECT_DIR/.claude/hooks/flush_buffer.py" "$STATE" "$BUFFER" "$PROJECT_DIR"
-  BUFFER_PRESENT=1
+
+# LAYER 0 — THE KERNEL IS THE WRITER (cutover 2).
+#
+# `wai turn --from-buffer` appends through kernel.record, which VALIDATES the turn and
+# derives the turn number from the log itself. Two defects die here: a turn that recorded
+# nothing used to be written as a blank row indistinguishable from a turn that never
+# happened, and the turn number came from a counter file no session reset, which is how a
+# five-turn session rendered "Turn 28" for every turn.
+#
+# It writes the SAME file the old estate reads -- config `track_root` points the kernel at
+# WAI-Harness/spoke/local/sessions. Move the writer, not the file.
+#
+# STRICTLY ADDITIVE. If the kernel is absent, or refuses the turn, or errors for any reason,
+# KERNEL_WROTE stays 0 and the original Layer 1 and Layer 2 run exactly as before. There is
+# no path here where a turn is lost that would previously have been kept.
+KERNEL_WROTE=0
+_WAI_BIN="$PROJECT_DIR/WAI-Harness/kernel/bin/wai"
+# The session name is the directory the resolved track lives in. Derived from $TRACK rather
+# than re-resolved, so Layer 0 cannot write to a different session than Layers 1 and 2.
+SESSION="$(basename "$(dirname "$TRACK")")"
+if [[ -x "$_WAI_BIN" && -f "$BUFFER" && -n "$SESSION" ]]; then
+  if "$_WAI_BIN" --root "$PROJECT_DIR" turn --from-buffer "$BUFFER" --session "$SESSION" \
+       >/dev/null 2>>"$RUNTIME/kernel-turn.log"; then
+    KERNEL_WROTE=1
+    BUFFER_PRESENT=1
+  fi
+fi
+
+if [[ "$KERNEL_WROTE" -eq 0 && -f "$BUFFER" ]]; then
+  if python3 "$PROJECT_DIR/.claude/hooks/flush_buffer.py" "$STATE" "$BUFFER" "$PROJECT_DIR"; then
+    BUFFER_PRESENT=1
+  fi
 fi
 
 # Layer 2: transcript-derived safety net (advances cursor; synthesizes only if no buffer).
@@ -175,8 +220,8 @@ fi
 # Positive heartbeat: prove the Stop hook fired and where it routed (success telemetry,
 # complements capture-alarm.log). One line per fire; cheap; never fatal.
 _TURNS=$(grep -c '"event": "turn"' "$TRACK" 2>/dev/null || echo "?")
-printf '%s fired -> %s (%s turns, buffer=%s)\n' \
-  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TRACK" "$_TURNS" "$BUFFER_PRESENT" \
+printf '%s fired -> %s (%s turns, %s)\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TRACK" "$_TURNS" "kernel=$KERNEL_WROTE buffer=$BUFFER_PRESENT" \
   >> "$RUNTIME/capture-fired.log" 2>/dev/null
 
 exit 0

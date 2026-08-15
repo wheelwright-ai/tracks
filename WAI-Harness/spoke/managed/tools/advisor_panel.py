@@ -111,9 +111,18 @@ def _last_jsonl(path, max_bytes=65536):
         if not line:
             continue
         try:
-            return json.loads(line)
+            record = json.loads(line)
         except ValueError:
             continue
+        # An OBJECT, per the docstring — not merely valid JSON. A findings log
+        # that recorded a bare string ("advisor is stale") parses fine, and the
+        # str then reached three .get() call sites and took the whole SPOKE
+        # READINESS panel down with an AttributeError at every wakeup, silently.
+        # Rejecting non-dicts here fixes all callers at once; guarding each
+        # .get() would leave the next caller to rediscover this.
+        if isinstance(record, dict):
+            return record
+        continue
     return None
 
 

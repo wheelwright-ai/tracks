@@ -156,6 +156,25 @@ def process(root, quick=False):
                "runtime": res["runtime"], "capabilities": res["capabilities"]},
               open(ledger_path, "w"), indent=2)
 
+    # bug-heartbeat-reader-wired-writer-does-not-exist-v1: this IS proofer-contract-v2's
+    # real firing point (a completed process() run that wrote the ledger) -- not a
+    # wrapper, not an unconditional scheduler tick. Fires once per genuine assurance
+    # pass, after the ledger write succeeds, so contract_validate.py's slo.staleness
+    # check reads a heartbeat that actually means "Proofer ran and produced." Best-effort:
+    # capgraph_blocks.record_event() never raises, but guard the import too so a spoke
+    # missing the module still gets its ledger written.
+    try:
+        sys.path.insert(0, os.path.join(managed, "tools"))
+        import capgraph_blocks as _cb
+        _cb.record_event(
+            "heartbeat", "proofer-contract-v2",
+            {"component": "proofer-contract-v2", "behavior": "process",
+             "fired_at": res["ts"], "work_units": res["green"] + res["red"]},
+            spoke_local=base,
+        )
+    except Exception:
+        pass
+
     # mirror a one-line summary into the hub AP store so the cockpit surfaces assurance
     store = os.path.join("/home/mario/projects/wheelwright/mywheel",
                          "WAI-Harness", "hub", "local", "ap-runs", "events.jsonl")

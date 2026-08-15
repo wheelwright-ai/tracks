@@ -130,6 +130,27 @@ def scan(root=".", scope="session") -> dict:
         landing_report = {"state": "unknown", "landed": False,
                           "describe": "landing UNKNOWN — probe failed: %s" % e}
 
+    # A savepoint the last session left at "pending" is a dead end of exactly the kind this
+    # tool exists to surface -- work deliberately handed forward that nobody picked up. It is
+    # reported alongside `clean` rather than folded INTO it, on the same reasoning as
+    # `landing` above: `clean` means "no stranded session work" and callers gate on that exit
+    # code. What matters is that the condition is now VISIBLE at every wakeup, because on
+    # 2026-08-06 it was not: the brief displayed a pending savepoint, recommended resuming it,
+    # and no mechanism anywhere noticed that nothing had claimed it.
+    savepoint_report = None
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import savepoint_claim as _sp
+        for _cand in (os.path.join(root, "WAI-Harness", "spoke", "local"),
+                      os.path.join(root, "WAI-Spoke")):
+            if os.path.isfile(os.path.join(_cand, "WAI-State.json")):
+                savepoint_report = _sp.read_status(_cand)
+                break
+    except Exception as e:  # noqa: BLE001 -- never crash the scan over this
+        savepoint_report = {"ok": False, "pending": False, "reason": str(e)}
+
+    unclaimed = bool(savepoint_report and savepoint_report.get("pending"))
+
     return {
         "ok": True, "clean": clean, "scope": scope, "branch": branch,
         "uncommitted": uncommitted,
@@ -138,9 +159,11 @@ def scan(root=".", scope="session") -> dict:
         "stashes": stashes,
         "branches_ahead": branches_ahead,
         "landing": landing_report,
+        "unclaimed_savepoint": savepoint_report if unclaimed else None,
         "summary": (f"{len(uncommitted)} uncommitted, {len(untracked_source)} untracked-source, "
                     f"{unpushed} unpushed, {len(stashes)} stash(es), "
-                    f"{len(branches_ahead)} branch(es) ahead of main"),
+                    f"{len(branches_ahead)} branch(es) ahead of main"
+                    + (", 1 UNCLAIMED savepoint" if unclaimed else "")),
     }
 
 
@@ -158,6 +181,13 @@ def main(argv=None):
         print(f"dead_end_scan: ERROR — {rep['error']}", file=sys.stderr)
         return 2
     _land = rep.get("landing") or {}
+    _sp_rep = rep.get("unclaimed_savepoint")
+    if _sp_rep:
+        # Printed BEFORE the clean/dead-end verdict on purpose: an unclaimed savepoint is the
+        # loudest carry-over there is, and burying it under a clean verdict is how it was
+        # missed in the first place.
+        print(f"  [savepoint]        UNCLAIMED: {_sp_rep.get('savepoint_id') or _sp_rep.get('lug_id')}"
+              " — claim it (savepoint_claim.py claim) or decline it explicitly")
     if rep["clean"]:
         # CLEAN is about stranded session work only. Saying so alongside the
         # landing state stops a reader taking one for the other, which is the

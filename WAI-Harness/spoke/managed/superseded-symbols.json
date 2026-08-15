@@ -1,0 +1,20 @@
+{
+  "schema": "superseded-symbols/1.0.0",
+  "note": "Symbols the MASTER renamed on purpose. The net-symbol-loss guard compares names, so a rename is indistinguishable from a deletion without a declaration like this one. An entry is honoured ONLY when the named successor is actually present in the new file, so a stale line here cannot mask a real deletion. Renaming a symbol in canon without adding an entry will refuse the fleet's next pull, by design: the alarm is the reminder.",
+  "supersessions": [
+    {
+      "file": "tools/test_harness_upgrade.py",
+      "was": "test_install_ships_always_clean_gitignore",
+      "now": "test_install_writes_the_managed_block_to_the_repo_root",
+      "commit": "ed32cb4c3",
+      "why": "The harness-local .gitignore was retired. The old test still asserted the OLD contract -- that install copies the master .gitignore to WAI-Harness/.gitignore -- so it pinned the exact behaviour being removed. Six spokes came back validation FAIL on 4.14.32 for this. The replacement asserts the current contract: rules in the ROOT .gitignore, no harness-local file shipped."
+    },
+    {
+      "file": "tools/test_observability_triage.py",
+      "was": "test_overloaded_counts_only_human_items",
+      "now": "test_overloaded_measures_the_whole_attention_queue",
+      "commit": "ed32cb4c3",
+      "why": "The assertion was deliberately INVERTED, not merely renamed. The old test asserted overloaded is False while the queue is deep with automatable items, which encoded a display-only refinement back into the alarm and narrowed it until it could never fire in the wild -- real backlogs are almost entirely automatable-tagged. spec-observability-oversight-v1 says the max-depth alarm is over the QUEUE, not the human-only subset."
+    }
+  ]
+}

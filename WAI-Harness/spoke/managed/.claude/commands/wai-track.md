@@ -1,4 +1,10 @@
-# WAI Track v1.0.2
+# WAI Track
+
+<!-- Track-prompt version is NOT declared here. The single source of truth is
+     WAI-Harness/spoke/managed/track-prompt/ACTIVE.json. Four version strings were
+     live in managed/ at once (v0.10, v0.18, v1.0.2, v2.0.2) because each surface
+     carried its own literal — two of them named documents that never existed in the
+     lab, and two named documents different from the one actually running. -->
 
 Session governance protocol — per-turn JSONL ledger, behavioral overlays, and export format.
 
