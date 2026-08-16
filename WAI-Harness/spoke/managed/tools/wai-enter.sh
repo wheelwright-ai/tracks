@@ -988,18 +988,31 @@ elif [[ "$IS_SPOKE" == "true" && "$_CONTINUE_MODE" == "false" ]]; then
             130) _wai_info "Ozi" "pre-scan: skipped (interrupted)" ;;
             *)   _wai_warn "Ozi" "pre-scan: failed (rc=${_PRESCAN_RC}) — counts may be stale" ;;
         esac
-        # Re-generate wakeup brief so menu counts reflect groomed state
-        if [[ -f "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" ]]; then
-            timeout "${BASHER_BRIEF_TIMEOUT:-20}" python3 "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" \
-                --spoke-path "$PROJECT_DIR" >/dev/null 2>&1 || true
-        elif [[ -f "$SCRIPT_DIR/generate_wakeup_brief.py" ]]; then
-            timeout "${BASHER_BRIEF_TIMEOUT:-20}" python3 "$SCRIPT_DIR/generate_wakeup_brief.py" \
-                --spoke-path "$PROJECT_DIR" >/dev/null 2>&1 || true
-        elif [[ -f "$CANON_ROOT/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" ]]; then
-            timeout "${BASHER_BRIEF_TIMEOUT:-20}" python3 "$CANON_ROOT/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" \
-                --spoke-path "$PROJECT_DIR" >/dev/null 2>&1 || true
+        # Re-generate wakeup brief so menu counts reflect groomed state.
+        #
+        # Report the rc, the same way the pre-scan directly above does. All three
+        # branches were `>/dev/null 2>&1 || true` — stdout, stderr AND the exit code
+        # discarded. A failed regeneration then rendered the menu from the PREVIOUS
+        # brief and said nothing, so the operator read stale counts as current. The
+        # correct pattern already existed eight lines up; this just reuses it.
+        _BRIEF_GEN=""
+        for _c in "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" \
+                  "$SCRIPT_DIR/generate_wakeup_brief.py" \
+                  "$CANON_ROOT/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py"; do
+            [[ -f "$_c" ]] && { _BRIEF_GEN="$_c"; break; }
+        done
+        if [[ -n "$_BRIEF_GEN" ]]; then
+            timeout "${BASHER_BRIEF_TIMEOUT:-20}" python3 "$_BRIEF_GEN" \
+                --spoke-path "$PROJECT_DIR" >/dev/null 2>&1
+            _BRIEF_RC=$?
+            case "$_BRIEF_RC" in
+                0)   : ;;
+                124) _wai_warn "Brief" "regen timed out at ${BASHER_BRIEF_TIMEOUT:-20}s — menu counts below are STALE (raise BASHER_BRIEF_TIMEOUT)" ;;
+                130) _wai_info "Brief" "regen skipped (interrupted) — menu counts may be stale" ;;
+                *)   _wai_warn "Brief" "regen failed (rc=${_BRIEF_RC}) — menu counts below are STALE" ;;
+            esac
         fi
-        unset _PRESCAN_T _PRESCAN_RC
+        unset _PRESCAN_T _PRESCAN_RC _BRIEF_GEN _BRIEF_RC _c
     else
         # Reached when no reachable ozi advertises --pre-scan. Deliberately a
         # silent-but-visible skip: counts stay as the brief left them, and the

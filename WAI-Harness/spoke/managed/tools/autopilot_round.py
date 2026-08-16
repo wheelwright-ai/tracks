@@ -649,15 +649,37 @@ def _dispatched_count(stdout):
     return -1
 
 
-def _log_unparsed(stdout, why, root="."):
+def _log_unparsed(stdout, why, root=None):
     """Keep the runner output that could not be read.
 
     OPERATOR DIRECTIVE (2026-08-01): gather data at a level adequate to catch a
     fault before he reports it. An unexplained -1 in a console line is not that.
     The raw output is written once per occurrence so the NEXT parse failure is
     diagnosed by reading a file rather than by reproducing the run.
+
+    TWO FIXES, both from the s141 orphan-producer sweep, which found this log was
+    100% TEST NOISE -- 419 entries, every single one containing "runner started",
+    a string that appears nowhere in the real runner and only in
+    tests/test_chain_no_work_vs_no_completion.py's stdout fixture.
+
+    1. `root` no longer defaults to "." — that is the CALLER'S cwd, and under pytest
+       the cwd is the repo root, so the suite wrote its synthetic failures straight
+       into the live runtime path. It now resolves from THIS file's location, so the
+       diagnostic lands in the spoke the tool belongs to no matter where it is run
+       from. `_dispatched_count` never passed a root, so nothing relied on the old
+       behaviour.
+    2. Under pytest, skip writing entirely. A diagnostic log whose contents are
+       manufactured by the test suite is worse than no log: it reads as 419 real
+       production failures to anyone who opens it, which is the exact false signal
+       this file exists to prevent.
     """
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return
     try:
+        if root is None:
+            # .../WAI-Harness/spoke/managed/tools/autopilot_round.py -> spoke root
+            root = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                "..", "..", "..", ".."))
         path = os.path.join(root, "WAI-Harness", "spoke", "local", "runtime",
                             "autopilot-unparsed.log")
         os.makedirs(os.path.dirname(path), exist_ok=True)

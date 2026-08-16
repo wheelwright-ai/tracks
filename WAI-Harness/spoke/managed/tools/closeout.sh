@@ -181,7 +181,10 @@ header "Step 3.5: Lug status reconcile"
 if [ -x "$FRAMEWORK_ROOT/tools/lug_status_reconcile.py" ]; then
     if $DRY_RUN; then
         drylog "Would run: lug_status_reconcile.py --session $MODIFIED_BY"
-        python3 "$FRAMEWORK_ROOT/tools/lug_status_reconcile.py" || true
+        # Match the live branch below: a dry run whose reconciler crashed reported a
+        # clean preview, so the rehearsal was greener than the real thing.
+        python3 "$FRAMEWORK_ROOT/tools/lug_status_reconcile.py" \
+            || drylog "  ⚠ reconciler exited non-zero — this preview is INCOMPLETE"
     else
         python3 "$FRAMEWORK_ROOT/tools/lug_status_reconcile.py" \
             --apply --session "$MODIFIED_BY" || log "  ⚠ reconciler exited non-zero (continuing)"

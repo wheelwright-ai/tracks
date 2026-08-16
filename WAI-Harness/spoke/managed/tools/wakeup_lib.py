@@ -181,6 +181,35 @@ def _budget_guard_status(hub_path):
     return _load_json(guard_path, default=None) or None
 
 
+def _nav_slots(profile_data):
+    """Yield (slot_name, slot_dict) from a recommendations-current.json profile.
+
+    THE KEY IS NOT "slots". This block used to read profile_data.get("slots", {})
+    and no recommendations file in the fleet has ever had a "slots" key -- all five
+    on disk key their profiles on ['task_profile','subscription','api','do_not_use'].
+    Every lookup returned {}, silently, so the Navigator line at EVERY wakeup printed
+    "0 providers, 0 models | Best: unknown" or literally
+    "Available: None (None, score=None) [None]". No exception, no empty-state branch:
+    the .get() chain succeeded all the way to None and the wrong line rendered as if
+    it were data. Found by the s141 phantom-config-key sweep.
+
+    Real shape:  profiles[<task>]["subscription"|"api"][<slot>] -> {model_id, provider, score}
+    where <slot> is quality/balanced/fast for subscription and quality/balanced/economy
+    for api. Keys beginning with "_" (e.g. "_note") are metadata, not slots.
+    """
+    if not isinstance(profile_data, dict):
+        return
+    for access in ("subscription", "api"):
+        block = profile_data.get(access)
+        if not isinstance(block, dict):
+            continue
+        for slot_name, slot_val in block.items():
+            if slot_name.startswith("_") or not isinstance(slot_val, dict):
+                continue
+            if "model_id" in slot_val:
+                yield slot_name, slot_val
+
+
 def navigator_startup_lines(base):
     """Faithful port of wai.md FULL PROTOCOL Step 1c "Navigator Startup".
 
@@ -281,7 +310,7 @@ def navigator_startup_lines(base):
 
             provider_slots = {}
             for profile_data in profiles.values():
-                for slot_val in profile_data.get("slots", {}).values():
+                for _slot_name, slot_val in _nav_slots(profile_data):
                     if isinstance(slot_val, dict):
                         prov = slot_val.get("provider", "")
                         provider_slots.setdefault(prov, []).append(slot_val)
@@ -292,10 +321,10 @@ def navigator_startup_lines(base):
                 best = None
                 cost = None
                 for profile_data in profiles.values():
-                    for slot_name, slot_val in profile_data.get("slots", {}).items():
+                    for slot_name, slot_val in _nav_slots(profile_data):
                         if not best and isinstance(slot_val, dict):
                             best = slot_val
-                        if slot_name in ("cost", "haiku") and isinstance(slot_val, dict) and not cost:
+                        if slot_name in ("economy", "fast") and isinstance(slot_val, dict) and not cost:
                             cost = slot_val
                 best_id = best.get("model_id", "") if best else "unknown"
                 best_prov = best.get("provider", "") if best else ""
@@ -308,8 +337,10 @@ def navigator_startup_lines(base):
             else:
                 best_model_id = best_profile = best_score = best_prov = None
                 for profile_id, profile_data in profiles.items():
-                    default_slot = profile_data.get("slots", {}).get("default") \
-                        or next(iter(profile_data.get("slots", {}).values()), None)
+                    _slots = dict(_nav_slots(profile_data))
+                    # "balanced" is this schema's neutral pick; there is no "default".
+                    default_slot = (_slots.get("balanced") or _slots.get("quality")
+                                    or next(iter(_slots.values()), None))
                     if isinstance(default_slot, dict):
                         score = default_slot.get("score", 0)
                         if best_score is None or score > best_score:

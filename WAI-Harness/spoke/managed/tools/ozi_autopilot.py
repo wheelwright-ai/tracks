@@ -142,6 +142,28 @@ try:
 except ImportError:
     _LEASE_AVAILABLE = False
 
+# Child lane guard (optional — a missing guard must degrade to the old behaviour
+# loudly, never block a dispatch). AP_OWNED_FALLBACK is the lane used when the
+# module is unavailable, so detection still has something to compare against.
+try:
+    import ap_converge_start  # noqa: E402
+    _CONVERGE_START_AVAILABLE = True
+except ImportError:
+    _CONVERGE_START_AVAILABLE = False
+
+try:
+    import ap_child_guard  # noqa: E402
+    _CHILD_GUARD_AVAILABLE = True
+    AP_OWNED_FALLBACK = ap_child_guard.AP_OWNED
+except ImportError:
+    _CHILD_GUARD_AVAILABLE = False
+    AP_OWNED_FALLBACK = (
+        "WAI-Spoke/",
+        "WAI-Harness/spoke/local/lugs/",
+        "WAI-Harness/spoke/local/advisors/",
+        "WAI-Harness/spoke/local/runtime/",
+    )
+
 # Two-pass QC for the verify-before-action gate (optional — graceful fallback).
 # scripts/ lives at the framework root, not on tools/ sys.path, so add it.
 try:
@@ -209,6 +231,9 @@ class AutopilotResult:
     # maintenance/ap-runs.jsonl so run/review/learn does not depend on scrollback.
     productiveness: List[Dict[str, Any]] = field(default_factory=list)
     halted_unproductive: bool = False
+    # Phase 0c converge-at-start verdict: clean | absorbed | blocked | unknown.
+    # A blocked round dispatches nothing, so the record must say why.
+    converge: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -3898,6 +3923,19 @@ class OziAutopilot:
 
         Fails OPEN on anything unreadable: a malformed control file must not be
         able to halt a healthy pass, and an absent one is the normal case.
+
+        A STOP EXPIRES. It is a mid-run correction, not a standing policy. Measured
+        2026-08-15: a stop written at 15:45 to kill a run that was reverting operator
+        edits bound EVERY subsequent invocation for three hours -- a conductor proof
+        run and two dry runs -- each reporting "phase 3: done (0.0s) -- dispatched=0"
+        with no other surface saying anything. A suppressed fleet looked exactly like
+        an idle one, and the zero was read as a capacity finding.
+
+        So a stop older than STOP_TTL_HOURS is treated as forgotten, not as intent,
+        and the run says so loudly rather than quietly resuming. An unstamped stop
+        (the old {"stop": true} shape) is honoured but flagged, because we cannot age
+        what carries no timestamp and refusing to honour it would be the opposite
+        failure -- ignoring a halt somebody meant.
         """
         try:
             path = os.path.join(str(self.spoke_wai), "runtime", "autopilot-control.json")
@@ -3905,9 +3943,50 @@ class OziAutopilot:
                 return {}
             with open(path, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
-            return data if isinstance(data, dict) else {}
+            if not isinstance(data, dict):
+                return {}
+            if data.get("stop"):
+                age = self._directive_age_hours(data.get("written_at"))
+                if age is None:
+                    print("[autopilot] control: STOP carries no written_at -- honouring it, "
+                          "but it cannot be aged. Re-issue with ./autopilot --stop to stamp it.",
+                          file=sys.stderr)
+                elif age > self.STOP_TTL_HOURS:
+                    # ONCE PER RUN. This file is read fresh on every loop iteration by
+                    # design, so an unguarded print emits one line per candidate lug --
+                    # 25 identical warnings on a 25-budget run, which is how a real
+                    # signal gets trained into noise.
+                    if not getattr(self, "_stop_expiry_reported", False):
+                        self._stop_expiry_reported = True
+                        print(f"[autopilot] control: STOP is {age:.1f}h old (> {self.STOP_TTL_HOURS}h) "
+                              f"— treating it as forgotten, not as intent, and proceeding. "
+                              f"Written by {data.get('written_by', 'unknown')}. "
+                              f"Run ./autopilot --stop again if you still want the halt.",
+                              file=sys.stderr)
+                    data = dict(data)
+                    data.pop("stop", None)
+                    data["_stop_expired"] = True
+            return data
         except Exception:
             return {}
+
+    # A stop is a mid-run correction, not a standing policy. Long enough to survive a
+    # single long round; far short of the three hours it silently held for on 2026-08-15.
+    STOP_TTL_HOURS = 6
+
+    @staticmethod
+    def _directive_age_hours(written_at):
+        """Hours since a directive was stamped. None when unstamped or unparseable --
+        the caller must treat that as 'cannot age', never as 'fresh'."""
+        if not written_at:
+            return None
+        try:
+            ts = datetime.fromisoformat(str(written_at).replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                return None
+            return (datetime.now(timezone.utc) - ts).total_seconds() / 3600
+        except (ValueError, TypeError):
+            return None
 
     def _load_ready_queue_needs_you_ids(self) -> set:
         """Read the Expediter ready-queue (WAI-Spoke/advisors/expediter/ready-queue.json)
@@ -4077,7 +4156,20 @@ class OziAutopilot:
             # means no directives — a broken control file must not stop a healthy run.
             _ctl = self._read_run_control()
             if _ctl.get("stop"):
-                print("[autopilot] mid-run control: STOP requested — ending dispatch cleanly",
+                # RECORD the suppression, do not just print it. The stderr line was
+                # the ONLY evidence a run had been halted by directive, buried among
+                # hundreds of review lines, while the machine-readable status string
+                # said "ok: dispatched=0" -- so a suppressed fleet was indistinguishable
+                # from an idle one to every downstream reader.
+                self._stopped_by_directive = {
+                    "written_at": _ctl.get("written_at"),
+                    "written_by": _ctl.get("written_by"),
+                    "dispatched_before_stop": dispatched,
+                }
+                _age = self._directive_age_hours(_ctl.get("written_at"))
+                print("[autopilot] mid-run control: STOP requested — ending dispatch cleanly"
+                      + (f" (directive {_age:.1f}h old, by {_ctl.get('written_by','unknown')})"
+                         if _age is not None else " (directive unstamped)"),
                       file=sys.stderr)
                 break
             if isinstance(_ctl.get("budget"), int) and _ctl["budget"] != self.budget:
@@ -4249,6 +4341,7 @@ class OziAutopilot:
                 self._gastown_executed_inline += 1
 
             model_fit = str(lug.get("model_fit", "haiku")).lower()
+            model_fit = self._apply_tier_ceiling(lug_id, model_fit)
 
             if self.dry_run:
                 print(
@@ -4564,6 +4657,143 @@ class OziAutopilot:
                 out[path] = code
         return out, ""
 
+    # Ordered cheapest-first. A tier absent from this list is left alone rather than
+    # guessed at, so a new tier name can never be silently downgraded.
+    TIER_ORDER = ("haiku", "sonnet", "opus")
+
+    # What each --model-profile actually CAPS. Measured 2026-08-15: the `cost` profile
+    # was a complete no-op. It mapped to slot_key "cost_optimized", and every
+    # recommendations-current.json in the fleet keys its profiles on
+    # ['task_profile','subscription','api','do_not_use'] -- so both
+    # .get("cost_optimized") and .get("default") returned None, navigator_profile
+    # resolved to {}, and dispatch fell through to the lug's own model_fit regardless
+    # of the flag. Conductor could pass --model-profile cost and change nothing.
+    #
+    # Worse, wiring it to the file correctly would still not save money: that file
+    # recommends claude-fable-5 in EVERY slot including `fast` and `economy`, and puts
+    # claude-haiku-4-5 in do_not_use. The recommendations catalog cannot express
+    # "cheaper" right now.
+    #
+    # So the profile caps the TIER directly, which is the lever that actually moves
+    # spend: dispatch already routes per-lug on model_fit, and the backlog is
+    # 123 haiku / 375 sonnet / 93 opus. Capping unattended rounds at sonnet is what
+    # "more efficient models, not burning through anthropic" means in practice.
+    PROFILE_TIER_CEILING = {
+        "cost": "sonnet",
+        "fast": "sonnet",
+        "default": None,           # no cap
+        "high-confidence": None,
+        "fallback": None,
+    }
+
+    # Trigger sources that mean "nobody is watching". A manual run is the operator
+    # choosing to dispatch into their own working tree, which is their call.
+    UNATTENDED_TRIGGERS = ("cron", "conductor", "navigator")
+
+    def _unattended_authored_work_block(self) -> bool:
+        """Refuse an UNATTENDED dispatch while the tree holds uncommitted authored source.
+
+        WHY. On 2026-08-15 a dispatched worker wiped four uncommitted edits to managed
+        tools out of the working tree mid-session. No revert commit exists in the
+        reflog, ap_child_guard.revert_out_of_lane never ran, and the grounded-loop
+        path is explicitly non-destructive -- so the most likely actor is the
+        dispatched agent running git itself, which no amount of AP-side code can
+        police directly.
+
+        So the defence deliberately does not depend on knowing WHICH mechanism did
+        it. Uncommitted authored work and an unattended dispatch must not coexist,
+        whatever the cause. Committed work is recoverable; a working-tree edit is not.
+
+        The runtime/blocked split comes from git_hygiene.py, the same classifier the
+        session-start heal uses, so ordinary runtime churn (state files, jsonl
+        journals) does NOT block -- only `blocked`, which is authored source needing a
+        real commit message. Getting that distinction wrong in either direction is the
+        whole difficulty: block on everything and AP never runs, block on nothing and
+        this recurs.
+
+        Fail OPEN on classifier error, deliberately: a broken hygiene tool must not
+        silently park the fleet the way the capacity gate just did for 15 days. It
+        says so on stderr instead.
+
+        THE ATTRIBUTE NAME IS `spoke_root`, AND THAT COST A LIVE NO-OP. The first cut
+        used `self.spoke_path`, which does not exist -- the constructor parameter is
+        `spoke_path` but it is stored as `self.spoke_root`. Every invocation therefore
+        raised AttributeError, hit the fail-open branch, and printed "precheck SKIPPED".
+        The guard never ran once.
+
+        The unit tests did not catch it because their stub SET spoke_path itself, so
+        they tested a fiction of this object; the call-site test only checked that the
+        string appears in phase 3. Only a real run surfaced it -- which is the whole
+        argument for proving things in production. See the companion test that walks
+        this method's `self.X` references and asserts the constructor assigns each one.
+        """
+        if getattr(self, "trigger_source", "manual") not in self.UNATTENDED_TRIGGERS:
+            return False
+        tool = Path(__file__).resolve().parent / "git_hygiene.py"
+        if not tool.exists():
+            return False
+        try:
+            cp = subprocess.run(
+                ["python3", str(tool), "classify", "--base", "WAI-Harness/spoke/local",
+                 "--root", ".", "--json"],
+                cwd=str(self.spoke_root), capture_output=True, text=True, timeout=60)
+            if cp.returncode != 0:
+                print(f"[autopilot] authored-work precheck SKIPPED (git_hygiene rc={cp.returncode}) "
+                      f"-- proceeding; a broken classifier must not park the fleet", file=sys.stderr)
+                return False
+            blocked = (json.loads(cp.stdout) or {}).get("blocked") or []
+        except Exception as exc:
+            print(f"[autopilot] authored-work precheck SKIPPED ({exc}) -- proceeding", file=sys.stderr)
+            return False
+
+        # LOGS AND APPEND-ONLY JOURNALS ARE NOT OPERATOR WORK AT RISK, and they churn
+        # constantly. Measured the moment this gate was written: `blocked` held
+        # .claude/hooks/worktree-hygiene.log and spoke/local/managed/events-journal.jsonl
+        # alongside one real source edit. Blocking on those two would park every
+        # unattended run forever -- which is precisely the failure this same evening was
+        # spent removing from the capacity gate. A guard that can never open is not a
+        # guard, it is an outage with a good excuse.
+        #
+        # The thing worth protecting is authored SOURCE: a hand-written edit that exists
+        # nowhere but the working tree. An appender re-creates its own lines; nobody
+        # re-types a patch.
+        at_risk = [f for f in blocked
+                   if not f.endswith((".log", ".jsonl", ".log.gz"))]
+        if not at_risk:
+            if blocked:
+                print(f"[autopilot] authored-work precheck: {len(blocked)} dirty "
+                      f"log/journal file(s) ignored -- not operator source", file=sys.stderr)
+            return False
+        blocked = at_risk
+        print(f"[autopilot] phase 3: REFUSING to dispatch — {len(blocked)} uncommitted "
+              f"authored file(s) in the tree and this run is unattended "
+              f"(trigger={self.trigger_source}).", file=sys.stderr)
+        for f in blocked[:10]:
+            print(f"[autopilot]     {f}", file=sys.stderr)
+        if len(blocked) > 10:
+            print(f"[autopilot]     ... and {len(blocked) - 10} more", file=sys.stderr)
+        print("[autopilot]   Commit or stash them, or run autopilot manually to override.",
+              file=sys.stderr)
+        return True
+
+    def _apply_tier_ceiling(self, lug_id: str, model_fit: str) -> str:
+        """Clamp a lug's model tier to the active profile's ceiling.
+
+        Downgrades are ANNOUNCED, never silent: a lug that asked for opus and ran on
+        sonnet must be visible in the log, because if its work comes back weak the
+        tier is the first thing to suspect.
+        """
+        ceiling = self.PROFILE_TIER_CEILING.get(getattr(self, "_model_profile", "default"))
+        if not ceiling:
+            return model_fit
+        if model_fit not in self.TIER_ORDER or ceiling not in self.TIER_ORDER:
+            return model_fit
+        if self.TIER_ORDER.index(model_fit) <= self.TIER_ORDER.index(ceiling):
+            return model_fit
+        print(f"[autopilot]   tier-ceiling: {lug_id} {model_fit} -> {ceiling} "
+              f"(--model-profile {self._model_profile})", file=sys.stderr)
+        return ceiling
+
     def _dispatch_subprocess(self, lug_id: str, lug: Dict[str, Any], model_fit: str) -> Tuple[bool, str]:
         """Dispatch a lug via `claude --print`. Returns (success, error_code).
 
@@ -4684,6 +4914,20 @@ class OziAutopilot:
             # work THIS run just produced (change-autopilot-headless-dispatch-
             # reverts-managed-edits-every-lug-v1). The hook gates its pull on this.
             _child_env["WAI_NO_HARNESS_PULL"] = "1"
+            # CHILD LANE GUARD (s141): a dispatched worker is an ordinary process with
+            # an ordinary git. AP's own commit is path-scoped; the child's was not, and
+            # that is how operator-staged work was swallowed twice on 2026-08-14.
+            # Prevention here (a pre-commit hook scoped to this child via
+            # core.hooksPath); detection after the dispatch returns, in the parent,
+            # where --no-verify cannot reach it.
+            _lane = list(AP_OWNED_FALLBACK)
+            if _CHILD_GUARD_AVAILABLE:
+                try:
+                    _child_env = ap_child_guard.child_env(_child_env, self.spoke_wai, lug)
+                    _lane = ap_child_guard.allowed_paths(lug)
+                except Exception as exc:      # guard must never block a dispatch
+                    print(f"[autopilot]   child guard not installed for {lug_id}: {exc}",
+                          file=sys.stderr)
             proc = subprocess.run(
                 cmd,
                 input=prompt,
@@ -4897,6 +5141,51 @@ class OziAutopilot:
             lug["_commit_sha"] = (
                 _head_after_lug if _head_after_lug and _head_after_lug != _head_before_lug else ""
             )
+            # DETECTION half of the child lane guard. Runs here, in the parent, so a
+            # child that used `git commit --no-verify` to skip the pre-commit hook is
+            # still caught. Recorded on the lug and printed; deliberately NOT an
+            # automatic revert -- undoing a worker's commit unattended is a bigger
+            # hazard than naming it, and the operator has not ruled on that yet.
+            if _CHILD_GUARD_AVAILABLE and _head_after_lug and _head_before_lug:
+                try:
+                    _clean, _outside = ap_child_guard.verify_child_commits(
+                        Path(self.spoke_root), _head_before_lug, _head_after_lug, _lane
+                    )
+                    if not _clean:
+                        lug["_out_of_lane_paths"] = _outside[:50]
+                        print(
+                            f"[autopilot]   ⚠ OUT OF LANE {lug_id}: committed "
+                            f"{len(_outside)} path(s) its lug never declared "
+                            f"(first: {_outside[0]}). The pre-commit guard was "
+                            f"bypassed or unavailable.",
+                            file=sys.stderr,
+                        )
+                        # OPERATOR RULING 2026-08-15: auto-revert, then log a followup
+                        # for deep review. The revert restores the tree; it does not
+                        # explain why the worker left its lane, and that question is
+                        # the point of the followup.
+                        _rv_ok, _rv_paths, _rv_err = ap_child_guard.revert_out_of_lane(
+                            Path(self.spoke_root), _head_before_lug, _outside, lug_id
+                        )
+                        lug["_out_of_lane_reverted"] = bool(_rv_ok)
+                        print(
+                            f"[autopilot]   {'↩ REVERTED' if _rv_ok else '✗ REVERT FAILED'}"
+                            f" {len(_rv_paths) if _rv_ok else len(_outside)} path(s)"
+                            + ("" if _rv_ok else f": {_rv_err}"),
+                            file=sys.stderr,
+                        )
+                        try:
+                            _fu = ap_child_guard.write_followup_lug(
+                                self.spoke_wai, lug_id, _outside, _rv_ok, _rv_err,
+                                model_fit,
+                            )
+                            print(f"[autopilot]   followup logged: {_fu}", file=sys.stderr)
+                        except Exception as _fe:
+                            print(f"[autopilot]   followup NOT logged: {_fe}",
+                                  file=sys.stderr)
+                except Exception as exc:
+                    print(f"[autopilot]   child-commit check unavailable for {lug_id}: {exc}",
+                          file=sys.stderr)
             return True, ""
         else:
             print(
@@ -6186,6 +6475,11 @@ class OziAutopilot:
             rec = {
                 "ts": datetime.now(timezone.utc).isoformat(),
                 "spoke_root": str(getattr(self, "spoke_root", "")),
+                # A dry run reports `completed` from the planner but dispatches
+                # nothing, so it produces no verdicts. Without this flag the record
+                # reads "completed 4, dispatched 0" and looks like a contradiction
+                # rather than a plan. Measured on the first real record written.
+                "dry_run": bool(getattr(self, "dry_run", False)),
                 "budget": getattr(self, "budget", None),
                 "dispatched": len(verdicts),
                 "productive": productive,
@@ -6194,6 +6488,8 @@ class OziAutopilot:
                 "tokens_used": result.tokens_used,
                 "duration_seconds": round(result.duration_seconds, 1),
                 "halted_unproductive": bool(result.halted_unproductive),
+                "converge_verdict": (result.converge or {}).get("verdict", ""),
+                "converge_reason": (result.converge or {}).get("reason", ""),
                 "skipped_no_work": bool(result.skipped_no_work),
                 "errors": list(result.errors or [])[:20],
                 "verdicts": verdicts,
@@ -6213,6 +6509,47 @@ class OziAutopilot:
 
         # Session_start is deferred to _phase5_closeout to gate on did_work.
         # This ensures no session dir is persisted for runs with 0 work.
+
+        # Phase 0c — CONVERGE AT START (operator ruling 2026-08-15): absorb dangling
+        # lanes before dispatching anything. A round that dispatches onto a tree with
+        # another lane's committed work sitting outside main forks around that work,
+        # and the fork is harder to merge than the lane was. converge_gate named this
+        # hole on 2026-07-22 and stayed read-only, correctly, for HUMAN sessions --
+        # an unattended round is the case where acting beats announcing.
+        #
+        # BLOCKED is a refusal, not a warning: the round stops rather than writing
+        # into a contested tree. Recorded on the result so the run record shows why a
+        # round did nothing.
+        if not self.dry_run and _CONVERGE_START_AVAILABLE:
+            print("[autopilot] phase 0c: converge-at-start…", file=sys.stderr)
+            _tc = time.monotonic()
+            try:
+                _cv = ap_converge_start.converge_at_start(
+                    Path(self.spoke_root), str(self.spoke_wai)
+                )
+            except Exception as exc:      # a broken gate must not crash a round
+                _cv = {"verdict": "unknown", "reason": f"{type(exc).__name__}: {exc}",
+                       "lanes_before": [], "attempts": [], "lanes_after": []}
+            self._converge_verdict = _cv
+            phases["phase_0c_converge"] = (
+                f"{_cv['verdict']}: {len(_cv['lanes_before'])} lane(s) before, "
+                f"{len(_cv['lanes_after'])} after [{round(time.monotonic() - _tc, 1)}s]"
+            )
+            print(f"[autopilot] phase 0c: {_cv['verdict'].upper()}"
+                  + (f" — {_cv['reason']}" if _cv.get("reason") else ""), file=sys.stderr)
+            if _cv["verdict"] == "blocked":
+                result.errors.append(f"halted_unconverged: {_cv['reason']}")
+                result.converge = _cv
+                result.phases = phases
+                result.duration_seconds = round(time.monotonic() - _t_run, 1)
+                print(
+                    "[autopilot] HALTING before dispatch: the tree holds committed work "
+                    "outside main. Absorb it (or record a keep-open lug) and re-run — "
+                    "dispatching now would fork around it.",
+                    file=sys.stderr,
+                )
+                return result
+            result.converge = _cv
 
         # Phase 0n — advisor dir casing normalization (idempotent; runs before any Phase 0 writes)
         print("[autopilot] phase 0n: normalizing advisor dir casing…", file=sys.stderr)
@@ -6591,6 +6928,8 @@ class OziAutopilot:
         elif self._initiative_filter and not self._initiative_prereq_ok:
             phases["phase_3_execute"] = f"skipped: initiative {self._initiative_filter} not registered"
             print(f"[autopilot] phase 3: skipped — initiative {self._initiative_filter} not registered", file=sys.stderr)
+        elif self._unattended_authored_work_block():
+            phases["phase_3_execute"] = "skipped: uncommitted authored source in the tree"
         else:
             print(f"[autopilot] phase 3: executing lugs (budget={self.budget}{filter_label})…", file=sys.stderr)
             _t3 = time.monotonic()
@@ -6607,14 +6946,28 @@ class OziAutopilot:
                 result.productiveness = list(getattr(self, "_productiveness_log", []))
                 result.halted_unproductive = bool(getattr(self, "_halted_unproductive", False))
                 result.errors.extend(getattr(self, "_run_errors", []))
+                # A SUPPRESSED RUN MUST NOT REPORT "ok". The status string is what
+                # every downstream reader sees, and "ok: dispatched=0" over a run that
+                # was halted by a stale directive is the lie that cost three hours on
+                # 2026-08-15 -- it reads as "there was nothing to do".
+                _sbd = getattr(self, "_stopped_by_directive", None)
+                _prefix = "suppressed: STOP directive" if _sbd else "ok"
                 phases["phase_3_execute"] = (
-                    f"ok: dispatched={len(completed)}, gastown_inline={self._gastown_executed_inline}, "
+                    f"{_prefix}: dispatched={len(completed)}, gastown_inline={self._gastown_executed_inline}, "
                     f"gastown_deferred={len(gastown)}, tokens={self._tokens_used}, "
                     f"needs_attention={len(self._stalled_this_run)} [{_e3}s]"
                 )
+                if _sbd:
+                    phases["phase_3_stop_directive"] = {
+                        "written_at": _sbd.get("written_at"),
+                        "written_by": _sbd.get("written_by"),
+                        "clear_with": "./autopilot --resume",
+                    }
                 print(
                     f"[autopilot] phase 3: done ({_e3}s) — dispatched={len(completed)} "
-                    f"(gastown_inline={self._gastown_executed_inline}, tokens={self._tokens_used})",
+                    f"(gastown_inline={self._gastown_executed_inline}, tokens={self._tokens_used})"
+                    + ("  ** HALTED BY STOP DIRECTIVE — clear with ./autopilot --resume **"
+                       if _sbd else ""),
                     file=sys.stderr,
                 )
             except Exception as exc:

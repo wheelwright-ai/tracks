@@ -160,8 +160,24 @@ ADV_TOOL="$SPOKE/WAI-Harness/spoke/managed/tools/chain_advantage.py"
 
 case "$ACTION" in
   stop)
+    # STAMP IT. The file used to hold exactly {"stop": true} -- no author, no time --
+    # so nothing downstream could tell a deliberate halt from a three-hour-old one
+    # somebody forgot. Measured 2026-08-15: a stop written at 15:45 to kill a
+    # misbehaving run silently suppressed EVERY autopilot invocation for the next
+    # three hours, and each one reported a cheerful "dispatched=0". Without
+    # written_at there is nothing to age it against, so the stamp is the
+    # precondition for the expiry in ozi_autopilot._read_run_control.
     mkdir -p "$(dirname "$CONTROL")"
-    echo '{"stop": true}' > "$CONTROL"
+    python3 -c "
+import json, os, sys, time
+p = sys.argv[1]
+json.dump({
+    'stop': True,
+    'written_at': time.strftime('%Y-%m-%dT%H:%M:%S+00:00', time.gmtime()),
+    'written_by': os.environ.get('WAI_SESSION_ID') or os.environ.get('USER') or 'unknown',
+    'note': 'finish the current lug, then stop. Clear with ./autopilot --resume.',
+}, open(p, 'w'), indent=1)
+" "$CONTROL"
     echo "autopilot: STOP signalled — the run finishes its current lug, then stops cleanly."
     echo "  (clear with: ./autopilot --resume)"
     exit 0 ;;
@@ -298,7 +314,13 @@ fi
 # otherwise, which is how "I ran autopilot" turns into a false sense of progress.
 SPLIT="$SPOKE/WAI-Harness/spoke/managed/tools/work_split.py"
 if [[ -f "$SPLIT" ]]; then
-  python3 "$SPLIT" --spoke-root "$SPOKE" --limit 3 || true
+  # Report the rc: this preview exists specifically to prevent "a false sense of
+  # progress", so swallowing its failure produces the exact thing the comment above
+  # says the preview is here to stop.
+  if ! python3 "$SPLIT" --spoke-root "$SPOKE" --limit 3; then
+    echo "autopilot: runnable-work preview failed — the counts below are NOT a" >&2
+    echo "  statement about what is dispatchable. work_split.py exited non-zero." >&2
+  fi
   echo
 fi
 
@@ -378,7 +400,23 @@ if [[ "$LIVE" == "1" ]]; then
     echo
     # Heal recording gaps FIRST, so the independent verifier judges the work as it
     # will actually exist rather than refuting a claim merely for being uncommitted.
-    python3 "$VERIFY" --root "$SPOKE" --since "$RUN_FROM" --heal || true
+    #
+    # REPORT THE RC. `|| true` made a MISSING gate scream (the else branch below) and
+    # a BROKEN gate silent — the inverse of what you want, because a crashed healer
+    # leaves the tree unhealed and the verifier then refutes real work for the wrong
+    # reason. A gate that fails must be as loud as a gate that is absent.
+    #
+    # Bare call then $?, NOT `if ! cmd; then _RC=$?` — inside a negated test $? is the
+    # exit of the `!`, which is always 0. Same trap already documented at the
+    # BASHER_EXIT capture in wai-enter.sh.
+    python3 "$VERIFY" --root "$SPOKE" --since "$RUN_FROM" --heal
+    _HEAL_RC=$?
+    if [[ "$_HEAL_RC" -ne 0 ]]; then
+      echo "autopilot: SAY-DO HEAL FAILED (rc=${_HEAL_RC}) — the tree was NOT healed." >&2
+      echo "  Verification below judges an unhealed tree; refutations may be artifacts" >&2
+      echo "  of the failed heal, not of the work. Treat this round as UNVERIFIED." >&2
+      unset _HEAL_RC
+    fi
   else
     echo
     echo "autopilot: SAY-DO GATE ABSENT — completions are UNVERIFIED this run." >&2

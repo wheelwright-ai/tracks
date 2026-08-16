@@ -1,8 +1,8 @@
 {
-  "harness_version": "4.14.56",
+  "harness_version": "4.14.57",
   "is_master": false,
-  "generated_at": "2026-08-15T00:49:28.967023+00:00",
-  "master_sha": "56f82332bb481258d624a3e92dda99ce82aced23",
+  "generated_at": "2026-08-16T02:22:08.163551+00:00",
+  "master_sha": "14b6affcd424ababecd37cfa9366f48f37b88343",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -1651,7 +1651,7 @@
     },
     "shared/codebase/tools/closeout.sh": {
       "version": "4.6.5",
-      "md5": "c60498460da3577f1064b54460626f4f",
+      "md5": "ba33bd0690b6bd1eefe97b7aa8022723",
       "owner": "basher"
     },
     "shared/codebase/tools/enrich_lugs.py": {
@@ -3319,9 +3319,24 @@
       "md5": "61d67dde1b7fee9bfba22980002c750a",
       "owner": "framework"
     },
+    "tools/anthropic_usage_read.py": {
+      "version": "4.14.57",
+      "md5": "f1aabecca5599189b88ef2f32d4ceb66",
+      "owner": "basher"
+    },
     "tools/ap_brief.py": {
       "version": "4.6.5",
       "md5": "b532f46df9e87f36d1a05c40001d5e11",
+      "owner": "basher"
+    },
+    "tools/ap_child_guard.py": {
+      "version": "4.14.57",
+      "md5": "6ababb9148789643a067dc0931702020",
+      "owner": "basher"
+    },
+    "tools/ap_converge_start.py": {
+      "version": "4.14.57",
+      "md5": "036fce7d8f1563bdbbe62640ae98fb52",
       "owner": "basher"
     },
     "tools/ap_cycle.py": {
@@ -3376,12 +3391,12 @@
     },
     "tools/autopilot.sh": {
       "version": "4.6.5",
-      "md5": "9fb6d47172bb2f8bad876460acf52899",
+      "md5": "adbde25a940f0fbb19a7aa02f31e7d48",
       "owner": "basher"
     },
     "tools/autopilot_round.py": {
       "version": "4.13.1",
-      "md5": "3916a143ae208c8746abc974d7cfc50a",
+      "md5": "55ed71cb6a758911bbae89aff318f879",
       "owner": "basher"
     },
     "tools/autopilot_verify.py": {
@@ -3506,7 +3521,7 @@
     },
     "tools/closeout.sh": {
       "version": "4.6.5",
-      "md5": "c60498460da3577f1064b54460626f4f",
+      "md5": "ba33bd0690b6bd1eefe97b7aa8022723",
       "owner": "basher"
     },
     "tools/closeout_ac_gate.py": {
@@ -3817,6 +3832,11 @@
     "tools/flow_metrics.py": {
       "version": "4.6.5",
       "md5": "c7bf2b39a627b81e053e6be9fa253bb5",
+      "owner": "basher"
+    },
+    "tools/fork_ratchet.py": {
+      "version": "4.14.57",
+      "md5": "e04221d6cdaa75225a1fb4aaf7e8ca60",
       "owner": "basher"
     },
     "tools/gap_exposure_validator.py": {
@@ -4231,7 +4251,7 @@
     },
     "tools/ozi_autopilot.py": {
       "version": "4.6.5",
-      "md5": "8809c9ea13e16924ef72cd147f58c064",
+      "md5": "8f4daf00c13758c1e5a6ba85053da24b",
       "owner": "basher"
     },
     "tools/ozi_headless.py": {
@@ -4361,7 +4381,7 @@
     },
     "tools/revert-mine.sh": {
       "version": "4.6.5",
-      "md5": "cde0dda572714ebe96ee74f0ec8212e7",
+      "md5": "d3c0aeeafd42f010ade7fc3688fc03a4",
       "owner": "basher"
     },
     "tools/routing_vocab.py": {
@@ -4519,6 +4539,11 @@
       "md5": "6ed198dd5b05bda80f21a905da874f35",
       "owner": "basher"
     },
+    "tools/statusline_limits_poll.sh": {
+      "version": "4.14.57",
+      "md5": "05a09c37e0f4effbf8448448de0243f6",
+      "owner": "basher"
+    },
     "tools/supabase_lug_sync.py": {
       "version": "4.6.5",
       "md5": "a7c804387ce93969977631305f688141",
@@ -4597,6 +4622,16 @@
     "tools/test_advisor_scheduler.py": {
       "version": "4.14.41",
       "md5": "4c26ff0601ae580e373807dbe97e23d9",
+      "owner": "basher"
+    },
+    "tools/test_anthropic_usage_read.py": {
+      "version": "4.14.57",
+      "md5": "ba8c2b061aff37fdd2eb0755459180d3",
+      "owner": "basher"
+    },
+    "tools/test_ap_review.py": {
+      "version": "4.14.57",
+      "md5": "d2cf39ee5ad5e8e7e64ac1db4ebbc990",
       "owner": "basher"
     },
     "tools/test_commitment_register.py": {
@@ -4866,7 +4901,7 @@
     },
     "tools/wai-enter.sh": {
       "version": "4.6.9",
-      "md5": "236480872949ac0f36548b51418c7380",
+      "md5": "a78f6a3fe7fb2718f8faedda2750ddd0",
       "owner": "basher"
     },
     "tools/wai_assurance.py": {
@@ -4931,7 +4966,7 @@
     },
     "tools/wakeup_lib.py": {
       "version": "4.14.3",
-      "md5": "0d0b580e7d2b56d60d1220d1a604796c",
+      "md5": "40731cb7d6415a7b43b4ea151a63aa0c",
       "owner": "basher"
     },
     "tools/warmup.py": {
