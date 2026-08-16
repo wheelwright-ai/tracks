@@ -995,6 +995,75 @@ class OziAutopilot:
         "opus":   {"model_id": "deepseek-reasoner", "provider": "deepseek", "token_limit": None},
     }
 
+    # KIMI (Moonshot). Same shape as the DeepSeek map and for the same reason: when the
+    # Anthropic subscription is near its reserve, work must keep moving on a provider
+    # that is not metered against it.
+    #
+    # kimi-k3 is a REASONING model and is deliberately reserved for the opus tier -- it
+    # spends its token budget thinking before emitting anything, so it is both the most
+    # capable and the most expensive per answer. moonshot-v1-32k carries the routine
+    # tiers. token_limit stays None so kimi_dispatch.py's own generous default applies;
+    # a small cap makes a reasoning model return empty content with no error.
+    KIMI_TIER_MAP: Dict[str, Any] = {
+        "haiku":  {"model_id": "kimi-k2.5", "provider": "kimi", "token_limit": None},
+        "sonnet": {"model_id": "kimi-k2.5", "provider": "kimi", "token_limit": None},
+        "opus":   {"model_id": "kimi-k3",   "provider": "kimi", "token_limit": None},
+    }
+
+    # HOW A PROVIDER IS REACHED, and the distinction decides whether AP can do its job.
+    #
+    #   cli   the `claude` binary, pointed at the provider's Anthropic-compatible
+    #         endpoint via ANTHROPIC_BASE_URL. Full agent loop: tools, file reads,
+    #         edits, multi-turn. This is what an implementation lug REQUIRES.
+    #   chat  a one-shot chat-completion helper (deepseek_dispatch.py). No tools, no
+    #         file access, one turn.
+    #
+    # MEASURED 2026-08-16, and this is why the table exists. Dispatching real
+    # implementation lugs to the chat transport "succeeded" 2/2 -- and both answers
+    # were the model narrating work it could not perform: deepseek-reasoner emitted
+    # tool-call markup for a bash tool it did not have, deepseek-chat wrote "I'll start
+    # by reading the lug file" and printed a cat command. Plans, not work, reported as
+    # completions. A transport that cannot act must never be handed a lug that
+    # requires acting.
+    #
+    # The cli route is PROVEN on Moonshot: `claude --print --model kimi-k2.5` against
+    # https://api.moonshot.ai/anthropic read a file it had never seen and returned its
+    # exact contents, num_turns=2 -- a real tool loop on non-Anthropic tokens.
+    # DEEPSEEK MOVED chat -> cli ON 2026-08-16, for two reasons found in one run.
+    #
+    # THE LEAK. provider_env() only redirects cli-transport providers, so a `chat`
+    # provider got {} and the CERTIFIER fell through to plain `claude` -- Anthropic.
+    # A live deepseek fleet run logged "[certifier] verifying 7 prose step(s) via
+    # anthropic" twice before the audit caught it. The offload sent the work to
+    # DeepSeek and the verification to the budget it existed to protect. Fixing the
+    # leak for kimi and leaving it open for deepseek was half a fix.
+    #
+    # THE UPGRADE. api.deepseek.com/anthropic serves the Anthropic message shape
+    # (verified HTTP 200), so deepseek does not need the chat helper at all. On the
+    # cli transport it gets the full agent loop -- tools, file writes, multi-turn --
+    # instead of one-shot completions that could only ever narrate work. Measured
+    # earlier the same day: dispatched to the chat transport, deepseek "succeeded"
+    # 2/2 while emitting tool-call markup for a bash tool it did not have.
+    #
+    # deepseek_dispatch.py stays for offload_run.py, where a bare completion is the
+    # right tool for review and refutation work that needs no filesystem.
+    PROVIDER_TRANSPORT: Dict[str, str] = {
+        "anthropic": "cli",
+        "kimi":      "cli",
+        "deepseek":  "cli",
+    }
+
+    # Anthropic-compatible endpoints. The claude binary speaks this shape, so pointing
+    # it here is all that separates "runs on Anthropic" from "runs on Moonshot".
+    PROVIDER_BASE_URL: Dict[str, str] = {
+        "kimi":     "https://api.moonshot.ai/anthropic",
+        "deepseek": "https://api.deepseek.com/anthropic",
+    }
+    PROVIDER_KEY_ENV: Dict[str, str] = {
+        "kimi":     "MOONSHOT_API_KEY",
+        "deepseek": "DEEPSEEK_API_KEY",
+    }
+
     def __init__(
         self,
         spoke_path: Path,
@@ -1542,6 +1611,24 @@ class OziAutopilot:
 
         return result
 
+    def provider_env(self) -> Dict[str, str]:
+        """Env that points a `claude` child at this run's provider. {} for anthropic.
+
+        ONE SOURCE FOR THE REDIRECT. The dispatch needed it and so does the
+        certifier -- and the certifier NOT having it is why a `--provider deepseek`
+        round still spent Anthropic, once per completed lug, while the log said
+        otherwise. Two copies of this logic would strand the next fix in one of them.
+        """
+        prov = getattr(self, "_provider", "anthropic")
+        if prov == "anthropic" or self.PROVIDER_TRANSPORT.get(prov) != "cli":
+            return {}
+        base = self.PROVIDER_BASE_URL.get(prov)
+        tok = os.environ.get(self.PROVIDER_KEY_ENV.get(prov, ""), "")
+        if not (base and tok):
+            return {}
+        return {"ANTHROPIC_BASE_URL": base, "ANTHROPIC_AUTH_TOKEN": tok,
+                "ANTHROPIC_API_KEY": ""}
+
     def _resolve_provider_cmd(self, model_id: str, hub_path: Optional[Path]) -> List[str]:
         """Return the CLI command list for dispatching to model_id.
 
@@ -1558,6 +1645,17 @@ class OziAutopilot:
         ]
 
         mid = model_id.lower()
+
+        # TRANSPORT FIRST, PREFIX SECOND. This guard originally sat AFTER the
+        # deepseek- prefix branch, so when deepseek moved to the cli transport its
+        # ids still matched the earlier branch and routed to the chat helper -- the
+        # tool loop silently dropped again, inside the very change that added it.
+        # Caught by test_deepseek_carries_the_agent_loop_not_a_chat_helper.
+        #
+        # A cli provider keeps the claude binary; only its BASE URL changes, and that
+        # happens in the dispatch env. No model-id prefix may override that.
+        if self.PROVIDER_TRANSPORT.get(getattr(self, "_provider", "anthropic")) == "cli":
+            return _default_claude
 
         if mid.startswith("claude-"):
             return _default_claude
@@ -1589,6 +1687,35 @@ class OziAutopilot:
                 if dispatch_path.exists():
                     return ["python3", str(dispatch_path), "--model", model_id]
             # deepseek_dispatch.py not found — fall back to claude
+            return _default_claude
+
+        # KIMI / MOONSHOT. Both id families route to the same tool: the API calls the
+        # platform Moonshot and the models Kimi, and the tier map uses moonshot-v1-32k
+        # for the routine tiers and kimi-k3 for opus.
+        #
+        # WITHOUT THIS BRANCH `--provider kimi` was WORSE THAN BROKEN: the tier map
+        # resolved, dispatch found no matching prefix, and every lug fell through to
+        # `_default_claude` -- spending the exact Anthropic budget the offload exists to
+        # protect, while the log said provider='kimi'. That is the same silent-fallback
+        # the deepseek comment above records; it is easy to add a provider and forget
+        # the one place that turns a model id into a command.
+        # A cli-transport provider keeps the claude binary; only its BASE URL changes,
+        # which happens in the dispatch env, not here. Routing kimi ids to a chat
+        # helper would silently drop the tool loop the lug needs.
+        if self.PROVIDER_TRANSPORT.get(getattr(self, "_provider", "anthropic")) == "cli":
+            return _default_claude
+
+        if mid.startswith(("kimi-", "moonshot-")):
+            candidates = []
+            if hub_path:
+                candidates.append(hub_path / "local" / "tools" / "kimi_dispatch.py")
+            candidates.append(
+                Path(__file__).resolve().parents[3] / "hub" / "local" / "tools" / "kimi_dispatch.py"
+            )
+            for dispatch_path in candidates:
+                if dispatch_path.exists():
+                    return ["python3", str(dispatch_path), "--model", model_id]
+            # kimi_dispatch.py not found — fall back to claude
             return _default_claude
 
         # Unknown prefix — fall back to claude
@@ -2551,6 +2678,12 @@ class OziAutopilot:
         if self._provider == "deepseek":
             # Bypass Navigator — use hardcoded DeepSeek tier map
             self.navigator_profile = dict(self.DEEPSEEK_TIER_MAP)
+        elif self._provider == "kimi":
+            # Same bypass, same reason: the Navigator profile lookup resolves to {} for
+            # every --model-profile value (its slot keys exist in no recommendations
+            # file), so a non-Anthropic provider that went through it would silently
+            # fall back to claude. A hardcoded map is what makes the offload real.
+            self.navigator_profile = dict(self.KIMI_TIER_MAP)
         else:
             self.navigator_profile = self._load_navigator_profile(
                 self.hub_dir, self._model_profile
@@ -4582,7 +4715,18 @@ class OziAutopilot:
         A lug with no file_targets and no HEAD move is unproductive by definition --
         that is not a gap in the measurement, it is the finding. Work nobody can
         point at a file for is work that cannot be verified later.
+
+        EXCEPTION: a dispatch the independent completion_certifier routed to
+        AWAITING_HUMAN (every verify step that could be checked held; what's left
+        is typed as a human's -- e.g. an operator judgement call like a GDPR
+        consent-banner decision) is not "nothing happened", it is the certifier
+        confirming the agent correctly declined to act. Counting it against the
+        unproductive streak punishes correct behavior identically to a stuck or
+        looping dispatch, and can halt an otherwise-healthy run (see
+        task-gdpr-consent-decision-for-ga4-v1, 2026-08-16).
         """
+        if lug.get("_awaiting_human_certified"):
+            return True, "certifier: AWAITING_HUMAN (verify steps held; rest needs an operator decision)"
         if lug.get("_commit_sha"):
             return True, f"HEAD moved ({str(lug['_commit_sha'])[:9]})"
 
@@ -4908,6 +5052,39 @@ class OziAutopilot:
             # like a series of one-turn sessions that did nothing.
             _child_env = dict(os.environ)
             _child_env["WAI_AP_DISPATCH"] = "1"
+
+            # POINT THE CLAUDE BINARY AT A NON-ANTHROPIC ENDPOINT.
+            #
+            # This is the whole offload. The claude CLI speaks the Anthropic message
+            # shape; Moonshot serves that shape at /anthropic. Redirect the base URL
+            # and the ENTIRE existing dispatch -- tools, multi-turn, permission mode,
+            # the lot -- runs on someone else's tokens with no other change.
+            #
+            # Proven 2026-08-16: `claude --print --model kimi-k2.5` against
+            # https://api.moonshot.ai/anthropic read a file it had never seen and
+            # returned its exact contents, num_turns=2. A real tool loop.
+            #
+            # ANTHROPIC_API_KEY is blanked deliberately. Leaving it set lets it take
+            # precedence and the run silently goes back to Anthropic -- spending the
+            # budget the offload exists to protect while the log says provider=kimi.
+            # That silent-fallback shape has already bitten this file twice.
+            _prov = getattr(self, "_provider", "anthropic")
+            if _prov != "anthropic" and self.PROVIDER_TRANSPORT.get(_prov) == "cli":
+                _base = self.PROVIDER_BASE_URL.get(_prov)
+                _keyenv = self.PROVIDER_KEY_ENV.get(_prov, "")
+                _tok = os.environ.get(_keyenv, "")
+                if _base and _tok:
+                    _child_env["ANTHROPIC_BASE_URL"] = _base
+                    _child_env["ANTHROPIC_AUTH_TOKEN"] = _tok
+                    _child_env["ANTHROPIC_API_KEY"] = ""
+                else:
+                    # REFUSE rather than fall back. A missing key here would send the
+                    # work to Anthropic at full price under a provider label that says
+                    # otherwise, which is worse than not running at all.
+                    print(f"[autopilot]   ✗ {lug_id}: provider={_prov} needs {_keyenv} "
+                          f"and a base URL; refusing to fall back to Anthropic",
+                          file=sys.stderr)
+                    return False, "provider_unconfigured"
             # A dispatched worker must never self-upgrade the spoke mid-run: the
             # SessionStart pull-on-spin-up overwrites WAI-Harness/spoke/managed/**
             # from canon, silently reverting spoke-local managed edits — including
@@ -5049,6 +5226,11 @@ class OziAutopilot:
                         lug, str(self.spoke_root), str(self.spoke_wai),
                         use_agent=getattr(self, "_certify_with_agent", True),
                         base_ref=lug.get("dispatch_base_sha"),
+                        # CERTIFY ON THE SAME PROVIDER THE WORK RAN ON. Without this
+                        # the certifier spawns `claude -p --agents pattern-gate`
+                        # against Anthropic even mid-offload -- the spend the round
+                        # exists to avoid, hidden one lug at a time.
+                        provider_env=self.provider_env(),
                     )
                     _gl_extra["certification"] = _cert
                     _gl_extra["certified_by"] = "completion_certifier (independent)"
@@ -5075,6 +5257,16 @@ class OziAutopilot:
                         _gl_extra["awaiting_human_reason"] = _cert["reason"]
                         _gl_extra["awaiting_human_steps"] = list(
                             _cert.get("manual_steps_skipped") or [])
+                        # Mark on the in-memory lug so _measure_productiveness (called
+                        # right after this dispatch returns) can tell "the independent
+                        # certifier verified every command step held and correctly
+                        # routed the rest to a human" apart from "nothing happened".
+                        # Without this, a lug that behaves exactly right -- declining
+                        # to make an operator-only judgement call and touching no files
+                        # -- reads identically to a stuck/looping dispatch and burns
+                        # the unproductive streak (see task-gdpr-consent-decision-for-
+                        # ga4-v1, which halted a run this way on 2026-08-16).
+                        lug["_awaiting_human_certified"] = True
                         print(f"[autopilot]   ⏸ {lug_id} AWAITING-HUMAN — {_cert['reason']}",
                               file=sys.stderr)
                 except Exception as _cexc:
@@ -7241,7 +7433,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--provider",
-        choices=["anthropic", "deepseek"],
+        choices=["anthropic", "deepseek", "kimi"],
         default=os.environ.get("WAI_PROVIDER", "anthropic"),
         help="LLM provider for lug dispatch (default: anthropic; env: WAI_PROVIDER)"
     )

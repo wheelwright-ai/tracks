@@ -62,6 +62,7 @@ Three things this does NOT loosen, each pinned by a fixture:
   * a lug without verify_kinds behaves exactly as it did before.
 """
 import argparse
+import inspect
 import json
 import os
 import re
@@ -423,7 +424,24 @@ def mechanical_checks(verify_steps, repo, base, declared_targets=None,
 
 # ---------------------------------------------------------------- agent
 
-def default_agent_runner(request, prose_steps, timeout=600):
+# WHERE THE CERTIFIER GETS ITS MODEL FROM.
+#
+# This runner spawns `claude -p --agents pattern-gate`, which is an ANTHROPIC call --
+# and it did so unconditionally, including inside an autopilot round explicitly told
+# to use a non-Anthropic provider. Measured 2026-08-16: a `--provider deepseek` round
+# sent the WORK to DeepSeek and the CERTIFICATION to Anthropic, so an offload meant to
+# protect a 7-day limit still spent it, once per completed lug, invisibly.
+#
+# It is also where the "AP hangs" reports came from. timeout=600 per lug with no
+# progress output is indistinguishable from a hang: a faulthandler stack showed the
+# round blocked in subprocess.communicate here, at ozi_autopilot.py:5103, long after
+# it had in fact reached dispatch. Two runs were killed at 400s and 1500s while I
+# reported, twice and wrongly, that AP "never reaches dispatch".
+#
+# So the certifier now follows the same redirect as the dispatch: if the caller hands
+# it provider env, it uses it. WAI_CERTIFIER_TIMEOUT makes the wait tunable, and the
+# wait is announced rather than silent.
+def default_agent_runner(request, prose_steps, timeout=None, provider_env=None):
     """Hand the undecidable steps to the read-only pattern-gate agent.
 
     pattern-gate has Read and Bash only -- by construction it cannot write the
@@ -453,6 +471,16 @@ def default_agent_runner(request, prose_steps, timeout=600):
         + "\n\nReturn ONLY a JSON object: "
           '{\"checks\": [{\"step\": \"...\", \"result\": 1, \"observed\": \"...\"}]}'
     )
+    if timeout is None:
+        try:
+            timeout = int(os.environ.get("WAI_CERTIFIER_TIMEOUT", "600"))
+        except ValueError:
+            timeout = 600
+    # ANNOUNCE THE WAIT. Silence for ten minutes reads as a hang and was diagnosed as
+    # one, twice. One line costs nothing and makes the difference legible.
+    _where = (provider_env or {}).get("ANTHROPIC_BASE_URL", "anthropic")
+    print(f"[certifier] verifying {len(prose_steps)} prose step(s) via {_where} "
+          f"(timeout {timeout}s)…", file=sys.stderr, flush=True)
     rc, out, err = _run(["claude", "-p", prompt, "--agents", "pattern-gate",
                          "--output-format", "json"], timeout=timeout,
                         # The spawned certifier session must never self-upgrade the
@@ -462,7 +490,8 @@ def default_agent_runner(request, prose_steps, timeout=600):
                         # certifies, then fails the lug for the fix it just deleted
                         # (change-autopilot-headless-dispatch-reverts-managed-edits-
                         # every-lug-v1, isolation proof reproduced 3x on basher).
-                        env={**os.environ, "WAI_NO_HARNESS_PULL": "1", "WAI_AP_DISPATCH": "1"})
+                        env={**os.environ, "WAI_NO_HARNESS_PULL": "1",
+                             "WAI_AP_DISPATCH": "1", **(provider_env or {})})
     if rc is None or rc != 0:
         return None
     try:
@@ -481,7 +510,7 @@ def default_agent_runner(request, prose_steps, timeout=600):
 # ---------------------------------------------------------------- certify
 
 def certify(lug, repo, base, agent_runner=default_agent_runner, use_agent=True,
-            base_ref=None):
+            base_ref=None, provider_env=None):
     """Rule on a completion claim. Returns a verdict dict.
 
     disposition:
@@ -550,7 +579,25 @@ def certify(lug, repo, base, agent_runner=default_agent_runner, use_agent=True,
                                        typed_command=kinds_applied)
 
     if prose and use_agent:
-        agent_results = agent_runner(request, prose) if agent_runner else None
+        # CALL IT THE WAY IT WILL ACCEPT. agent_runner is an injection point -- tests
+        # and callers supply two-arg lambdas, and they predate provider_env. Passing
+        # the kwarg unconditionally broke 7 of them with TypeError, which is a
+        # backward-compatibility break dressed as a feature. Offer the richer
+        # signature, accept the older one.
+        # ASK THE SIGNATURE, do not catch TypeError. agent_runner is an injection
+        # point and callers supply two-arg lambdas that predate provider_env; passing
+        # the kwarg unconditionally broke 7 tests with TypeError. But catching
+        # TypeError to retry is worse than the bug: a TypeError raised INSIDE the
+        # runner would be swallowed and the runner invoked a SECOND time -- one
+        # verification billed twice, and a real error hidden behind a retry.
+        agent_results = None
+        if agent_runner:
+            try:
+                _accepts = "provider_env" in inspect.signature(agent_runner).parameters
+            except (TypeError, ValueError):
+                _accepts = False
+            agent_results = (agent_runner(request, prose, provider_env=provider_env)
+                             if _accepts else agent_runner(request, prose))
         if agent_results is None:
             verdict["uncheckable"] = list(prose)
         else:

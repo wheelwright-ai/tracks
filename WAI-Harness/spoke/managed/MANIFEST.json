@@ -1,8 +1,8 @@
 {
   "harness_version": "4.14.57",
   "is_master": false,
-  "generated_at": "2026-08-16T06:14:48.552013+00:00",
-  "master_sha": "f86a0a9de59580dcdb46a21ab1ff6c4674d1af91",
+  "generated_at": "2026-08-16T22:43:16.408211+00:00",
+  "master_sha": "b8a2b6a3fff5e547522bd978ee150d0d70cc8dac",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -836,7 +836,7 @@
     },
     ".claude/workflows/fable-review-pass2.js": {
       "version": "4.14.3",
-      "md5": "5d113e38f5b55f14833111b26ca0e62c",
+      "md5": "53976c30c9a37c13b7dc0414fec68f47",
       "owner": "basher"
     },
     ".claude/workflows/fable-review.js": {
@@ -1397,11 +1397,6 @@
     "schemas/.gitkeep": {
       "version": "4.6.5",
       "md5": "d41d8cd98f00b204e9800998ecf8427e",
-      "owner": "basher"
-    },
-    "schemas/DriveGraph.schema.json": {
-      "version": "4.6.5",
-      "md5": "a75e57cc4b7a710599c1d8d3d6a74530",
       "owner": "basher"
     },
     "schemas/agent-message-table.schema.json": {
@@ -3566,7 +3561,7 @@
     },
     "tools/completion_certifier.py": {
       "version": "4.14.24",
-      "md5": "de544143dd65472ee9bbe3161c21a160",
+      "md5": "b4fb65ec1d018ac9b9c21d1a7dad718c",
       "owner": "basher"
     },
     "tools/compliance_detectors/__init__.py": {
@@ -4239,6 +4234,11 @@
       "md5": "2dc747127455f365d9d53e708b6079d9",
       "owner": "basher"
     },
+    "tools/offload_run.py": {
+      "version": "4.14.57",
+      "md5": "54ca3344e911742d8a56c595d57b7863",
+      "owner": "basher"
+    },
     "tools/oracle_liveness.py": {
       "version": "4.14.41",
       "md5": "1dc87058077d90c4406e4423341c77de",
@@ -4251,7 +4251,7 @@
     },
     "tools/ozi_autopilot.py": {
       "version": "4.6.5",
-      "md5": "8f4daf00c13758c1e5a6ba85053da24b",
+      "md5": "e1bf9a6eceabc9554560f5f57b02d9cb",
       "owner": "basher"
     },
     "tools/ozi_headless.py": {

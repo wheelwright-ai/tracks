@@ -119,7 +119,7 @@ const hubResult = await agent(
     `You are a Fable-class reviewer auditing the HUB side of the Wheelwright graph/insight pipeline at /home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/ (and the framework spoke at /home/mario/projects/wheelwright/mywheel/WAI-Harness/spoke/).`,
     GRAPH_BRIEF,
     `Questions to answer, read-only:`,
-    `1. What ingestion/aggregation machinery exists hub-side for pathgraph, tastegraph, and capabilities graphs? (Look at hub/local/WAI-Hub/ incl. DriveGraph.json, hub advisors — cartographer, librarian, gardener, surveyor, navigator — their advisor.json/state files, hub/managed tools.)`,
+    `1. What ingestion/aggregation machinery exists hub-side for pathgraph, tastegraph, and capabilities graphs? (Look at hub/local/WAI-Hub/, spoke/local/initiatives/index.json, hub advisors — cartographer, librarian, gardener, surveyor, navigator — their advisor.json/state files, hub/managed tools.)`,
     `2. Which spokes have actually contributed graph data that reached the hub? Check timestamps/content.`,
     `3. Is the hub CURATING insight from these graphs — i.e., do any advisors consume them and produce outputs (briefs, recommendations, teachings) — or is the pipeline write-only/aspirational?`,
     `Cite concrete files. Your structured output is the only thing returned.`,
