@@ -308,6 +308,35 @@ _WAI_PASSTHRU="${_WAI_PASSTHRU:-}"   # set by an above-seam escape hatch, else e
 # cross one hop and instead crossed every hop.)
 WAI_LAUNCH_TOKEN="wcl-$(date +%s)-$$-${RANDOM}"
 export WAI_LAUNCH_TOKEN
+
+# PROVIDER KEYS, LOADED FROM THE SPOKE'S OWN .env.local.
+#
+# Nothing loaded this file. The operator had put DEEPSEEK_API_KEY and
+# MOONSHOT_API_KEY in <spoke>/.env.local, and three consecutive sessions reported
+# "keys absent" and ran every cross-provider review single-lineage -- one of them
+# closed out with the absence as a carried-forward blocker. The keys were present
+# the whole time; the harness simply never read them. Verified live once loaded:
+# DeepSeek deepseek-chat 200, Moonshot kimi-k3 200.
+#
+# HERE, not in a SessionStart hook: a hook runs in its own process and cannot export
+# into the tool shells. The launcher execs claude, so what is exported here is
+# inherited by the session and everything it spawns.
+#
+# Never echoed, never logged: only the NAMES are reported, so a key cannot reach a
+# transcript. The file stays gitignored; this only reads it.
+_wai_env_local="$PROJECT_DIR/.env.local"
+if [[ -f "$_wai_env_local" ]]; then
+    _wai_before="$(compgen -v | sort)"
+    set -a
+    # shellcheck disable=SC1090
+    . "$_wai_env_local" 2>/dev/null || true
+    set +a
+    _wai_loaded="$(comm -13 <(printf '%s\n' "$_wai_before") <(compgen -v | sort) \
+                  | grep -E 'KEY|TOKEN|SECRET' | tr '\n' ' ')"
+    [[ -n "$_wai_loaded" ]] && printf '  env: loaded from .env.local -> %s\n' "$_wai_loaded" >&2
+    unset _wai_before _wai_loaded
+fi
+unset _wai_env_local
 _WAI_RESERVED_TOKEN=""   # set only once a reserve actually lands
 
 # Release a reservation that never became a real lane. Safe to call any number of
