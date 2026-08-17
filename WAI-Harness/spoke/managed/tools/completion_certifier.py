@@ -401,7 +401,33 @@ def mechanical_checks(verify_steps, repo, base, declared_targets=None,
         if m and m.group(1).startswith(_ALLOWED_CMD_HEADS):
             decided = _check_command(m.group(1), repo)
         elif typed_command:
+            # REVERTED 2026-08-16, BY MEASUREMENT. This branch briefly ran bare
+            # commands for EVERY step, not only verify_kinds-typed ones, on the
+            # reasoning that 0 of 1115 items set verify_kinds so the gate was
+            # effectively closed and 676 runnable steps were invisible.
+            #
+            # The activation gap is real. Bypassing the typing is NOT the fix. Running
+            # the guard against already-COMPLETED lugs -- the same measurement this
+            # file's own test suite made when the typed path was built -- gave:
+            #
+            #     typed path (their measurement) : 0 false refutations / 358 lugs
+            #     untyped path (mine)            : 30 of 66 refuted = 45.5%
+            #
+            # Nearly half of finished work reopened. The failures are almost all
+            # repo-relative paths written from a different root --
+            # `test -f templates/commands/wai-crew-honesty.md`, `test -f
+            # crew/phases/ideate.md` -- where the work IS done and the command cannot
+            # resolve the path. That is exactly the "relocation is not absence" case
+            # _check_path already handles and raw execution bypasses.
+            #
+            # A false HALTED reopens finished work and discredits the gate; a false
+            # ESCALATE costs a glance. At 45.5% this was the expensive error at scale.
+            #
+            # The right attacks on the activation gap, neither of which is this one:
+            #   * set verify_kinds at authoring time (the author states intent), or
+            #   * resolve paths against the lug's own root before executing.
             bare = bare_command_candidate(step)
+
             if bare:
                 decided = _check_command(bare, repo)
         if decided is None:

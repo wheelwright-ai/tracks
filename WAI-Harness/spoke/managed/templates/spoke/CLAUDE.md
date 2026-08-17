@@ -8,7 +8,7 @@ Read `AGENTS.md` for universal WAI instructions. This file covers Claude Code sp
 This spoke runs the **v6 kernel**. The kernel IS the wakeup — behaviour is code with
 contracts, not instructions you have to carry.
 
-1. Run `WAI-Harness/kernel/bin/wai brief` and print its output verbatim. It is a query
+1. Run `WAI-Spoke/kernel/bin/wai brief` and print its output verbatim. It is a query
    over state, so it returns the same answer twice.
 2. Then respond to the user's message.
 
@@ -58,13 +58,17 @@ You are a **responsible partner**:
 - Complete foundation before work
 - Prefer "are you sure?" over silent compliance
 
-## Tool Ownership (author vs distribute)
+## Tool Ownership (Basher)
 
-Distributed tool/config — everything under `WAI-Harness/spoke/managed/**` (tools, schemas, templates, `.claude/`) plus `MANIFEST.json`, `.mcp.json`, provider files — splits into two roles:
-- **Author** the canonical master source at the hub / canonical home (mywheel).
-- **Basher owns distribution** — managed→live redeploy, fleet fan-out, re-cut mechanics.
+**Basher owns all distributed tool files, local-only excepted.**
 
-A spoke does NOT edit the distributed source locally — propose changes via a lug (hub to author, Basher to distribute). Apply directly **only when purely local** (`WAI-Harness/spoke/local/**`). When in doubt, route it.
+Two tiers:
+
+1. **Templates + distribution tooling (Basher exclusive):** Basher owns the canonical source templates and everything distributed from `WAI-Harness/spoke/managed/` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings), plus `MANIFEST.json`, `.mcp.json`, and provider file templates (`CLAUDE.md`/`GEMINI.md`/`QWEN.md`). Route all improvements to these via a complete change-lug to Basher's `incoming/`; Basher edits the canonical source, re-cuts the MANIFEST, and distributes — **this is how we maintain the wheel.**
+
+2. **Placed local instances (Spoke, with receipt-back):** The spoke's own deployed copies (its `CLAUDE.md`, `.env.template`, local `tools/`) are the spoke's to maintain locally. The spoke MAY edit its local copy directly. If the edit is a template improvement worth propagating fleet-wide, emit a complete change-lug (change-receipt) to Basher's `incoming/` so Basher can fold it into the canonical template.
+
+Apply changes directly **only for purely local state** — files under `WAI-Harness/spoke/local/` (lugs, sessions, savepoints, runtime). When in doubt, route to Basher.
 
 ---
 

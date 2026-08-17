@@ -2,7 +2,7 @@
   "id": "lug-drivegraph-spec-v1",
   "type": "spec",
   "subject_id": "DriveGraph",
-  "status": "completed",
+  "status": "retired",
   "routed_to": "FRAMEWORK",
   "originated_in": "wilbur/session-20260529-2107",
   "created_at": "2026-05-30T00:00:00Z",
@@ -141,5 +141,9 @@
   ],
   "completed_at": "2026-06-02T20:34:00Z",
   "resolved_at": "2026-06-02T20:34:00Z",
-  "outcome": "DriveGraph spec fully implemented. schema (DriveGraph.schema.json), spec doc (drivegraph-spec.md), hub seed (hub/WAI-Hub/DriveGraph.json with 6 canonical themes + 3 Wheel-level drives), spoke template (drivegraph-template/DriveGraph.json), AGENTS.md Key Data Structures entry, WAI-SpecIndex.jsonl entry, and teaching (teaching-drivegraph-adoption-v1.md.teaching) all verified present. All 5 verify criteria and 8 acceptance criteria pass."
+  "outcome": "DriveGraph spec fully implemented. schema (DriveGraph.schema.json), spec doc (drivegraph-spec.md), hub seed (hub/WAI-Hub/DriveGraph.json with 6 canonical themes + 3 Wheel-level drives), spoke template (drivegraph-template/DriveGraph.json), AGENTS.md Key Data Structures entry, WAI-SpecIndex.jsonl entry, and teaching (teaching-drivegraph-adoption-v1.md.teaching) all verified present. All 5 verify criteria and 8 acceptance criteria pass.",
+  "s": "retired",
+  "retired_at": "2026-08-17T03:16:00+00:00",
+  "retired_by": "retire-drivegraph-residuals-v1",
+  "retire_reason": "DriveGraph CUT (s141 value review): built then abandoned, zero code readers, zero live spokes. Hub instance, fleet schema, and dev docs deleted by retire-drivegraph-v1."
 }

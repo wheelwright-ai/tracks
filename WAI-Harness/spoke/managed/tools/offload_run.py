@@ -127,6 +127,7 @@ def main(argv=None) -> int:
                if isinstance(v, type) and hasattr(v, "DEEPSEEK_TIER_MAP"))
     tier_map = cls.DEEPSEEK_TIER_MAP if args.provider == "deepseek" else cls.KIMI_TIER_MAP
     router = cls.__new__(cls)
+    router._provider = args.provider      # provider_env() reads this; __new__ skips __init__
     hub = root / "WAI-Harness" / "hub"
 
     dispatch_mod = _load("_offload_dispatch", TOOLS / "wai_ozi_dispatch.py")
@@ -145,11 +146,22 @@ def main(argv=None) -> int:
     for lug_id, tier in picked:
         info = tier_map.get(tier) or tier_map["sonnet"]
         cmd = router._resolve_provider_cmd(info["model_id"], hub)
-        if cmd and cmd[0] == "claude":
-            # The whole point is to not spend Anthropic. Refuse rather than quietly
-            # burn the budget this tool exists to protect.
-            print(f"  SKIP {lug_id}: {info['model_id']} resolved to claude", file=sys.stderr)
-            runs.append({"lug": lug_id, "tier": tier, "status": "refused_claude_fallback"})
+        # REFUSE ON THE REDIRECT, NOT ON THE BINARY. This guard used to read
+        # `cmd[0] == "claude"` because at the time claude-the-binary meant
+        # Anthropic-the-account. Under the cli transport that is no longer true:
+        # every provider keeps the claude binary and only ANTHROPIC_BASE_URL moves.
+        # The stale form refused 4 of 4 candidates as "resolved to claude" while the
+        # routing underneath was correct -- a false refusal that made a working
+        # offload path look dead.
+        #
+        # The real question is the only one that costs money: does this child talk to
+        # Anthropic? It does exactly when there is no redirect in its env.
+        penv = router.provider_env()
+        if cmd and cmd[0] == "claude" and not penv.get("ANTHROPIC_BASE_URL"):
+            print(f"  SKIP {lug_id}: {info['model_id']} would spend Anthropic "
+                  f"(no {args.provider} redirect -- key missing or transport not cli)",
+                  file=sys.stderr)
+            runs.append({"lug": lug_id, "tier": tier, "status": "refused_would_spend_anthropic"})
             continue
 
         lug, path = find_lug(root, lug_id)
@@ -169,7 +181,8 @@ def main(argv=None) -> int:
         t0 = time.monotonic()
         try:
             p = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                               timeout=args.call_timeout)
+                               timeout=args.call_timeout,
+                               env={**os.environ, **penv} if penv else None)
         except subprocess.TimeoutExpired:
             print(f"  TIMEOUT {lug_id} after {args.call_timeout}s", file=sys.stderr)
             runs.append({"lug": lug_id, "tier": tier, "model": info["model_id"],
@@ -183,7 +196,12 @@ def main(argv=None) -> int:
             try:
                 body = json.loads(p.stdout)
                 rec["usage"] = body.get("usage")
-                rec["content"] = body.get("content", "")
+                # Two shapes, one parser. The chat helpers return {"content": ...};
+                # the claude CLI under --output-format json returns {"result": ...}.
+                # Reading only "content" against a cli-transport run scored every
+                # answer as empty_answer.
+                rec["content"] = body.get("content") or body.get("result") or ""
+                rec["transport"] = "cli" if penv else "chat"
                 # An empty answer is NOT a success. A reasoning model whose budget went
                 # entirely to reasoning_content returns "" with rc=0, and recording that
                 # as done is exactly the false-green this harness keeps producing.

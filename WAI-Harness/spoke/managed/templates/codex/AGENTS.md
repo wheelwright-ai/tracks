@@ -22,7 +22,19 @@ Default optimization rules:
 - Do not read `CLAUDE.md` unless the task touches Claude-specific hooks or config.
 - Do not preload large WAI history/runtime files.
 - Prefer targeted file reads over scanning entire `WAI-Harness/spoke/` trees.
-- **Tool ownership (author vs distribute)** — Distributed tool/config — everything under `WAI-Harness/spoke/managed/**` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings) plus `MANIFEST.json`, `.mcp.json`, and provider files — has two roles. The **canonical master source is authored at the hub / canonical home (mywheel)**. **Basher owns distribution** — managed→live redeploy, fleet fan-out, and the re-cut mechanics. A spoke does NOT edit the distributed source locally: it proposes a change via a lug (to the hub to author, and/or to Basher to distribute). Apply changes directly **only when purely local** — files under `WAI-Harness/spoke/local/**` (state, lugs, sessions, savepoints, runtime). When in doubt, route it. This is how we maintain the wheel.
+
+## Tool Ownership (Basher)
+
+**Basher owns all distributed tool files, local-only excepted.**
+
+Two tiers:
+
+1. **Templates + distribution tooling (Basher exclusive):** Basher owns the canonical source templates and everything distributed from `WAI-Harness/spoke/managed/` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings), plus `MANIFEST.json`, `.mcp.json`, and provider file templates (`CLAUDE.md`/`GEMINI.md`/`QWEN.md`). Route all improvements to these via a complete change-lug to Basher's `incoming/`; Basher edits the canonical source, re-cuts the MANIFEST, and distributes — **this is how we maintain the wheel.**
+
+2. **Placed local instances (Spoke, with receipt-back):** The spoke's own deployed copies (its `CLAUDE.md`, `.env.template`, local `tools/`) are the spoke's to maintain locally. The spoke MAY edit its local copy directly. If the edit is a template improvement worth propagating fleet-wide, emit a complete change-lug (change-receipt) to Basher's `incoming/` so Basher can fold it into the canonical template.
+
+Apply changes directly **only for purely local state** — files under `WAI-Harness/spoke/local/` (lugs, sessions, savepoints, runtime). When in doubt, route to Basher.
+
 ## Codex Wakeup Output
 
 - During `/wai`, return the completed WAI Point briefing itself, not a transcript of the checks you ran.

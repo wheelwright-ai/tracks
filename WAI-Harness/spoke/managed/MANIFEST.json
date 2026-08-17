@@ -1,8 +1,8 @@
 {
   "harness_version": "4.14.57",
   "is_master": false,
-  "generated_at": "2026-08-16T22:43:16.408211+00:00",
-  "master_sha": "b8a2b6a3fff5e547522bd978ee150d0d70cc8dac",
+  "generated_at": "2026-08-17T04:16:40.817718+00:00",
+  "master_sha": "ad82c1f73dcc4ac387aa164344dfe4e550649713",
   "files": {
     ".claude/.gitkeep": {
       "version": "4.6.5",
@@ -466,7 +466,7 @@
     },
     ".claude/commands/wai-rules.md": {
       "version": "4.6.5",
-      "md5": "18f2d2fb611fd2ba29612f34832b7022",
+      "md5": "93973f89bd803a02c6d649bd83b0b434",
       "owner": "basher"
     },
     ".claude/commands/wai-savepoint.md": {
@@ -1151,7 +1151,7 @@
     },
     "knowledge/spec/completed/lug-drivegraph-spec-v1.json": {
       "version": "4.6.5",
-      "md5": "43dfdbed6ac62115964470279baa0f4c",
+      "md5": "5e957507db67101e534c770fb1a60506",
       "owner": "basher"
     },
     "knowledge/spec/completed/lug-ozi-initiative-protocol-v1.json": {
@@ -1329,19 +1329,9 @@
       "md5": "c3977ede39623925c6d185b2a8f45fd0",
       "owner": "basher"
     },
-    "knowledge/spec/open/spec-toolgraph-v1.json": {
-      "version": "4.6.5",
-      "md5": "3ba5d5e387ada7e372d50803a66658aa",
-      "owner": "basher"
-    },
     "knowledge/spec/open/spec-v4-migration-home-map-v1.json": {
       "version": "4.6.5",
       "md5": "52450338084b7dd72c7bee0b12a063f4",
-      "owner": "basher"
-    },
-    "knowledge/spec/open/spec-vector-library-v1.json": {
-      "version": "4.6.5",
-      "md5": "095cf0b090a8f3c9cfa7c2bb73c4b00f",
       "owner": "basher"
     },
     "knowledge/spec/open/spec-verification-quality-v1.json": {
@@ -1357,6 +1347,11 @@
     "knowledge/spec/open/spec-work-class-portfolio-v1.json": {
       "version": "4.6.5",
       "md5": "24a681d5fa6cf5bdca1209728aac5fad",
+      "owner": "basher"
+    },
+    "knowledge/spec/retired/spec-vector-library-v1.json": {
+      "version": "4.14.57",
+      "md5": "80ec0e33aba4a608b871d684c0762786",
       "owner": "basher"
     },
     "managed-migrations/001_initial.sql": {
@@ -2156,7 +2151,7 @@
     },
     "templates/codex/AGENTS.md": {
       "version": "4.6.5",
-      "md5": "d75b04efb0bf15e4bbbff940c5f18033",
+      "md5": "fb6f4d5dc74c83daf603fbe630c4ea75",
       "owner": "basher"
     },
     "templates/commands/SKILL-EXAMPLES.md": {
@@ -2571,7 +2566,7 @@
     },
     "templates/commands/wai-rules.md": {
       "version": "4.6.5",
-      "md5": "18f2d2fb611fd2ba29612f34832b7022",
+      "md5": "93973f89bd803a02c6d649bd83b0b434",
       "owner": "basher"
     },
     "templates/commands/wai-savepoint.md": {
@@ -2851,12 +2846,12 @@
     },
     "templates/spoke/AGENTS.md": {
       "version": "4.6.5",
-      "md5": "91587923ead7b3cc5e8f0df13b952f2b",
+      "md5": "16b667e0e9051a233bb77c3bf1669fa0",
       "owner": "basher"
     },
     "templates/spoke/CLAUDE.md": {
       "version": "4.6.5",
-      "md5": "9be338c03e0cc23f52e8ded17cdf058a",
+      "md5": "5e3ddae73287e4ec468b62021072660a",
       "owner": "basher"
     },
     "templates/spoke/GEMINI.md": {
@@ -3136,7 +3131,7 @@
     },
     "templates/spoke/skills/rules/wai-rules.md": {
       "version": "4.6.5",
-      "md5": "18f2d2fb611fd2ba29612f34832b7022",
+      "md5": "93973f89bd803a02c6d649bd83b0b434",
       "owner": "basher"
     },
     "templates/spoke/skills/signal-capture/wai-signal-capture.md": {
@@ -3391,7 +3386,7 @@
     },
     "tools/autopilot_round.py": {
       "version": "4.13.1",
-      "md5": "55ed71cb6a758911bbae89aff318f879",
+      "md5": "39c2588e5e8ab0c892ac494ea50ba5fe",
       "owner": "basher"
     },
     "tools/autopilot_verify.py": {
@@ -3561,7 +3556,7 @@
     },
     "tools/completion_certifier.py": {
       "version": "4.14.24",
-      "md5": "b4fb65ec1d018ac9b9c21d1a7dad718c",
+      "md5": "abb0ce8efbaa0c72eb70fffffc4ad062",
       "owner": "basher"
     },
     "tools/compliance_detectors/__init__.py": {
@@ -3761,7 +3756,7 @@
     },
     "tools/emit_activity_event.py": {
       "version": "4.6.5",
-      "md5": "7fcb5b03bab93a5045c04318d423a26c",
+      "md5": "3041550c73893f486954282606bc9f58",
       "owner": "basher"
     },
     "tools/emit_goal_exit_marker.py": {
@@ -4236,7 +4231,7 @@
     },
     "tools/offload_run.py": {
       "version": "4.14.57",
-      "md5": "54ca3344e911742d8a56c595d57b7863",
+      "md5": "4594edb5db92f29b7b6d93481c6db07e",
       "owner": "basher"
     },
     "tools/oracle_liveness.py": {
@@ -4251,7 +4246,7 @@
     },
     "tools/ozi_autopilot.py": {
       "version": "4.6.5",
-      "md5": "e1bf9a6eceabc9554560f5f57b02d9cb",
+      "md5": "92d09d1c229ade1b1ea2292957b01322",
       "owner": "basher"
     },
     "tools/ozi_headless.py": {

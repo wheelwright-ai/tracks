@@ -5230,7 +5230,16 @@ class OziAutopilot:
                         # the certifier spawns `claude -p --agents pattern-gate`
                         # against Anthropic even mid-offload -- the spend the round
                         # exists to avoid, hidden one lug at a time.
-                        provider_env=self.provider_env(),
+                        #
+                        # getattr, not self.provider_env(). _dispatch_subprocess is an
+                        # INJECTION POINT: the wiring tests drive it with a
+                        # SimpleNamespace stub that predates this method, and a bare
+                        # call raised AttributeError -> "certifier error, held for
+                        # review" -> the lug silently landed in needs_attention
+                        # instead of open. Five tests caught it. Third time in this
+                        # session that assuming the real object's shape broke a stub;
+                        # a caller-supplied object is a contract, not a guarantee.
+                        provider_env=getattr(self, "provider_env", dict)(),
                     )
                     _gl_extra["certification"] = _cert
                     _gl_extra["certified_by"] = "completion_certifier (independent)"

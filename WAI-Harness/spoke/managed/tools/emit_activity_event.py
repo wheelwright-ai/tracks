@@ -201,10 +201,10 @@ def batch_flush(queue_path: str = QUEUE_PATH) -> tuple:
             if resp.status in (200, 201):
                 open(queue_path, "w").close()  # clear queue
                 return len(events), 0
-    except urllib.error.HTTPError:
-        pass
-    except urllib.error.URLError:
-        pass
+    except urllib.error.HTTPError as e:
+        print(f"[emit_activity_event] batch_flush() HTTP {e.code}: {e.read().decode()[:120]}", file=sys.stderr)
+    except urllib.error.URLError as e:
+        print(f"[emit_activity_event] batch_flush() URLError: {e.reason}", file=sys.stderr)
     return 0, len(events)
 
 

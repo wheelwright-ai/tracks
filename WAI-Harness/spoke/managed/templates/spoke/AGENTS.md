@@ -15,14 +15,16 @@ contracts, not instructions you have to carry.
 2. **Review inbox** — check `WAI-Harness/spoke/local/lugs/incoming/` for unprocessed lugs. List what arrived (file names + titles). Triage in place: note each item, defer actioning to the appropriate session goal. Do this before any other work regardless of the stated session goal.
 3. Then respond to the user's message.
 
+Full kernel verbs are in **The harness (WAI)** below.
+
 **Older layouts are DETECTED, never assumed.** Tooling expects v6; on meeting an older
 spoke it interrogates rather than guessing — `source .claude/hooks/harness_mode.sh <root>`
 and read `$HARNESS_ACTIVE`. Only when that resolves to `v4`/`v3` do the pre-v6 surfaces
-apply: `WAI-Harness/spoke/local/WAI-State.json` for state, then the first wakeup file you
-have CONFIRMED exists on disk among `.claude/commands/wai.md` (v4),
-`WAI-Harness/spoke/commands/wai.md` (v3), `WAI-Harness/spoke/skills/wai/wai.md` (v3).
-Probe with `test -e` first; never follow a path you have not just checked. On many spokes
-the two v3 paths no longer exist, and that is expected, not an error.
+apply: `WAI-Harness/spoke/local/WAI-State.json` for state, then `.claude/commands/wai.md`
+(invoke `/wai`) — the one wakeup fallback that exists here. Verified absent on this spoke
+as of 2026-08-14: `WAI-Harness/spoke/commands/wai.md` and
+`WAI-Harness/spoke/skills/wai/wai.md`. Never follow a fallback path you have not just
+checked.
 
 ## Codex Optimization
 
@@ -32,7 +34,7 @@ the two v3 paths no longer exist, and that is expected, not an error.
   *(v3 coexist spokes: the same paths without the `local/` segment.)*
 - Prefer targeted reads of the files directly involved in the task.
 - During `/wai`, finish the WAI Point briefing before asking for approval on teachings or side actions.
-- During `/wai`, output the completed WAI Point briefing itself, not a transcript of the bootstrap work.
+- During `/wai`, output the completed WAI Point briefing itself, not a transcript of the checks you ran.
 - After the briefing, use one short readiness line such as `Wake complete. Ready to work.`
 - Do not append a numbered next-steps plan unless the user explicitly asks for planning.
 - If review or approval items are pending, keep them inside a compact `Pending Items` section in the briefing.
@@ -48,12 +50,17 @@ the two v3 paths no longer exist, and that is expected, not an error.
 | `WAI-Harness/spoke/local/lugs/outgoing/` | Outbound lugs for hub or other spokes *(v3 coexist: `WAI-Harness/spoke/lugs/outgoing/`)* |
 | `WAI-Harness/spoke/local/seed/ingest/` | Pending teachings from framework *(v3 coexist: `WAI-Harness/spoke/seed/ingest/`)* |
 
-## Tool-Specific Files
+## Tool Ownership (Basher)
 
-- **Claude Code** — also read `CLAUDE.md`
-- **Gemini CLI** — also read `GEMINI.md`
-- **GitHub Copilot** — also read `WAI-Harness/spoke/copilot-instructions.md`
-- **Tool ownership (author vs distribute)** — Distributed tool/config — everything under `WAI-Harness/spoke/managed/**` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings) plus `MANIFEST.json`, `.mcp.json`, and provider files — has two roles. The **canonical master source is authored at the hub / canonical home (mywheel)**. **Basher owns distribution** — managed→live redeploy, fleet fan-out, and the re-cut mechanics. A spoke does NOT edit the distributed source locally: it proposes a change via a lug (to the hub to author, and/or to Basher to distribute). Apply changes directly **only when purely local** — files under `WAI-Harness/spoke/local/**` (state, lugs, sessions, savepoints, runtime). When in doubt, route it. This is how we maintain the wheel.
+**Basher owns all distributed tool files, local-only excepted.**
+
+Two tiers:
+
+1. **Templates + distribution tooling (Basher exclusive):** Basher owns the canonical source templates and everything distributed from `WAI-Harness/spoke/managed/` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings), plus `MANIFEST.json`, `.mcp.json`, and provider file templates (`CLAUDE.md`/`GEMINI.md`/`QWEN.md`). Route all improvements to these via a complete change-lug to Basher's `incoming/`; Basher edits the canonical source, re-cuts the MANIFEST, and distributes — **this is how we maintain the wheel.**
+
+2. **Placed local instances (Spoke, with receipt-back):** The spoke's own deployed copies (its `CLAUDE.md`, `.env.template`, local `tools/`) are the spoke's to maintain locally. The spoke MAY edit its local copy directly. If the edit is a template improvement worth propagating fleet-wide, emit a complete change-lug (change-receipt) to Basher's `incoming/` so Basher can fold it into the canonical template.
+
+Apply changes directly **only for purely local state** — files under `WAI-Harness/spoke/local/` (lugs, sessions, savepoints, runtime). When in doubt, route to Basher.
 
 ## Core Rules
 
@@ -61,16 +68,13 @@ the two v3 paths no longer exist, and that is expected, not an error.
 2. **Teaching Verification** — Present what you'll do and wait for user approval before applying teachings.
 3. **Stewardship** — Flag scope drift. Prefer "are you sure?" over silent compliance.
 4. **Lug Authoring** — Include `_behavior_directive` with `what_this_is` and `what_this_is_NOT` in any lug you create.
+5. **Tool Ownership** — Basher owns all distributed tool files, local-only excepted. See *Tool Ownership (Basher)* above.
 
 ## Hub Connection
 
-This spoke connects to the wheel's hub. The canonical hub lives **inside the master spoke
-(`mywheel`) at `WAI-Harness/hub/`** and is the single maintained home. The standalone
-`/wheelwright/hub` and `/wheelwright/framework` repos are **DEPRECATED** — never point at them.
-Always resolve the hub at runtime from `WAI-State.json` → `wheel.hub_path`; never hardcode an
-absolute hub path. The protocol source of truth is the hub's `managed/` tooling; teachings flow
-from `{hub_path}/teachings_repo/{cross_spoke,spoke}/current/` → hub → spokes
-(`framework/current/` is a LEGACY dead drop, scanned last as fallback only).
+This spoke connects to a hub (path in `WAI-Harness/spoke/local/WAI-State.json` → `wheel.hub_path`; v3 coexist: `WAI-Harness/spoke/WAI-State.json`).
+The framework (protocol source of truth) is at `{hub_path}/framework/`.
+Skills and templates flow from framework → hub → spokes.
 
 ---
 
@@ -80,3 +84,15 @@ from `{hub_path}/teachings_repo/{cross_spoke,spoke}/current/` → hub → spokes
 - Finish the WAI Point briefing before asking for approval on teachings or side actions.
 - During wakeup, summarize teachings from filenames/frontmatter only.
 - Do not read full teaching bodies during wakeup unless the user explicitly asks to review them now.
+## TasteGraph (Operator Preference Model)
+
+If `WAI-Harness/spoke/local/tastegraph.json` exists, load it at session start *(v3 coexist spokes: `WAI-Harness/spoke/tastegraph.json`)*.
+This file encodes operator preferences (work style, risk posture, communication register)
+and overrides generic defaults for tracking, response style, and decision-making.
+- Do not generate or modify `tastegraph.json` during normal sessions.
+- For cross-interface portability, use `/wai-tastegraph export --format prompt`.
+## Codex Startup Duties (No Hook Equivalents)
+
+Codex has no lifecycle hook surface equivalent to Claude Code. The following behaviors are automatic in Claude Code but **manual in Codex**:
+
+| Claude Code Hook | Codex Manual Equivalent |

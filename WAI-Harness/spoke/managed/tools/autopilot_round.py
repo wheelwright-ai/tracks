@@ -640,6 +640,19 @@ def _dispatched_count(stdout):
     """
     blob = _runner_blob(stdout)
     if not blob:
+        # MEASURED 2026-08-16 (basher round-20260816T233815): steps 3-12 all
+        # reported "dispatched -1" and this path — the COMMON one — logged
+        # nothing, so autopilot-unparsed.log did not exist and the console line
+        # was the only evidence. Diagnosing it took a manual re-run of the
+        # runner to discover argparse had exited 2 on an unrecognised --tier
+        # (a fleet distribution swapped ozi_autopilot.py mid-chain), printing
+        # usage to stderr and leaving stdout empty.
+        #
+        # The docstring below already carries the operator directive: "gather
+        # data at a level adequate to catch a fault before he reports it. An
+        # unexplained -1 in a console line is not that." That directive was
+        # honoured on the rarer no-`dispatched=` path and skipped here.
+        _log_unparsed(stdout, "no JSON blob from runner (empty/unparseable stdout)")
         return -1
     phase = str((blob.get("phases") or {}).get("phase_3_execute") or "")
     m = re.search(r"dispatched=(\d+)", phase)
