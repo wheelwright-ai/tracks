@@ -27,6 +27,8 @@ reports it afterward. Both, and the parent holds the one that cannot be turned o
 """
 from __future__ import annotations
 
+import datetime
+import json
 import os
 import posixpath
 import subprocess
@@ -64,6 +66,10 @@ while IFS= read -r f; do
   ok=0
   while IFS= read -r p; do
     [[ -z "$p" ]] && continue
+    # a trailing slash on a lane entry (e.g. AP_OWNED's "WAI-Spoke/") must be
+    # stripped before the glob is built, or "$p"/* becomes a double-slash glob
+    # that can never match a real single-slash path (found 2026-08-16)
+    p="${p%/}"
     # boundary-aware: a directory lane matches only at a / separator, so a lane
     # of src/a does NOT swallow src/aa.py (external review, 2026-08-15)
     if [[ "$f" == "$p" || "$f" == "$p"/* ]]; then ok=1; break; fi
@@ -213,6 +219,39 @@ def verify_child_commits(
     return (not offending), offending
 
 
+LIVE_LANE_WINDOW_SECONDS = 1800
+
+
+def live_peer_lanes(repo: Path, now_epoch: float = None) -> List[str]:
+    """Other sessions with a fresh heartbeat on this repo.
+
+    Attribution is the whole problem. `git diff before..after` returns every path
+    changed in the dispatch window regardless of WHO changed it, and a concurrent
+    session's commits are indistinguishable from the child's -- same branch, same
+    git identity, interleaved in time.
+    """
+    import time as _time
+    now = now_epoch if now_epoch is not None else _time.time()
+    f = repo / "WAI-Harness" / "spoke" / "local" / "runtime" / "sessions-live.json"
+    try:
+        data = json.loads(f.read_text(encoding="utf-8"))
+    except (OSError, ValueError, AttributeError):
+        return []
+    live = []
+    for lane_id, rec in (data.get("lanes") or {}).items():
+        seen = rec.get("last_seen")
+        if not seen:
+            continue
+        try:
+            ts = datetime.datetime.fromisoformat(str(seen).replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        age = now - ts.timestamp()
+        if 0 <= age <= LIVE_LANE_WINDOW_SECONDS:
+            live.append(f"{lane_id[:8]} (last seen {int(age)}s ago)")
+    return live
+
+
 def revert_out_of_lane(
     repo: Path, before_sha: str, offending: Sequence[str], lug_id: str = ""
 ) -> Tuple[bool, List[str], str]:
@@ -237,6 +276,36 @@ def revert_out_of_lane(
     """
     if not offending:
         return True, [], ""
+
+    # CONCURRENCY MAKES ATTRIBUTION UNSAFE, SO DO NOT GUESS.
+    #
+    # MEASURED 2026-08-17. This guard deleted 1030 lines across 15 files -- an entire
+    # tool, five test suites, both pre-commit wirings -- none of it written by the
+    # dispatched worker. It was the interactive session's work, committed minutes
+    # earlier. out_of_lane() computes offending paths from
+    # `git diff before_sha..after_sha`, which returns everything changed in the window
+    # regardless of author, so a peer session's commits read as the child going rogue.
+    #
+    # The existing dirty-tree check below did not catch it: that protects UNCOMMITTED
+    # edits, and this work was committed. Committing carefully is what made it
+    # vulnerable, which is precisely backwards.
+    #
+    # Worse, the failure is silent and total. The revert commits cleanly, the round
+    # reports success, and deleted tests simply stop being collected -- so the suite
+    # goes GREEN while 24 tests no longer exist. It surfaced only because the pass
+    # count was lower than it should have been.
+    #
+    # A false refusal leaves a recoverable out-of-lane commit and a followup for a
+    # human, which is the documented fallback. A false revert destroys work with no
+    # warning. Refuse.
+    peers = live_peer_lanes(repo)
+    if peers:
+        return False, [], (
+            f"REFUSED to revert: {len(peers)} live session(s) share this repo "
+            f"({'; '.join(peers[:3])}), so paths changed during the dispatch cannot be "
+            f"attributed to the child. Left for a human -- an out-of-lane commit is "
+            f"recoverable, another session's deleted work is not."
+        )
 
     # DATA-LOSS GUARD, adopted from external review (DeepSeek + Moonshot, 2026-08-15,
     # independently). `git checkout <sha> -- <path>` overwrites the working tree

@@ -1,0 +1,30 @@
+# WAI runtime-state merge policy.
+#
+# WHY THIS FILE EXISTS (measured 2026-08-17, basher s124):
+# Converging four concurrent session lanes into main produced conflicts in EVERY lane,
+# and every single conflict was one of the paths below. Zero authored-source conflicts.
+# These files are committed but behave like generated files: each lane rewrites them
+# every session, so any two lanes always collide on them. Without a policy here, routine
+# lane convergence looks like dangerous surgery and invites a blind `reset`/`checkout`
+# on a shared tree — the operation that has already cost this repo an unrecoverable sweep.
+#
+# POLICY
+#   ours  — single-object JSON snapshots. The merge target's copy is authoritative;
+#           the file is regenerated on the next session anyway. Taking "theirs" would
+#           roll state backwards to a 4-day-old lane.
+#   union — append-only JSONL logs. Keep BOTH sides' lines. "ours" here would silently
+#           discard a peer lane's session record, which violates the CSRP rule that no
+#           lane's work is lost.
+#
+# Requires the drivers to be registered once per clone:
+#   python3 WAI-Harness/spoke/managed/tools/install_git_hooks.py --spoke-path .
+# (git resolves `merge=ours` via merge.ours.driver; union is built in.)
+
+WAI-Harness/spoke/local/WAI-State.json                      merge=ours
+WAI-Harness/spoke/local/maintenance/hygiene-latest.json     merge=ours
+WAI-Harness/spoke/local/maintenance/position-map.json       merge=ours
+WAI-Harness/spoke/local/runtime/track-buffer.json           merge=ours
+WAI-Harness/hub/local/maintenance/receipts/**               merge=ours
+
+WAI-Harness/spoke/local/sessions/**/track.jsonl             merge=union
+WAI-Harness/spoke/local/lugs/readiness-metrics.jsonl        merge=union

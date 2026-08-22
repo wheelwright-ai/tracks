@@ -37,6 +37,16 @@ from wai_ozi_scanner import OziScanner  # noqa: E402
 from wai_ozi_dispatch import OziDispatch  # noqa: E402
 from lug_utils import evaluate_execute_when  # noqa: E402
 
+# ONE DEFINITION OF "IS THIS ACTUALLY WORK", imported rather than re-stated. This estate
+# already carries three separate notions of dispatchable -- the loop's SKIP_TYPES, the
+# ground-truth counter's _DISPATCHABLE_SKIP_TYPES, and conductor's own copy -- and the
+# change-lug recording that drift is open. A fourth inline rule here would make it four.
+try:
+    import lug_class  # noqa: E402
+    _LUG_CLASS_AVAILABLE = True
+except Exception:      # a missing classifier must never break dispatch
+    _LUG_CLASS_AVAILABLE = False
+
 try:
     import capgraph_blocks  # P0 keystone: AP block-memory as CapabilitiesGraph antipatterns
     import goal_planner     # P1: bounded replan-on-block ladder
@@ -49,6 +59,45 @@ try:
     import routing_vocab as _routing_vocab
 except Exception:  # never let a missing/broken tool break AP
     _routing_vocab = None
+
+# The kernel holds the budget gate (operator-ruled reserve) and the Navigator
+# provider catalog. Importing it must never be able to break AP, so the provider
+# router below degrades to key-presence behaviour if the kernel is absent.
+_KERNEL_ROOT = Path(__file__).resolve().parents[3]  # WAI-Harness/
+if str(_KERNEL_ROOT) not in sys.path:
+    sys.path.insert(0, str(_KERNEL_ROOT))
+try:
+    from kernel import budget as _kernel_budget
+    from kernel import navigator as _kernel_navigator
+except Exception:  # never let a missing/broken kernel break AP
+    _kernel_budget = None
+    _kernel_navigator = None
+
+
+def _load_env_local(root) -> int:
+    """Source <root>/.env.local into os.environ (setdefault only). Returns count.
+
+    Unattended rounds -- cron, session-start -- run with a bare environment, so
+    keys that exist on this machine sat unread while routing fell back to the
+    rationed Anthropic account. Values are never printed or logged.
+    """
+    path = Path(root) / ".env.local"
+    loaded = 0
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return 0
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and value and key not in os.environ:
+            os.environ[key] = value
+            loaded += 1
+    return loaded
 
 
 def _routing_resolve(routed_to):
@@ -1201,6 +1250,25 @@ class OziAutopilot:
                     n += 1
         return n
 
+    def _not_dispatchable_work(self, lug: dict) -> str:
+        """"" if this lug is real work; otherwise the KIND that disqualified it.
+
+        Extracted from the phase-3 loop so it can be tested. Inline, its condition survived
+        a mutation that disabled it entirely -- the tests could see that the wiring existed
+        and that lug_class was correct, and could not see whether the guard actually fired.
+        A guard that cannot be exercised is a guard nobody can trust.
+
+        Returns a STRING rather than a bool so the tally names WHICH kind was dropped:
+        "note" and "receipt" are different findings about the backlog.
+        """
+        if not _LUG_CLASS_AVAILABLE:
+            return ""          # degrade to the old behaviour, never park the fleet
+        try:
+            kind, _, _ = lug_class.classify(lug, self.spoke_id or "")
+        except Exception:
+            return ""          # a broken classifier must not eat the queue
+        return "" if kind == lug_class.WORK else str(kind)
+
     def _resolve_teachings_only_mode(self, urgency: int) -> bool:
         """urgency < 2 (extreme urgency signal from hub) used to hard-veto ALL
         lug dispatch unconditionally. BUT urgency is a static business-priority
@@ -1629,6 +1697,41 @@ class OziAutopilot:
         return {"ANTHROPIC_BASE_URL": base, "ANTHROPIC_AUTH_TOKEN": tok,
                 "ANTHROPIC_API_KEY": ""}
 
+    # Which provider validates the work of which worker. Deliberately never
+    # identity-mapped: see validator_env.
+    VALIDATOR_ROTATION = {"deepseek": "kimi", "kimi": "deepseek", "anthropic": "deepseek"}
+
+    def validator_env(self) -> Dict[str, str]:
+        """Env for the CERTIFIER -- a provider that did NOT do the work.
+
+        OPERATOR DESIGN, "Claude as Foreman, Multi-Provider Workers" (s-20260807):
+
+            "a model reviewing its own work is not genuinely independent"
+            "Kimi is affordable enough to be a second opinion and blind validator"
+
+        The certifier used to inherit provider_env() verbatim, so a deepseek worker
+        was graded by deepseek. That is the cheapest possible verification and close
+        to the least meaningful -- shared training, shared blind spots, and a model
+        disposed to find its own output reasonable. The adversarial loop the design
+        asks for needs the producer and the critic to differ.
+
+        Falls back to provider_env() when the counterpart has no key, because a
+        same-provider check still beats no check -- but it says so, rather than
+        quietly degrading to self-review.
+        """
+        worker = getattr(self, "_provider", "anthropic")
+        peer = self.VALIDATOR_ROTATION.get(worker, "deepseek")
+        if peer == worker:                      # never grade yourself
+            return self.provider_env()
+        key = os.environ.get(self.PROVIDER_KEY_ENV.get(peer, ""), "")
+        base = self.PROVIDER_BASE_URL.get(peer)
+        if not (key and base):
+            print(f"[autopilot]   ! no {peer} key — certifying {worker} work on "
+                  f"{worker} itself (self-review, weaker signal)", file=sys.stderr)
+            return self.provider_env()
+        return {"ANTHROPIC_BASE_URL": base, "ANTHROPIC_AUTH_TOKEN": key,
+                "ANTHROPIC_API_KEY": ""}
+
     def _resolve_provider_cmd(self, model_id: str, hub_path: Optional[Path]) -> List[str]:
         """Return the CLI command list for dispatching to model_id.
 
@@ -1917,6 +2020,9 @@ class OziAutopilot:
             "team_coverage.last_coverage_eval_at updated to today; gaps_detected[] reflects the current "
             "roster-vs-goals analysis with a justification per gap; no advisor directories were created."
         )
+        # Step 5 above deterministically rewrites this file every run -- same
+        # unproductive-halt exposure as _build_scout_run_lug (9acf8645d212).
+        lug["file_targets"] = ["WAI-Spoke/advisors/ozi/scan_state.json"]
         return lug
 
     def _build_scout_run_lug(self, entry: Dict[str, Any], reason: str) -> Dict[str, Any]:
@@ -1956,6 +2062,17 @@ class OziAutopilot:
             f"schedule-index.json and WAI-Spoke/advisors/{aid}/scan_state.json both show last_run_at=today "
             f"for '{aid}'; any findings were appended to findings-log.jsonl."
         )
+        # Every branch above deterministically touches these three files (see
+        # execute steps) even when the scan finds nothing actionable and no task
+        # lug gets written -- without this, _measure_productiveness sees no
+        # HEAD move + no file_targets and calls a clean no-op scout "unproductive",
+        # which can trip the 3-consecutive-unproductive-dispatch halt (see
+        # 9acf8645d212: advisor-scout-jordy-20260731-122702).
+        lug["file_targets"] = [
+            "WAI-Spoke/advisors/schedule-index.json",
+            f"WAI-Spoke/advisors/{aid}/scan_state.json",
+            f"WAI-Spoke/advisors/{aid}/findings-log.jsonl",
+        ]
         return lug
 
     def _build_advisor_recommendation_lug(
@@ -2052,6 +2169,21 @@ class OziAutopilot:
             f"schedule-index.json has weekly entry for {domain}",
             f"ozi scan_state team_coverage gap[domain={domain}].proposal_status == 'provisioned'",
         ]
+        # registry.json, schedule-index.json and ozi/scan_state.json are rewritten
+        # on both the auto and manual path regardless of which advisor_id gets
+        # chosen; the domain-named files are only certain on the auto path, where
+        # advisor_id == domain is fixed rather than reused from an existing stub.
+        # Same unproductive-halt exposure as _build_scout_run_lug (9acf8645d212).
+        lug["file_targets"] = [
+            "WAI-Spoke/advisors/registry.json",
+            "WAI-Spoke/advisors/schedule-index.json",
+            "WAI-Spoke/advisors/ozi/scan_state.json",
+        ]
+        if allow_auto:
+            lug["file_targets"] += [
+                f"WAI-Spoke/advisors/{domain}/context_prompt.md",
+                f"WAI-Spoke/advisors/{domain}/scan_state.json",
+            ]
         return lug
 
     # --- scouting orchestration -------------------------------------------
@@ -2912,13 +3044,39 @@ class OziAutopilot:
             "blocked_count": len(blocked_waiting),
             "blocked_lugs": blocked_waiting,
             "user_review_count": len(needs_user_review),
-            "user_review_lugs": needs_user_review,
+            # THIS FIELD WAS 99% OF A 64 MB FILE AND HAD ZERO READERS.
+            #
+            # MEASURED 2026-08-22: activity-log.jsonl was 64.07 MB across 581 records --
+            # ~113 KB per record. 63.3 MB of that was user_review_lugs alone, present in
+            # 450 records, each carrying the FULL objects of every lug awaiting review
+            # (196 KB in the largest). A grep of the whole tree found one writer (this
+            # line) and no reader anywhere -- same shape as FLOOR_MARKER and executor_model:
+            # written forever, consumed never.
+            #
+            # Growth was 31 MB -> 64 MB in five days (+6.6 MB/day). GitHub warns at 50 MB
+            # and HARD FAILS at 100 MB per file, so the repo was ~5 days from a push that
+            # could not be fixed without rewriting history.
+            #
+            # ready_lugs three lines up was already capped at top-5. This applies the
+            # author's own pattern to the field they left uncapped.
+            #
+            # NO ID LIST EITHER, and that was a correction. The first cut of this fix kept
+            # the full ids "so nothing is lost" -- 1196 of them on the largest record, which
+            # only took the record from 198 KB to 61 KB and the wall from 5 days to 18. A
+            # speculative field with no named reader is precisely what canon forbids, and
+            # writing one to feel safe is how the 64 MB was built in the first place.
+            #
+            # The count is the signal. The lugs live in lugs/bytype/ and can be listed on
+            # demand at any time -- a log does not need to carry a copy of the tree it is
+            # describing.
+            "user_review_lugs": needs_user_review[:5],
             "budget": self.budget,
         }
 
         # Append to activity log (write on every run, including dry-run)
         self.autopilot_dir.mkdir(parents=True, exist_ok=True)
         try:
+            self._rotate_activity_log()
             with self.activity_log.open("a") as fh:
                 fh.write(json.dumps(report) + "\n")
         except (OSError, IOError):
@@ -3422,6 +3580,27 @@ class OziAutopilot:
                 Path(lug_path).write_text(json.dumps(data, indent=2))
         return lug
 
+
+    def _rotate_activity_log(self):
+        """Split the activity log before appending when it has grown too large.
+
+        OPERATOR DIRECTIVE 2026-08-22: "split them once they get too big we dont wnat to
+        loose valuable activity interaction data". The log IS the record, so size is solved
+        by splitting, never by writing less.
+
+        MEASURED that night: this file reached 64 MB. The LIVE PATH IS PRESERVED by
+        jsonl_rotate -- older records move to numbered segments beside it -- so the ten-plus
+        tools that open this path as a literal keep working. Best-effort: a rotation failure
+        must never cost the append that follows it.
+        """
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            import jsonl_rotate  # noqa: PLC0415
+            jsonl_rotate.rotate(str(self.activity_log))
+        except Exception:  # noqa: BLE001 -- logging is best-effort, always
+            pass
+
+
     def _score_lug(self, lug: dict) -> tuple:
         """Return (score 1-5, attention_reason or None)."""
         title = lug.get("title", "")
@@ -3495,8 +3674,22 @@ class OziAutopilot:
             )
             if _gl_missing:
                 result.grounded_loop_gaps.append(lug_id)
-            # Write score to lug on disk
-            lug_path = lug.get("_lug_path")
+            # Write score to lug on disk.
+            #
+            # TWO NAMES FOR ONE THING, and it cost the whole circuit. The SCANNER stamps
+            # `_file_path` (wai_ozi_scanner.py:62); this read asked for `_lug_path`, which
+            # only ozi_headless.py sets. So on every ordinary round lug_path was None, the
+            # guard below skipped, and the except swallowed nothing because nothing ran.
+            #
+            # MEASURED 2026-08-20: grooming_score present on 0 of 3,096 lugs, while
+            # object-contracts.json declares this object PRODUCES "grooming_score written
+            # in-place". needs_attention and grounded_loop_gap ride the same write and were
+            # lost with it. The declared invariant -- "a lug with grooming_score < 3 is
+            # never dispatched" -- was unverifiable because the score was never persisted.
+            #
+            # Three layers of silence: an unset field, a guard that skips quietly, and
+            # `except: pass`. Nothing noticed because the object had no predicate.
+            lug_path = lug.get("_lug_path") or lug.get("_file_path")
             if lug_path and Path(lug_path).exists():
                 try:
                     data = json.loads(Path(lug_path).read_text())
@@ -3969,21 +4162,51 @@ class OziAutopilot:
                     file=sys.stderr,
                 )
                 if not self.dry_run:
+                    # DETACHED. THIS IS A CACHE WARM, NOT A GATE.
+                    #
+                    # This was a blocking subprocess.run with timeout=1800, and it is
+                    # the long-hunted "AP stalls after phase 0b and never reaches
+                    # dispatch" -- reproduced twice and killed at 1500s and 400s
+                    # before anyone looked at what it was waiting on. The 30 min cap
+                    # was itself a fix: an earlier 120s cap made big repos time out
+                    # every run, so someone raised the ceiling instead of asking why
+                    # a round was waiting on an index at all.
+                    #
+                    # The premise was that a reindex happens "at most once per stale
+                    # HEAD". On an active spoke HEAD moves on every commit -- provider
+                    # dispatches, hygiene auto-heals, closeouts -- so the index is
+                    # stale on essentially EVERY round and every round paid for it.
+                    # Measured 2026-08-17: 49,743 symbols, and a live round sat here
+                    # while the operator waited.
+                    #
+                    # Nothing downstream needs a fresh index to be correct.
+                    # _gitnexus_impact_check already treats every failure as non-fatal
+                    # and returns None. A stale index degrades advice; a blocked round
+                    # delivers nothing at all.
+                    #
+                    # The lock keeps concurrent rounds from stacking analyses over one
+                    # another -- several spokes and several sessions share this repo.
+                    lock = Path(self.spoke_wai) / "runtime" / "gitnexus-reindex.lock"
                     try:
-                        subprocess.run(
-                            ["npx", "gitnexus", "analyze"],
-                            cwd=str(self.spoke_root),
-                            capture_output=True,
-                            # A full analyze on a large spoke takes well over 2 minutes;
-                            # the old 120s cap meant big repos timed out every run and
-                            # their index never actually refreshed, non-fatally and
-                            # silently. 30 min is generous but this runs at most once
-                            # per stale HEAD.
-                            timeout=1800,
-                        )
-                        print("[ozi] gitnexus: reindex complete", file=sys.stderr)
-                    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as exc:
-                        print(f"[ozi] gitnexus: reindex failed (non-fatal): {exc}", file=sys.stderr)
+                        lock.parent.mkdir(parents=True, exist_ok=True)
+                        stale_lock = (lock.exists() and
+                                      time.time() - lock.stat().st_mtime > 3600)
+                        if lock.exists() and not stale_lock:
+                            print("[ozi] gitnexus: reindex already running elsewhere "
+                                  "— continuing on the current index", file=sys.stderr)
+                        else:
+                            lock.write_text(str(os.getpid()), encoding="utf-8")
+                            subprocess.Popen(
+                                ["npx", "gitnexus", "analyze"],
+                                cwd=str(self.spoke_root),
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                start_new_session=True,
+                            )
+                            print("[ozi] gitnexus: reindex started in background "
+                                  "— continuing on the current index", file=sys.stderr)
+                    except (FileNotFoundError, OSError) as exc:
+                        print(f"[ozi] gitnexus: reindex could not start (non-fatal): "
+                              f"{exc}", file=sys.stderr)
                 else:
                     print("[ozi] gitnexus: [dry-run] would run: npx gitnexus analyze", file=sys.stderr)
             return True
@@ -4071,7 +4294,20 @@ class OziAutopilot:
         failure -- ignoring a halt somebody meant.
         """
         try:
-            path = os.path.join(str(self.spoke_wai), "runtime", "autopilot-control.json")
+            # WAI_AUTOPILOT_CONTROL lets a caller point this at its own file.
+            #
+            # This is a blast-radius fix, not a test convenience. The stop-directive
+            # tests drive the real autopilot and had to write the REAL control file to
+            # exercise it -- so a test asserting on {"stop": true} was writing a live
+            # halt order into shared state that concurrently running AP processes read.
+            # It cost two blocked pushes on 2026-08-17 when offload provider runs and
+            # the pre-push suite raced over the same path, and a crash between the
+            # write and the restoring finally would have left a real STOP latched.
+            #
+            # A control surface that can only be exercised in production is a control
+            # surface whose tests ARE production incidents.
+            path = os.environ.get("WAI_AUTOPILOT_CONTROL") or os.path.join(
+                str(self.spoke_wai), "runtime", "autopilot-control.json")
             if not os.path.isfile(path):
                 return {}
             with open(path, "r", encoding="utf-8") as fh:
@@ -4121,6 +4357,47 @@ class OziAutopilot:
         except (ValueError, TypeError):
             return None
 
+    # EVERY ELIGIBLE LUG LEAVES PHASE 3 BY EXACTLY ONE NAMED PATH.
+    #
+    # MEASURED 2026-08-18 on ezorg: phase 0.5 reported eligible=40 and phase 3 reported
+    # dispatched=0, with NOTHING in between naming where the other 40 went. Five of the
+    # loop's exits were bare `continue` statements -- skip-type, needs-you, deep-audit,
+    # initiative filter, only-filter -- each dropping lugs in total silence.
+    #
+    # Hand-measuring one of them found 11 of 18 dispatchable lugs sitting in the needs-you
+    # column, which the loop excludes correctly and reports not at all. Diagnosing that far
+    # took a night. A tally costs one line per exit and makes the next occurrence
+    # self-explaining, which is why the lug for this says ACCOUNTING BEFORE CAUSE.
+    def _drop(self, reason: str, lug_id: str = "") -> None:
+        if not hasattr(self, "_exit_paths"):
+            self._exit_paths = {}
+        self._exit_paths[reason] = self._exit_paths.get(reason, 0) + 1
+
+    def _exit_tally(self, eligible: int, dispatched: int) -> str:
+        """NOT REACHED IS NOT UNACCOUNTED, and conflating them cries wolf.
+
+        Measured within 90 minutes of this tally shipping: basher reported eligible=437,
+        dispatched=3 (budget), and UNACCOUNTED=410 -- a loud alarm about 410 lugs the loop
+        never looked at, because it stopped at budget. An alarm that fires on the normal
+        case trains everyone to ignore it, which is the same defect as staying silent, and
+        it was introduced by the fix FOR staying silent.
+        """
+        paths = getattr(self, "_exit_paths", {}) or {}
+        named = sum(paths.values())
+        considered = getattr(self, "_considered", None)
+        if considered is None:
+            considered = eligible
+        not_reached = max(0, eligible - considered)
+        unaccounted = max(0, considered - dispatched - named)
+        parts = ", ".join(f"{k}={v}" for k, v in sorted(paths.items(), key=lambda kv: -kv[1]))
+        out = f"eligible={eligible}, dispatched={dispatched}" + (f", {parts}" if parts else "")
+        if not_reached:
+            out += f", not_reached={not_reached} (loop stopped early -- budget or token cap)"
+        # UNACCOUNTED IS THE STATE THAT HID THIS. It must be loud, not a quiet zero.
+        if unaccounted:
+            out += f", UNACCOUNTED={unaccounted} (lugs left the loop with no named reason)"
+        return out
+
     def _load_ready_queue_needs_you_ids(self) -> set:
         """Read the Expediter ready-queue (WAI-Spoke/advisors/expediter/ready-queue.json)
         and return the set of lug ids in the needs-you column. Autopilot must never
@@ -4168,15 +4445,33 @@ class OziAutopilot:
         self._run_errors: List[str] = []
 
         # Expiry sweep at dispatch — auto-release leases past held_at + TTL so
-        # the gate's lease-check sees only live holders.
+        # the gate's lease-check sees only live holders. The sweep now also
+        # RECLAIMS the released lug's file back to open/: before this, an
+        # expired lease left the lug stranded in in_progress/ — ownerless and
+        # invisible to the dispatch gate, which only scans open/. Measured
+        # 2026-08-17: 20 lugs stranded on this spoke, 7 since 2026-08-01.
+        # reclaim_stranded is the standing backfill for the same defect class
+        # (in_progress/ with NO lease record at all — pre-lease-era strandings
+        # the sweep can never see). Both are lock-guarded and never touch a
+        # lug whose lease is live.
         if _LEASE_AVAILABLE and not self.dry_run:
             try:
                 store = self.spoke_wai / "runtime" / "claims-local.json"
-                released = lug_lease.sweep_expired(store_path=str(store))
+                bytype = str(self._config.bytype_dir)
+                released = lug_lease.sweep_expired(
+                    store_path=str(store), bytype_dir=bytype
+                )
                 if released:
                     print(
                         f"[autopilot] phase 3: swept {len(released)} expired "
-                        f"lease(s): {', '.join(released[:5])}",
+                        f"lease(s), reclaimed to queue: {', '.join(released[:5])}",
+                        file=sys.stderr,
+                    )
+                stranded = lug_lease.reclaim_stranded(bytype, store_path=str(store))
+                if stranded:
+                    print(
+                        f"[autopilot] phase 3: reclaimed {len(stranded)} stranded "
+                        f"lug(s) with no lease: {', '.join(stranded[:5])}",
                         file=sys.stderr,
                     )
             except Exception as e:
@@ -4270,6 +4565,7 @@ class OziAutopilot:
         for lug in sorted_lugs:
             if dispatched >= self.budget:
                 break
+            self._considered = getattr(self, "_considered", 0) + 1
 
             # --- MID-RUN CONTROL: the operator can steer a pass already in flight ---
             #
@@ -4315,10 +4611,23 @@ class OziAutopilot:
             lug_id = lug.get("id") or lug.get("i") or "unknown"
 
             if lug_id in (_ctl.get("skip") or []):
-                print(f"[autopilot] mid-run control: skipping {lug_id}", file=sys.stderr)
+                # A SKIP LIST IS UNAGED AND SILENT, and that is the same shape as the
+                # stale STOP this file's own docstring describes: "a suppressed fleet
+                # looked exactly like an idle one". STOP got a TTL; skip did not, and it
+                # carries no timestamp to age it by, so it cannot be expired safely --
+                # it can only be made LOUD. Measured 2026-08-18 on ezorg: 13 latched
+                # entries suppressing dispatch with one line per lug and nothing in the
+                # phase summary, so the run reported dispatched=0 and scored IDLE.
+                self._suppressed_by_control = getattr(self, "_suppressed_by_control", 0) + 1
+                self._drop("control_skip_list", lug_id)
+                print(f"[autopilot] mid-run control: skipping {lug_id} "
+                      f"(operator skip-list, {len(_ctl.get('skip') or [])} entries, unaged "
+                      f"-- clear it in runtime/autopilot-control.json when no longer wanted)",
+                      file=sys.stderr)
                 continue
             _only = _ctl.get("only") or []
             if _only and lug_id not in _only:
+                self._drop("control_only_filter", lug_id)
                 continue
             lug_type = str(lug.get("type") or lug.get("_fs_type") or "unknown")
 
@@ -4335,15 +4644,21 @@ class OziAutopilot:
 
             # --- Skip rules ---
             if lug_type in self.SKIP_TYPES:
+                self._drop(f"skip_type:{lug_type}", lug_id)
                 continue
             # Expediter ready-queue: needs-you items go to the user, never autopilot.
             if lug_id in needs_you_ids:
+                # Correct behaviour -- these belong to the operator. Silence about it is
+                # what made a spoke with real work look like a spoke with none.
+                self._drop("needs_you", lug_id)
                 continue
             # deep_audit filter: when hub directive requests deep audit,
             # only process actionable/diagnostic types — skip feature + epic
             if self.hub_directive.get("deep_audit") and lug_type in ("feature", "epic"):
+                self._drop("deep_audit_filter", lug_id)
                 continue
             if self._initiative_filter and lug.get("initiative") != self._initiative_filter:
+                self._drop("initiative_filter", lug_id)
                 continue
             # --not-blocking-me: process ONLY work the operator is not gating.
             #
@@ -4354,10 +4669,30 @@ class OziAutopilot:
             # is deliberately stricter than the default path: a run the operator
             # kicks off and walks away from must fail closed.
             if self._not_blocking_me and lug.get("disposition") != "auto_build":
+                self._drop("not_blocking_me_filter", lug_id)
+                continue
+
+            # A NOTE IS NOT WORK, AND DISPATCHING ONE COSTS REAL TOKENS.
+            #
+            # MEASURED 2026-08-20 on this spoke: 867 items reach this loop and 128 of them
+            # -- 94 notes and 34 receipts -- name NO file to change and carry no complete
+            # perceive/execute/verify. Nothing between the type-skip above and the dispatch
+            # below required file_targets, so those 128 were eligible to be handed to a
+            # model that has nothing it can do with them.
+            #
+            # This is not iteration overhead. It is spend on work that cannot be done.
+            #
+            # The rule comes from lug_class so there is ONE definition; the tally names the
+            # exit so a misclassification is visible rather than silent.
+            _not_work = self._not_dispatchable_work(lug)
+            if _not_work:
+                self._drop(f"not_work:{_not_work}", lug_id)
                 continue
             if str(lug.get("execution_mode", "")).lower() == "manual":
+                self._drop("execution_mode:manual", lug_id)
                 continue
             if str(lug.get("risk_tier", "")).lower() == "critical":
+                self._drop("risk_tier:critical", lug_id)
                 continue
 
             # --- Execute-when gate ---
@@ -4834,6 +5169,84 @@ class OziAutopilot:
     # choosing to dispatch into their own working tree, which is their call.
     UNATTENDED_TRIGGERS = ("cron", "conductor", "navigator")
 
+    # DISTRIBUTED FILES ARE NOT AUTHORED WORK, and treating them as such parked the fleet.
+    #
+    # MEASURED 2026-08-18, proven by A/B on minder seconds apart: trigger=conductor REFUSED
+    # phase 3, trigger=manual dispatched. The sole blocker was
+    # WAI-Harness/spoke/managed/tools/ozi_autopilot.py -- a file this spoke does not author.
+    # Fleet-wide at that moment: basher 14 blockers, pathfinder 60, minder 1; the capacity
+    # log counted 35 dirty wheels. Conductor scored every one IDLE, Navigator read six IDLE
+    # spokes as "zero real work fleet-wide" and paused itself.
+    #
+    # The guard's own docstring already named this failure mode -- "a guard that can never
+    # open is not a guard, it is an outage with a good excuse" -- and excluded the churning
+    # logs. It missed the other perpetually-dirty class: managed/** drifts on every harness
+    # pull, by design.
+    #
+    # The exclusion is CONDITIONAL on not being the master. On a repo whose MANIFEST says
+    # is_master, managed/** IS the authored source and must still block; everywhere else the
+    # spoke is forbidden from editing it locally (CLAUDE.md tool-ownership), so a difference
+    # there is a distribution artefact, not a hand-written edit at risk.
+    _NEVER_AUTHORED_SUFFIXES = (".log", ".jsonl", ".log.gz")
+
+    def _is_master_repo(self) -> bool:
+        for rel in ("WAI-Harness/spoke/managed/MANIFEST.json", "WAI-Spoke/managed/MANIFEST.json"):
+            f = Path(self.spoke_root) / rel
+            try:
+                if bool(json.loads(f.read_text()).get("is_master")):
+                    return True
+            except Exception:
+                continue
+        return False
+
+    # HARNESS-OWNED PATHS, i.e. everything the harness writes or ships. Measured on the two
+    # spokes still parked after the first cut of this fix: basher's 14 "authored" files were
+    # WAI-State.json, the capability graph, the expediter queues and LUGS -- records the
+    # harness writes itself. pathfinder's 10 were .claude/commands/*.md and WAI-Harness/VERSION,
+    # which arrive by distribution.
+    #
+    # The lug store is the sharpest case: an AP run WRITES lugs, which dirty the tree, which
+    # blocks the next AP run. A guard fed by its own output is a ratchet that only tightens.
+    _HARNESS_OWNED = (
+        "WAI-Harness/spoke/managed/", "WAI-Harness/hub/managed/", "WAI-Spoke/managed/",
+        "WAI-Harness/spoke/local/", "WAI-Harness/hub/local/", "WAI-Spoke/lugs/",
+        "WAI-Harness/spoke/advisors/", "WAI-Harness/VERSION",
+        ".claude/commands/", ".claude/hooks/", ".claude/agents/", ".claude/skills/",
+        # A deploy RECEIPT, written by the deploy tooling on every run. Named explicitly
+        # rather than excluding .claude/ wholesale: settings.local.json IS operator-authored
+        # (the anti-pattern list is about what the operator puts there), and a blanket rule
+        # would stop protecting it.
+        ".claude/.deploy-record.json",
+        # DISTRIBUTED, and proven so: MANIFEST.json carries '.claude/settings.json' and
+        # 'templates/spoke/.claude/settings.json', so it is fanned out to every spoke and a
+        # local difference is drift, not authorship.
+        #
+        # MEASURED 2026-08-20: this ONE file was the last thing blocking basher -- a core
+        # spoke -- from every unattended round. settings.LOCAL.json is deliberately NOT
+        # here: that one is the operator's, and a test pins the difference.
+        ".claude/settings.json",
+    )
+
+    def _is_authored_here(self, path: str) -> bool:
+        """Is this a hand-written edit that exists nowhere but this working tree?
+
+        The default is INVERTED from the original. It used to be "everything is authored
+        except logs", which made every harness-written record look like operator work and
+        parked the fleet. It is now "harness-owned paths are not authored", leaving the
+        spoke's OWN product source -- the thing nobody re-types -- still protected.
+        """
+        p = str(path or "").strip()
+        if not p or p.endswith(self._NEVER_AUTHORED_SUFFIXES):
+            return False
+        owned = any(seg in p for seg in self._HARNESS_OWNED)
+        if not owned:
+            return True
+        # On the master, managed/** IS the authored source and must still block. Its local
+        # runtime and lug store are still harness-written, so they do not.
+        if self._is_master_repo() and ("managed/" in p or p.endswith("WAI-Harness/VERSION")):
+            return True
+        return False
+
     def _unattended_authored_work_block(self) -> bool:
         """Refuse an UNATTENDED dispatch while the tree holds uncommitted authored source.
 
@@ -4901,12 +5314,12 @@ class OziAutopilot:
         # The thing worth protecting is authored SOURCE: a hand-written edit that exists
         # nowhere but the working tree. An appender re-creates its own lines; nobody
         # re-types a patch.
-        at_risk = [f for f in blocked
-                   if not f.endswith((".log", ".jsonl", ".log.gz"))]
+        at_risk = [f for f in blocked if self._is_authored_here(f)]
         if not at_risk:
             if blocked:
                 print(f"[autopilot] authored-work precheck: {len(blocked)} dirty "
-                      f"log/journal file(s) ignored -- not operator source", file=sys.stderr)
+                      f"log/journal/distributed file(s) ignored -- not operator source",
+                      file=sys.stderr)
             return False
         blocked = at_risk
         print(f"[autopilot] phase 3: REFUSING to dispatch — {len(blocked)} uncommitted "
@@ -5239,12 +5652,23 @@ class OziAutopilot:
                         # instead of open. Five tests caught it. Third time in this
                         # session that assuming the real object's shape broke a stub;
                         # a caller-supplied object is a contract, not a guarantee.
-                        provider_env=getattr(self, "provider_env", dict)(),
+                        # BLIND VALIDATION: a peer provider, not the worker's own.
+                        provider_env=getattr(self, "validator_env", dict)(),
                     )
                     _gl_extra["certification"] = _cert
                     _gl_extra["certified_by"] = "completion_certifier (independent)"
                     if _cert["file_targets_backfilled"]:
                         _gl_extra["file_targets"] = _cert["file_targets"]
+                        # Mirror onto the in-memory lug too, not just the persisted
+                        # record. _measure_productiveness (called right after this
+                        # dispatch returns, on this SAME lug object) reads
+                        # lug["file_targets"] -- without this it still sees the
+                        # empty value the lug was dispatched with and scores a
+                        # certifier-backfilled completion "unproductive: no HEAD
+                        # move and the lug names no file_targets", burning the
+                        # halt streak on work that was just independently verified
+                        # (see task-fix-wai-spoke-broken-refs-20260818, 2026-08-18).
+                        lug["file_targets"] = _cert["file_targets"]
                     if _cert["disposition"] == completion_certifier.HALTED:
                         _gl_status = "open"
                         _gl_extra["reopened_reason"] = _cert["reason"]
@@ -5566,6 +5990,7 @@ class OziAutopilot:
                         entry["confidence_score"] = round(min(1.0, max(0.0, float(raw_qs) / 10.0)), 2)
                     except (TypeError, ValueError):
                         pass
+                self._rotate_activity_log()
                 with self.activity_log.open("a") as fh:
                     fh.write(json.dumps(entry) + "\n")
 
@@ -7153,10 +7578,15 @@ class OziAutopilot:
                 # 2026-08-15 -- it reads as "there was nothing to do".
                 _sbd = getattr(self, "_stopped_by_directive", None)
                 _prefix = "suppressed: STOP directive" if _sbd else "ok"
+                # THE TALLY GOES IN THE SUMMARY, not just in scrollback. "dispatched=0" is
+                # what every downstream reader sees, and on its own it cannot be told apart
+                # from "there was nothing to do" -- which is the confusion that read a spoke
+                # with 18 dispatchable lugs as an empty one.
+                _tally = self._exit_tally(len(state.open_lugs), len(completed))
                 phases["phase_3_execute"] = (
                     f"{_prefix}: dispatched={len(completed)}, gastown_inline={self._gastown_executed_inline}, "
                     f"gastown_deferred={len(gastown)}, tokens={self._tokens_used}, "
-                    f"needs_attention={len(self._stalled_this_run)} [{_e3}s]"
+                    f"needs_attention={len(self._stalled_this_run)} [{_e3}s] | {_tally}"
                 )
                 if _sbd:
                     phases["phase_3_stop_directive"] = {
@@ -7167,6 +7597,7 @@ class OziAutopilot:
                 print(
                     f"[autopilot] phase 3: done ({_e3}s) — dispatched={len(completed)} "
                     f"(gastown_inline={self._gastown_executed_inline}, tokens={self._tokens_used})"
+                    + f"\n[autopilot] phase 3: where the rest went — {_tally}"
                     + ("  ** HALTED BY STOP DIRECTIVE — clear with ./autopilot --resume **"
                        if _sbd else ""),
                     file=sys.stderr,
@@ -7352,6 +7783,141 @@ def build_historian_archaeology_context(spoke_root: str) -> dict:
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
+# Catalog provider name -> the provider id Ozi dispatches under. The Navigator
+# catalog records Moonshot's models under provider="moonshot"; Ozi's tier maps,
+# transports and key env all say "kimi". This alias is the whole difference.
+_CATALOG_TO_OZI_PROVIDER = {"deepseek": "deepseek", "moonshot": "kimi"}
+
+
+MECHANICAL = "mechanical"
+JUDGMENT = "judgment"
+
+
+def _choose_offload_provider(models=None, env=None, work_class=MECHANICAL):
+    """Best authenticated non-Anthropic provider from the Navigator catalog.
+
+    WORK CLASS GATES THE REASONING TIER.
+    OPERATOR 2026-08-18: "I dont want to use a reasoning model on low level work.
+    Its the auto routing intellegence I expect Navigator and Ozi to handle."
+
+    MEASURED the same day, which is what makes this a rule and not a preference:
+      * kimi-k3 given 1200 output tokens spent ALL of them on reasoning_content and
+        returned an EMPTY answer (finish_reason: length) -- billed at $15/Mtok for
+        nothing at all.
+      * deepseek-v4-pro emitted 18,595 characters of reasoning to answer "say OK".
+      * Ten k3 agentic sessions in one day took the Moonshot balance to $6.90.
+
+    So `mechanical` work -- drains, scans, format fixes, bulk edits -- EXCLUDES any
+    model whose Navigator entry carries reasoning=True. `judgment` work (refutation,
+    adversarial review, design) may use one, because deliberation is the product
+    being bought rather than an accident of the model class.
+
+    This reads the `reasoning` field added to navigator.Model on 2026-08-18. Before
+    it existed the rule was unenforceable: nothing recorded which models reason.
+
+    A provider qualifies when the catalog lists at least one model for it that
+    is NOT marked rate_limited, whose key_var is present in env, and that maps
+    to a provider Ozi can actually dispatch (_CATALOG_TO_OZI_PROVIDER). Ranked
+    by the provider's best model: tier (STRONG > MID > CHEAP), then an
+    'execution' claim, then cheapest input price. A model that answered 200
+    then 429 cannot drain a backlog, so rate_limited excludes rather than
+    merely deprioritises.
+
+    Returns (ozi_provider, reason) or (None, reason).
+    """
+    if models is None:
+        if _kernel_navigator is None:
+            return None, "Navigator catalog unavailable (kernel import failed)"
+        models = _kernel_navigator.MODELS
+    if env is None:
+        env = os.environ
+    best = {}  # ozi provider -> (tier, execution_claim, -price, model_id)
+    for m in models:
+        ozi_name = _CATALOG_TO_OZI_PROVIDER.get(getattr(m, "provider", ""))
+        if ozi_name is None:
+            continue
+        if getattr(m, "rate_limited", False):
+            continue
+        # THE REASONING GATE. Mechanical work never buys deliberation it did not ask for.
+        if work_class == MECHANICAL and getattr(m, "reasoning", False):
+            continue
+        key_var = getattr(m, "key_var", "")
+        if not (key_var and env.get(key_var)):
+            continue
+        price = getattr(m, "input_price", None)
+        score = (getattr(m, "tier", 0),
+                 1 if "execution" in (getattr(m, "good_at", ()) or ()) else 0,
+                 -(price if isinstance(price, (int, float)) else 1e9))
+        if ozi_name not in best or score > best[ozi_name][0]:
+            best[ozi_name] = (score, getattr(m, "id", "?"))
+    if not best:
+        extra = (" and is not a reasoning model (work_class=mechanical)"
+                 if work_class == MECHANICAL else "")
+        return None, ("no non-Anthropic provider in the Navigator catalog both "
+                      "authenticates here and is free of a rate_limited mark" + extra)
+    winner = max(best, key=lambda p: best[p][0])
+    return winner, f"best authenticated catalog provider is {winner} " \
+                   f"(via {best[winner][1]})"
+
+
+def _default_provider(root=".") -> str:
+    """Infer the provider from budget headroom and the Navigator catalog.
+
+    OPERATOR DIRECTIVE 2026-08-17: "This capability to route work should be
+    embedded and second nature to Ozi -- based on Navigator's listing it should
+    actually infer this behavior is needed based on where it understands limits
+    to be." He was at 96% of a 7-day Anthropic limit when he said it; key
+    presence alone makes the identical choice at 96% and at 4%.
+
+    The ladder (operator ruling 2026-08-15, kernel.budget): while headroom is
+    above the reserve, the subscription is a SUNK cost and $0 marginal -- spend
+    it first. At or below the reserve, or when headroom is UNKNOWN or expired,
+    route to the best authenticated non-Anthropic provider; unknown is not
+    permission to spend the scarce account. WAI_PROVIDER wins outright.
+
+    Every decision logs one line naming the observed headroom, the threshold,
+    and the provider chosen -- a routing decision nobody can see is one nobody
+    can debug.
+    """
+    explicit = os.environ.get("WAI_PROVIDER")
+    if explicit:
+        print(f"[autopilot] provider-route: WAI_PROVIDER={explicit} is set -- "
+              f"explicit operator intent overrides inference")
+        return explicit
+
+    _load_env_local(root)  # unattended rounds start with a bare environment
+
+    reserve = getattr(_kernel_budget, "RESERVE_PCT", 20.0)
+    allowed, pct_left, why = False, None, "budget gate unavailable"
+    if _kernel_budget is not None:
+        try:
+            report = _kernel_budget.headroom(root)
+            allowed = bool(report.get("subscription_allowed"))
+            pct_left = report.get("pct_left")
+            reserve = report.get("reserve_pct", reserve)
+            why = report.get("why", "")
+        except Exception as exc:  # an unreadable gate is UNKNOWN, and unknown is not permission
+            why = f"budget gate raised {exc!r}; headroom treated as UNKNOWN"
+
+    headroom_txt = f"{pct_left}% left" if isinstance(pct_left, (int, float)) else "UNKNOWN"
+    if allowed:
+        print(f"[autopilot] provider-route: headroom {headroom_txt}, above the "
+              f"{reserve:.0f}% reserve -> anthropic (subscription is sunk cost, "
+              f"$0 marginal). {why}")
+        return "anthropic"
+
+    chosen, reason = _choose_offload_provider()
+    if chosen:
+        print(f"[autopilot] provider-route: headroom {headroom_txt}, at/below the "
+              f"{reserve:.0f}% reserve or unknown -> {chosen}: {reason}. {why}")
+        return chosen
+    print(f"[autopilot] provider-route: WARNING headroom {headroom_txt} but {reason} "
+          f"-- falling back to anthropic, the rationed account, because no "
+          f"alternative authenticates. {why}")
+    return "anthropic"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="OZI Autopilot — autonomous spoke maintenance."
@@ -7443,8 +8009,9 @@ def main() -> None:
     parser.add_argument(
         "--provider",
         choices=["anthropic", "deepseek", "kimi"],
-        default=os.environ.get("WAI_PROVIDER", "anthropic"),
-        help="LLM provider for lug dispatch (default: anthropic; env: WAI_PROVIDER)"
+        default=None,
+        help="LLM provider for lug dispatch (default: inferred from budget "
+             "headroom + Navigator catalog; env: WAI_PROVIDER wins outright)"
     )
     parser.add_argument(
         "--trigger-source",
@@ -7462,6 +8029,14 @@ def main() -> None:
     spoke_path = Path(args.spoke_path).resolve()
     hub_dir = Path(args.hub_dir).resolve() if args.hub_dir else None
     manifest_path = Path(args.from_manifest).resolve() if args.from_manifest else None
+
+    # The routing decision needs the spoke path (headroom reading + .env.local
+    # live under it), so it happens here, not at argparse-default time. The
+    # env load runs even when --provider was explicit: an unattended round
+    # still needs the keys to authenticate what it was told to use.
+    _load_env_local(spoke_path)
+    if args.provider is None:
+        args.provider = _default_provider(spoke_path)
 
     runner = OziAutopilot(
         spoke_path=spoke_path,

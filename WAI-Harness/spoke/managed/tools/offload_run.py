@@ -105,8 +105,18 @@ def main(argv=None) -> int:
     ap.add_argument("--provider", choices=["deepseek", "kimi"], required=True)
     ap.add_argument("--budget", type=int, default=3)
     ap.add_argument("--root", default=str(SPOKE_ROOT))
-    ap.add_argument("--select-timeout", type=int, default=300)
-    ap.add_argument("--call-timeout", type=int, default=600)
+    # RAISED 2026-08-17 BY MEASUREMENT. A budget-8 run on each of deepseek and kimi
+    # produced 9 timeouts out of 16 calls, every one an impl-* lug -- and the ceiling
+    # in force was BELOW ozi_autopilot's own DEFAULT_TIMEOUT_SECS of 900. The runner
+    # was cutting off work the autopilot would have let finish.
+    ap.add_argument("--select-timeout", type=int, default=600,
+                    help="seconds for the AP dry-run that picks candidates; it walks "
+                         "the whole lug tree (3825 on this spoke)")
+    ap.add_argument("--call-timeout", type=int, default=2700,
+                    help="ceiling per lug. Only a ceiling: --min-call-timeout and the "
+                         "lug's own estimated_seconds set the real budget")
+    ap.add_argument("--min-call-timeout", type=int, default=900,
+                    help="floor per lug, matching ozi_autopilot.DEFAULT_TIMEOUT_SECS")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the plan and the resolved command; call no provider")
     args = ap.parse_args(argv)
@@ -129,6 +139,9 @@ def main(argv=None) -> int:
     router = cls.__new__(cls)
     router._provider = args.provider      # provider_env() reads this; __new__ skips __init__
     hub = root / "WAI-Harness" / "hub"
+
+    _log = _load("_offload_usage_log", TOOLS / "model_usage_logger.py")
+    _ta = _load("_offload_token_attr", TOOLS / "token_attribution.py")
 
     dispatch_mod = _load("_offload_dispatch", TOOLS / "wai_ozi_dispatch.py")
     config = dispatch_mod.OziConfig(spoke_path=str(root / "WAI-Spoke"))
@@ -178,15 +191,32 @@ def main(argv=None) -> int:
                          "status": "planned", "prompt_chars": len(prompt)})
             continue
 
+        # HONOUR THE LUG'S OWN ESTIMATE, like the autopilot does.
+        # ozi_autopilot reads estimated_seconds per lug and falls back to a default;
+        # this runner ignored it and applied one flat number to a 5-minute doc edit
+        # and a fleet-wide refactor alike. NOTE, measured the day this landed: not one
+        # of the lugs that timed out carried estimated_seconds, effort OR model_fit --
+        # the same dead-input disease as verify_kinds. The clamp is live for the lugs
+        # that do set it; the rest get the floor, which is the real fix for tonight.
+        try:
+            _est = int(lug.get("estimated_seconds") or 0)
+        except (TypeError, ValueError):
+            _est = 0
+        lug_timeout = max(args.min_call_timeout, min(_est or 0, args.call_timeout)) \
+            if _est else args.min_call_timeout
+        lug_timeout = min(max(lug_timeout, args.min_call_timeout), args.call_timeout)
+
         t0 = time.monotonic()
         try:
             p = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                               timeout=args.call_timeout,
+                               timeout=lug_timeout,
                                env={**os.environ, **penv} if penv else None)
         except subprocess.TimeoutExpired:
-            print(f"  TIMEOUT {lug_id} after {args.call_timeout}s", file=sys.stderr)
+            print(f"  TIMEOUT {lug_id} after {lug_timeout}s "
+                  f"(est={_est or 'unset'})", file=sys.stderr)
             runs.append({"lug": lug_id, "tier": tier, "model": info["model_id"],
-                         "status": "timeout"})
+                         "status": "timeout", "timeout_s": lug_timeout,
+                         "estimated_seconds": _est or None})
             continue
         el = round(time.monotonic() - t0, 1)
 
@@ -212,6 +242,31 @@ def main(argv=None) -> int:
         else:
             rec["status"] = "error"
             rec["error"] = (p.stderr or "")[:400]
+        # LOG THE SPEND WHERE SPEND IS READ. The run record below is a per-run file
+        # nothing aggregates; model-usage/usage.jsonl is what burn_panel, the model
+        # profiles and harness_telemetry actually read. Without this the offload work
+        # -- whose entire purpose is to move spend OFF the Anthropic account -- was
+        # invisible to every cost surface in the harness, and the operator asking
+        # "how much did that cost" got zero.
+        #
+        # Failures are logged too, deliberately. A call that errored after burning
+        # 400s of tokens costs the same as one that worked; a ledger of successes
+        # only reports a cost with no denominator.
+        try:
+            _u = rec.get("usage") or {}
+            _ti = _u.get("input_tokens") or _u.get("prompt_tokens") or 0
+            _to = _u.get("output_tokens") or _u.get("completion_tokens") or 0
+            _log.log_usage(
+                provider=args.provider, model=info["model_id"], task_type="execute",
+                tokens_in=_ti, tokens_out=_to,
+                cost_estimate=_ta.estimate_cost(info["model_id"], _ti, _to, root=str(root)),
+                duration_ms=int(el * 1000),
+                error=None if rec["status"] == "answered" else rec["status"],
+                error_kind=None if rec["status"] == "answered" else "offload_run",
+            )
+        except Exception as exc:                      # never let telemetry kill a run
+            print(f"  (usage not logged for {lug_id}: {exc})", file=sys.stderr)
+
         runs.append(rec)
         mark = {"answered": "ok", "empty_answer": "EMPTY", "error": "ERR"}.get(rec["status"], "?")
         print(f"  {mark:5s} {lug_id}  {info['model_id']}  {el}s  "

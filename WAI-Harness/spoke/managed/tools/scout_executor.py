@@ -717,6 +717,17 @@ def execute_one(scout: dict, model: str, provider: str, dry_run: bool, session_i
         "tokens_out": rsp["tokens_out"],
         "bug_lug": bug_lug,
         "details": result["details"],
+        # The MODEL'S RAW TEXT, which was previously computed and thrown away.
+        # run_verification consumes it and keeps only a pass/fail plus `details`,
+        # so every caller downstream lost the actual content of the scout run.
+        #
+        # historian_archaeology parses FIND|GAP|DRIFT lines out of scout output,
+        # and those lines are produced by the MODEL, not by this file — so with
+        # the text discarded there was nothing for it to match and archaeology
+        # returned 0 findings on every run regardless of what the scouts said
+        # (bug-basher-historian-archaeology-scout-synthesis-dead-v1). Additive:
+        # existing consumers read their own keys and are unaffected.
+        "output": rsp["text"],
     }
 
 

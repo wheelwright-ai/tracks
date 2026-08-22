@@ -74,17 +74,10 @@ Behavioral Rules: See skill files, not inline
 - Scope drift: wai-stewardship-guard.md
 - Foundation: wai-foundation-gate.md
 
-## Tool Ownership (Basher)
-
-**Basher owns all distributed tool files, local-only excepted.**
-
-Two tiers:
-
-1. **Templates + distribution tooling (Basher exclusive):** Basher owns the canonical source templates and everything distributed from `WAI-Harness/spoke/managed/` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings), plus `MANIFEST.json`, `.mcp.json`, and provider file templates (`CLAUDE.md`/`GEMINI.md`/`QWEN.md`). Route all improvements to these via a complete change-lug to Basher's `incoming/`; Basher edits the canonical source, re-cuts the MANIFEST, and distributes.
-
-2. **Placed local instances (Spoke):** The spoke's own deployed copies are the spoke's to maintain locally. The spoke MAY edit its local copy directly. If the edit is a template improvement worth propagating fleet-wide, emit a complete change-lug to Basher's `incoming/` so Basher can fold it into the canonical template.
-
-Apply changes directly **only for purely local state** — files under `WAI-Harness/spoke/local/` (lugs, sessions, savepoints, runtime). When in doubt, route to Basher.
+Tool Ownership — Basher owns all distributed tool files, local-only excepted:
+- Distributed tool/config (under `WAI-Harness/spoke/managed/**`, plus `MANIFEST.json`, `.mcp.json`, provider files) is authored at the hub / canonical home and distributed by Basher (managed→live redeploy, fleet fan-out).
+- Local-only changes (`WAI-Harness/spoke/local/**`) may be applied directly.
+- Otherwise route the change via a lug (hub to author, Basher to distribute).
 
 ## Related Skills
 

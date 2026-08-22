@@ -499,7 +499,7 @@ def default_agent_runner(request, prose_steps, timeout=None, provider_env=None):
     )
     if timeout is None:
         try:
-            timeout = int(os.environ.get("WAI_CERTIFIER_TIMEOUT", "600"))
+            timeout = int(os.environ.get("WAI_CERTIFIER_TIMEOUT", "900"))
         except ValueError:
             timeout = 600
     # ANNOUNCE THE WAIT. Silence for ten minutes reads as a hang and was diagnosed as
@@ -555,6 +555,21 @@ def certify(lug, repo, base, agent_runner=default_agent_runner, use_agent=True,
     steps = lug.get("verify") or lug.get("acceptance_criteria") or []
     if isinstance(steps, str):
         steps = [steps]
+
+    # UNWRAP DICT-SHAPED CRITERIA. acceptance_criteria is authored as
+    # [{"id": "AC1", "criterion": "..."}], not as bare strings, and every stage
+    # downstream reads a step as text. A dict therefore matched no command pattern
+    # AND no prose pattern, so mechanical_checks returned ([], []) -- the criteria
+    # were not failed, not escalated, just DROPPED. With the check set now empty the
+    # verdict fell through to "all 0 verify step(s) observed to hold": approved.
+    #
+    # That is how a lug carrying two real, unmet acceptance criteria certified clean.
+    # Unwrapping them turns each into prose the agent path can actually decide, which
+    # is the difference between a step that is judged and a step that is invisible.
+    steps = [(x.get("criterion") or x.get("step") or x.get("text") or "")
+             if isinstance(x, dict) else x
+             for x in steps]
+    steps = [x for x in steps if str(x).strip()]
 
     # verify_kinds types the `verify` list specifically. When `verify` is absent
     # and we fell back to acceptance_criteria, the typing describes a different
@@ -658,6 +673,33 @@ def certify(lug, repo, base, agent_runner=default_agent_runner, use_agent=True,
         verdict["reason"] = (
             "all %d command step(s) observed to hold; %d step(s) typed manual remain "
             "for a human" % (len(verdict["certified_checks"]), len(manual_steps)))
+    elif not verdict["certified_checks"]:
+        # NOTHING WAS CHECKED, SO NOTHING IS CERTIFIED. This branch used to fall
+        # through to APPROVED and emit "all 0 verify step(s) observed to hold" -- a
+        # sentence that reads like a pass and means the opposite. An empty conjunction
+        # is vacuously true in logic and worthless as evidence.
+        #
+        # Measured on this spoke 2026-08-17: 880 of 3825 lugs (23.0%) carry no verify
+        # steps at all -- 822 with no `verify` field, 58 with an empty list -- and 373
+        # of those already sit in completed/. They are overwhelmingly v4-shaped lugs
+        # holding perceive/execute/acceptance_criteria, which the v6 canon deliberately
+        # does not port. So the single most common certifier verdict on this spoke was
+        # an approval that inspected nothing. Found by certifying a lug an offload
+        # provider had just done real work on: the commit claimed 7 PEV steps, the
+        # certifier saw 0 and approved.
+        #
+        # ESCALATE, NOT HALTED, and the asymmetry is the whole design. HALTED reopens
+        # work; at 373 completed lugs that is 373 false reopenings, and this session
+        # already measured what that costs -- opening the untyped-command path refuted
+        # 30 of 66 finished lugs (45.5%) and had to be reverted. A false ESCALATE costs
+        # one glance. Absence of evidence is not evidence of failure either; it is
+        # exactly the undecided state ESCALATE exists to name.
+        verdict["disposition"] = ESCALATE
+        verdict["reason"] = (
+            "nothing to certify: this lug carries no verify steps, so completion is "
+            "unevidenced. An empty check set is not a pass -- add verify steps, or "
+            "have a human accept it explicitly.")
+        verdict["no_verify_steps"] = True
     else:
         verdict["disposition"] = APPROVED
         verdict["reason"] = "all %d verify step(s) observed to hold" % len(

@@ -136,6 +136,19 @@ def qualifies(rep, superseded_ids=None):
         return False, "no spoke identity"
     if rep.get("outcome") == "fail":
         return False, "outcome=fail"
+    # A DECLINED PULL PROVES NOTHING AND MUST NOT STAMP A VERSION.
+    #
+    # `declined` (harness_upgrade, 2026-08-22) means the pull was refused BEFORE applying
+    # anything -- so no bytes moved and no validation ran on this cut. The spoke's manifest
+    # may say the master version, but pull() returns early at pending == 0 and never emits
+    # a report at all, so every report that exists describes a tree whose FILES DIFFER from
+    # master. Stamping that as PROVEN would record the master version against a spoke this
+    # run never verified, which is exactly the invariant in this module's docstring.
+    #
+    # Adversarial review caught the first cut of that change flipping qualifies() from
+    # (False, 'outcome=fail') to (True, 'ok') on a spoke the upgrade had BROKEN.
+    if rep.get("outcome") == "declined":
+        return False, "outcome=declined (nothing applied, nothing verified)"
     if not rep.get("verify_post_ok"):
         return False, "verify_post_ok is not true"
     return True, "ok"

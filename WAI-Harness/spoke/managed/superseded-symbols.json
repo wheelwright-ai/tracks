@@ -15,6 +15,13 @@
       "now": "test_overloaded_measures_the_whole_attention_queue",
       "commit": "ed32cb4c3",
       "why": "The assertion was deliberately INVERTED, not merely renamed. The old test asserted overloaded is False while the queue is deep with automatable items, which encoded a display-only refinement back into the alarm and narrowed it until it could never fire in the wild -- real backlogs are almost entirely automatable-tagged. spec-observability-oversight-v1 says the max-depth alarm is over the QUEUE, not the human-only subset."
+    },
+    {
+      "file": "tools/test_track_judgment_coverage.py",
+      "was": "test_counts_rich_versus_floor",
+      "now": "test_counts_rich_floor_and_synth_separately",
+      "commit": "c4dcc5f81",
+      "why": "The coverage tool learned to separate a model-authored turn that carries no reasoning from a layer-2 backfill that CANNOT carry reasoning by construction. The old test asserted two buckets; the new one asserts three, so the name changed with the claim rather than beside it. Declared because the guard refused basher's pull on this name -- which is the alarm working exactly as its own note promises ('the alarm is the reminder'), not a false positive."
     }
   ]
 }

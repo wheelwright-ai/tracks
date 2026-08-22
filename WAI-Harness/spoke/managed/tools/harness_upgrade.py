@@ -115,7 +115,24 @@ def _protected(rel):
     parts = rel.replace(os.sep, "/").split("/")
     return any(p in _PROTECTED_DIRS for p in parts) or parts[-1] in _EXCLUDE_NAMES
 _EXCLUDE_SUFFIXES = (".pyc", ".pyo")
-_EXCLUDE_NAMES = {".DS_Store"}
+_EXCLUDE_NAMES = {
+    ".DS_Store",
+    # THE AHEAD LEDGER IS THE SPOKE'S OWN STATE AND MUST NEVER BE SHIPPED OR DELETED.
+    #
+    # load_ahead_ledger reads it from TARGET_MANAGED (:356) -- it records which files
+    # THIS spoke holds ahead of master and why. It was nonetheless carried in the
+    # 4.14.57 manifest, so every upgrade overwrote each spoke's own pins with the
+    # master copy: the ledger that exists to protect local work was itself the thing
+    # replacing it.
+    #
+    # basher raised change-master-restore-14-files-dropped-between-cuts-v1 asking master
+    # to RESTORE it to the cut. COUNTERED 2026-08-22: restoring it re-arms the
+    # overwrite. Dropping it from the cut was accidentally right; what was missing is
+    # immunity from RETIREMENT, since an unshipped, unprotected file is deleted from
+    # every target instead. Protected here, it is neither shipped nor deleted -- which
+    # is what per-spoke state has always required.
+    "harness-ahead.json",
+}
 
 
 def _excluded(rel):
@@ -166,8 +183,41 @@ def build_manifest(managed_root, version=DEFAULT_VERSION, is_master=True,
             "md5": _md5(p),
             "owner": prior.get(rel, {}).get("owner", default_owner),
         }
-    return {"harness_version": version, "is_master": is_master,
-            "generated_at": generated_at, "files": files}
+    out = {"harness_version": version, "is_master": is_master,
+           "generated_at": generated_at, "files": files}
+    # THE CUT CARRIES ITS OWN RETURN ADDRESS.
+    #
+    # A distributed spoke that is refused a local managed/ edit has to be told where
+    # to send the change instead, and it cannot look that up: the hub registry lives
+    # only on mywheel, so every spoke that needs the answer is the one place without
+    # it. Measured 2026-08-17 -- master_authority_gate printed a literal "<mywheel>"
+    # placeholder on minder, which is a refusal with nowhere to go.
+    #
+    # Stamping it at cut time means the address travels with the payload and stays
+    # right even if the author moves, because the next cut restamps it. Preserved
+    # across distribution deliberately: _write_neutralized_manifest flips is_master
+    # to false and leaves this intact -- that pairing IS the phone-home contract.
+    if is_master:
+        prior_author = None
+        if mpath.exists():
+            try:
+                prior_author = json.loads(mpath.read_text()).get("author")
+            except (OSError, json.JSONDecodeError):
+                prior_author = None
+        out["author"] = prior_author or _author_stamp(managed_root)
+    return out
+
+
+def _author_stamp(managed_root):
+    """Where a distributed spoke sends change-lugs. Computed on the master only."""
+    root = Path(managed_root).resolve()
+    for parent in root.parents:
+        if (parent / "WAI-Harness").is_dir() and (parent / ".git").exists():
+            return {"wheel_id": parent.name,
+                    "root": str(parent),
+                    "inbox": str(parent / "WAI-Harness" / "spoke" / "local"
+                                 / "lugs" / "incoming")}
+    return {"wheel_id": "mywheel", "root": None, "inbox": None}
 
 
 def load_manifest(managed_root):
@@ -763,6 +813,54 @@ def _invoker():
     return out
 
 
+_DECLINABLE_ABORTS = (
+    # The ONLY abort that may be softened to "declined". A symbol-loss refusal is the
+    # guard working: it happens BEFORE anything is applied, and it means the spoke holds
+    # work the master lacks. Nothing is broken and nothing is pending on the operator.
+    "NET SYMBOL LOSS",
+)
+
+
+def _is_declinable(aborted):
+    """True only for aborts that are a guard DECLINING, never a system failing.
+
+    A WHITELIST, NOT A BLACKLIST, and that direction is the whole point. Adversarial
+    review, 2026-08-22, found the first cut downgrading two aborts that must never be
+    quietened:
+      * "master failed self-verification -- refusing to distribute a corrupt master"
+        (:648) -- a fleet-wide emergency that fires on EVERY spoke. Most of the fleet is
+        already-current, so a blacklist miss makes a corrupt master read as a unanimous
+        no-op.
+      * "upgrade BROKE validation on the receiving spoke" (:743) -- raised AFTER files
+        landed.
+    With a blacklist, every future abort string defaults to silence. With a whitelist, an
+    unrecognised abort stays a loud failure until someone deliberately adds it here.
+    """
+    text = str(aborted or "")
+    return any(marker in text for marker in _DECLINABLE_ABORTS)
+
+
+def _spoke_version(spoke_root):
+    """What this spoke ALREADY holds, read from its own manifest.
+
+    Spoke-side by construction (operator ruling 2026-08-12, see _holds): the spoke knows
+    its own version and reading one local file costs nothing, so the master never walks a
+    tree to answer it. Returns "" when it cannot be determined -- and an unknown version
+    must never be treated as "already current", because that would silently convert a real
+    failure into a declined no-op. Absence of evidence, not evidence of health.
+    """
+    for rel in ("WAI-Harness/spoke/managed/MANIFEST.json",
+                "WAI-Spoke/managed/MANIFEST.json"):
+        try:
+            data = json.loads((Path(spoke_root) / rel).read_text())
+        except Exception:  # noqa: BLE001 -- an unreadable manifest decides nothing
+            continue
+        v = data.get("harness_version") or data.get("version")
+        if v:
+            return str(v)
+    return ""
+
+
 def _holds(rep):
     """What this spoke holds that the master does not, computed spoke-side and SENT.
 
@@ -833,6 +931,60 @@ def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
         outcome = "fail"
 
     spoke_id = os.path.basename(os.path.abspath(spoke_root))
+
+    # A DECLINED PULL ON AN ALREADY-CURRENT SPOKE IS NOT A FAILURE.
+    #
+    # MEASURED 2026-08-22, and the victim was a live session. At 23:31 the fleet pulled
+    # 4.14.58 successfully -- minder alone applied 1055 files, bytes verified, 4/4 checks
+    # passed. At 03:00 a second run hit the NET SYMBOL LOSS gate and aborted, and this
+    # function titled it "Upgrade to 4.14.58 on minder -- validation FAIL".
+    #
+    # Both halves of that title were false. Validation never RAN (the abort happens before
+    # it), and nothing failed: minder was already on 4.14.58, which is the master version.
+    # Sixteen such reports landed in one inbox. A session read them, concluded the fleet was
+    # blocked on a fleet-wide regression, and reported that to the operator. It cost a real
+    # investigation to establish that every one of those spokes was fully upgraded and
+    # healthy, and the guard had simply declined a redundant pull.
+    #
+    # The distinction already existed in this file -- the comment below explains that an
+    # abort and a failed validation "are different failures with different owners" -- but
+    # the OUTCOME collapsed both into "fail", so the distinction never reached a reader.
+    #
+    # THE VERSION COMES FROM THE SPOKE, not from a hub walk (operator ruling 2026-08-12,
+    # see _holds): the spoke already knows what it holds and reading its own manifest costs
+    # nothing.
+    # THE FIRST CUT OF THIS RULE WAS WRONG AND ADVERSARIAL REVIEW CAUGHT IT. It read:
+    #     if outcome == "fail" and rep.get("aborted") and already_current
+    # and it downgraded a BROKEN spoke to "nothing to do". apply() writes the new MANIFEST
+    # at :598, BEFORE post-upgrade validation runs at :743 -- so a pull that applied 1055
+    # files and then REGRESSED the spoke still has already_current == True. Measured on
+    # that exact input, the first cut turned outcome fail -> declined, routed SIGNAL ->
+    # LOCAL (master never hears), impact 9 -> 3, over a payload still carrying
+    # applied:1055 and regressions:["harness_selftest"]. It also silenced
+    # upgrade_report_intake's bug-opening path (9 real bug-upgrade-* lugs came from it) and
+    # flipped registry_version_stamp.qualifies() to True, stamping a broken spoke's version
+    # as PROVEN.
+    #
+    # VERSION EQUALITY IS THE WRONG PREDICATE, and provably so: pull() returns early at
+    # pending == 0 and never emits a report at all, so every report that reaches this line
+    # describes a spoke whose FILES DIFFER from master. A matching manifest string on a
+    # differing tree is evidence the string is lying, not evidence of health -- the manifest
+    # is the one file _iter_files excludes from md5 comparison (:142).
+    #
+    # SO THE DOWNGRADE IS GATED ON WHAT ACTUALLY HAPPENED, not on a version string:
+    # nothing applied, validation never ran, and the abort is one of a NAMED whitelist of
+    # pre-apply refusals. A corrupt-master abort is a fleet-wide emergency and must never
+    # be quietened; it is deliberately absent from that whitelist.
+    spoke_version = _spoke_version(spoke_root)
+    already_current = bool(master_version and spoke_version
+                           and str(spoke_version) == str(master_version))
+    if (outcome == "fail"
+            and rep.get("aborted")
+            and already_current
+            and not rep.get("applied")          # nothing landed
+            and not validation                  # validation never ran
+            and _is_declinable(rep.get("aborted"))):
+        outcome = "declined"
     stamp = datetime.now(timezone.utc)
     lug_id = f"upgrade-report-{spoke_id}-{stamp.strftime('%Y%m%dT%H%M%S')}-v1"
     failed_checks = [c for c in validation.get("checks", []) if c.get("status") == "fail"]
@@ -857,9 +1009,25 @@ def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
         "id": lug_id,
         "type": "upgrade-report",
         "status": "open",
+        # A declined no-op does not SIGNAL. Signalling it is what put sixteen false
+        # fleet-blocker reports into a live inbox in one night.
         "routed_to": "SIGNAL" if outcome == "fail" else "LOCAL",
-        "title": (f"Upgrade to {master_version or 'unknown'} on {spoke_id} — "
-                  f"validation {outcome.upper()}"),
+        # THE TITLE SAYS WHAT HAPPENED. It used to say "validation FAIL" for an abort, and
+        # both words were wrong: validation had not run, and on an already-current spoke
+        # nothing had failed. A reader acts on the title.
+        "title": (
+            f"{spoke_id} already at {spoke_version} — pull declined, nothing to do"
+            if outcome == "declined" else
+            f"Upgrade to {master_version or 'unknown'} on {spoke_id} — "
+            f"ABORTED before validation (validation did not run)"
+            if rep.get("aborted") and not validation else
+            f"Upgrade to {master_version or 'unknown'} on {spoke_id} — "
+            f"validation {outcome.upper()}"
+        ),
+        # Both versions, always, so "blocked" and "already there" are never guessable.
+        # Their absence is what made sixteen healthy spokes read as a fleet outage.
+        "spoke_version": spoke_version,
+        "already_current": already_current,
         "created_at": stamp.isoformat(),
         "created_by": "harness_upgrade.emit_upgrade_report",
         # Which function wrote it is not which thing ran it. See _invoker().
@@ -892,6 +1060,23 @@ def emit_upgrade_report(spoke_root, master_root, rep, master_version=None):
             for c in failed_checks
         ],
         "impact": 9 if outcome == "fail" else 3,
+        # AN IMPACT WITHOUT A BASIS IS REFUSED BY THE LUG GATE, AND THIS EMITTER HAD NONE.
+        # MEASURED 2026-08-22: 272 of 898 upgrade-reports on disk carry impact >= 7 with no
+        # impact_basis, so every one of them blocks any commit that stages it. That tax was paid
+        # three times in a single session -- each time by hand-excluding the reports rather than
+        # fixing the writer, which is why it kept recurring.
+        #
+        # The basis is written HERE because only the emitter knows why the number was chosen. A
+        # machine record that cannot state its own severity has no business asserting one.
+        "impact_basis": (
+            "impact 9 = fleet-wide wrong belief: a failed pull means this spoke is running a cut "
+            "the master cannot reproduce, and every later report from it describes a tree nobody "
+            "can rebuild. Who pays: this spoke on its next upgrade, and whoever diagnoses the "
+            "divergence."
+            if outcome == "fail" else
+            "impact 3 = a routine receipt. Nothing is owed; it records that a pull happened and "
+            "what it did."
+        ),
         "effort": 2,
     }
 
@@ -2295,14 +2480,54 @@ def install(master_root, spoke_root, include_hub=False):
 
 # --- CLI --------------------------------------------------------------------
 
-def _resolve_managed(root, side):
-    """root may be a WAI-Harness root, a spoke/hub root, or a managed dir itself."""
+def _resolve_managed(root, side, strict=False):
+    """root may be a WAI-Harness root, a spoke/hub root, or a managed dir itself.
+
+    THE DOCSTRING PROMISED SPOKE ROOTS AND THE CODE NEVER TRIED THEIR LAYOUT.
+    MEASURED 2026-08-22: _resolve_managed('/home/mario/projects/basher', 'spoke') returned
+    '/home/mario/projects/basher/spoke/managed', which does not exist -- the real path is
+    '<root>/WAI-Harness/spoke/managed'. The candidate list went straight from '<root>/spoke/
+    managed' to '<root>/managed' and never inserted WAI-Harness, so a spoke root always
+    missed.
+
+    WHY THAT WAS WORSE THAN AN ERROR. The function returns its last candidate whether or
+    not it exists, so the caller compared master against an EMPTY directory: every file
+    read as `add`, nothing as `change`, retire came back empty, and the run reported
+    ok=true. A dry-run that compares against nothing and prints a clean verdict is a green
+    over nothing -- and because the symbol-loss guard only inspects home_map['change'], it
+    could never fire either. Three separate dry-runs were reported as evidence that the
+    distribution channel was open, and all three had compared master with a void.
+
+    A MISSING TARGET NOW RAISES rather than returning a path that is not there. Returning
+    a nonexistent directory is what let the falsehood travel; refusing is loud, and this
+    module's whole job is refusing quietly-wrong distributions.
+
+    ABSENCE IS ONLY AN ERROR ON THE SIDE THAT MAKES A CLAIM.
+
+    The first cut of this fix raised on any missing tree and broke two real contracts:
+    test_no_master_is_noop_not_error and test_pull_uses_resolved_master_offline_noop. Both
+    are right -- a spoke whose master is unreachable must go quietly to `no-master`, not
+    crash, because being offline is an ordinary state.
+
+    A missing TARGET is the opposite: nothing legitimate produces it, and returning a path
+    that is not there is what let three false clean verdicts travel. So `strict` is passed
+    by the caller that is about to COMPARE, and left off by the caller that is merely
+    locating a master it can do without.
+    """
     p = Path(root)
     if (p / MANIFEST_NAME).exists():
         return p
-    for cand in (p / side / "managed", p / "managed"):
+    for cand in (p / "WAI-Harness" / side / "managed",   # v4/v6 spoke or hub root
+                 p / side / "managed",                   # a WAI-Harness root
+                 p / "managed"):                         # a side root
         if cand.exists():
             return cand
+    if strict:
+        raise FileNotFoundError(
+            f"no managed tree for side={side!r} under {root!r} -- tried "
+            f"WAI-Harness/{side}/managed, {side}/managed, managed. Refusing to return a "
+            f"path that does not exist: comparing against an absent target reports a "
+            f"false clean.")
     return p / side / "managed"
 
 
@@ -2408,14 +2633,14 @@ def main(argv):
 
     if args.cmd == "home-map":
         master = _resolve_managed(args.master, args.side)
-        target = _resolve_managed(args.target, args.side)
+        target = _resolve_managed(args.target, args.side, strict=True)
         hm = compute_home_map(master, target)
         print(json.dumps(hm, indent=2))
         return 0
 
     if args.cmd == "upgrade":
         master = _resolve_managed(args.master, args.side)
-        target = _resolve_managed(args.target, args.side)
+        target = _resolve_managed(args.target, args.side, strict=True)
         rep = upgrade(master, target, dry_run=args.dry_run, expect_version=args.expect_version,
                       validate=not args.no_validate, clean=args.clean)
         print(json.dumps(rep, indent=2))

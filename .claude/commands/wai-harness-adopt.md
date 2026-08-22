@@ -75,7 +75,7 @@ After the script runs:
    - Any standing rules (e.g., never delete X, always lint before commit)
 
 2. **Check the hub path** — if you passed `--hub-path`, open `WAI-Harness/spoke/WAI-State.json`
-   and confirm `wheel.hub_path` is set correctly.
+   and confirm `wiring.hub_path` in `WAI-Harness/spoke/basher.json` is set correctly.
 
 3. **Git status** — all new files are untracked. Commit the harness skeleton:
    ```bash
@@ -213,7 +213,7 @@ is off-limits to spoke migration. The curated list + rationale ship as
 - Run the hook manually: `bash .claude/hooks/session-start.sh`
 
 **WAI-State.json not populating teaching count**
-- Confirm `wheel.hub_path` points to a valid hub repo
+- Confirm `wiring.hub_path` (in `WAI-Harness/spoke/basher.json`) points to a valid hub
 - Check `hub/teachings_repo/spoke/current/` exists and has `.teaching` files
 
 **Skills missing from /wai**

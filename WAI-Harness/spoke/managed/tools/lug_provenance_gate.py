@@ -65,8 +65,24 @@ GUARDED = (
     ".claude/hooks/",
 )
 
-LUG_RE = re.compile(r"\b(?:impl|implementation|bug|change|task|spec|feature|epic|notice)-[a-z0-9][a-z0-9-]*-v\d+\b")
-LUG_PATH_RE = re.compile(r"/lugs/(?:bytype|incoming|outgoing)/")
+LUG_RE = re.compile(r"\b(?:impl|implementation|bug|change|task|spec|feature|epic|notice|"
+                    r"work|verify|initiative|fix|review)-[a-z0-9][a-z0-9-]*(?:-v\d+)?\b")
+
+# THE CANONICAL STORE WAS INVISIBLE TO THIS GATE.
+#
+# OPERATOR RULING s141: "Canonical record should reflect the harness today not backwards
+# relevant" -- the v6 kernel store at WAI-Spoke/work/ is the record that DECIDES, and the
+# v4 lug tree is history. This gate only recognised /lugs/, so a commit whose provenance
+# was a v6 record was refused for having no lug, while the same commit with a v4 lug it no
+# longer uses would have passed. That pushes every author toward writing a record in the
+# deprecated tree to clear a check -- which is the placeholder-lug anti-pattern this file
+# exists to prevent, produced by the file itself.
+#
+# Measured s141: 1,266 records live in WAI-Spoke/work/ and NONE of them could satisfy this
+# gate. Also widened LUG_RE, because the v6 id shape does not carry a -vN suffix: under the
+# s141 id ruling the HEAD of an object is unversioned and only a superseded copy is
+# numbered, so requiring -vN would have refused every current record by construction.
+LUG_PATH_RE = re.compile(r"/lugs/(?:bytype|incoming|outgoing)/|WAI-Spoke/work/")
 
 
 def _git(repo_root, *args):
@@ -133,6 +149,30 @@ def check_staged(repo_root):
     return [("<staged>", uncovered)]
 
 
+
+BASELINE_FILE = "WAI-Harness/spoke/local/runtime/provenance-baseline.json"
+
+
+def _baseline_sha(repo_root):
+    """The commit up to which unlugged history is accepted.
+
+    A RATCHET, not an amnesty. Wiring this gate into pre-push with no baseline would
+    block every push until 18 pre-existing commits were retroactively lugged -- and
+    the only way to satisfy a RANGE check on an existing commit is to rewrite its
+    message, which destroys history to satisfy a lint. So the debt is recorded once
+    and the rule applies from there forward: new violations fail, old ones stay
+    visible in the baseline file where somebody can pay them down.
+
+    This repo already uses the pattern (fork_ratchet.py, 66 divergent groups).
+    """
+    import json as _j
+    try:
+        with open(os.path.join(repo_root, BASELINE_FILE), encoding="utf-8") as fh:
+            return (_j.load(fh) or {}).get("baseline_sha") or ""
+    except (OSError, ValueError):
+        return ""
+
+
 def check_range(repo_root, rev_range):
     out = _git(repo_root, "log", "--format=%H", rev_range)
     failures = []
@@ -162,13 +202,25 @@ def main(argv=None):
     ap.add_argument("--repo-root", default=".")
     ap.add_argument("--staged", action="store_true", help="check the staged set (pre-commit)")
     ap.add_argument("--rev-range", help="audit a commit range, e.g. origin/main..HEAD")
+    ap.add_argument("--since-baseline", action="store_true",
+                    help="audit from the recorded baseline to HEAD (pre-push mode); "
+                         "pre-existing unlugged commits are accepted, new ones are not")
     args = ap.parse_args(argv)
 
-    if not args.staged and not args.rev_range:
-        ap.error("pass --staged or --rev-range")
+    if not args.staged and not args.rev_range and not args.since_baseline:
+        ap.error("pass --staged, --rev-range or --since-baseline")
 
-    failures = (check_staged(args.repo_root) if args.staged
-                else check_range(args.repo_root, args.rev_range))
+    if args.since_baseline:
+        base = _baseline_sha(args.repo_root)
+        if not base:
+            print("lug_provenance_gate: no baseline recorded — nothing to compare "
+                  f"against. Write {BASELINE_FILE} with a baseline_sha to arm this.")
+            return 0
+        failures = check_range(args.repo_root, f"{base}..HEAD")
+    elif args.staged:
+        failures = check_staged(args.repo_root)
+    else:
+        failures = check_range(args.repo_root, args.rev_range)
     if not failures:
         return 0
 

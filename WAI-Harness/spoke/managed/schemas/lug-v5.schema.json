@@ -271,7 +271,7 @@
 
     "impact": {
       "allOf": [{"$ref": "#/$defs/value_triple"}],
-      "description": "IMPACT value triple (directive S2: IMPACT belongs to initiatives, contextual to current goals)."
+      "description": "IMPACT value triple (directive S2: IMPACT belongs to initiatives, contextual to current goals). The band MEANINGS are anchored in impact-contract.v1.json (predicted minutes of rework for the next agent); impact >= 7 additionally requires impact_basis, enforced by lug_gate._check_impact_basis."
     },
 
     "model_profile": {

@@ -49,6 +49,7 @@ of evidence is the self-graded pattern this whole tool exists to kill.
 import argparse
 import datetime
 import glob
+import hashlib
 import json
 import os
 import re
@@ -337,8 +338,101 @@ def load_trail(root):
     return out
 
 
+# ── Read-only walk cache ─────────────────────────────────────────────────────
+# MEASURED 2026-08-21 (basher s126): the READ-ONLY walk is 2.29s of the 4.29s
+# generate_wakeup_brief.py spends, and 2.09s of THAT is 295 subprocess forks —
+# 223 of them `bash -n -c` inside validate_savepoint.shell_parses, deciding
+# whether a recorded verification string is parseable. That answer is a pure
+# function of the savepoint files, and those files do not change between two
+# launches a minute apart. Every `wcl` paid the whole fork storm again.
+#
+# So the read-only report is memoised against a fingerprint of its own inputs:
+# every savepoint's (relpath, mtime_ns, size), plus HEAD — because the path and
+# sha branches of _check_entry read the TREE, not just the trail — plus the
+# arguments and a schema tag, so a change to the checking logic invalidates
+# every cache in the fleet by bumping one integer.
+#
+# THREE THINGS THIS DELIBERATELY DOES NOT DO.
+# 1. It never caches run_commands=True. That path EXECUTES recorded commands;
+#    a cached pass would be a claim of verification nobody re-ran, which is the
+#    exact self-grading this module exists to refuse.
+# 2. It fails OPEN in both directions: an unreadable, corrupt, or stale entry
+#    walks for real, and an unwritable runtime dir just skips the write. A
+#    broken cache costs latency, never a wrong verdict.
+# 3. It carries a wall-clock TTL as well as the fingerprint, because an
+#    UNCOMMITTED edit to the tree moves neither the savepoint mtimes nor HEAD.
+#    The fingerprint catches every change to the trail; the TTL bounds how long
+#    a working-tree change can hide behind an unchanged trail.
+_CACHE_SCHEMA = 1
+_CACHE_TTL_SEC = 1800
+_CACHE_REL = "WAI-Harness/spoke/local/runtime/savepoint-walk-cache.json"
+
+
+def _cache_path(root):
+    return os.path.join(root, _CACHE_REL)
+
+
+def _trail_fingerprint(root, limit):
+    """Identity of everything the read-only walk reads. Cheap: stat, no parse."""
+    parts = []
+    for path in sorted(glob.glob(os.path.join(root, SAVEPOINT_GLOB), recursive=True)):
+        try:
+            st = os.stat(path)
+        except OSError:
+            continue
+        parts.append("%s:%d:%d" % (os.path.relpath(path, root), st.st_mtime_ns, st.st_size))
+    head = ""
+    try:
+        head = subprocess.run(["git", "-C", root, "rev-parse", "HEAD"],
+                              capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    key = "\n".join(parts) + "||" + head + "||" + repr((limit, _CACHE_SCHEMA))
+    return hashlib.sha1(key.encode("utf-8", "replace")).hexdigest()
+
+
+def _cache_read(root, fp):
+    try:
+        with open(_cache_path(root), encoding="utf-8") as fh:
+            blob = json.load(fh)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(blob, dict) or blob.get("fingerprint") != fp:
+        return None
+    try:
+        age = datetime.datetime.now().timestamp() - float(blob.get("written_at") or 0)
+    except (TypeError, ValueError):
+        return None
+    if age < 0 or age > _CACHE_TTL_SEC:
+        return None
+    rep = blob.get("report")
+    return rep if isinstance(rep, dict) and rep.get("ok") else None
+
+
+def _cache_write(root, fp, report):
+    path = _cache_path(root)
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump({"fingerprint": fp,
+                       "written_at": datetime.datetime.now().timestamp(),
+                       "schema": _CACHE_SCHEMA,
+                       "report": report}, fh)
+        os.replace(tmp, path)
+    except OSError:
+        pass
+
+
 def walk(root, run_commands=False, limit=None):
     """READ-ONLY. Re-check each entry's own declared verification."""
+    # Only the non-executing walk is cacheable — see the note above _CACHE_SCHEMA.
+    fp = None
+    if not run_commands:
+        fp = _trail_fingerprint(root, limit)
+        hit = _cache_read(root, fp)
+        if hit is not None:
+            return hit
     results = []
     counts = {"still-holds": 0, "drifted": 0, "unchecked": 0, "uncheckable": 0,
               "unknowable": 0}
@@ -365,7 +459,7 @@ def walk(root, run_commands=False, limit=None):
 
     total = sum(counts.values())
     checkable = counts["still-holds"] + counts["drifted"]
-    return {
+    report = {
         "ok": True,
         "savepoints": len(trail),
         "entries": total,
@@ -376,6 +470,9 @@ def walk(root, run_commands=False, limit=None):
         "claimed_verified_but_uncheckable": claimed_but_uncheckable,
         "results": results,
     }
+    if fp is not None:
+        _cache_write(root, fp, report)
+    return report
 
 
 def cmd_walk(args, root):

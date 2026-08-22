@@ -22,7 +22,12 @@ Public API:
     claim(lug_id, session_id, ttl_hours=4) -> bool
     release(lug_id, session_id) -> bool
     is_held(lug_id) -> bool                 # live (unexpired) only
-    sweep_expired() -> list[str]            # released lug_ids
+    sweep_expired(bytype_dir=None) -> list[str]   # released lug_ids; when
+                                       # bytype_dir is given, also reclaims each
+                                       # released lug's FILE back to open/
+    reclaim_stranded(bytype_dir) -> list[str]     # reclaim in_progress/ lugs that
+                                       # hold NO live lease (pre-lease-era strandings
+                                       # the sweep can never see)
     active_leases() -> list[dict]           # live leases (auto-sweeps first)
 
 All functions accept an optional `store_path` for testing.
@@ -237,8 +242,23 @@ def held_by(lug_id: str, store_path: Optional[str] = None) -> Optional[str]:
     return None
 
 
-def sweep_expired(store_path: Optional[str] = None) -> List[str]:
-    """Remove all expired leases. Returns the list of released lug_ids."""
+def sweep_expired(
+    store_path: Optional[str] = None,
+    bytype_dir: Optional[str] = None,
+) -> List[str]:
+    """Remove all expired leases. Returns the list of released lug_ids.
+
+    When bytype_dir is given, each released lug is also RECLAIMED: its file
+    moves from <type>/in_progress/ back to <type>/open/ and its status returns
+    to "open". Without this, an expired lease left the lug ownerless AND
+    invisible — stranded in in_progress/ where the dispatch gate (open/ only)
+    could never see it again. Measured 2026-08-17: 20 lugs stranded on this
+    spoke, 7 of them since 2026-08-01.
+
+    The reclaim runs UNDER the store lock: claim() takes the same lock, so no
+    peer session can acquire a fresh lease between the expiry delete and the
+    file move. A lug whose lease is still LIVE is never touched.
+    """
     path = _store_path(store_path)
     with _FileLock(path):
         store = _read_store(path)
@@ -248,7 +268,113 @@ def sweep_expired(store_path: Optional[str] = None) -> List[str]:
             for lid in released:
                 del store[lid]
             _write_store(path, store)
+            if bytype_dir:
+                for lid in released:
+                    _reclaim_lug_file(Path(bytype_dir), lid, now)
         return released
+
+
+def reclaim_stranded(
+    bytype_dir: str,
+    store_path: Optional[str] = None,
+) -> List[str]:
+    """Reclaim every lug sitting in <type>/in_progress/ with NO live lease.
+
+    This is the backfill for lugs stranded BEFORE lease-expiry reclaim
+    existed: they carry no lease record at all, so sweep_expired can never
+    see them. Idempotent — a second run finds nothing. A lug with a LIVE
+    lease is skipped, untouched: a peer session may be working it right now,
+    and moving its file mid-flight is exactly the concurrency violation this
+    module exists to prevent.
+
+    Returns the list of reclaimed lug_ids.
+    """
+    base = Path(bytype_dir)
+    if not base.is_dir():
+        return []
+    path = _store_path(store_path)
+    reclaimed: List[str] = []
+    now = _now()
+    with _FileLock(path):
+        store = _read_store(path)
+        for lug_path in sorted(base.glob("*/in_progress/*.json")):
+            lug_id = lug_path.stem
+            rec = store.get(lug_id)
+            if rec and not _is_expired(rec, now):
+                continue  # live lease — a peer owns this lug
+            if rec:
+                # Expired record the sweep hasn't caught yet; remove it here
+                # so the store and the queue agree.
+                del store[lug_id]
+            if _reclaim_lug_file(base, lug_id, now, lug_path=lug_path):
+                reclaimed.append(lug_id)
+        _write_store(path, store)
+    return reclaimed
+
+
+# A lug reclaimed this many times has failed to complete repeatedly. It is not
+# healthy work — surface it (needs_attention) instead of silently recycling it
+# through open/ forever.
+RECLAIM_FAILURE_THRESHOLD = 3
+
+
+def _reclaim_lug_file(
+    bytype_dir: Path,
+    lug_id: str,
+    now: datetime,
+    lug_path: Optional[Path] = None,
+) -> bool:
+    """Move one lug file from in_progress/ back to the dispatch-visible queue.
+
+    Sets status "open", increments claim_failures, stamps
+    last_claim_released_at, and clears workflow.current_owner. At
+    RECLAIM_FAILURE_THRESHOLD the lug goes to needs_attention/ with a reason
+    instead — surfaced, not recycled. Returns True if a file was reclaimed.
+
+    Caller MUST hold the store lock (see sweep_expired / reclaim_stranded).
+    """
+    if lug_path is None:
+        for candidate in sorted(bytype_dir.glob(f"*/in_progress/{lug_id}.json")):
+            lug_path = candidate
+            break
+    if lug_path is None or not lug_path.exists():
+        return False  # nothing stranded — file already moved on
+
+    try:
+        lug = json.loads(lug_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return False
+
+    failures = int(lug.get("claim_failures") or 0) + 1
+    now_iso = now.isoformat()
+    status = "needs_attention" if failures >= RECLAIM_FAILURE_THRESHOLD else "open"
+
+    lug["status"] = status
+    lug["s"] = status
+    lug["updated_at"] = now_iso
+    lug["claim_failures"] = failures
+    lug["last_claim_released_at"] = now_iso
+    workflow = lug.get("workflow") if isinstance(lug.get("workflow"), dict) else {}
+    workflow["current_owner"] = None
+    workflow["updated_at"] = now_iso
+    lug["workflow"] = workflow
+    if status == "needs_attention":
+        lug["attention_reason"] = (
+            f"REPEATEDLY RECLAIMED — this lug has been claimed and released "
+            f"without completing {failures} times. The work as shaped does not "
+            f"land; re-scope, split, or retire it before re-dispatching."
+        )
+
+    type_dir = lug_path.parent.parent
+    new_dir = type_dir / status
+    new_dir.mkdir(parents=True, exist_ok=True)
+    new_path = new_dir / lug_path.name
+    lug.pop("_file_path", None)
+    lug.pop("_fs_status", None)
+    lug.pop("_fs_type", None)
+    new_path.write_text(json.dumps(lug, indent=2) + "\n")
+    lug_path.unlink()
+    return True
 
 
 def active_leases(store_path: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -299,6 +425,16 @@ def _main(argv: List[str]) -> int:
     sub.add_parser("sweep")
     sub.add_parser("active")
 
+    rs = sub.add_parser(
+        "reclaim-stranded",
+        help="reclaim in_progress/ lugs holding no live lease (backfill)",
+    )
+    rs.add_argument(
+        "--bytype-dir",
+        default=None,
+        help="lugs bytype dir (default: <spoke_base>/lugs/bytype)",
+    )
+
     args = p.parse_args(argv)
     if args.cmd == "claim":
         ok = claim(args.lug_id, args.session_id, args.ttl_hours)
@@ -313,6 +449,10 @@ def _main(argv: List[str]) -> int:
         return 0
     if args.cmd == "sweep":
         print(json.dumps({"released": sweep_expired()}))
+        return 0
+    if args.cmd == "reclaim-stranded":
+        bytype = args.bytype_dir or str(_spoke_base() / "lugs" / "bytype")
+        print(json.dumps({"reclaimed": reclaim_stranded(bytype)}))
         return 0
     if args.cmd == "active":
         print(json.dumps(active_leases(), indent=2))

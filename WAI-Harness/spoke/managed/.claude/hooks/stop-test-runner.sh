@@ -192,7 +192,62 @@ elif echo "$ALL_CHANGED" | grep -qE '\.py$'; then
   # is the one component where that matters most.
   _KERNEL_SUITE=""
   [[ -d WAI-Harness/kernel/tests ]] && _KERNEL_SUITE="WAI-Harness/kernel/tests"
-  RESULT=$(timeout "${STOP_TEST_TIMEOUT:-420}" python3 -m pytest "$SUITE" $_KERNEL_SUITE -x -q --tb=short 2>&1); EXIT_CODE=$?
+
+  # SCOPE THE RUN TO WHAT CHANGED. Until 2026-08-19 this hook used ALL_CHANGED only as a
+  # did-anything-change gate and then ran the ENTIRE suite -- ~3,400 tests, the same run
+  # that takes 7-9 minutes at push time -- on EVERY turn that touched a file. Measured
+  # against its four siblings, which total 1.9 seconds between them.
+  #
+  # A feedback signal that costs minutes stops being feedback. The pre-commit gate already
+  # solves this by mapping a changed module to its test file, and this is the same rule.
+  #
+  # THE SAFETY NET IS UNCHANGED AND THAT IS WHY THIS IS SAFE: pre-push still runs the whole
+  # suite. This hook is fast feedback between turns; the gate is the thing that must be
+  # exhaustive. Narrowing the fast one does not narrow the gate.
+  #
+  # WIDEN TO EVERYTHING when a shared file changes -- conftest, __init__, or the hook's own
+  # tooling -- because a scoped run cannot see what those break.
+  _SCOPE=""
+  _WIDEN=0
+  while IFS= read -r _f; do
+    [[ -z "$_f" ]] && continue
+    # The vendored kernel is a byte-identical deployment copy; collecting it alongside the
+    # source raises "import file mismatch" on every shared module. Same lesson as the
+    # commit gate learned on 2026-08-18.
+    case "$_f" in WAI-Spoke/kernel/*) continue ;; esac
+    case "$(basename "$_f")" in
+      conftest.py|__init__.py) _WIDEN=1 ;;
+    esac
+    _b="$(basename "$_f" .py)"
+    case "$_b" in
+      test_*) [[ -f "$_f" ]] && _SCOPE="$_SCOPE $_f" ;;
+      *)
+        # PREFIX MATCH, NOT EXACT. Tests here are named for the BEHAVIOUR they pin, not
+        # the module: mcp_config.py is covered by test_mcp_config_layering.py, and
+        # navigator.py by test_navigator_route_identity.py. An exact test_<module>.py
+        # lookup finds neither, so the first cut of this scoping reported "unguarded" for
+        # changes that are in fact well covered -- a false negative that teaches the
+        # operator to ignore the hook.
+        for _t in "$SUITE"/test_"${_b}"*.py "$_KERNEL_SUITE"/test_"${_b}"*.py; do
+          [[ -f "$_t" ]] && _SCOPE="$_SCOPE $_t"
+        done
+        ;;
+    esac
+  done <<< "$ALL_CHANGED"
+
+  # NOTHING MAPPED IS NOT NOTHING TO SAY. A change with no matching test is a real fact --
+  # it means this edit is unguarded -- and exiting silently would report it as a pass.
+  if [[ $_WIDEN -eq 0 && -z "$_SCOPE" ]]; then
+    echo '{"systemMessage":"tests: no test file matches the changed files -- this edit is UNGUARDED here. The full suite still runs at push."}'
+    exit 0
+  fi
+
+  if [[ $_WIDEN -eq 1 ]]; then
+    _RUN="$SUITE $_KERNEL_SUITE"
+  else
+    _RUN="$_SCOPE"
+  fi
+  RESULT=$(timeout "${STOP_TEST_TIMEOUT:-420}" python3 -m pytest $_RUN -x -q --tb=short 2>&1); EXIT_CODE=$?
 
   # pytest exit codes:
   #   0 all passed | 1 tests failed | 2 collection error / interrupted
@@ -250,11 +305,29 @@ if [[ $EXIT_CODE -ne 0 ]]; then
   # been red on a stranded command template and the message never reached anyone).
   # A gate whose diagnostic does not reach a reader is a silent failure, which is
   # the exact class this hook exists to prevent.
+  # OPERATOR 2026-08-18, asked twice: "i dont want to see the bug I want to see
+  # notice that the bug was detected and resolved if anything." So the payload is
+  # now the VERDICT, not the transcript: which tests failed, the pass/fail counts,
+  # and the one command that reproduces it. The full pytest output is written to
+  # disk and cited by path — available on demand, never dumped into the terminal.
+  #
+  # The line above still holds: a diagnostic that reaches no reader is a silent
+  # failure. Terse is not silent. What changed is the volume, not the signal.
+  _FULL_LOG="${TMPDIR:-/tmp}/wai-stop-test-$(date +%Y%m%d-%H%M%S).log"
+  printf '%s\n' "$RESULT" > "$_FULL_LOG" 2>/dev/null || true
+
+  # The named failures, and the tail-line pytest always prints (counts + duration).
+  _FAILED=$(printf '%s\n' "$RESULT" | grep -E '^FAILED |^ERROR ' | sed 's/ - .*//' | head -5)
+  _COUNTS=$(printf '%s\n' "$RESULT" | grep -E '^[0-9]+ (failed|passed)' | tail -1)
+  _NFAIL=$(printf '%s\n' "$_FAILED" | grep -c . || true)
+
   _emit_both "$(
     echo "<test-failure>"
-    echo "$FAIL_MSG"
-    echo ""
-    echo "$RESULT" | tail -20
+    echo "Test gate CAUGHT ${_NFAIL:-?} failing test(s). Not yet resolved."
+    [[ -n "$_COUNTS" ]] && echo "  ${_COUNTS}"
+    [[ -n "$_FAILED" ]] && printf '%s\n' "$_FAILED" | sed 's/^/  /'
+    echo "  reproduce: python3 -m pytest ${SUITE} -q"
+    echo "  full output: ${_FULL_LOG}"
     echo "</test-failure>"
   )"
   exit 1

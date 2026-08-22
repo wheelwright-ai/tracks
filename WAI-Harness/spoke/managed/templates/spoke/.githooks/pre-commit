@@ -34,6 +34,18 @@ if [ -n "$manifest_gate" ]; then
   python3 "$manifest_gate" --repo-root "$repo_root" || rc=1
 fi
 
+# Master authority (blocking): only the spoke that AUTHORS the harness may edit its
+# distributed source. Every other spoke phones home with a change-lug. The rule lived
+# in CLAUDE.md and nothing read it -- every spoke carries is_master:false and on
+# 2026-08-17 no hook, tool or test used that field to refuse anything, so the only
+# thing preventing a private fork of the harness was an agent remembering a paragraph.
+# Delivering a lug to a sibling stays UNGATED: that is the sanctioned channel, and the
+# opposite of the violation this blocks.
+master_gate="$repo_root/WAI-Harness/spoke/managed/tools/master_authority_gate.py"
+if [ -f "$master_gate" ]; then
+  python3 "$master_gate" --root "$repo_root" || rc=1
+fi
+
 # Chain the existing health gate if present (non-fatal: it guards drift, not secrets).
 health=""
 for cand in \
@@ -58,7 +70,48 @@ if [ -n "$lug_parse_gate" ]; then
   python3 "$lug_parse_gate" --root "$repo_root" || rc=1
 fi
 
+# THE CODE GRAPH IS RE-DERIVED FOR WHAT THIS COMMIT TOUCHES.
+#
+# This is the activation path for the code_node kind. `wai check` refuses a graph that has
+# stopped describing the code, and pre-push runs check unconditionally -- so without this
+# line a spoke goes stale on its FIRST commit after install and then cannot commit or push
+# until somebody runs a command nothing told them about.
+#
+# MEASURED on mywheel s141: the previous graph sat twelve days stale, covering 0 of 1,254
+# python files, while every dashboard reported it healthy. It was not wrong; nothing ran it.
+# A producer with no runner is the defect this whole object model exists to end, and
+# shipping the model without shipping its runner would reproduce that failure on every
+# spoke the cut reaches.
+#
+# INCREMENTAL ON PURPOSE. A full walk is under a second on a large repo, but an incremental
+# pass must never SWEEP -- it has not looked at the rest of the tree, so it cannot conclude
+# anything about it. `wai derive --only` enforces that distinction.
+#
+# DEGRADES QUIETLY. A spoke that has not vendored the kernel yet simply skips this; the
+# commit is not blocked by the absence of a graph, only by a graph that has gone wrong.
+kernel_dir=""
+for cand in "$repo_root/WAI-Harness/kernel" "$repo_root/WAI-Spoke/kernel"; do
+  if [ -f "$cand/cli.py" ]; then kernel_dir="$(dirname "$cand")"; break; fi
+done
+if [ -n "$kernel_dir" ]; then
+  staged_src="$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(py|sh)$' || true)"
+  if [ -n "$staged_src" ]; then
+    derive_args=""
+    while IFS= read -r f; do
+      [ -n "$f" ] && derive_args="$derive_args --only $f"
+    done <<< "$staged_src"
+    # shellcheck disable=SC2086
+    if (cd "$kernel_dir" && timeout 60 python3 -m kernel.cli --root "$repo_root" derive $derive_args >/dev/null 2>&1); then
+      git add "$repo_root/WAI-Spoke/graph/code_node.jsonl" 2>/dev/null || true
+      git add "$repo_root/WAI-Spoke/graph/initiative.jsonl" 2>/dev/null || true
+    else
+      echo "WAI pre-commit: could not re-derive the code graph — run \`wai derive\`." >&2
+      rc=1
+    fi
+  fi
+fi
+
 if [ "$rc" -ne 0 ]; then
-  echo "WAI pre-commit: commit blocked (secret scan and/or manifest integrity and/or lug parse gate above). Bypass with --no-verify (sparingly)." >&2
+  echo "WAI pre-commit: commit blocked (secret scan and/or manifest integrity and/or lug parse gate and/or code graph above). Bypass with --no-verify (sparingly)." >&2
 fi
 exit "$rc"

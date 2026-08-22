@@ -12,7 +12,7 @@ Invoke at closeout when you have made improvements to skill files this session t
 
 Read `WAI-Harness/spoke/WAI-State.json`. Extract:
 - `wheel.at_head` — must be `true` to proceed
-- `wheel.hub_path` — path to hub (e.g. `/home/mario/projects/wheelwright/hub`)
+- `wiring.hub_path` in `WAI-Harness/spoke/basher.json` — path to hub (the canonical hub is INSIDE mywheel at `WAI-Harness/hub/`; the standalone `/wheelwright/hub` repo is DEPRECATED)
 - `wheel.name` — this spoke's name (for `submitted_by_spoke`)
 - `wheel.harness_version` — this spoke's current harness version
 

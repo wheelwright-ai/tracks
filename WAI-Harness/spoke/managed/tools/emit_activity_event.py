@@ -204,7 +204,7 @@ def batch_flush(queue_path: str = QUEUE_PATH) -> tuple:
     except urllib.error.HTTPError as e:
         print(f"[emit_activity_event] batch_flush() HTTP {e.code}: {e.read().decode()[:120]}", file=sys.stderr)
     except urllib.error.URLError as e:
-        print(f"[emit_activity_event] batch_flush() URLError: {e.reason}", file=sys.stderr)
+        print(f"[emit_activity_event] batch_flush() URLError: {e}", file=sys.stderr)
     return 0, len(events)
 
 

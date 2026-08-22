@@ -243,6 +243,117 @@ def check_structure(report: HealthReport, wai_spoke: Path):
         report.add("structure-seed", cat, "FAIL", "seed/ingest/ or processed/ missing")
 
 
+def check_upgrade_report_drain(report: HealthReport, wai_spoke: Path):
+    """Receipts piling up in the OPEN work backlog means the consumer stopped running.
+
+    harness_upgrade.py writes an upgrade-report per spoke per cut. The consumer
+    that turns them into work and archives them (upgrade_report_intake.py) is
+    the half that can silently stop: measured 2026-08-18, it had NEVER run, and
+    314 receipts had accumulated as 30% of every open lug on this spoke.
+
+    A receipt is not work, so this WARNs rather than FAILs — but a growing count
+    here is the visible edge of a circle that has come apart.
+    """
+    cat = "upgrade-reports"
+    d = wai_spoke / "lugs" / "bytype" / "upgrade-report" / "open"
+    if not d.is_dir():
+        report.add("upgrade-report-drain", cat, "PASS", "no receipt backlog")
+        return
+    n = len(list(d.glob("*.json")))
+    if n == 0:
+        report.add("upgrade-report-drain", cat, "PASS", "receipts drained")
+    else:
+        report.add("upgrade-report-drain", cat, "WARN",
+                   f"{n} undrained upgrade-report receipt(s) sitting in the open work "
+                   f"backlog — run: python3 WAI-Harness/spoke/managed/tools/"
+                   f"upgrade_report_intake.py drain")
+
+
+def check_sawyer_landings(report: HealthReport, wai_spoke: Path):
+    """Category: agreed behaviours that never landed, or landed and rotted.
+
+    WARN ONLY, DELIBERATELY. Sawyer records decisions the operator agreed to and
+    checks whether each one is actually live. Surfacing that here is what stops
+    Sawyer becoming the thing it exists to detect -- a tool nobody runs.
+
+    It must never FAIL the health check. Measured 2026-08-17: this spoke's other
+    gates were routed around the same day they blocked something (the hygiene
+    auto-heal committed two lugs the lug gate had just refused). A check that
+    blocks every commit on unfinished ideas earns the same treatment.
+    """
+    cat = "sawyer"
+    decisions = wai_spoke / "advisors" / "sawyer" / "decisions"
+    if not decisions.is_dir():
+        report.add("sawyer-decisions", cat, "SKIP", "no Sawyer decisions yet")
+        return
+
+    not_landed, regressed = [], []
+    for p in sorted(decisions.glob("*.json")):
+        try:
+            d = json.loads(p.read_text())
+        except Exception:
+            continue
+        if d.get("verdict") not in ("adopt", "adapt"):
+            continue
+        hist = d.get("landing_history") or []
+        last = hist[-1].get("class") if hist else None
+        if last == "REGRESSED":
+            regressed.append(d.get("id", p.stem))
+        elif last == "NOT_LANDED":
+            not_landed.append(d.get("id", p.stem))
+
+    if regressed:
+        report.add("sawyer-regressed", cat, "WARN",
+                   f"{len(regressed)} agreed behaviour(s) LANDED then STOPPED working "
+                   f"— needs adjustment or refactor: {', '.join(regressed[:3])}")
+    if not_landed:
+        report.add("sawyer-not-landed", cat, "WARN",
+                   f"{len(not_landed)} agreed behaviour(s) NEVER LANDED: "
+                   f"{', '.join(not_landed[:3])}")
+    if not regressed and not not_landed:
+        report.add("sawyer-landings", cat, "PASS",
+                   "every agreed behaviour is landed and holding")
+
+
+def check_complexity_gate(report: HealthReport, wai_spoke: Path):
+    """Category: the Complexity Gate, surfaced as a detector that can FAIL.
+
+    WARN ONLY, DELIBERATELY — same reasoning as check_sawyer_landings: gates
+    that block get routed around (measured on this spoke 2026-08-17). This is a
+    detector over RECORDED EVIDENCE (the session track + working tree), not a
+    pre-flight block; it cannot see unrecorded plans and attributes file
+    changes to a session by clock, not causation. Its value is that the gate
+    was prose-only with zero enforcement hits in any pre-* guard — now a
+    session that edits 2+ source files with no recorded plan/approval marker
+    is VISIBLE.
+    """
+    cat = "complexity-gate"
+    # wai_spoke is .../WAI-Harness/spoke/local on v4+; repo root is three up.
+    # On a v3 base (WAI-Spoke/) the detector has no v4 sessions dir and SKIPs.
+    try:
+        root = wai_spoke.parent.parent.parent
+        if not (root / "WAI-Harness").is_dir():
+            report.add("complexity-gate", cat, "SKIP", "no WAI-Harness tree at derived root")
+            return
+        from tools import complexity_gate_check as _cg
+        result, err = _cg.check(str(root))
+    except Exception as e:
+        report.add("complexity-gate", cat, "SKIP", f"detector could not run: {e}")
+        return
+    if err:
+        report.add("complexity-gate", cat, "SKIP", err)
+        return
+    v = result["violation"]
+    if v:
+        report.add("complexity-gate", cat, "WARN",
+                   f"{v['msg']} (session {result['session']}) — detector over "
+                   "recorded evidence, not proof of non-compliance")
+    else:
+        report.add("complexity-gate", cat, "PASS",
+                   f"session {result['session']}: {len(result['source_files'])} "
+                   "source file(s), no unplanned multi-file modification detected")
+
+
 def check_stale_files(report: HealthReport, wai_spoke: Path):
     """Category 2: Detect retired/stale files that should not exist."""
     cat = "stale-files"
@@ -891,6 +1002,9 @@ def run_health_check(spoke_path: str, mode: str = "full") -> HealthReport:
     check_stale_files(report, wai_spoke)
     check_critical_paths_gate(report, wai_spoke)
     check_skill_registry(report, wai_spoke)
+    check_sawyer_landings(report, wai_spoke)
+    check_upgrade_report_drain(report, wai_spoke)
+    check_complexity_gate(report, wai_spoke)
 
     # Always run: CC hook configuration
     check_cc_hooks(report, wai_spoke)

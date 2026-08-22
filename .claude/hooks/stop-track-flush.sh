@@ -110,7 +110,7 @@ fi
 # Fallback (no lane / no session id): legacy routing via _session_state.track_path,
 # then newest session dir. Lane dir falls back to the shared runtime.
 if [[ -z "$TRACK" ]]; then
-  TRACK=$(BASE="$BASE" PROJECT_DIR="$PROJECT_DIR" STATE="$STATE" python3 - <<'PYEOF' 2>/dev/null
+  TRACK=$(BASE="$BASE" PROJECT_DIR="$PROJECT_DIR" STATE="$STATE" LANE_DIR="$LANE_DIR" python3 - <<'PYEOF' 2>/dev/null
 import json, os
 from pathlib import Path
 base = Path(os.environ["BASE"]); proj = Path(os.environ["PROJECT_DIR"]); state = os.environ["STATE"]
@@ -123,13 +123,77 @@ try:
             track = str(cand)
 except Exception:
     pass
+# THE LANE'S PINNED SESSION BEATS "NEWEST DIRECTORY", and the difference is a
+# conversation's memory staying in one piece.
+#
+# MEASURED 2026-08-20: one conversation had fragmented across FOUR session dirs
+# holding 4, 0, 1 and 3 turns, while its lane carried a stable pinned session id the
+# whole time. Every resume fires SessionStart, wakeup mints session-$(date +%H%M),
+# that directory becomes the newest by mtime, and this fallback follows it -- so the
+# turn counter restarted at T3 on a conversation nearly 200 turns long, and the track
+# stopped being a record of anything continuous.
+#
+# The lane already knows. guard.json in the lane dir pins the session this lane belongs
+# to; reading it costs nothing and rejoins a resumed session to its own history.
+if not track:
+    lane_guard = os.environ.get("LANE_DIR", "")
+    if lane_guard:
+        try:
+            pinned = json.loads(
+                (Path(lane_guard) / "guard.json").read_text()).get("session_id", "")
+            if pinned:
+                cand = base / "sessions" / pinned / "track.jsonl"
+                if cand.parent.is_dir():
+                    track = str(cand)
+        except Exception:
+            pass
+
+# LAST RESORT ONLY. Newest-by-mtime is a guess, and the guess is what fragmented the
+# track above -- kept because a spoke with no lane still needs somewhere to write.
+#
+# NEWEST-BY-MTIME WAS NOT JUST A GUESS, IT WAS A COIN FLIP. MEASURED 2026-08-22 on mywheel:
+#
+#   1787369033.029240131  session-20260821-2003  lines=1
+#   1787369033.029240131  session-20260821-2022  lines=1
+#   1787369033.029240131  session-20260821-2012  lines=1
+#   1787369032.927175999  session-20260822-0203  lines=5   <- the live conversation
+#
+# Three EMPTY session dirs shared an mtime to the nanosecond (one operation touched them
+# all), and the dir actually holding the conversation was 0.1s older and therefore lost.
+# max() on a tie returns whichever iterdir() yields first, which is filesystem-arbitrary --
+# so this tier chose at random among orphans while a five-turn conversation sat next to it.
+#
+# Those orphans exist because SessionStart fires several times in one conversation (four
+# times here: 02:03, 03:04, 03:12, 03:22 UTC) and each fire mints session-$(date +%H%M).
+# That re-minting is its own defect and is not fixed here. What IS fixed here is that a
+# directory containing NO TURNS is not a conversation and must never win this contest.
+#
+# Ordering, most significant first:
+#   1. has at least one turn record   -- an orphan never beats a real conversation
+#   2. track.jsonl mtime              -- among real ones, the most recently written
+#   3. directory name                 -- deterministic tie-break; names are time-ordered,
+#                                        so equal mtimes stop being a coin flip
+# (bug-track-layer-1-dies-mid-session-and-backfill-hides-it-v1)
 if not track:
     sess = base / "sessions"
     if sess.is_dir():
+        def _rank(d):
+            t = d / "track.jsonl"
+            has_turn = False
+            try:
+                with t.open(encoding="utf-8", errors="replace") as fh:
+                    for line in fh:
+                        if '"event"' in line and '"turn"' in line:
+                            has_turn = True
+                            break
+                mtime = t.stat().st_mtime
+            except OSError:
+                mtime = 0.0
+            return (1 if has_turn else 0, mtime, d.name)
+
         dirs = [d for d in sess.iterdir() if d.is_dir()]
         if dirs:
-            newest = max(dirs, key=lambda d: d.stat().st_mtime)
-            track = str(newest / "track.jsonl")
+            track = str(max(dirs, key=_rank) / "track.jsonl")
 print(track)
 PYEOF
 )
@@ -150,6 +214,32 @@ if [ -n "${WAI_AP_DISPATCH:-}" ]; then
 fi
 
 [[ -z "$TRACK" ]] && exit 0
+
+# A DESTINATION SWITCH MID-CONVERSATION IS THE FRAGMENTATION EVENT. SAY SO WHEN IT HAPPENS.
+#
+# Four tiers resolve TRACK and they can disagree. MEASURED 2026-08-22: tier 2 said
+# session-20260821-2022, tier 4 said session-20260821-2003, and the turns were actually in
+# session-20260822-0203 -- three answers for one conversation. When the winner changes
+# between turns, the conversation splits and every downstream reader sees several short
+# sessions instead of one long one.
+#
+# Nothing announced that. It took reading four session directories by hand to find it, and
+# the same investigation had already been run once before (see the 2026-08-20 note above).
+# One line on stderr costs nothing and turns a silent split into something the next reader
+# is told about. NOT a block: a wrong destination still beats a dropped turn.
+# (bug-track-layer-1-dies-mid-session-and-backfill-hides-it-v1)
+_PINNED=$(python3 -c "
+import json,sys
+try:
+    rel = json.load(open('$STATE')).get('_session_state', {}).get('track_path', '')
+    print(rel)
+except Exception:
+    print('')
+" 2>/dev/null)
+if [[ -n "$_PINNED" && "$TRACK" != *"$_PINNED" && "$TRACK" != "$_PINNED" ]]; then
+  echo "[WAI] track destination DIFFERS from the pinned session: writing $(basename "$(dirname "$TRACK")") but WAI-State pins $(basename "$(dirname "$_PINNED")"). This turn will not join that session's history." >&2
+fi
+
 [[ -z "$LANE_DIR" ]] && LANE_DIR="$RUNTIME"
 
 # Buffer: prefer this lane's private buffer; fall back to the shared buffer (the

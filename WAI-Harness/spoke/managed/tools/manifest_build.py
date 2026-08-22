@@ -22,6 +22,7 @@ import argparse
 import hashlib
 import json
 import os
+import pathlib
 import sys
 
 MANIFEST_NAME = "MANIFEST.json"
@@ -117,7 +118,7 @@ def read_version(managed_dir, fallback=DEFAULT_VERSION):
 #   NOTE this is a DIRECTORY-NAME match on any path component, and exactly one dir named
 #   tests/ exists under managed/ (verified 2026-07-14). If a template ever needs to ship a
 #   tests/ dir, this must become a rooted-prefix rule, not a name match.
-_EXCLUDE_DIRS = {"__pycache__", ".pytest_cache", ".git", "runtime", "tests"}  # runtime: generated state (capabilities-effective.json), never distribute
+_EXCLUDE_DIRS = {"__pycache__", ".pytest_cache", ".git", "runtime", "retired", "tests"}  # runtime: generated state (capabilities-effective.json), never distribute; retired: archived specs/lugs (retire-*), never distribute
 _EXCLUDE_SUFFIXES = (".pyc", ".pyo", ".db-wal", ".db-shm")
 # Transient generated runtime state that a stray test/tool run can drop anywhere in the tree
 # (e.g. a CWD-relative db_writer journal under tests/WAI-Spoke/). These are NEVER distributable
@@ -184,18 +185,41 @@ def build(managed_dir, manifest_path=None, harness_version=DEFAULT_VERSION, now_
     manifest_path = manifest_path or os.path.join(managed_dir, MANIFEST_NAME)
     # preserve recorded owner/version where present
     prior = {}
+    prior_manifest = {}
     if os.path.exists(manifest_path):
         try:
-            prior = json.load(open(manifest_path)).get("files", {})
+            prior_manifest = json.load(open(manifest_path)) or {}
+            prior = prior_manifest.get("files", {})
         except (ValueError, OSError):
+            prior_manifest = {}
             prior = {}
     files = {}
     for rel, full in sorted(_walk_managed(managed_dir).items()):
         files[rel] = {"version": prior.get(rel, {}).get("version", harness_version),
                       "md5": _md5(full),
                       "owner": prior.get(rel, {}).get("owner", DEFAULT_OWNER)}
-    manifest = {"harness_version": harness_version, "is_master": True,
+    # PRESERVE AUTHORITY, DO NOT ASSERT IT. This read `"is_master": True`
+    # unconditionally. manifest_build.py lives in managed/ and is therefore
+    # DISTRIBUTED to every spoke -- so any spoke that recut its own manifest
+    # promoted itself to master and silently became a second author of the
+    # harness. That is the "competing spokes" failure the operator named on
+    # 2026-08-17, written directly into the tool that stamps authority.
+    #
+    # A prior manifest is the authority of record: mywheel's says true, a
+    # distributed spoke's says false (harness_upgrade neutralizes it on delivery).
+    # Only a managed root with no prior at all defaults to true, which is the
+    # bootstrap case that creates the master in the first place.
+    prior_master = prior_manifest.get("is_master") if isinstance(prior_manifest, dict) else None
+    is_master = True if prior_master is None else bool(prior_master)
+    manifest = {"harness_version": harness_version, "is_master": is_master,
                 "generated_at": now_iso, "master_sha": master_sha, "files": files}
+    # The cut carries its own return address so a refused spoke knows where to
+    # send a change-lug; the hub registry exists only on mywheel.
+    if is_master:
+        _prior_author = prior_manifest.get("author") if isinstance(prior_manifest, dict) else None
+        manifest["author"] = _prior_author or _author_stamp(managed_dir)
+    elif isinstance(prior_manifest, dict) and prior_manifest.get("author"):
+        manifest["author"] = prior_manifest["author"]
     if skip_lint and skip_lint_reason:
         manifest["cut_gate_skipped"] = {"reason": skip_lint_reason.strip()}
     json.dump(manifest, open(manifest_path, "w"), indent=2)
@@ -249,6 +273,20 @@ def _git_sha(path, fallback=None):
         return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else fallback
     except Exception:
         return fallback
+
+
+def _author_stamp(managed_dir):
+    """Where a distributed spoke sends change-lugs. Mirrors
+    harness_upgrade._author_stamp; kept here because these tools are loaded by
+    path, not imported, and a cross-import between two path-loaded modules is a
+    worse coupling than eight duplicated lines."""
+    root = pathlib.Path(managed_dir).resolve()
+    for parent in root.parents:
+        if (parent / "WAI-Harness").is_dir() and (parent / ".git").exists():
+            return {"wheel_id": parent.name, "root": str(parent),
+                    "inbox": str(parent / "WAI-Harness" / "spoke" / "local"
+                                 / "lugs" / "incoming")}
+    return {"wheel_id": "mywheel", "root": None, "inbox": None}
 
 
 def main(argv=None):

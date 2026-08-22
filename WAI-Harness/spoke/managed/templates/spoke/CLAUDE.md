@@ -58,17 +58,13 @@ You are a **responsible partner**:
 - Complete foundation before work
 - Prefer "are you sure?" over silent compliance
 
-## Tool Ownership (Basher)
+## Tool Ownership
 
-**Basher owns all distributed tool files, local-only excepted.**
+**Basher owns all distributed tool files, local-only excepted.** Distributed tool/config — everything under `WAI-Harness/spoke/managed/**` (tools, schemas, templates, `.claude/`) plus `MANIFEST.json`, `.mcp.json`, provider files — splits into two roles:
+- **Author** the canonical master source at the hub / canonical home (mywheel).
+- **Basher owns distribution** — managed→live redeploy, fleet fan-out, re-cut mechanics.
 
-Two tiers:
-
-1. **Templates + distribution tooling (Basher exclusive):** Basher owns the canonical source templates and everything distributed from `WAI-Harness/spoke/managed/` (tools, schemas, templates, `.claude/` hooks/commands/agents/workflows/settings), plus `MANIFEST.json`, `.mcp.json`, and provider file templates (`CLAUDE.md`/`GEMINI.md`/`QWEN.md`). Route all improvements to these via a complete change-lug to Basher's `incoming/`; Basher edits the canonical source, re-cuts the MANIFEST, and distributes — **this is how we maintain the wheel.**
-
-2. **Placed local instances (Spoke, with receipt-back):** The spoke's own deployed copies (its `CLAUDE.md`, `.env.template`, local `tools/`) are the spoke's to maintain locally. The spoke MAY edit its local copy directly. If the edit is a template improvement worth propagating fleet-wide, emit a complete change-lug (change-receipt) to Basher's `incoming/` so Basher can fold it into the canonical template.
-
-Apply changes directly **only for purely local state** — files under `WAI-Harness/spoke/local/` (lugs, sessions, savepoints, runtime). When in doubt, route to Basher.
+A repo whose own `WAI-Harness/*/managed/MANIFEST.json` has `is_master: true` (this repo) **is the canonical author** — edit `managed/**` directly here and recut in the same commit; never route master self-recuts to Basher. A non-master spoke does NOT edit the distributed source locally — propose changes via a lug (hub to author, Basher to distribute). Apply directly **only when purely local** (`WAI-Harness/spoke/local/**`). When in doubt, route to Basher.
 
 ---
 
@@ -146,3 +142,29 @@ exists to shed.
 Measured the day the ruling landed: `executor_model` had ZERO readers in the kernel,
 managed tools or hooks, so 17 lugs had recorded a model-routing decision the dispatcher
 could not see. Use `model_fit`. Check for readers before writing a field, not after.
+
+## Supplied reference material (OPERATOR RULING, s141)
+
+> "We can't proceed on partial understandings."
+
+**When the operator supplies a document, that document is the source.** A PDF, a file, an
+image, a link they paste — the content of the thing they handed over, read directly.
+
+Never substitute: search snippets, secondary coverage, a summary of it, prior knowledge of
+the subject, the title, or an earlier version. Those are guesses about the document, and a
+guess dressed as a reading is worse than saying you cannot open it.
+
+- **Figures count as content.** A diagram is not decoration. If the file has images, extract
+  and look at them before concluding anything about architecture, flow or structure.
+- **If it cannot be read, say so and stop.** Name what blocked it. Ask for another form.
+  Do not proceed on an approximation and mention the gap in passing.
+- **A partial read is announced as partial**, naming exactly which pages or sections were
+  read, before any conclusion drawn from them.
+
+MEASURED, 2026-08-21. An NVIDIA architecture article was reviewed from search extracts
+after the network proxy blocked every online copy. The review produced a build-order
+recommendation. When the operator supplied the PDF, the architecture turned out to be in
+Figure 1 — carried by no extract — and the recommendation was ranked wrong: it put a
+supervisor first that the diagram shows depends on three things built before it. The
+caveat "treat the fine detail as second-hand" had been stated and was not sufficient. The
+cost was a wasted turn and a recommendation the operator would have acted on.

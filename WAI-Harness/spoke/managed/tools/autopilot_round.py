@@ -596,6 +596,22 @@ def _raise_process_lug(root, lug_id, verdict):
         return {"created": False, "error": str(exc)}
 
 
+
+def _runner_fingerprint(runner):
+    """md5 of the runner binary, or None if it cannot be read.
+
+    None disables the check rather than failing the round: a fingerprint we cannot
+    take is not evidence that the runner changed, and a chain that refuses to start
+    because it could not hash a file is worse than one that runs unpinned.
+    """
+    try:
+        import hashlib
+        with open(runner, "rb") as fh:
+            return hashlib.md5(fh.read()).hexdigest()
+    except (OSError, TypeError):
+        return None
+
+
 def _runner_blob(stdout):
     """The runner's JSON report, or {} if it did not produce one.
 
@@ -734,9 +750,40 @@ def run_chain(root, steps, scope_flag, runner, on_refute="remediate", verbose=Tr
     round_rec["on_refute"] = on_refute
     round_rec["steps"] = []
 
+    # PIN THE RUNNER AT ROUND OPEN.
+    #
+    # A chain assumes every step ran the same binary. Nothing enforced that, and on
+    # 2026-08-17 basher measured what happens when it is false: a fleet distribution
+    # applied 1034 files at 23:49:54 while a chain begun at 23:38:15 was still
+    # running. Steps 1-2 executed the pre-distribution runner, steps 3-12 the
+    # post-distribution one, and the round's twelve verdicts described two different
+    # programs as though they were one.
+    #
+    # This does not prevent the swap -- distribution is a separate process and may
+    # legitimately win. It makes the round STOP rather than publish twelve verdicts
+    # about a binary it was no longer running.
+    runner_fingerprint = _runner_fingerprint(runner)
+    round_rec["runner"] = {"path": str(runner), "md5": runner_fingerprint}
+
     for index in range(1, steps + 1):
         step_baseline = _git(root, "rev-parse", "HEAD")
         step_started = _now().isoformat()
+
+        current_fingerprint = _runner_fingerprint(runner)
+        if runner_fingerprint and current_fingerprint != runner_fingerprint:
+            if verbose:
+                print(f"    RUNNER CHANGED under this round "
+                      f"({runner_fingerprint[:8]} -> {str(current_fingerprint)[:8]}) — "
+                      f"stopping; later steps would grade a different program.",
+                      flush=True)
+            round_rec["steps"].append({"step": index, "lug_id": None,
+                                       "verdict": "RUNNER-CHANGED",
+                                       "runner_md5_at_open": runner_fingerprint,
+                                       "runner_md5_now": current_fingerprint,
+                                       "baseline": step_baseline})
+            round_rec["stopped_early"] = (
+                "runner binary changed mid-round (distribution raced the chain)")
+            break
 
         if verbose:
             print(f"\n─── step {index}/{steps} ─── dispatching", flush=True)
@@ -769,6 +816,43 @@ def run_chain(root, steps, scope_flag, runner, on_refute="remediate", verbose=Tr
             # below was made for the neighbouring branch on 2026-08-02 and not
             # generalised here; the same defect one branch away is the same
             # defect (operator ruling: breaking problems are P0).
+            # ASK THE EXIT CODE BEFORE ASKING THE OUTPUT.
+            #
+            # Every branch below reasons about the runner's JSON. A runner that died
+            # before emitting any emits none -- so phase_errors is empty, the dispatch
+            # count parses to -1, and -1 != 0 means `genuinely_empty` is False and the
+            # step is filed as NO-COMPLETION: a verdict about the WORK, from a runner
+            # that never examined any.
+            #
+            # Reported by basher 2026-08-17 from a real 12-step chain
+            # (round-20260816T233815): 0 approved, 12 NO-COMPLETION, console printing
+            # "dispatched -1" from step 3 on. harness_distribute_fleet.py had applied
+            # 1034 files mid-chain, swapping ozi_autopilot.py underneath a run already
+            # in flight; the in-flight caller passed a flag the new binary had dropped,
+            # argparse exited 2, and stdout was empty. Twelve steps of "the lug did not
+            # land" when nothing had been attempted.
+            #
+            # That particular flag is gone, but the silence is generic: any import
+            # error, syntax error or bad argument produces the identical false verdict.
+            # An exit code is the one signal that survives a runner too broken to speak.
+            if proc.returncode != 0:
+                detail = (proc.stderr or "").strip().splitlines()
+                head = detail[0][:200] if detail else "(no stderr)"
+                if verbose:
+                    print(f"    RUNNER EXITED {proc.returncode} — it never ran, so this "
+                          f"says nothing about the work:", flush=True)
+                    print(f"      {head}", flush=True)
+                    print("    ending chain; fix the runner before trusting any verdict.",
+                          flush=True)
+                round_rec["steps"].append({"step": index, "lug_id": None,
+                                           "verdict": "RUNNER-ERROR",
+                                           "exit_code": proc.returncode,
+                                           "errors": [f"runner exited {proc.returncode}: {head}"],
+                                           "baseline": step_baseline})
+                round_rec["stopped_early"] = (
+                    f"runner exited {proc.returncode} (not a work verdict): {head}")
+                break
+
             phase_errors = _runner_blob(proc.stdout).get("errors") or []
 
             if phase_errors:

@@ -74,6 +74,63 @@ def advisor_dir(root, advisor_id):
     return os.path.join(ol.advisors_dir(root), advisor_id)
 
 
+def _input_fingerprint(root, advisor_id):
+    """A cheap deterministic hash of EVERYTHING the dispatched run reads: the
+    prompt, the contract, and the context snapshots. Content-based, so an
+    untouched tree fingerprints identically every time. This is the skip
+    precondition: re-asking the same question of the same inputs is a pure
+    cost — measured 2026-08-17, eligibility() checked config and never data,
+    so a funded advisor re-ran on unchanged inputs forever."""
+    import hashlib
+    h = hashlib.sha1()
+    adir = advisor_dir(root, advisor_id)
+    for rel in ("context_prompt.md", "contract.json"):
+        path = os.path.join(adir, rel)
+        try:
+            with open(path, "rb") as handle:
+                h.update(handle.read())
+        except OSError:
+            h.update(b"<absent:" + rel.encode() + b">")
+    context_dir = os.path.join(adir, "context")
+    if os.path.isdir(context_dir):
+        for name in sorted(os.listdir(context_dir)):
+            if not (name.startswith("snapshot-") and name.endswith(".md")):
+                continue
+            try:
+                with open(os.path.join(context_dir, name), "rb") as handle:
+                    h.update(name.encode())
+                    h.update(handle.read())
+            except OSError:
+                continue
+    return h.hexdigest()
+
+
+def _dispatch_state_path(root, advisor_id):
+    return os.path.join(root, "WAI-Harness", "spoke", "local", "runtime",
+                        "advisor-dispatch", advisor_id + ".json")
+
+
+def _last_dispatch(root, advisor_id):
+    try:
+        with open(_dispatch_state_path(root, advisor_id)) as handle:
+            data = json.load(handle)
+        return data if isinstance(data, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def _save_dispatch(root, advisor_id, fingerprint, state):
+    path = _dispatch_state_path(root, advisor_id)
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as handle:
+            json.dump({"fingerprint": fingerprint, "state": state,
+                       "at": datetime.now(timezone.utc).isoformat()}, handle, indent=2)
+            handle.write("\n")
+    except OSError:
+        pass  # a state-write failure must never fake a dispatch failure
+
+
 def load_contract(root, advisor_id):
     path = os.path.join(advisor_dir(root, advisor_id), "contract.json")
     try:
@@ -154,10 +211,25 @@ def build_prompt(root, advisor_id):
     )
 
 
-def dispatch(root, advisor_id, model=None, timeout=DEFAULT_TIMEOUT, dry_run=False):
+def dispatch(root, advisor_id, model=None, timeout=DEFAULT_TIMEOUT, dry_run=False,
+             force=False):
     ok, reason = eligibility(root, advisor_id)
     if not ok:
         return {"advisor": advisor_id, "state": "REFUSED", "ran": False, "reason": reason}
+
+    # DATA PRECONDITION, not config: skip when nothing the run reads has changed
+    # since the last SUCCESSFUL run. eligibility() checks the funding decision;
+    # this checks whether there is anything new to say. Only a RAN_OK anchors a
+    # skip — a failed or empty run leaves the question genuinely unanswered.
+    fingerprint = _input_fingerprint(root, advisor_id)
+    if not force:
+        last = _last_dispatch(root, advisor_id)
+        if last and last.get("fingerprint") == fingerprint \
+                and last.get("state") == "RAN_OK":
+            return {"advisor": advisor_id, "state": "SKIPPED_UNCHANGED", "ran": False,
+                    "reason": ("inputs unchanged since the last successful run at "
+                               "{} -- not spending to re-ask the same question "
+                               "(pass force to override)").format(last.get("at"))}
 
     contract = load_contract(root, advisor_id)
     model = model or contract.get("agent_model") or DEFAULT_MODEL
@@ -226,8 +298,10 @@ def dispatch(root, advisor_id, model=None, timeout=DEFAULT_TIMEOUT, dry_run=Fals
         pass
 
     _record(root, advisor_id, argv, proc.returncode, brief.splitlines()[-6:])
-    return {"advisor": advisor_id, "state": "RAN_OK" if proc.returncode == 0
-            else "RAN_FAILED", "ran": True, "ok": proc.returncode == 0,
+    state = "RAN_OK" if proc.returncode == 0 else "RAN_FAILED"
+    _save_dispatch(root, advisor_id, fingerprint, state)
+    return {"advisor": advisor_id, "state": state,
+            "ran": True, "ok": proc.returncode == 0,
             "model": model, "brief_path": out_path, "brief_chars": len(brief)}
 
 
@@ -251,10 +325,13 @@ def _main(argv=None):
     ap.add_argument("--model", default=None)
     ap.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true",
+                    help="dispatch even when inputs are unchanged since the last run")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
-    result = dispatch(args.root, args.advisor, args.model, args.timeout, args.dry_run)
+    result = dispatch(args.root, args.advisor, args.model, args.timeout, args.dry_run,
+                      force=args.force)
     if args.json:
         print(json.dumps(result, indent=2))
     else:

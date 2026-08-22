@@ -28,15 +28,43 @@ def _track(tmp_path, sid, lines):
 
 
 RICH = json.dumps({"event": "turn", "turn": 1, "thinking": "why I did it"}) + "\n"
-FLOOR = json.dumps({"event": "turn", "turn": 2, "synthesized": True,
+# THE OLD FIXTURE NAMED "FLOOR" CARRIED synthesized:True, so these tests conflated the
+# two failures exactly as the tool did — which is why the bug survived its own test file.
+# A backfill and a skipped write are different events and now have different fixtures.
+SYNTH = json.dumps({"event": "turn", "turn": 2, "synthesized": True,
+                    "source": "transcript-synth",
+                    "user_intent": "do a thing", "assistant_text": "did it"}) + "\n"
+FLOOR = json.dumps({"event": "turn", "turn": 2, "source": "model",
                     "user_intent": "do a thing", "assistant_text": "did it"}) + "\n"
 NOTATURN = json.dumps({"event": "savepoint_created"}) + "\n"
 
 
-def test_counts_rich_versus_floor(tmp_path):
-    p = _track(tmp_path, "session-a", [RICH, FLOOR, FLOOR, NOTATURN])
+def test_counts_rich_floor_and_synth_separately(tmp_path):
+    p = _track(tmp_path, "session-a", [RICH, FLOOR, SYNTH, NOTATURN])
     s = tjc.scan_session(p)
-    assert (s["rich"], s["floor"], s["turns"], s["pct"]) == (1, 2, 3, 33)
+    assert (s["rich"], s["floor"], s["synth"]) == (1, 1, 1)
+    assert s["authored"] == 2 and s["turns"] == 3
+    assert s["pct"] == 50, "pct is judgment over AUTHORED turns, not over all turns"
+    assert s["synth_pct"] == 33
+
+
+def test_backfill_does_not_count_against_the_model(tmp_path):
+    """The load-bearing assertion. A synthesized turn cannot carry judgment by
+    construction — synthesize_turn.py reconstructs it from a transcript after the fact.
+    Counting it as a miss is what turned a dead capture path into a story about a model
+    that stopped reasoning. MEASURED on basher: 47% fused vs 78% authored-only."""
+    p = _track(tmp_path, "session-dark", [RICH, SYNTH, SYNTH, SYNTH])
+    s = tjc.scan_session(p)
+    assert s["pct"] == 100, "one authored turn, and it reasoned — that is 100%"
+    assert s["synth_pct"] == 75, "and 75% of turns never reached layer 1 at all"
+
+
+def test_a_skipped_write_still_counts_against_the_model(tmp_path):
+    """The other half: an authored turn with no thinking is a REAL miss and must not
+    be laundered into the backfill bucket by the fix above."""
+    s = tjc.scan_session(_track(tmp_path, "session-thin", [RICH, FLOOR, FLOOR]))
+    assert (s["rich"], s["floor"], s["synth"]) == (1, 2, 0)
+    assert s["pct"] == 33
 
 
 def test_non_turn_events_are_not_counted(tmp_path):
@@ -79,6 +107,17 @@ def test_spoke_summary_flags_sessions_below_half(tmp_path):
     summ = tjc.summarise(sess)
     assert summ["sessions"] == 2 and summ["turns"] == 7 and summ["rich"] == 3
     assert summ["sessions_below_50pct"] == ["session-bad"]
+
+
+def test_summary_flags_a_capture_dark_session_separately(tmp_path):
+    """A dark session is a different alarm from a thin one, and the more urgent:
+    thin lost judgment on some turns, dark was never asked for any."""
+    _track(tmp_path, "session-thin", [RICH, FLOOR, FLOOR])
+    _track(tmp_path, "session-dark", [RICH, SYNTH, SYNTH, SYNTH])
+    summ = tjc.summarise(tjc.scan_spoke(str(tmp_path)))
+    assert summ["sessions_capture_dark"] == ["session-dark"]
+    assert "session-dark" not in summ["sessions_below_50pct"], \
+        "a dark session's coverage says nothing about the model; do not file it as thin"
 
 
 def test_render_names_the_consequence_not_just_a_number(tmp_path):

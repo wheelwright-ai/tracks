@@ -188,6 +188,33 @@ def write_bundle_files(spoke_root: Path, bundle: dict) -> None:
         agg_path.write_text(json.dumps([], indent=2))
 
 
+def _scout_output_text(stdout: str) -> str:
+    """The model's raw text from a scout_executor run.
+
+    scout_executor prints human log lines ("[scout] <id>", "  input: N chars",
+    a status line) and THEN the result JSON object, so stdout as a whole is
+    never valid JSON. Scan for the last complete JSON object and return its
+    `output` field.
+
+    Returns "" when no object is present or it carries no output — a scout that
+    failed, refused, or was a dry run. Empty is honest here: the caller matches
+    findings against it and legitimately finds none.
+    """
+    dec = json.JSONDecoder()
+    best = {}
+    idx = stdout.find("{")
+    while idx >= 0:
+        try:
+            obj, end = dec.raw_decode(stdout, idx)
+        except ValueError:
+            idx = stdout.find("{", idx + 1)
+            continue
+        if isinstance(obj, dict):
+            best = obj
+        idx = stdout.find("{", end)
+    return str(best.get("output") or "")
+
+
 def run_scouts(spoke_root: Path, context: dict, dry_run: bool = False) -> list:
     """Dispatch scouts and aggregate FIND/GAP/DRIFT output lines."""
     if dry_run:
@@ -212,14 +239,21 @@ def run_scouts(spoke_root: Path, context: dict, dry_run: bool = False) -> list:
             print(f"[run_scouts] scout not found: {scout_path}", file=sys.stderr)
             continue
         try:
+            # '--dry-run' WAS HARDCODED HERE. The function already returns early
+            # on its own dry_run parameter (above), so this flag could only ever
+            # fire on a REAL run — every live archaeology run asked the executor
+            # to simulate, got a summary dict back, and matched zero findings.
             result = subprocess.run(
-                [sys.executable, str(scout_executor), "--scout", str(scout_path),
-                 "--dry-run"],
-                capture_output=True, text=True, cwd=str(spoke_root), timeout=120
+                [sys.executable, str(scout_executor), "--scout", str(scout_path)],
+                capture_output=True, text=True, cwd=str(spoke_root), timeout=300
             )
-            for line in result.stdout.splitlines():
-                if re.match(r'^(FIND|GAP|DRIFT)\|', line):
-                    findings.append(line)
+            # The executor prints log lines and then the result JSON object, so
+            # stdout is not parseable as a whole. Take the model's raw text out
+            # of that object and match the FIND|GAP|DRIFT lines the MODEL emits
+            # — this file never received them from the executor itself.
+            for line in _scout_output_text(result.stdout).splitlines():
+                if re.match(r'^(FIND|GAP|DRIFT)\|', line.strip()):
+                    findings.append(line.strip())
         except Exception as e:
             print(f"[run_scouts] error running {scout_id}: {e}", file=sys.stderr)
 
@@ -246,19 +280,24 @@ def run_synthesis(spoke_root: Path, dry_run: bool = False) -> list:
         return []
 
     try:
+        # '--dry-run' WAS HARDCODED HERE TOO. A dry run returns a summary dict,
+        # so json.loads saw the "[scout] ..." log prefix and failed, and the
+        # r'\[.*\]' fallback matched nothing because the payload was a {...}
+        # object. Every live run therefore raised SynthesisFailed.
         result = subprocess.run(
-            [sys.executable, str(scout_executor), "--scout", str(scout_path),
-             "--dry-run"],
-            capture_output=True, text=True, cwd=str(spoke_root), timeout=180
+            [sys.executable, str(scout_executor), "--scout", str(scout_path)],
+            capture_output=True, text=True, cwd=str(spoke_root), timeout=300
         )
-        output = result.stdout.strip()
-        try:
-            return json.loads(output)
-        except json.JSONDecodeError:
-            # Try to extract JSON array from output
-            match = re.search(r'\[.*\]', output, re.DOTALL)
-            if match:
-                return json.loads(match.group(0))
+        # Candidates come from the MODEL'S text, not from the executor's own
+        # result envelope — parse that, then fall back to an embedded array.
+        output = _scout_output_text(result.stdout).strip()
+        if output:
+            try:
+                return json.loads(output)
+            except json.JSONDecodeError:
+                match = re.search(r'\[.*\]', output, re.DOTALL)
+                if match:
+                    return json.loads(match.group(0))
     except Exception as e:
         print(f"[run_synthesis] error: {e}", file=sys.stderr)
         # A failed synthesis returned [] and main() then exited 0, so a broken run

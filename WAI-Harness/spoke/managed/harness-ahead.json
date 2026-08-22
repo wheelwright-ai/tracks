@@ -1,0 +1,19 @@
+{
+  "schema": "harness-ahead/1.0.0",
+  "pins": [],
+  "halts": [
+    {
+      "detected_at": "2026-08-22T03:00:18.316904+00:00",
+      "losses": {
+        "tools/advisor_agent_dispatch.py": [
+          "_dispatch_state_path",
+          "_input_fingerprint",
+          "_last_dispatch",
+          "_save_dispatch"
+        ]
+      },
+      "overridden": false,
+      "override_env": "WAI_ALLOW_SYMBOL_LOSS"
+    }
+  ]
+}

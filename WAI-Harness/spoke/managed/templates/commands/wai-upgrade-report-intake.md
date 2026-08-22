@@ -40,7 +40,11 @@ if not os.path.isdir(BASE):
 report = json.load(open(report_path))
 report_id  = report["id"]
 spoke_id   = report.get("spoke_id", "unknown")
-outcome    = report.get("outcome", "partial")          # pass | partial | fail
+outcome    = report.get("outcome", "partial")   # pass | partial | fail | declined
+# `declined` (added 2026-08-22): a guard refused the pull BEFORE applying anything --
+# nothing broke and nothing is owed. Count it and archive it; open NO lug. It is a
+# distinct outcome precisely so it cannot fall through the fail/partial pair and
+# reach the archive having silently opened nothing.
 validation = report.get("validation", {})
 regressions   = validation.get("regressions", [])
 preexisting   = validation.get("preexisting_failures", [])

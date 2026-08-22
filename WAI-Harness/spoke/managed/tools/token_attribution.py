@@ -49,12 +49,34 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # List prices in USD per million tokens. Cache reads bill at 0.1x input and cache
 # writes at 1.25x input, so both are derived rather than restated per model.
-PRICES_AS_OF = "2026-07-22"
+PRICES_AS_OF = "2026-07-22"      # anthropic rows
+OFFLOAD_PRICES_AS_OF = "2026-08-17"
+
+# ORDER IS SIGNIFICANT. model_family() substring-matches in insertion order, so the
+# specific ids must precede the family stem or "deepseek" would swallow
+# deepseek-reasoner and bill reasoning output at chat rates.
+#
+# The offload rows exist because estimate_cost() returns None for an unpriced model
+# and every non-anthropic call was therefore logged at no cost -- the provider-offload
+# work exists to control spend, and the ledger could not see a cent of it. None is the
+# honest answer for an unknown model and the wrong one for a model we chose to run.
+#
+# These are LIST prices read from each provider's public pricing page on the date
+# above, and they are the least durable numbers in this file: DeepSeek bills cache
+# hits at a steep discount and runs off-peak pricing, so treat these as an upper
+# bound, not an invoice. Reconcile against the provider console before quoting them.
 PRICES = {
     "opus": {"in": 15.0, "out": 75.0},
     "sonnet": {"in": 3.0, "out": 15.0},
     "haiku": {"in": 1.0, "out": 5.0},
     "fable": {"in": 15.0, "out": 75.0},
+    "deepseek-reasoner": {"in": 0.55, "out": 2.19},
+    "deepseek-chat": {"in": 0.27, "out": 1.10},
+    "deepseek": {"in": 0.27, "out": 1.10},
+    "kimi-k3": {"in": 0.60, "out": 2.50},
+    "kimi-k2.5": {"in": 0.60, "out": 2.50},
+    "kimi": {"in": 0.60, "out": 2.50},
+    "moonshot": {"in": 0.60, "out": 2.50},
 }
 CACHE_READ_MULTIPLIER = 0.1
 CACHE_WRITE_MULTIPLIER = 1.25

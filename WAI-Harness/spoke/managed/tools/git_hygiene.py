@@ -143,6 +143,49 @@ def _porcelain_paths(root):
     return paths
 
 
+def withhold_noncompliant_lugs(root, runtime):
+    """Split the runtime bucket into (committable, withheld) by the LUG GATE.
+
+    THE TENSION THIS RESOLVES. The runtime commit uses --no-verify on purpose:
+    the authoring gates judge how a lug was *written*, and one in-flight
+    non-compliant lug must never wedge the whole self-heal. That reasoning is
+    sound and is preserved.
+
+    But the consequence was not intended. Measured 2026-08-17: the lug gate
+    REFUSED two non-compliant lugs on an operator commit (placeholder
+    _improvement_lenses, unjustified model_fit, blocked_by naming ids that do
+    not exist) and this sweep committed both of them anyway minutes later, 79
+    and 162 lines. They still fail the gate today. A quality bar the
+    highest-volume commit path routes around is not a bar.
+
+    So: WITHHOLD rather than abort. A failing lug is simply left out of the
+    sweep — uncommitted, still on disk, and surfaced — while every other
+    runtime path commits exactly as before. The self-heal cannot wedge, and a
+    lug still cannot enter the tree without passing the gate that governs it.
+
+    Returns (committable, withheld). Presence-guarded: no gate tool -> nothing
+    withheld, because a missing gate is not evidence of a bad lug.
+    """
+    lug_paths = [p for p in runtime if "/lugs/" in p and p.endswith(".json")]
+    if not lug_paths:
+        return runtime, []
+    gate = _find_tool(root, "lug_gate.py")
+    if not gate:
+        return runtime, []
+    withheld = []
+    for path in lug_paths:
+        if not os.path.exists(os.path.join(root, path)):
+            continue                      # deletions carry no lug to judge
+        r = subprocess.run(["python3", gate, "--lug", path],
+                           capture_output=True, text=True, cwd=root)
+        if r.returncode != 0:
+            withheld.append(path)
+    if not withheld:
+        return runtime, []
+    keep = [p for p in runtime if p not in set(withheld)]
+    return keep, withheld
+
+
 def classify(root, base):
     """Bucket the uncommitted tree into runtime / blocked / unknown.
 
@@ -320,6 +363,14 @@ def heal(root, base, session_id, dry_run=False, do_push=True):
     #    runtime pathspec to `git commit` guarantees ONLY runtime paths are recorded,
     #    regardless of prior index state.
     if runtime and not dry_run:
+        # A lug that fails its own gate is WITHHELD from the sweep, not committed
+        # and not allowed to wedge it. See withhold_noncompliant_lugs().
+        runtime, withheld = withhold_noncompliant_lugs(root, runtime)
+        if withheld:
+            report["withheld_noncompliant_lugs"] = withheld
+        if not runtime:
+            report["committed"] = 0
+            return report
         # Stage each explicitly; -A on a pathspec picks up deletions + new files too.
         add = _git(root, "add", "-A", "--", *runtime)
         if add.returncode != 0:
@@ -338,11 +389,15 @@ def heal(root, base, session_id, dry_run=False, do_push=True):
                     # Leave a clean index on abort — never strand the runtime staged.
                     _git(root, "reset", "-q", "--", *runtime)
                 else:
+                    withheld = report.get("withheld_noncompliant_lugs") or []
+                    withheld_line = (
+                        f"withheld (fails lug gate): {len(withheld)}\n" if withheld else "")
                     msg = (
                         f"chore(hygiene): auto-heal runtime churn [{session_id}]\n\n"
                         f"{len(runtime)} runtime path(s) committed by git_hygiene.\n"
                         f"surfaced (not committed): {len(buckets['blocked'])} blocked, "
-                        f"{len(buckets['unknown'])} unknown.\n\n{CO_AUTHOR}"
+                        f"{len(buckets['unknown'])} unknown.\n"
+                        f"{withheld_line}\n{CO_AUTHOR}"
                     )
                     # Pathspec → partial commit of ONLY these paths; --no-verify
                     # skips the authoring gates (secret+parse already run above).

@@ -36,9 +36,57 @@ fi
 # same source of truth the Stop hooks + auto_eject use). Handles v4-only
 # (WAI-Harness/spoke/local), v3-only (WAI-Spoke), and coexist (-> v3 data plane).
 # Falls back to the v3 literal only if no tree is detected yet.
-_WP_BASE="$(python3 "$SCRIPT_DIR/wai_paths.py" --root "$TARGET_SPOKE_ROOT" --json 2>/dev/null \
-    | python3 -c "import json,sys; print(json.load(sys.stdin).get('_base') or '')" 2>/dev/null || true)"
-[ -z "$_WP_BASE" ] && _WP_BASE="$TARGET_SPOKE_ROOT/WAI-Spoke"
+# wai_paths.py does NOT necessarily sit beside this script. This file is distributed to
+# BOTH <root>/tools/ and <root>/WAI-Harness/spoke/managed/tools/, byte-identical, but
+# wai_paths.py ships only to the managed tools dir. Resolving it via $SCRIPT_DIR alone
+# meant `tools/closeout.sh` found nothing, the 2>/dev/null swallowed the failure, the
+# fallback silently selected the v3 literal, and closeout died with
+# "WAI-State.json not found at ./WAI-Spoke/WAI-State.json" on a pure-v4 spoke where
+# WAI-Spoke is deliberately graveyarded. Search the real candidates instead, and make a
+# genuine resolver failure LOUD rather than quietly degrading to a dead layout.
+_WP_RESOLVER=""
+for _c in "$SCRIPT_DIR/wai_paths.py" \
+          "$TARGET_SPOKE_ROOT/WAI-Harness/spoke/managed/tools/wai_paths.py" \
+          "$SCRIPT_DIR/../WAI-Harness/spoke/managed/tools/wai_paths.py" \
+          "$FRAMEWORK_ROOT/WAI-Harness/spoke/managed/tools/wai_paths.py"; do
+    [ -f "$_c" ] && { _WP_RESOLVER="$_c"; break; }
+done
+
+if [ -n "$_WP_RESOLVER" ]; then
+    _WP_BASE="$(python3 "$_WP_RESOLVER" --root "$TARGET_SPOKE_ROOT" --json 2>/dev/null \
+        | python3 -c "import json,sys; print(json.load(sys.stdin).get('_base') or '')" 2>/dev/null || true)"
+else
+    echo "WARN: wai_paths.py not found on any candidate path — cannot resolve the data plane." >&2
+fi
+
+if [ -z "$_WP_BASE" ]; then
+    # Do not assume v3. Prefer a v4 tree that actually exists; only then fall back.
+    if [ -d "$TARGET_SPOKE_ROOT/WAI-Harness/spoke/local" ]; then
+        _WP_BASE="$TARGET_SPOKE_ROOT/WAI-Harness/spoke/local"
+        echo "WARN: path resolver unavailable — using detected v4 base $_WP_BASE" >&2
+    else
+        _WP_BASE="$TARGET_SPOKE_ROOT/WAI-Spoke"
+        echo "WARN: path resolver unavailable and no v4 tree found — falling back to $_WP_BASE" >&2
+    fi
+fi
+
+# Same lesson as the wai_paths.py resolution above, generalised. This script is reachable
+# as <root>/tools/closeout.sh (a symlink) AND as the managed copy, so $SCRIPT_DIR and
+# $FRAMEWORK_ROOT/tools point at a directory that holds the symlink but NOT the helper
+# tools. Every "<tool> not found -- skipping" below was therefore a FALSE skip: measured
+# 2026-08-18, score_backlog.py, model_usage_backfill.py and pathgraph_generate.py all
+# exist in managed/tools and had been silently skipped every session, each reported with a
+# tick as though it were a clean no-op. Resolve against the real candidates instead.
+_find_tool() {
+    local name="$1" c
+    for c in "$SCRIPT_DIR/$name" \
+             "$TARGET_SPOKE_ROOT/WAI-Harness/spoke/managed/tools/$name" \
+             "$FRAMEWORK_ROOT/WAI-Harness/spoke/managed/tools/$name" \
+             "$FRAMEWORK_ROOT/tools/$name"; do
+        [ -f "$c" ] && { echo "$c"; return 0; }
+    done
+    return 1
+}
 
 WAI_STATE="$_WP_BASE/WAI-State.json"
 LUGS_DIR="$_WP_BASE/lugs/bytype"
@@ -235,7 +283,7 @@ fi
 # ── Step 5: Score backlog + update work queue ──────────────────────────────
 header "Step 5: Backlog scoring"
 
-SCORE_PY="$FRAMEWORK_ROOT/tools/score_backlog.py"
+SCORE_PY="$(_find_tool score_backlog.py || true)"
 if [ -f "$SCORE_PY" ]; then
     if $DRY_RUN; then
         drylog "Would run score_backlog.py --update-state"
@@ -264,7 +312,7 @@ fi
 # Spec: spec-model-interface-profiles-v1; lug: impl-model-usage-telemetry-activation-v1.
 header "Step 5.5: Model usage telemetry"
 
-BACKFILL_PY="$FRAMEWORK_ROOT/tools/model_usage_backfill.py"
+BACKFILL_PY="$(_find_tool model_usage_backfill.py || true)"
 if [ -f "$BACKFILL_PY" ]; then
     if $DRY_RUN; then
         drylog "Would run model_usage_backfill.py --spoke-root $TARGET_SPOKE_ROOT"
@@ -284,7 +332,7 @@ fi
 # blocker. Lug: impl-pathgraph-horizons-generator-v1.
 header "Step 5.6: PathGraph horizon refresh"
 
-PATHGRAPH_PY="$SCRIPT_DIR/pathgraph_generate.py"
+PATHGRAPH_PY="$(_find_tool pathgraph_generate.py || true)"
 if [ -f "$PATHGRAPH_PY" ]; then
     if $DRY_RUN; then
         drylog "Would run pathgraph_generate.py $TARGET_SPOKE_ROOT"

@@ -240,6 +240,60 @@ _wai_warn() { printf "  ${_W_YLW}◇${_W_RST}  %-12s %s\n" "$1" "$2"; }
 _wai_info() { printf "  ${_W_DIM}·${_W_RST}  %-12s %s\n" "$1" "$2"; }
 _WAI_BRIEF_STATUS="scanning"
 
+# ── Live progress: say what is running WHILE it runs ─────────────────────────
+# MEASURED 2026-08-21 (s126), PS4-timestamped trace of this file with the claude
+# binary stubbed: 8.5s from `wcl` to the menu, of which the operator was shown
+# ONE line and then a 3.7s dead pause. The work was all real — brief generation,
+# a pre-scan, metrics, hygiene — and every second of it was unattributed. The
+# operator's report was not "it is slow"; it was "I cannot tell what it is
+# doing", which is a different defect with a different fix.
+#
+# _wai_step opens a phase, _wai_step_end settles it in place with an elapsed
+# stamp. On a TTY the open line is erased and replaced, so the finished screen
+# is exactly the tidy list it was before — the progress only exists during the
+# wait. Off a TTY (a log, a pipe, CI) both lines are written plainly: a captured
+# launch must never contain a carriage-return smear.
+#
+# The elapsed stamp is deliberate and not decoration. It is the only place the
+# cost of a phase is ever visible, and an unattributed 4s pause is precisely how
+# this defect survived: nobody could point at which step was expensive.
+_W_STEP_LABEL=""
+_W_STEP_MS=0
+_wai_ms() {
+    local t="${EPOCHREALTIME:-}"
+    if [[ "$t" =~ ^([0-9]+)[.,]([0-9]{3}) ]]; then
+        printf '%s%s' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+    else
+        printf '%s000' "${SECONDS}"
+    fi
+}
+_wai_step() {
+    _W_STEP_LABEL="$1"; _W_STEP_MS="$(_wai_ms)"
+    if [[ -t 1 ]]; then
+        printf "  ${_W_DIM}⋯${_W_RST}  %-12s ${_W_DIM}%s${_W_RST}" "$1" "${2:-working…}"
+    else
+        printf "  ${_W_DIM}⋯${_W_RST}  %-12s ${_W_DIM}%s${_W_RST}\n" "$1" "${2:-working…}"
+    fi
+}
+# _wai_step_end <ok|warn|info> <detail>
+_wai_step_end() {
+    local _now _el _stamp=""
+    _now="$(_wai_ms)"
+    _el=$(( _now - _W_STEP_MS ))
+    (( _el < 0 )) && _el=0
+    # Only stamp a phase the operator actually WAITED on. Sub-300ms is noise.
+    if (( _el >= 300 )); then
+        _stamp="  ${_W_DIM}$(( _el / 1000 )).$(( (_el % 1000) / 100 ))s${_W_RST}"
+    fi
+    [[ -t 1 ]] && printf "\r\033[2K"
+    case "${1:-info}" in
+        ok)   printf "  ${_W_GRN}●${_W_RST}  %-12s %b\n" "$_W_STEP_LABEL" "${2}${_stamp}" ;;
+        warn) printf "  ${_W_YLW}◇${_W_RST}  %-12s %b\n" "$_W_STEP_LABEL" "${2}${_stamp}" ;;
+        *)    printf "  ${_W_DIM}·${_W_RST}  %-12s %b\n" "$_W_STEP_LABEL" "${2}${_stamp}" ;;
+    esac
+    _W_STEP_LABEL=""
+}
+
 # ═════════════════════════════════════════════════════════════════════════════
 # W5 SEAM — WAI_DRY_RUN=1 + shared launch-decision functions
 # ═════════════════════════════════════════════════════════════════════════════
@@ -864,18 +918,31 @@ if [[ "$_WAI_DRY" == "1" ]]; then
     exit 0
 fi
 
+# ── Preflight ────────────────────────────────────────────────────────────────
+# Everything from here to the "WAI · Session Start" banner used to run silently,
+# with a few lines leaking above the banner they belonged under. Name the region
+# and the same lines become a report of what the launcher is doing.
+printf "\n"
+printf "  ${_W_BOLD}WAI · preparing${_W_RST}\n"
+printf "  ${_W_DIM}────────────────────────────────────────────${_W_RST}\n"
+
 [[ "$IS_SPOKE" == "true" ]] && _wai_herald_status
 
 # ── 1. Generate fresh wakeup brief ──────────────────────────────────────────
+# The generator prints its summary on STDOUT. Only stderr was suppressed, so the
+# line landed mid-launch with nothing around it. It is captured into
+# _WAI_BRIEF_NOTE and settles the step below, where its counts are the useful part.
+_WAI_BRIEF_NOTE=""
+_wai_step "brief" "scanning lugs + savepoint trail…"
 if [[ "$IS_HUB" == "true" && -f "$PROJECT_DIR/tools/otto_brief.py" ]]; then
-    if python3 "$PROJECT_DIR/tools/otto_brief.py" 2>/dev/null; then
+    if _WAI_BRIEF_NOTE=$(python3 "$PROJECT_DIR/tools/otto_brief.py" 2>/dev/null); then
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"
     fi
 elif [[ "$IS_HUB" == "true" && -f "$PROJECT_DIR/tools/octo_brief.py" ]]; then  # compat: legacy pre-rename name
     # compat: legacy pre-rename tool name, one release (impl-otto-engine-rename-v1)
-    if python3 "$PROJECT_DIR/tools/octo_brief.py" 2>/dev/null; then  # compat: legacy pre-rename name
+    if _WAI_BRIEF_NOTE=$(python3 "$PROJECT_DIR/tools/octo_brief.py" 2>/dev/null); then  # compat: legacy pre-rename name
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"
@@ -884,13 +951,13 @@ elif [[ -f "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.p
     # v4-aware: the spoke's OWN distributed generator (resolves via wai_paths ->
     # WAI-Harness/spoke/local). Preferred — basher's legacy tools/ copy is v3-pathed
     # and skips on v4 spokes (looks for the absent WAI-Spoke/WAI-State.json).
-    if python3 "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null; then
+    if _WAI_BRIEF_NOTE=$(python3 "$PROJECT_DIR/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null); then
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"
     fi
 elif [[ -f "$PROJECT_DIR/tools/generate_wakeup_brief.py" ]]; then
-    if python3 "$PROJECT_DIR/tools/generate_wakeup_brief.py" 2>/dev/null; then
+    if _WAI_BRIEF_NOTE=$(python3 "$PROJECT_DIR/tools/generate_wakeup_brief.py" 2>/dev/null); then
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"
@@ -899,7 +966,7 @@ elif [[ -f "$SCRIPT_DIR/generate_wakeup_brief.py" ]]; then
     # SIBLING: this launcher lives in managed/tools/, so canon's brief generator sits
     # right next to it. Look here before anything else — this is the copy that shipped
     # with this launcher, so it is version-matched to it by construction.
-    if python3 "$SCRIPT_DIR/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null; then
+    if _WAI_BRIEF_NOTE=$(python3 "$SCRIPT_DIR/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null); then
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"
@@ -908,20 +975,27 @@ elif [[ -f "$CANON_ROOT/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py
     # CANON_ROOT's managed canon — reached when the launcher was deployed somewhere
     # other than managed/tools (e.g. a repo-root install, where CANON_ROOT==SCRIPT_DIR
     # and this arm is exactly the old behavior).
-    if python3 "$CANON_ROOT/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null; then
+    if _WAI_BRIEF_NOTE=$(python3 "$CANON_ROOT/WAI-Harness/spoke/managed/tools/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null); then
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"
     fi
 elif [[ -f "$CANON_ROOT/tools/generate_wakeup_brief.py" ]]; then
     # legacy v3-pathed last resort (a stale tools/ — kept only for pure-v3 spokes)
-    if python3 "$CANON_ROOT/tools/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null; then
+    if _WAI_BRIEF_NOTE=$(python3 "$CANON_ROOT/tools/generate_wakeup_brief.py" --spoke-path "$PROJECT_DIR" 2>/dev/null); then
         _WAI_BRIEF_STATUS="ready"
     else
         _WAI_BRIEF_STATUS="failed (live scan)"
     fi
 else
     _WAI_BRIEF_STATUS="failed (live scan)"
+fi
+_WAI_BRIEF_NOTE="${_WAI_BRIEF_NOTE#*wakeup-brief.json updated | }"
+_WAI_BRIEF_NOTE="${_WAI_BRIEF_NOTE%%$'\n'*}"
+if [[ "$_WAI_BRIEF_STATUS" == "ready" ]]; then
+    _wai_step_end info "${_WAI_BRIEF_NOTE:-ready}"
+else
+    _wai_step_end warn "$_WAI_BRIEF_STATUS"
 fi
 
 
@@ -1417,8 +1491,12 @@ print(ip, has_prio)
         # ── Session-start sync trigger (daemonless TTL schedule) ──────────────
         # Self-heals config drift inline (fast) and, when >7d stale, refreshes apps
         # in the background. Keeps latest-greatest apps+config current without a cron.
+        # MEASURED 2026-08-21: 1.89s, blocking, printing nothing — 22% of the launch
+        # spent on a frozen screen, with no consumer later in this file.
         if command -v basher >/dev/null 2>&1; then
-            basher tools auto 2>/dev/null || true
+            ( basher tools auto >"${TMPDIR:-/tmp}/wai-tools-auto-$$.log" 2>&1 || true ) &
+            disown 2>/dev/null || true
+            _wai_info "tools" "self-heal running in background"
         fi
         printf "\n"
 
@@ -1680,7 +1758,10 @@ PYEOF
         printf "  > "
 
         while true; do
-            read -rsn1 _INTENT_CHOICE
+            # EOF GUARD — `read -rsn1` returns non-zero at end of input and leaves the
+            # variable EMPTY, so no branch matched and the menu re-prompted forever
+            # (reproduced 2026-08-21: 5.6M trace lines in 100s). Quit instead.
+            read -rsn1 _INTENT_CHOICE || { printf "\n"; rm -f "$_SPOKES_FILE"; return 0 2>/dev/null || exit 0; }
             # Initiative tree pre-empt (only when initiatives are shown): a DIGIT
             # selects an initiative → status-check intent; a mapped LETTER selects a
             # child savepoint → resume. Checked before the lane case so digits mean
@@ -1695,7 +1776,10 @@ PYEOF
                     _INTENT_LABEL="Status check — ${_INIT_SEL_LABEL} (${_INIT_SEL_ID})"
                     break
                 fi
-                if [[ -n "${_SP_LETTER_TO_IDX[$_INTENT_CHOICE]:-}" ]]; then
+                # An EMPTY key is an empty associative-array subscript, which bash
+                # rejects: "bad array subscript" printed at the operator. Enter yields
+                # exactly that and Enter is a documented default on this menu.
+                if [[ -n "$_INTENT_CHOICE" && -n "${_SP_LETTER_TO_IDX[$_INTENT_CHOICE]:-}" ]]; then
                     printf "%s\n" "$_INTENT_CHOICE"
                     _sp_idx="${_SP_LETTER_TO_IDX[$_INTENT_CHOICE]}"
                     _INTENT="savepoint"
@@ -1847,7 +1931,7 @@ PYEOF
                         printf "  ${_W_BOLD}[r]${_W_RST}  Raw  ${_W_DIM}[b]${_W_RST}  Back  ${_W_DIM}[q]${_W_RST}  Quit\n"
                         printf "\n  > "
                         while true; do
-                            read -rsn1 _SP_SEL
+                            read -rsn1 _SP_SEL || { printf "\n"; break; }   # EOF: leave, do not spin
                             if [[ "$_SP_SEL" =~ ^[1-9]$ ]] && (( _SP_SEL <= _SP_COUNT )); then
                                 _SP_SEL_IDX=$(( _SP_SEL - 1 ))
                                 printf "%s\n" "$_SP_SEL"

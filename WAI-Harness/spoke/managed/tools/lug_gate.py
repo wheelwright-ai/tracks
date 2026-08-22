@@ -43,12 +43,22 @@ import sys
 # ---------------------------------------------------------------------------
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _REPO_ROOT = os.path.abspath(os.path.join(_HERE, "..", "..", "..", ".."))
-_WAI_ASSURANCE_DIR = os.path.join(_REPO_ROOT, "WAI-Harness", "hub", "local", "scripts")
-if _WAI_ASSURANCE_DIR not in sys.path:
-    sys.path.insert(0, _WAI_ASSURANCE_DIR)
+_WAI_ASSURANCE_PATH = os.path.join(
+    _REPO_ROOT, "WAI-Harness", "hub", "local", "scripts", "wai_assurance.py")
 
 # ONE verify grammar, two gates — import, never reimplement.
-from wai_assurance import _extract_command  # noqa: E402
+#
+# LOADED BY FILE PATH, not `sys.path.insert` + `import wai_assurance`. This same
+# tools/ dir ALSO carries a wai_assurance.py -- a real, independently-maintained
+# 224-line file, not a duplicate of the hub's 468-line one. Name-based import
+# shadowed whichever copy sys.path happened to search first, which flips between a
+# plain script run and pytest collection: ImportError: cannot import name
+# '_extract_command'. Loading by explicit path removes the ambiguity.
+import importlib.util as _ilu  # noqa: E402
+_spec = _ilu.spec_from_file_location("_wai_assurance_hub", _WAI_ASSURANCE_PATH)
+_wai_assurance_hub = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_wai_assurance_hub)
+_extract_command = _wai_assurance_hub._extract_command
 
 
 def _load_capgraph_blocks():
@@ -297,6 +307,46 @@ def _check_reasoned_tiering(lug):
     return findings
 
 
+def _impact_value(lug):
+    """Numeric impact from either shape the tree carries: a bare int (v4 lugs)
+    or a value_triple dict (v5 schema — conservative: the highest claimed
+    value). None when no numeric impact is present to judge."""
+    v = lug.get("impact")
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        return v
+    if isinstance(v, dict):
+        nums = [x for x in v.values() if isinstance(x, (int, float)) and not isinstance(x, bool)]
+        return max(nums) if nums else None
+    return None
+
+
+def _check_impact_basis(lug):
+    """impact is anchored to predicted minutes of REWORK FOR THE NEXT AGENT
+    (schemas/impact-contract.v1.json, operator-approved 2026-08-17). At >= 7
+    the prediction must be stated: an `impact_basis` string naming the
+    predicted rework and who pays it. Below 7 the basis is optional. Before
+    this check, impact was validated nowhere and herald_poll.py gated SIGNAL
+    routing on impact >= 8 against a number nothing checked — inflation was
+    free. Now it is visible."""
+    findings = []
+    impact = _impact_value(lug)
+    if impact is None or impact < 7:
+        return findings
+    basis = lug.get("impact_basis")
+    if not isinstance(basis, str) or not basis.strip():
+        findings.append({
+            "check": "impact-basis", "error_class": "high-impact-without-basis",
+            "severity": "block",
+            "msg": (f"impact {impact:g} (>= 7) requires impact_basis naming the "
+                    "predicted rework and who pays it (impact-contract.v1: "
+                    "7 = a session redone, 8 = multi-session/silent wrongness, "
+                    "9 = data loss/fleet-wide wrong belief)"),
+        })
+    return findings
+
+
 def _check_blocked_by(lug, index, root):
     findings = []
     lug_id = lug.get("id")
@@ -387,6 +437,7 @@ def gate_lug(lug_dict, index, root):
     findings += _check_schema(lug_dict)
     findings += _check_verify_runnability(lug_dict)
     findings += _check_reasoned_tiering(lug_dict)
+    findings += _check_impact_basis(lug_dict)
     findings += _check_blocked_by(lug_dict, index, root)
     findings += _check_gate_consistency(lug_dict, index)
     findings += check_routing_canonical(lug_dict, root)

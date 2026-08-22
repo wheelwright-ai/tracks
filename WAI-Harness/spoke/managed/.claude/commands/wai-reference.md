@@ -159,7 +159,7 @@ nudges: []
 ## Step 5: Teaching Scan Script
 
 ```bash
-HUB_PATH=$(jq -r '.wheel.hub_path' WAI-Harness/spoke/WAI-State.json)
+HUB_PATH=$(jq -r '.wiring.hub_path' WAI-Harness/spoke/basher.json)
 test -d "${HUB_PATH}" && echo "HUB_OK" || echo "HUB_MISSING"
 test -d "${HUB_PATH}/teachings_repo/framework/current" && echo "TEACHINGS_OK" || echo "TEACHINGS_MISSING"
 
@@ -173,8 +173,8 @@ grep -im1 "safe.to.auto.adopt" {teaching_file}
 
 **Hub path error format (briefing):**
 ```
-HUB PATH ERROR: wheel.hub_path is {value} — directory not found. Teaching discovery skipped.
-Fix: Set wheel.hub_path in WAI-State.json to the correct hub directory.
+HUB PATH ERROR: wiring.hub_path is {value} — directory not found. Teaching discovery skipped.
+Fix: Set wiring.hub_path in WAI-Harness/spoke/basher.json to the correct hub directory.
 ```
 
 **Teaching Path A (safe_to_auto_adopt: true):**

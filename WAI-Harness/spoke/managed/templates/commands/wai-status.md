@@ -109,7 +109,7 @@ Max parallel: 2
 Hub Connection:
   Status: ✅ Connected
   Last sync: 2 days ago
-  Hub path: {wheel.hub_path from WAI-State.json}
+  Hub path: {wiring.hub_path from WAI-Harness/spoke/basher.json}
 
 Session Health:
   Turn count: 12

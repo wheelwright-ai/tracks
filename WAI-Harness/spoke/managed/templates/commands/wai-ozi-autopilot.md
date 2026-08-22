@@ -22,7 +22,7 @@ basher autopilot
 ```
 
 `basher autopilot` dispatches `scripts/autopilot.sh` from the basher area, which resolves
-`wheel.framework_path` (or derives it from `wheel.hub_path`) in `WAI-State.json`, then calls:
+`wiring.hub_path` in `WAI-Harness/spoke/basher.json`, then calls:
 
 ```bash
 PYTHONUNBUFFERED=1 python3 {fw}/tools/ozi_autopilot.py --spoke-path {spoke_root}
@@ -125,7 +125,7 @@ Autopilot emits a JSON summary to stdout. Key fields:
 - A self-healing recovery lug should appear in `WAI-Harness/spoke/lugs/bytype/impl/open/` after the run (once Basher lug `748f5bf4b310` is applied).
 
 **`phase_0_assess` warnings:**
-- `"hub_path not found"` — WAI-State.json missing `.wheel.hub_path`. Hub-dependent phases skip gracefully.
+- `"hub_path not found"` — basher.json missing `.wiring.hub_path`. Hub-dependent phases skip gracefully.
 - `"ready=0"` — No eligible lugs in queue. Check `bytype/impl/open/` is populated.
 
 ---

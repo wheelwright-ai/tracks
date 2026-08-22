@@ -199,7 +199,7 @@ def save(initiative: Dict[str, Any], root: str = ".") -> Dict[str, Any]:
 _INDEX_FIELDS = [
     "id", "label", "description", "status", "impact_rank", "focus_lock",
     "lifecycle_state", "approved_at", "priority", "due_date", "goals",
-    "wake_on", "dormant_since", "last_revisited_at",
+    "wake_on", "dormant_since", "last_revisited_at", "revisit_cadence_days",
 ]
 
 

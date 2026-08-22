@@ -11,6 +11,7 @@
     "hooks/compact-resume-inject.sh": "b32380a85c2443162f6600caed070eba",
     "hooks/flush_buffer.py": "3effcee0b7f2661317651644f9171605",
     "hooks/harness_mode.sh": "3a96670e418f41a8eaf6c6a532d01d93",
+    "hooks/hook-selfheal.py": "3bd3cf617bb9d1a26575ec6b6a6cc521",
     "hooks/post-tool-use.sh": "a69613c1a4e5453f3a72805c128f2ef6",
     "hooks/pre-compact.sh": "2661b49a6a2ec7313322bea7dd7e0529",
     "hooks/pre-tool-askquestion.sh": "cf3f5fcabb841f9bb5ae04ba3f47866d",
@@ -19,14 +20,14 @@
     "hooks/session-end-lane.sh": "b31792ca2b2fc2ab97621a76d60231ba",
     "hooks/session-start.sh": "6b7020039a68628a4d029ec33313170f",
     "hooks/stop-savepoint-guard.sh": "4ff52763ba1c9d50e4f13872ae8335e1",
-    "hooks/stop-test-runner.sh": "c266a0fda9a2c75937a8c4eef1feae96",
-    "hooks/stop-track-flush.sh": "a0e6b98d649165a7c46c46afac4b67ab",
+    "hooks/stop-test-runner.sh": "10f506dd3821fa635f83bf9b43b8f0a3",
+    "hooks/stop-track-flush.sh": "02acff7884df22f30c52520d139b01fc",
     "hooks/stop-worktree-hygiene.sh": "964cb4b1b90bdb8e13596dfa076605c1",
     "hooks/synthesize_turn.py": "886997e917fe2dce4304823d5a2c4153",
     "hooks/turn_insight.py": "867196bb03389db350e1249bf60c76ad",
-    "hooks/user-prompt-submit.sh": "4b9dbdcc176c1b8e314d104881f9fe6c",
+    "hooks/user-prompt-submit.sh": "43b6f41366512115cdd6c4dd09810c89",
     "hooks/validate_track_buffer.py": "0a7c5703154b3afe753785c433e4d855",
-    "hooks/wakeup-canonical.sh": "68280fb7266eddcf66b6cd817ced91f7",
+    "hooks/wakeup-canonical.sh": "08baa837234e84d264507d264f43320b",
     "hooks/worktree-create.sh": "a53270d250676b466a3a2887a92670f2",
     "skills/generated/adapters/SKILL.md": "1af5ce2d818a4549a80e1326a98f8bb5",
     "skills/generated/assert/SKILL.md": "23dad37db64dfed27120ea8f87aaad08",
@@ -55,5 +56,5 @@
     "workflows/fable-review-pass2.js": "53976c30c9a37c13b7dc0414fec68f47",
     "workflows/fable-review.js": "09b856e3bc49eb6337056dfc70c56aed"
   },
-  "updated_at": "2026-08-17T04:20:37.421417+00:00"
+  "updated_at": "2026-08-22T22:02:47.218791+00:00"
 }

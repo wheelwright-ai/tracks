@@ -32,8 +32,10 @@ import argparse
 import json
 import os
 import re
+import time
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
@@ -562,17 +564,191 @@ def check_track_judgment(base, repo, session_id=None):
             "%d malformed line(s) in %s -- the session is unreadable to every consumer"
             % (rec["malformed"], session_id),
             "cd %s && python3 WAI-Harness/spoke/managed/tools/track_repair.py --root . repair --apply" % repo))
-    if pct < 80:
+    # A DEAD CAPTURE PATH IS NOT LOW COVERAGE, AND MUST NOT BE REPORTED AS IT.
+    #
+    # Until 2026-08-22 this read a single fused percentage that counted layer-2 backfills
+    # as turns the model had skipped. MEASURED on mywheel that day: 38% of 2124 turns were
+    # backfill and 36 sessions were >=50% dark, including one at 100% of 71 turns. Every
+    # one of those was being reported as the model declining to reason.
+    #
+    # This finding is REMEDIABLE, not INFO, and deliberately louder than the coverage one:
+    # thin coverage loses judgment on some turns and is unrecoverable, but a dark session
+    # is a writer that is not running -- which is still losing turns RIGHT NOW and is the
+    # one of the two that can actually be fixed mid-session.
+    # (bug-track-judgment-layer-unenforced-fleet-wide-v1)
+    synth, synth_pct = rec.get("synth", 0), rec.get("synth_pct") or 0
+    if synth and synth_pct >= 50:
+        out.append(_finding(
+            "track-capture", REMEDIABLE,
+            "%s: CAPTURE-DARK -- %d of %d turn(s) (%d%%) are synthesize_turn.py backfill, "
+            "so layer 1 never ran and no judgment was ever solicited. Read nothing into "
+            "this session's coverage until the turn writer is running."
+            % (session_id, synth, turns, synth_pct),
+            "cd %s && python3 .claude/hooks/validate_track_buffer.py && "
+            "ls -l WAI-Harness/spoke/local/runtime/track-buffer.json" % repo))
+    authored = rec.get("authored", turns)
+    if authored and pct is not None and pct < 80:
         out.append(_finding(
             "track-judgment", INFO,
-            "%s: %d%% of %d turn(s) carry reasoning -- the floor-only ones are "
+            "%s: %d%% of %d AUTHORED turn(s) carry reasoning -- the floor-only ones are "
             "already unrecoverable; the fix is forward, on the next turn"
-            % (session_id, pct, turns)))
+            % (session_id, pct, authored)))
+    return out
+
+
+def check_session_minting(base, repo, window_hours=2, now=None):
+    """THE STANDING ORACLE THE 2026-08-06 LUG ASKED FOR AND NOBODY BUILT.
+
+    bug-track-records-zero-turns-and-mints-a-session-per-turn-v1 was closed on 2026-08-06.
+    Its own perceive said: "This has regressed before and was declared fixed... A fix that
+    regresses silently was never verified by a standing oracle, only by observation at the
+    time." Its execute item 4 asked for exactly this watcher. It was never built, and on
+    2026-08-22 the defect was found BY HAND for the third time.
+
+    MEASURED that night: SessionStart fired ~12 seconds before EVERY turn --
+
+        03:04:02 start -> 03:04:14 turn 3      (12s)
+        03:12:42 start -> 03:12:53 turn 4      (11s)
+        04:32:28 start -> 04:32:41 turn 7      (13s)
+        04:42:34 start -> 04:42:47 turn 8      (13s)
+
+    Nine session_start events for eight turns. Each fire minted session-$(date +%H%M),
+    leaving eight one-line directories around one real conversation. Cause: the reuse
+    guard in wakeup-canonical.sh requires session-guard.json's session_id to carry TODAY's
+    date prefix, and that file held session-20260807-0310 -- two weeks stale, so the prefix
+    never matched and it minted every time.
+
+    WHAT THIS COUNTS, and why not the obvious thing: an ORPHAN is a directory whose track
+    holds NO turn event. A first cut counted "first line is a session_start stamped today",
+    which silently excluded the live eight-turn conversation because its first line is a
+    turn (key `ts`) rather than a session_start (key `timestamp`) -- the monitor reported
+    9 orphans and 0 real sessions on a tree that plainly had one. Turn content is the only
+    honest test.
+
+    REMEDIABLE, not INFO: unlike lost judgment this is still happening and is fixable now.
+    """
+    sess = Path(base) / "sessions"
+    if not sess.is_dir():
+        return []
+    # THREE FILTER BUGS WERE WRITTEN BEFORE THIS ONE. Recorded so the next author does not
+    # repeat them, because each produced a CLEAN report on a tree with eight orphans:
+    #
+    #  1. filtered on session-<UTC today>, while the minter names directories from the
+    #     LOCAL date -- on a UTC-7 machine at 21:00 it looked for session-20260822* when
+    #     every directory that night was session-20260821*. Matched nothing.
+    #  2. filtered on track.jsonl mtime, which git checkout and stash bump freely -- that
+    #     night's git work touched 15 old tracks and they all read as "recent activity".
+    #  3. compared orphans against a count of healthy sessions in the same window. The
+    #     ratio needed a tuned window to mean anything and was not load-bearing.
+    #
+    # WHAT IT COUNTS NOW: directories whose track contains NO turn event, dated by the
+    # session_start record INSIDE the file -- the mint time, which is the event of
+    # interest and which nothing outside the hook can forge. No ratio, no name parsing,
+    # no filesystem timestamps.
+    #
+    # THRESHOLD: three. One orphan is a spawn, two is a resume or a crash. Three or more
+    # inside two hours is a loop, and there is no healthy way to produce that.
+    cutoff_epoch = (now if now is not None else time.time()) - window_hours * 3600
+    orphans = []
+    for d in sorted(sess.iterdir()):
+        if not d.is_dir() or not d.name.startswith("session-"):
+            continue
+        minted_at, has_turn = None, False
+        try:
+            with (d / "track.jsonl").open(encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    try:
+                        rec = json.loads(line)
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if not isinstance(rec, dict):
+                        continue
+                    if rec.get("event") == "turn":
+                        has_turn = True
+                        break
+                    if rec.get("event") == "session_start" and rec.get("timestamp"):
+                        minted_at = rec["timestamp"]
+        except OSError:
+            continue
+        if has_turn or not minted_at:
+            continue
+        try:
+            stamp = minted_at.replace("Z", "+00:00")
+            epoch = datetime.fromisoformat(stamp).timestamp()
+        except Exception:  # noqa: BLE001 - an unparseable stamp is not evidence of health
+            continue
+        if epoch >= cutoff_epoch:
+            orphans.append((minted_at, d.name))
+    if len(orphans) >= 3:
+        names = ", ".join(n for _, n in sorted(orphans)[:4])
+        return [_finding(
+            "session-minting", REMEDIABLE,
+            "%d session dir(s) minted in the last %dh with ZERO turns -- SessionStart is "
+            "minting per turn, so this conversation's history is being split across "
+            "directories (%s%s)"
+            % (len(orphans), window_hours, names, "..." if len(orphans) > 4 else ""),
+            "cd %s && cat WAI-Harness/spoke/local/runtime/session-guard.json  "
+            "# wakeup-canonical.sh reuses a session only when this file's session_id "
+            "carries TODAY's date prefix; a stale one mints on every turn" % repo)]
+    return []
+
+
+def check_open_asks(base, repo, session_id=None):
+    """Operator asks that are still open at exit. The marching orders, surfaced.
+
+    OPERATOR DIRECTIVE 2026-08-22: "Whenever I ask for something, I'd like you to enumerate
+    the ask and store them in a way that assures it's been heard and whether or not it's
+    been responded, reacted to. This will give us clear marching orders."
+
+    A ledger nobody reads is a file, not a service. This is the wiring that makes it one --
+    the same lesson as the standing oracle asked for on 08-06 and never built: what was
+    missing there was never the idea, it was a caller.
+
+    TWO DIFFERENT FINDINGS, deliberately, because they are different failures:
+      * a DISHONEST ledger is REMEDIABLE and comes first -- an ask marked landed with no
+        evidence, or an adversarial check requested and skipped. A ledger that lies is
+        worse than none: it converts an unmet ask into a recorded success.
+      * still-open asks are INFO. Leaving an ask open is legitimate; leaving it INVISIBLE
+        at exit is not.
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import ask_ledger as _al  # noqa: PLC0415
+    except Exception:  # noqa: BLE001
+        return []
+    try:
+        recs = _al._read(str(base))
+        if session_id:
+            recs = [r for r in recs if r.get("session") == session_id] or recs
+        problems = _al.validate(str(base))
+    except Exception:  # noqa: BLE001
+        return []
+    if not recs:
+        return []
+    out = []
+    for p in problems:
+        out.append(_finding(
+            "asks.dishonest", REMEDIABLE,
+            "ask ledger records a claim it cannot support -- %s" % p,
+            "cd %s && python3 WAI-Harness/spoke/managed/tools/ask_ledger.py validate" % repo))
+    open_items = [(r, it) for r in recs for it in r.get("items", [])
+                  if it.get("state") in _al.OPEN]
+    if open_items:
+        first = "; ".join(f"{r['ask_id']}#{it['n']} {it['text'][:48]}"
+                          for r, it in open_items[:3])
+        out.append(_finding(
+            "asks.open", INFO,
+            "%d operator ask item(s) still open -- %s%s"
+            % (len(open_items), first, "..." if len(open_items) > 3 else ""),
+            "cd %s && python3 WAI-Harness/spoke/managed/tools/ask_ledger.py report --open-only"
+            % repo))
     return out
 
 
 def run_checks(repo, base, session_id):
     findings = []
+    findings += check_open_asks(base, repo, session_id)
+    findings += check_session_minting(base, repo)
     findings += check_git(repo)
     findings += check_csrp(repo, base)
     findings += check_lanes(base, session_id, repo)

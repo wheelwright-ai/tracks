@@ -93,7 +93,7 @@ Path note for reviewers: criteria below cite `WAI-Harness/spoke/` paths from fra
 
 ### 8. Hub Connection [MANDATORY]
 
-46. `wheel.hub_path` is a resolvable filesystem path to the hub directory (.claude/commands/wai-foundation.md)
+46. `wiring.hub_path` (basher.json) is a resolvable filesystem path to the hub directory (.claude/commands/wai-foundation.md)
 47. Hub registry at `{hub_path}/WAI-Hub/registry/` (or `hub-registry.json`) has spoke entries: `spoke_id`, `name`, `version`, `status`, `one_liner`, `path` (.claude/commands/wai-closeout.md)
 48. Hub signal inbox exists at `{hub_path}/WAI-Hub/signals/incoming/` (or `signals/inbound/`) (.claude/commands/wai-closeout.md)
 49. Teachings delivery targets: `{hub_path}/teachings_repo/framework/current/` (new), `{hub_path}/teachings_repo/spoke/archive/` (superseded) (.claude/commands/wai-closeout-reference.md)

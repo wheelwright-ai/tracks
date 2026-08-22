@@ -8,7 +8,7 @@ bar and what a survey actually found.
 Rules (spec gap_computation):
   - mandated + absent                       -> BLOCKING (capability-missing)
   - mandated + present + uncertified (loose) -> BLOCKING (test-null)
-  - mandated + requires_tools not all in the ToolGraph access_matrix -> BLOCKING (tool-missing)
+  - mandated + requires_tools not all in the CapabilitiesGraph access_matrix -> BLOCKING (tool-missing)
   - recommended + absent + not declined     -> SOFT
   - recommended + declined                  -> not a gap (decision shown for transparency)
   - awareness + absent                       -> not a gap
@@ -31,7 +31,7 @@ def compute_capability_gaps(resolved_entries, survey, access_matrix=None):
     survey: dict capability_id -> {"present": bool, "certified": bool}
             (a missing key is treated as absent). May also be a set/list of
             present-and-certified ids for the simple case.
-    access_matrix: iterable of tool_ids available in the spoke ToolGraph; None
+    access_matrix: iterable of tool_ids available in the spoke CapabilitiesGraph; None
                    disables the tool-gate check.
 
     Returns {"blocking": [...], "soft": [...], "declined": [...], "roadmap": [...]}.
@@ -60,7 +60,7 @@ def compute_capability_gaps(resolved_entries, survey, access_matrix=None):
                     blocking.append({"capability": cid, "tier": tier, "type": "tool-missing",
                                      "missing_tool": missing,
                                      "reason": f"mandated capability requires tool(s) {missing} "
-                                               "absent from the ToolGraph access_matrix"})
+                                               "absent from the CapabilitiesGraph access_matrix"})
                     continue
             if not present:
                 blocking.append({"capability": cid, "tier": tier, "type": "capability-missing",

@@ -71,13 +71,13 @@ If unsure whether a command like "Status" refers to WAI, ask: *"Did you mean WAI
 
 **See WAI-Harness/spoke/ for complete project context and instructions.**
 
-## Tool Ownership (author vs distribute)
+## Tool Ownership
 
-Distributed tool/config — everything under `WAI-Harness/spoke/managed/**` (tools, schemas, templates, `.claude/`) plus `MANIFEST.json`, `.mcp.json`, provider files — splits into two roles:
+**Basher owns all distributed tool files, local-only excepted.** Distributed tool/config — everything under `WAI-Harness/spoke/managed/**` (tools, schemas, templates, `.claude/`) plus `MANIFEST.json`, `.mcp.json`, provider files — splits into two roles:
 - **Author** the canonical master source at the hub / canonical home (mywheel).
 - **Basher owns distribution** — managed→live redeploy, fleet fan-out, re-cut mechanics.
 
-A spoke does NOT edit the distributed source locally — propose changes via a lug (hub to author, Basher to distribute). Apply directly **only when purely local** (`WAI-Harness/spoke/local/**`). When in doubt, route it.
+A repo whose own `WAI-Harness/*/managed/MANIFEST.json` has `is_master: true` (this repo) **is the canonical author** — edit `managed/**` directly here and recut in the same commit; never route master self-recuts to Basher. A non-master spoke does NOT edit the distributed source locally — propose changes via a lug (hub to author, Basher to distribute). Apply directly **only when purely local** (`WAI-Harness/spoke/local/**`). When in doubt, route to Basher.
 
 ---
 

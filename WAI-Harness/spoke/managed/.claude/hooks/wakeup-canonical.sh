@@ -189,6 +189,78 @@ if [[ -z "$SESSION_NAME" ]]; then
       fi
     fi
   fi
+  # REUSE A LIVE CONVERSATION BEFORE MINTING A NEW DIRECTORY.
+  #
+  # The guard check above can NEVER succeed on this machine, and that was measured, not
+  # inferred. MEASURED 2026-08-22 on mywheel:
+  #
+  #   * SessionStart fired ~12s before EVERY turn -- 9 starts against 8 turns:
+  #       03:04:02 -> turn 3 (12s)   03:12:42 -> turn 4 (11s)
+  #       04:32:28 -> turn 7 (13s)   04:42:34 -> turn 8 (13s)
+  #   * ZERO lanes were created in six hours, so CC_SID is empty, lane_register never
+  #     runs, and THIS legacy fallback is the live path -- not a rare edge case.
+  #   * runtime/session-guard.json holds session_id=session-20260807-0310, two weeks
+  #     stale. Its ONLY writer is synthesize_turn.py:614, which writes turn_count and
+  #     never session_id, while user-prompt-submit.sh:547 writes the PER-LANE guard
+  #     instead. A read and a write pointing at different files.
+  #
+  # So the date-prefix branch is dead code and this fallback minted
+  # session-$(date +%Y%m%d-%H%M) on every single turn, scattering one conversation
+  # across eight one-line directories.
+  #
+  # THE RULE HERE MATCHES stop-track-flush.sh's tier 4, deliberately: a directory that
+  # HAS TURNS is a conversation, and an empty one is not. Reuse the most recently
+  # ACTIVE such directory when its newest turn is inside the window; a conversation
+  # quiet for longer than that is genuinely over and a new session is correct.
+  #
+  # SAFE BY CONSTRUCTION: this arm only runs when the guard branch already declined,
+  # which on this machine is always, and the alternative it replaces is minting 100% of
+  # the time. It can only reduce forking. If it finds nothing it falls through to the
+  # same mint as before.
+  # (bug-track-layer-1-dies-mid-session-and-backfill-hides-it-v1)
+  if [[ -z "$SESSION_NAME" ]]; then
+    SESSION_NAME=$(BASE="$BASE" python3 - <<'PYEOF' 2>/dev/null || true
+import json, os, time
+from pathlib import Path
+WINDOW_SECS = 3 * 3600
+sess = Path(os.environ["BASE"]) / "sessions"
+best = None
+if sess.is_dir():
+    for d in sess.iterdir():
+        if not d.is_dir() or not d.name.startswith("session-"):
+            continue
+        newest = None
+        try:
+            with (d / "track.jsonl").open(encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    try:
+                        rec = json.loads(line)
+                    except Exception:
+                        continue
+                    if not isinstance(rec, dict) or rec.get("event") != "turn":
+                        continue
+                    ts = rec.get("ts") or rec.get("timestamp") or ""
+                    if isinstance(ts, str) and ts[:2] == "20":
+                        if newest is None or ts > newest:
+                            newest = ts
+        except OSError:
+            continue
+        if newest is None:
+            continue                      # no turns -> not a conversation
+        try:
+            from datetime import datetime
+            age = time.time() - datetime.fromisoformat(
+                newest.replace("Z", "+00:00")).timestamp()
+        except Exception:
+            continue                      # undatable -> cannot claim it is live
+        if age <= WINDOW_SECS and (best is None or newest > best[0]):
+            best = (newest, d.name)
+print(best[1] if best else "")
+PYEOF
+)
+    [[ -n "$SESSION_NAME" ]] && SKIP_SESSION_INIT=true
+  fi
+
   [[ -z "$SESSION_NAME" ]] && SESSION_NAME="session-$(date +%Y%m%d-%H%M)"
 fi
 
@@ -228,7 +300,17 @@ fi
 # concurrent sessions is harmless. flock serializes the read-modify-write anyway so
 # the file can never interleave into corruption (best-effort: skipped where flock is
 # absent, e.g. macOS without util-linux).
-if [[ "$SKIP_SESSION_INIT" == "false" ]]; then
+# ALWAYS runs -- deliberately NOT gated on SKIP_SESSION_INIT. The write is three
+# idempotent assignments to the ALREADY-RESOLVED $SESSION_NAME, so repeating it on
+# re-entry costs nothing, while SKIPPING it is the P0: on re-entry into an existing
+# lane (_LANE_CREATED=False -- a resume, a compaction restart, /context) the block
+# was skipped and _session_state.session_id kept pointing at the PREVIOUS session.
+# A stale non-null id is worse than a null one: synthesize_turn.py --all then
+# resolves, and backfills recovered turns into the WRONG session's track; wai-exit
+# also refuses to stamp the track ("could not identify this session's track"),
+# because the id it is handed belongs to a neighbour. Measured live in mywheel
+# 2026-08-21 (state said session-20260821-1242, live session was session-20260821-2102).
+# Never re-gate this. (change-canon-session-id-must-be-written-on-lane-reentry-v1)
 _write_state() {
   TMP=$(mktemp)
   # session_id (not just last_session_id) is what every recovery path reads. Its
@@ -251,7 +333,6 @@ if command -v flock >/dev/null 2>&1; then
   ( flock 9; _write_state ) 9>"$BASE/runtime/.waistate.lock" 2>/dev/null || _write_state
 else
   _write_state
-fi
 fi
 
 # ── Tool Advisor: cheap stale marker ────────────────────────────────────────

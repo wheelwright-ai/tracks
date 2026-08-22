@@ -1,0 +1,20 @@
+{
+  "$id": "impact-contract-v1",
+  "title": "Impact Contract (impact-contract-v1)",
+  "description": "THE anchor for the `impact` field, operator-approved 2026-08-17. impact = predicted minutes of REWORK FOR THE NEXT AGENT if the lug is not addressed. Before this contract, impact was validated NOWHERE (grep impact lug_gate.py returned zero hits), values were typed by hand or hardcoded (integrity_probe.py = 8 if RED else 5), and herald_poll.py gated SIGNAL routing on impact >= 8 against a number nothing checked. Under this contract, signal_noise_threshold: 8 means: >= 2 hours of downstream rework, or silent wrongness that passes review. That is defensible and arguable, which is the point.",
+  "bands": [
+    {"impact": "0-2", "rework": "0-5 min", "meaning": "cosmetic; the next agent notices nothing"},
+    {"impact": "3-4", "rework": "5-15 min", "meaning": "one clarifying question"},
+    {"impact": "5-6", "rework": "15-45 min", "meaning": "a clarification loop plus partial redo"},
+    {"impact": "7", "rework": "45-120 min", "meaning": "a session's work redone, or a wrong path taken and reversed"},
+    {"impact": "8", "rework": "2-8 hours", "meaning": "multi-session loss, OR silently wrong results that pass review"},
+    {"impact": "9", "rework": "8+ hours", "meaning": "data loss, or a wrong belief propagating fleet-wide"},
+    {"impact": "10", "rework": "unbounded", "meaning": "active destruction, or a security breach"}
+  ],
+  "enforcement": {
+    "rule": "impact >= 7 requires an impact_basis string naming the predicted rework and who pays it; below 7 the basis is optional. Inflation becomes visible instead of free.",
+    "enforced_by": "WAI-Harness/spoke/managed/tools/lug_gate.py::_check_impact_basis",
+    "oracle": "WAI-Harness/spoke/managed/tests/test_lug_gate_impact_basis.py"
+  },
+  "signal_routing_reading": "herald_poll.py's `impact >= 8` SIGNAL gate now reads as: >= 2 hours of downstream rework, or silently wrong results that pass review."
+}

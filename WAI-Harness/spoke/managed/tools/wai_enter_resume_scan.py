@@ -43,6 +43,34 @@ from pathlib import Path
 
 STALE_ACTIVE_HOURS = 8        # an 'active' savepoint older than this reads as resumable
 INTERRUPTED_MAX_AGE_DAYS = 7  # older interrupted sessions have no actionable context (anti-pattern)
+
+# SAVEPOINTS GET THE SAME POLICY. They never had one, and that asymmetry was the
+# whole defect: interrupted sessions have been bounded at 7 days for a stated
+# reason, while savepoints — the larger pile by far — were exempt from the
+# identical argument and every pending one surfaced forever.
+#
+# MEASURED on basher 2026-08-15: 15 pending savepoints, ages
+# 0,1,1,1,12,12,13,13,14,15,19,21,22,22,25 days. Eleven were 12+ days old. The
+# distribution is not a gradient, it is two clusters: four from the last day of
+# real work, then a jump straight to 12+. Nothing between 1 and 12 days, which is
+# what a queue looks like when the top is worked and the tail is never revisited.
+#
+# NOT SILENTLY DROPPED. A stale savepoint is still claimable work, so hiding it
+# outright would trade visible noise for an invisible backlog. Stale ones are
+# reported as a COUNT plus the oldest age, so the tail stays honest in one line
+# instead of fifteen.
+SAVEPOINT_MAX_AGE_DAYS = int(os.environ.get("WAI_SAVEPOINT_MAX_AGE_DAYS", "7") or 7)
+
+
+def _age_days(path):
+    """Whole days since `path` was last written, as a string. Empty string when
+    the file is gone or unreadable — an unknown age must render as nothing, never
+    as 0d, which would read as 'fresh' and is the opposite of the truth."""
+    try:
+        import time
+        return str(int((time.time() - Path(path).stat().st_mtime) // 86400))
+    except Exception:
+        return ""
 TITLE_CAP = 64
 NOTE_CAP = 52
 
@@ -462,8 +490,37 @@ def scan_interrupted(wai_local, now=None):
     return out
 
 
+def _partition_by_age(savepoints):
+    """Split into (fresh, stale) on SAVEPOINT_MAX_AGE_DAYS.
+
+    An UNKNOWN age counts as FRESH. _age_days returns "" when the file is gone or
+    unreadable, and the safe reading of "I cannot tell how old this is" is to keep
+    showing it — suppressing on an unknown would let an unreadable mtime silently
+    bury live work, which is the failure this whole change exists to avoid.
+    """
+    fresh, stale = [], []
+    for sp in savepoints:
+        a = _age_days(sp.get("file", ""))
+        if a.isdigit() and int(a) > SAVEPOINT_MAX_AGE_DAYS:
+            stale.append((int(a), sp))
+        else:
+            fresh.append(sp)
+    return fresh, stale
+
+
 def emit(savepoints, interrupted, initiatives=()):
     lines = []
+    # Age-bound the list BEFORE anything indexes it. The initiative-membership block
+    # below builds _INIT_SP_IDX/_SP_UNGROUPED_IDX as offsets into the _SP_* arrays, so
+    # partitioning here keeps every one of those indices consistent by construction —
+    # filtering after they were computed is how an off-by-one gets built.
+    _fresh, _stale = _partition_by_age(savepoints)
+    savepoints = _fresh
+    # The tail, in one honest line instead of fifteen. Never silently dropped: these
+    # are still claimable, and `wai_savepoints.py` lists them in full on demand.
+    lines.append(f"_SP_STALE_COUNT={len(_stale)}")
+    lines.append(f"_SP_STALE_OLDEST={max((a for a, _ in _stale), default=0)}")
+    lines.append(f"_SP_STALE_CUTOFF={SAVEPOINT_MAX_AGE_DAYS}")
     lines.append(f"_SP_COUNT={len(savepoints)}")
     for i, sp in enumerate(savepoints):
         lines.append(f"_SP_IDS[{i}]={_shq(sp['id'])}")

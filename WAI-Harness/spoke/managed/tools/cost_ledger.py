@@ -49,20 +49,48 @@ LEDGER = Path("WAI-Harness/spoke/local/cost-ledger.jsonl")
 TIER_ORDER = {"haiku": 1, "sonnet": 2, "opus": 3}
 
 
+def _iter_history(p):
+    """Every record across ALL rotated segments, not just the live file.
+
+    jsonl_rotate splits this log when it grows; the live path is preserved so readers keep
+    WORKING, but a reader that opens only the live file silently sees the newest slice.
+    MEASURED 2026-08-22, minutes after the first rotation: this module reported 0 measured
+    runs and "monotonic: True" over an empty set -- an affirmative PASS that erased a
+    standing schema finding, plus 10 tier-drift and 15 spend-without-artifact offenders.
+    Reading 0 rows instead of 102 did not produce an empty answer, it produced a WRONG one.
+
+    Falls back to the live file alone when jsonl_rotate is unavailable (a spoke that has
+    not taken the cut yet) -- the pre-rotation behaviour, never worse than it.
+    """
+    try:
+        import sys as _sys
+        from pathlib import Path as _P
+        _sys.path.insert(0, str(_P(__file__).resolve().parent))
+        import jsonl_rotate as _jr  # noqa: PLC0415
+        yield from _jr.iter_all(str(p))
+        return
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        for line in open(p, encoding="utf-8", errors="replace"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                yield json.loads(line)
+            except Exception:  # noqa: BLE001
+                continue
+    except OSError:
+        return
+
+
 def read_activity(root):
     """Execution records only — rows that actually measured something."""
     p = root / ACTIVITY_LOG
     if not p.exists():
         return []
     rows = []
-    for line in p.read_text(errors="replace").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            r = json.loads(line)
-        except json.JSONDecodeError:
-            continue  # a malformed line is not a reason to lose the rest
+    for r in _iter_history(p):
         if r.get("lug_id") and r.get("tokens_used"):
             rows.append(r)
     return rows

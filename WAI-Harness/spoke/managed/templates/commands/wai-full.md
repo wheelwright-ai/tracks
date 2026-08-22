@@ -131,7 +131,7 @@ Needs You: {M} items
 - Next actions from `_session_state.next_session_recommendation`
 
 **Hub path error format:**
-> `HUB PATH ERROR: wheel.hub_path is {value} — directory not found. Teaching discovery skipped.`
+> `HUB PATH ERROR: wiring.hub_path is {value} — directory not found. Teaching discovery skipped.`
 
 ---
 

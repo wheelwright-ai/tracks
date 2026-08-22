@@ -54,12 +54,30 @@ def _is_comment(line: str, suffix: str) -> bool:
     return False
 
 
+# WAI-Spoke/ IS NOT ALWAYS v3. The s141 operator ruling made WAI-Spoke/work the CANONICAL
+# v6 store, and `wai install` vendors the kernel to WAI-Spoke/kernel -- the entry point on
+# 5 of 5 v6 spokes. Both are the CURRENT generation, not residue.
+#
+# Measured 2026-08-19: the Stop-hook scoping fix had to skip the vendored kernel to avoid
+# collecting a byte-identical copy beside the source, and the only way to say that is to
+# name WAI-Spoke/kernel. The lint flagged it as v3 debt and blocked the cut -- a guard
+# firing on the correct state, which is the same defect phantom_present had against these
+# exact two directories.
+V6_CANONICAL = ("WAI-Spoke/work", "WAI-Spoke/kernel", "WAI-Spoke/installed.json")
+
+
+def _is_v6_reference(line: str) -> bool:
+    return any(seg in line for seg in V6_CANONICAL)
+
+
 def _scan_file(path: Path) -> list:
-    """Return [(lineno, text)] for non-comment lines that reference a WAI-Spoke/ path."""
+    """Return [(lineno, text)] for non-comment lines that reference a v3 WAI-Spoke/ path."""
     hits = []
     try:
         for i, line in enumerate(path.read_text(errors="ignore").splitlines(), 1):
             if NEEDLE in line and not _is_comment(line, path.suffix):
+                if _is_v6_reference(line):
+                    continue
                 hits.append((i, line.strip()[:160]))
     except Exception:
         pass

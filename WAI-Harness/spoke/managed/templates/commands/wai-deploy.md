@@ -23,7 +23,7 @@ fi
 ```
 
 - **If `NOT_BASHER`** → DO NOT run any deploy step. Instead **route a deploy request to basher**:
-  1. Resolve basher's incoming. Read the hub registry (`wheel.hub_path` in this spoke's
+  1. Resolve basher's incoming. Read the hub registry (`wiring.hub_path` in this spoke's basher.json,
      `WAI-Harness/spoke/local/WAI-State.json`, else
      `/home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/hub-registry.json`),
      find the wheel with `wheel_id == "basher"`, take its `path`, and target

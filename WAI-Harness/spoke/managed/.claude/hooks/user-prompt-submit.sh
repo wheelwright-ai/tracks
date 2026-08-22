@@ -388,6 +388,17 @@ HVEOF
   # TasteGraph injected once had near-zero compliance, so the fields that must be
   # written every single turn are named every single turn. Cheap, and the failure
   # it prevents is expensive.
+  # ── VOLATILE LAST (prompt-cache ordering) ────────────────────────────────
+  # This is the only per-turn block whose CONTENT changes every turn: the
+  # statusline carries turn number, wall-clock time and HEAD sha. Everything
+  # after it in this hook (Tier A contract, the vector digest) is byte-stable
+  # turn to turn. Emitting the volatile block FIRST put changing bytes in front
+  # of stable ones, so the stable region never sat at a stable offset. Buffer it
+  # here and flush it at the END of the injection instead: same content, same
+  # rail, but the repeated region of context stays contiguous and cacheable.
+  # The statusline being the last thing injected also puts it closest to where
+  # it must be obeyed — the last line of the reply.
+  _TR_BLOCK="$(
   printf '%s\n' "<wai-track-turn>"
   printf '%s\n' "${_TR_PROMPT_VER} — full contract injected at session start. Per-turn obligations:"
   printf '%s\n' "1. RICH ENTRY: merge YOUR judgment fields into ${_TR_BUF} and write the whole object back."
@@ -401,6 +412,7 @@ HVEOF
   printf '%s\n' "${_TR_SL}"
   printf '%s\n' "Omit BOTH only in plan mode."
   printf '%s\n' "</wai-track-turn>"
+  )"
 fi
 
 # ── TASTE TIER A: always-on communication contract (per-turn, BINDING) ─────
@@ -442,14 +454,68 @@ if [ -f "$_TGV" ]; then
                 --session "${WAI_SESSION:-unknown}" --turn "${_TR_N:-0}" \
                 --context "composing turn output" 2>&1)"
   if [ -n "$_TGV_OUT" ]; then
-    printf '%s\n' "<tastegraph-vector>"
-    printf '%s\n' "These are the operator preferences that govern HOW YOU WRITE THIS REPLY."
-    printf '%s\n' "Selected deterministically for the presentation vector; full bodies, never truncated."
-    printf '%s\n' "$_TGV_OUT"
-    printf '%s\n' "</tastegraph-vector>"
+    # ── FULL ONCE, THEN DELTA ────────────────────────────────────────────────
+    # MEASURED 2026-08-21 (basher session-20260821-1724, 10 turns): this block is
+    # 20,750 B / ~5,187 tok, and turn 1 vs turn 10 payloads were 99.9% byte-identical
+    # (22,398 of 22,416 B). ~52k tokens per 10 turns spent re-sending bodies already
+    # sitting in context. Nothing errored, which is why it ran for months: cost has
+    # no failure mode.
+    #
+    # What s137 actually fixed was ABSENCE from the per-turn rail — the graph was
+    # rendered once at SessionStart and never again, so adherence collapsed at the
+    # moment output is composed. That fix is PRESERVED: this rail still fires every
+    # single turn. What changes is payload, not presence. Full bodies on first
+    # emission and on any content change; a compact in-force digest otherwise.
+    # Tier A (taste_contract.py, ~727 B) is untouched and still carries the binding
+    # communication prefs verbatim every turn.
+    #
+    # Cache behaviour: the digest is byte-identical turn to turn, so the repeated
+    # region of context stays stable and cacheable instead of being 20 KB of
+    # re-tokenised text at a new offset every turn.
+    _TGV_HASH="$(printf '%s' "$_TGV_OUT" | cksum | cut -d' ' -f1)"
+    _TGV_N="$(printf '%s\n' "$_TGV_OUT" | sed -n 's/.*(\([0-9]\{1,\}\) preference(s) in force).*/\1/p' | head -1)"
+    _TGV_MARK="${WAI_LOCAL:-$PROJECT_DIR/WAI-Harness/spoke/local}/runtime/tgv-sent"
+    _TGV_KEY="${WAI_SESSION:-unknown}:${_TGV_HASH}"
+    _TGV_SEEN=""
+    [ -f "$_TGV_MARK" ] && _TGV_SEEN="$(cat "$_TGV_MARK" 2>/dev/null)"
+    if [ "$_TGV_SEEN" = "$_TGV_KEY" ]; then
+      # Unchanged since it was sent in full this session. Stay on the rail, cheaply.
+      printf '%s\n' "<tastegraph-vector state=\"in-force-unchanged\" prefs=\"${_TGV_N:-?}\" digest=\"${_TGV_HASH}\">"
+      printf '%s\n' "The ${_TGV_N:-?} presentation preferences sent IN FULL earlier this session are"
+      printf '%s\n' "still in force, unchanged, and govern HOW YOU WRITE THIS REPLY. Apply them now."
+      printf '%s\n' "If you cannot see that block (context was compacted), say so plainly and re-read it:"
+      printf '%s\n' "  python3 $_TGV select --vector presentation --session \"\$WAI_SESSION\" --turn 0 --context recall"
+      printf '%s\n' "</tastegraph-vector>"
+    else
+      # First emission this session, or the preferences changed under us.
+      if [ -n "$_TGV_SEEN" ]; then
+        printf '%s\n' "<tastegraph-vector state=\"CHANGED-resending-full\" digest=\"${_TGV_HASH}\">"
+        printf '%s\n' "These preferences CHANGED since the last full send this session — the bodies"
+        printf '%s\n' "below supersede the earlier block. Re-read them; do not rely on the old copy."
+      else
+        printf '%s\n' "<tastegraph-vector state=\"full\" digest=\"${_TGV_HASH}\">"
+        printf '%s\n' "These are the operator preferences that govern HOW YOU WRITE THIS REPLY."
+        printf '%s\n' "Selected deterministically for the presentation vector; full bodies, never truncated."
+        printf '%s\n' "Sent IN FULL once per session; later turns carry a digest referring back to THIS block."
+      fi
+      printf '%s\n' "$_TGV_OUT"
+      printf '%s\n' "</tastegraph-vector>"
+      mkdir -p "$(dirname "$_TGV_MARK")" 2>/dev/null || true
+      printf '%s' "$_TGV_KEY" > "$_TGV_MARK" 2>/dev/null || true
+    fi
+    unset _TGV_HASH _TGV_N _TGV_MARK _TGV_KEY _TGV_SEEN
   else
     printf '%s\n' "<tastegraph-vector>DEGRADED: selector present but returned nothing — check ${_TGV}</tastegraph-vector>"
   fi
+fi
+
+# ── FLUSH THE VOLATILE BLOCK (see "VOLATILE LAST" above) ────────────────────
+# Buffered far above so the byte-stable blocks precede it. Unconditional flush:
+# if _TR_BLOCK was never populated this is a no-op, and a track contract that
+# silently fails to emit is the decay this whole rail exists to prevent.
+if [ -n "${_TR_BLOCK:-}" ]; then
+  printf '%s\n' "$_TR_BLOCK"
+  unset _TR_BLOCK
 fi
 
 # (1) CSRP AC4 — per-turn lane heartbeat (throttled ~5min via marker).
