@@ -1,28 +1,41 @@
 {
-  "id": "upgrade-report-tracks-20260801T220240-v1",
+  "id": "upgrade-report-tracks-20260816T234528-v1",
   "type": "upgrade-report",
   "status": "open",
   "routed_to": "LOCAL",
-  "title": "Upgrade to 4.14.34 on tracks — validation PASS",
-  "created_at": "2026-08-01T22:02:40.602639+00:00",
+  "title": "Upgrade to 4.14.57 on tracks — validation PASS",
+  "created_at": "2026-08-16T23:45:28.981942+00:00",
   "created_by": "harness_upgrade.emit_upgrade_report",
+  "invoked_by": {
+    "argv": "WAI-Harness/hub/local/tools/harness_distribute_fleet.py --expect-version 4.14.57 --registry /home/mario/projects/wheelwright/mywheel/WAI-Harness/hub/local/hub-registry.json",
+    "pid": 2892913,
+    "parent": "/bin/bash -c source /home/mario/.claude/shell-snapshots/snapshot-bash-1786923699278-jo51kv.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cd /home/mario/projects/wheelwright/mywhe",
+    "ppid": 2892380
+  },
   "spoke_id": "tracks",
   "spoke_path": "/home/mario/projects/wheelwright/tracks",
-  "harness_version": "4.14.34",
+  "harness_version": "4.14.57",
   "outcome": "pass",
-  "applied": 949,
-  "retired": [],
+  "applied": 1034,
+  "retired": [
+    "schemas/DriveGraph.schema.json"
+  ],
   "verify_post_ok": true,
+  "holds": {
+    "undeclared": [],
+    "declared": [],
+    "absent": []
+  },
   "aborted": null,
   "validation": {
     "outcome": "pass",
-    "ran_at": "2026-08-01T22:02:40.601722+00:00",
+    "ran_at": "2026-08-16T23:45:28.981492+00:00",
     "spoke_root": "/home/mario/projects/wheelwright/tracks",
     "checks": [
       {
         "check": "syntax",
         "status": "pass",
-        "detail": "267 tool(s) compile",
+        "detail": "340 tool(s) compile",
         "evidence": []
       },
       {
@@ -46,7 +59,7 @@
       {
         "check": "selftest",
         "status": "pass",
-        "detail": "100 passed, 6 skipped in 78.00s (0:01:17)",
+        "detail": "467 passed, 8 skipped in 6.21s",
         "evidence": []
       }
     ],
@@ -60,15 +73,15 @@
     "preexisting_failures": [],
     "verdict": "pass"
   },
-  "summary": "949 file(s) applied; bytes verified; validation pass — 4/4 check(s) passed (1 skipped)",
+  "summary": "1034 file(s) applied; bytes verified; validation pass — 4/4 check(s) passed (1 skipped)",
   "friction_points": [],
   "impact": 3,
   "effort": 2,
   "disposition": "needs_you",
   "disposition_reason": "missing both file_targets and acceptance_criteria -- needs human scoping",
-  "disposition_at": "2026-08-15T00:45:17.011106+00:00",
+  "disposition_at": "2026-08-17T04:20:37.094328+00:00",
   "_migrated_by": "disposition_migrate",
-  "_migrated_at": "2026-08-01T22:02:42.771679+00:00",
+  "_migrated_at": "2026-08-16T23:45:29.295398+00:00",
   "execution_mode": "subagent",
   "execution_substrate": null,
   "gt_convoy_hint": "low-quality dispatch (absorbed: was tender, quality=0)"

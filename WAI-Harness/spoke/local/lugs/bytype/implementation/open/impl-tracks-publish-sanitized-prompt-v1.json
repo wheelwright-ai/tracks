@@ -50,5 +50,12 @@
     "verdict": "FAIL",
     "detail": "v3.0.0 executed 16/20 on run-til-failure-20t against a cached v2.0.2 baseline of 20/20. Per CLAUDE.md, deployable = T2 pass, publishable = T4 pass. v3.0.0 is deployable but NOT publishable. DO NOT publish until a v3.0.x clears T4. The harness (stage 2) is unaffected.",
     "unblocks_when": "a v3.0.x variant records a T4 run with 20/20 completeness"
-  }
+  },
+  "disposition": "auto_build",
+  "disposition_reason": "quality=8, complete spec (AC+targets+PEV)",
+  "disposition_at": "2026-08-15T00:45:17.047634+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-08-15T00:45:16.839342+00:00",
+  "execution_mode": "subagent",
+  "execution_substrate": null
 }
