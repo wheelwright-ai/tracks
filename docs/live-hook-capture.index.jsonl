@@ -193,3 +193,14 @@
 {"ts":"2026-09-15T03:42:44.687Z","hook":"agent-tool-scope-guard","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":783239}
 {"ts":"2026-09-15T03:42:44.704Z","hook":"bash-destructive-command-guard","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":783241}
 {"ts":"2026-09-15T03:42:44.781Z","hook":"bash-lug-guard","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":783249}
+{"ts":"2026-09-15T03:42:53.466Z","hook":"session-start-warmup","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784341}
+{"ts":"2026-09-15T03:42:53.545Z","hook":"wcl-entry-directive","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784355}
+{"ts":"2026-09-15T03:42:53.887Z","hook":"hook-binding-drift","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784337}
+{"ts":"2026-09-15T03:42:53.954Z","hook":"global-settings-drift-check","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784328}
+{"ts":"2026-09-15T03:42:54.262Z","hook":"update-discovery","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784343}
+{"ts":"2026-09-15T03:42:54.355Z","hook":"session-continuity-checkpoint","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784321}
+{"ts":"2026-09-15T03:42:54.400Z","hook":"warmup-goals-review","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784347}
+{"ts":"2026-09-15T03:42:54.637Z","hook":"circle-completeness-audit","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784325}
+{"ts":"2026-09-15T03:42:54.772Z","hook":"session-registry","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784323}
+{"ts":"2026-09-15T03:42:55.864Z","hook":"wheel-clock-catchup","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":"startup","exit_code":0,"pid":784365}
+{"ts":"2026-09-15T03:42:56.078Z","hook":"session-end-notify","session_id":"9f14e87d-40ad-40ab-88d0-1fa8e4727f14","source":null,"exit_code":0,"pid":784582}

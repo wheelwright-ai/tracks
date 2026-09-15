@@ -8,7 +8,7 @@
       "disclosed_at": null
     },
     "ledger|2026-09-15|canary": {
-      "admitted": 1,
+      "admitted": 2,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-09-15T00:15:13.955Z",
@@ -36,7 +36,7 @@
       "disclosed_at": null
     },
     "ledger|2026-09-15|wheel-scheduler": {
-      "admitted": 2,
+      "admitted": 18,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-09-15T00:15:14.330Z",
@@ -64,13 +64,41 @@
       "disclosed_at": null
     },
     "ledger|2026-09-15|harness-arrival-audit": {
-      "admitted": 2,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-09-15T03:42:50.712Z",
       "disclosed_at": null
+    },
+    "ledger|2026-09-15|global-settings-drift-check": {
+      "admitted": 15,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T03:42:53.901Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|reconcile-ledger": {
+      "admitted": 2,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T03:42:55.850Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|guard-denial-reconciliation": {
+      "admitted": 4,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T03:42:55.854Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|wheel-clock-catchup": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T03:42:55.862Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-09-15T03:42:50.719Z"
+  "written_at": "2026-09-15T03:42:55.862Z"
 }

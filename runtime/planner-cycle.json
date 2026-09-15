@@ -2,11 +2,11 @@
   "kind": "planner_cycle",
   "schema_version": 2,
   "instance_root": "/home/mario/projects/wheelwright/tracks",
-  "computed_at": "2026-09-15T00:15:13.686Z",
+  "computed_at": "2026-09-15T03:42:55.570Z",
   "max_age_ms": 18000000,
   "allocation": {
     "instance_root": "/home/mario/projects/wheelwright/tracks",
-    "computed_at": "2026-09-15T00:15:13.686Z",
+    "computed_at": "2026-09-15T03:42:55.570Z",
     "max_age_ms": 18000000,
     "refused": false,
     "refusal_reason": null,
@@ -87,7 +87,7 @@
     "canon_decision": {
       "present": true,
       "source": "lug pointers naming a file rule 11 measures (loadCanon entity files + instructions_ref), measured by src/compiler/rules/11-no-oversized-file.js measureCanonContent; at cap = headroom < 30 (docs/done-transition-appends-push-near-cap-lugs-over-rule-11.md: the smallest real machine append measured at ~20-30 tokens; a file with less headroom than that cannot take one addition without a split)",
-      "files_under_cap": 170,
+      "files_under_cap": 171,
       "files_measured": 0,
       "files_at_cap": [],
       "rows": 0
@@ -103,13 +103,13 @@
     {
       "kind": "health",
       "class": "health",
-      "signal": "circle_audit",
-      "subject": "conversation-track-ingestion",
-      "evidence": "circle conversation-track-ingestion audits PHANTOM (runs_on on_demand): could not resolve a real entry point from conformance fixture conformance/fixtures/conversation-track-ingestion/conversation-track-ingestion.test.js under the instance root /home/mario/projects/wheelwright/tracks (expected a path.join(REPO_ROOT, ...) construction)",
-      "clears_with": "fix what the reasons name, then node scripts/circle-audit.js /home/mario/projects/wheelwright/tracks (exit 0 = every circle CLOSED)",
+      "signal": "commits_ahead",
+      "subject": "origin/main",
+      "evidence": "1 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
+      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
       "share": null,
       "priority": null,
-      "verdict": "PHANTOM",
+      "count": 1,
       "class_rank": 0,
       "class_ranking_basis": "signal order (circle_audit, ratchet_red_suite, cut_status, commits_ahead, stale_worktree, miss_backlog, ledger_bytes), then each store's own order",
       "ap_rank": 0,
@@ -124,13 +124,13 @@
     {
       "kind": "health",
       "class": "health",
-      "signal": "commits_ahead",
-      "subject": "origin/main",
-      "evidence": "13 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
-      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
+      "signal": "miss_backlog",
+      "subject": "footer-miss",
+      "evidence": "1 footer-miss row(s) still captured in ledger/ledger.jsonl (oldest 2026-09-15T00:16:30.904Z: Turn status footer missing from the response completing at turn_ordinal unknown (no track yet): no coordinate id naming )",
+      "clears_with": "node scripts/acknowledge-live-state.js footer-miss --before=<ISO> --reason=\"<why>\" --root=/home/mario/projects/wheelwright/tracks (or explicit row ids; --all only with a reason that covers every row)",
       "share": null,
       "priority": null,
-      "count": 13,
+      "count": 1,
       "class_rank": 1,
       "class_ranking_basis": "signal order (circle_audit, ratchet_red_suite, cut_status, commits_ahead, stale_worktree, miss_backlog, ledger_bytes), then each store's own order",
       "ap_rank": 1,
@@ -233,35 +233,35 @@
     {
       "kind": "health",
       "class": "health",
-      "signal": "circle_audit",
-      "subject": "conversation-track-ingestion",
-      "evidence": "circle conversation-track-ingestion audits PHANTOM (runs_on on_demand): could not resolve a real entry point from conformance fixture conformance/fixtures/conversation-track-ingestion/conversation-track-ingestion.test.js under the instance root /home/mario/projects/wheelwright/tracks (expected a path.join(REPO_ROOT, ...) construction)",
-      "clears_with": "fix what the reasons name, then node scripts/circle-audit.js /home/mario/projects/wheelwright/tracks (exit 0 = every circle CLOSED)",
+      "signal": "commits_ahead",
+      "subject": "origin/main",
+      "evidence": "1 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
+      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
       "share": null,
       "priority": null,
-      "verdict": "PHANTOM"
+      "count": 1
     },
     {
       "kind": "health",
       "class": "health",
-      "signal": "commits_ahead",
-      "subject": "origin/main",
-      "evidence": "13 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
-      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
+      "signal": "miss_backlog",
+      "subject": "footer-miss",
+      "evidence": "1 footer-miss row(s) still captured in ledger/ledger.jsonl (oldest 2026-09-15T00:16:30.904Z: Turn status footer missing from the response completing at turn_ordinal unknown (no track yet): no coordinate id naming )",
+      "clears_with": "node scripts/acknowledge-live-state.js footer-miss --before=<ISO> --reason=\"<why>\" --root=/home/mario/projects/wheelwright/tracks (or explicit row ids; --all only with a reason that covers every row)",
       "share": null,
       "priority": null,
-      "count": 13
+      "count": 1
     }
   ],
   "health_signals": {
     "circle_audit": {
       "present": true,
       "source": "auditCircles",
-      "closed": 83,
+      "closed": 84,
       "open": 0,
-      "phantom": 1,
+      "phantom": 0,
       "excluded": 0,
-      "rows": 1
+      "rows": 0
     },
     "ratchet_red_suite": {
       "present": false,
@@ -276,7 +276,7 @@
     "commits_ahead": {
       "present": true,
       "upstream": "origin/main",
-      "ahead": 13,
+      "ahead": 1,
       "rows": 1
     },
     "stale_worktree": {
@@ -293,22 +293,22 @@
       "present": true,
       "source": "ledger/ledger.jsonl rows with status captured",
       "counts": {
-        "footer-miss": 0,
+        "footer-miss": 1,
         "taste-miss": 0,
         "upkeep-miss": 0
       },
-      "rows": 0
+      "rows": 1
     },
     "ledger_bytes": {
       "present": true,
-      "bytes": 17548,
+      "bytes": 54131,
       "cap_bytes": 48000000,
-      "fraction_of_cap": 0,
+      "fraction_of_cap": 0.001,
       "source": "/home/mario/projects/wheelwright/harness-factory/canon/policies/ledger-retention.policy.yaml",
       "rows": 0
     }
   },
   "moved_to_operator_queue": [],
   "moved_to_operator_queue_source": "no runtime/readiness-sweep.jsonl on this instance -- no build row can be judged gate-closed (unmeasured, nothing moved)",
-  "disclosure": "0 queue row(s) in ONE ranked order (initiative_membership_first): 0 initiative row(s) first (0 build, 0 maintain), then 0 non-initiative build row(s) (ranked, unpriced) and 0 non-initiative maintain row(s) (priced). initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it. no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal. OPERATOR QUEUE: 0 row(s) the machine cannot advance (see operator_queue_rule). AP QUEUE: 2 row(s) interleaved by deficit_against_declared_floors against floors initiative_build=0.5, build=0.2, maintain=0.15, health=0.15 (operator_confirmed_260914; /home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml) over 0 measured at-bat(s) (initiative_build=0, build=0, maintain=0; health unmeasured, at par); class mix initiative_build=0, build=0, maintain=0, health=2. health: 2 row(s) from 6/7 signal(s) present (circle_audit=1, cut_status=0, commits_ahead=1, stale_worktree=0, miss_backlog=0, ledger_bytes=0); absent, nothing emitted: ratchet_red_suite (no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here)."
+  "disclosure": "0 queue row(s) in ONE ranked order (initiative_membership_first): 0 initiative row(s) first (0 build, 0 maintain), then 0 non-initiative build row(s) (ranked, unpriced) and 0 non-initiative maintain row(s) (priced). initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it. no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal. OPERATOR QUEUE: 0 row(s) the machine cannot advance (see operator_queue_rule). AP QUEUE: 2 row(s) interleaved by deficit_against_declared_floors against floors initiative_build=0.5, build=0.2, maintain=0.15, health=0.15 (operator_confirmed_260914; /home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml) over 0 measured at-bat(s) (initiative_build=0, build=0, maintain=0; health unmeasured, at par); class mix initiative_build=0, build=0, maintain=0, health=2. health: 2 row(s) from 6/7 signal(s) present (circle_audit=0, cut_status=0, commits_ahead=1, stale_worktree=0, miss_backlog=1, ledger_bytes=0); absent, nothing emitted: ratchet_red_suite (no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here)."
 }

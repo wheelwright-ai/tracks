@@ -1,12 +1,159 @@
 {
-  "ok": false,
-  "held": true,
+  "ok": true,
   "posture": "absorb_and_report",
-  "version": "f40bc3fe28ee8243ed31083bfd44c78aafdabec0",
-  "reason": "binding write held -- 1 active session(s) registered on this spoke and it is not opted into live-apply: fox (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda)",
-  "activeSessions": [
-    "fox (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda)"
-  ],
-  "appliedAt": "2026-09-15T00:18:51.830Z",
+  "version": "79c1648d485e599ff7ff05d12c2d33d31b4e95c4",
+  "liveApplied": false,
+  "announcedSessions": [],
+  "arrivalAudit": {
+    "audit": {
+      "ok": true,
+      "notGitRepo": false,
+      "auditedAt": "2026-09-15T03:42:50.681Z",
+      "findings": [
+        {
+          "path": "AMBASSADOR_BRIEF.md",
+          "statusCode": " M",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"AMBASSADOR_BRIEF.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
+        {
+          "path": "CLAUDE.md",
+          "statusCode": " M",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"CLAUDE.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
+        {
+          "path": "canon/circles/conversation-track-ingestion.md",
+          "statusCode": "D ",
+          "bucket": "CRASHED_AGENT_ARTIFACTS",
+          "reason": "\"canon/circles/conversation-track-ingestion.md\" is under a cut-owned path (only applyCut's own machinery ever writes there) and was deleted -- anomalous, treated as a crashed prior write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
+        {
+          "path": "canon/circles/conversation-track-ingestion.yaml",
+          "statusCode": "D ",
+          "bucket": "CRASHED_AGENT_ARTIFACTS",
+          "reason": "\"canon/circles/conversation-track-ingestion.yaml\" is under a cut-owned path (only applyCut's own machinery ever writes there) and was deleted -- anomalous, treated as a crashed prior write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
+        {
+          "path": "docs/live-hook-capture.index.jsonl",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"docs/live-hook-capture.index.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "docs/live-hook-capture.jsonl",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"docs/live-hook-capture.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/anthropic-usage-observed.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/anthropic-usage-observed.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/communication-inbox-cursor/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/communication-inbox-cursor/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/hook-runlog.jsonl",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/hook-runlog.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/pending-footer-correction/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json",
+          "statusCode": " D",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/pending-footer-correction/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json\" was deleted outside any cut-owned path -- ordinary working-tree churn",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/store-bound-state.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/store-bound-state.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/turn-start-attribution/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/turn-start-attribution/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        }
+      ],
+      "summary": {
+        "LEGITIMATE_CUT_ABSORPTION": 2,
+        "ORGANIC_RUNTIME_CHURN": 9,
+        "CRASHED_AGENT_ARTIFACTS": 2,
+        "UNCLASSIFIABLE": 0
+      }
+    },
+    "reconciliation": {
+      "reverted": [
+        "canon/circles/conversation-track-ingestion.md",
+        "canon/circles/conversation-track-ingestion.yaml"
+      ],
+      "committed": [
+        "AMBASSADOR_BRIEF.md",
+        "CLAUDE.md",
+        "docs/live-hook-capture.index.jsonl",
+        "docs/live-hook-capture.jsonl",
+        "ledger/ledger.jsonl",
+        "runtime/anthropic-usage-observed.json",
+        "runtime/communication-inbox-cursor/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json",
+        "runtime/hook-runlog.jsonl",
+        "runtime/pending-footer-correction/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json",
+        "runtime/store-bound-state.json",
+        "runtime/turn-start-attribution/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json"
+      ],
+      "commit": "f00260294cae7d65e35ee8de8075b1994655a1c6",
+      "blocked": [],
+      "credentialBlocked": [],
+      "ledgerRowsWritten": [
+        "ldg-arrival-audit-reverted-1789443770711-9jto9x",
+        "ldg-arrival-audit-reverted-1789443770719-wylkq4",
+        "ldg-arrival-audit-committed-1789443770795-1e4tnt"
+      ]
+    }
+  },
+  "secretsTemplateRetirement": {
+    "retired": false,
+    "reason": "no template to retire",
+    "retiredTo": null,
+    "sha256": null
+  },
+  "reported": [],
+  "lug_owed": false,
+  "warnings": [],
+  "appliedAt": "2026-09-15T03:42:51.854Z",
   "previous_version": "f40bc3fe28ee8243ed31083bfd44c78aafdabec0"
 }

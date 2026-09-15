@@ -1,0 +1,31 @@
+kind: circle
+name: wcl-entry-directive
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a session starts
+inputs:
+  - wcl_entry_env
+outputs:
+  - entry_matched_context
+invariants:
+  - never blocks session start -- every path exits 0
+  - injects nothing when WCL_ENTRY is unset or unknown
+  - a stranger (PROOFER_SESSION=1) sees nothing
+  - 'the ozi contract has one source: src/basher/wclEntry.js oziWakeupDirective'
+failure_routing: lug:wcl-entry-directive-failure
+counter_metric: wcl_entry_directive_inject_count
+enforcement: hook
+depends_on: []
+consumers:
+  - external:operator
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/wclEntryDirectiveHook.js
+conformance: >-
+  conformance/fixtures/circle-wcl-entry-directive/wcl-entry-directive.conformance.test.js
+concern: entry-matched-opening-contract
+instructions_ref: reference/circles/wcl-entry-directive.md
+duplicate_of: wcl-entry-directive

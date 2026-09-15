@@ -16,7 +16,7 @@ and the preferred way to do a task where more than one tool exists.
 
 ## Live policies (0)
 
-## Live circles (83)
+## Live circles (84)
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
@@ -97,6 +97,7 @@ and the preferred way to do a task where more than one tool exists.
 - **unattended-run-kill-switch** (on_demand): any caller is about to spend, or is already spending, the operator's subscription with nobody at the machine -- checked at every launch gate (executeDispatch, runHeartbeat Gate 0, runAdvisorAutopilot Gate 0) and POLLED by every launch supervisor for the whole life of its child. Raised with `hf stop` or, with no node required, `touch <instance-root>/runtime/stop.flag`.
 - **update-discovery** (hook_event): a real session starts (SessionStart event) in any spoke that receives cuts, and the spoke's wheel_clock job update_discovery (JOB_RUNNERS.updateDiscovery) on its declared cadence -- the spoke compares its .cut-status.json to the hub's registry/latest-cut.json, published by hf deploy's cut stage (src/factory/cutPublish.js, from stageCut); Otto's autopilot records who is behind (src/otto/cutLaggards.js) and the hub goals review prints it
 - **warmup-goals-review** (hook_event): a session starts
+- **wcl-entry-directive** (hook_event): a session starts
 - **wcl-verify-then-launch** (on_demand): the operator runs `wcl <spoke>`
 - **wheel-clock-catchup** (hook_event): a real session starts (SessionStart event)
 - **worktree-registry** (on_demand): a git worktree is created, removed, judged or handed off by the harness -- addWorktree/removeWorktree (src/factory/worktreeRegistry.js) at every `git worktree add` in src/ (rollbackCut's pinned checkout, hf deploy's fold integrate tree, stageClean's removals); `node scripts/worktree.js add|list|remove|reap` by the orchestrating session in place of raw git; healthSignals.js's stale_worktree signal on every Planner cycle; and buildHandoff at every session end
