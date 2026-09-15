@@ -25,3 +25,6 @@ WAI-Spoke/runtime/
 WAI-Spoke/advisors/*/scan_state.json
 WAI-Spoke/advisors/*/context/snapshot-*
 # === end WAI managed block ===
+
+# harness-factory v2: per-spoke config dir and resolved secrets
+.local/
