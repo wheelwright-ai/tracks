@@ -1,0 +1,62 @@
+{
+  "scopes": {
+    "ledger|2026-09-15|update-discovery": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:15:13.895Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|canary": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:15:13.955Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|circle-audit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:15:14.219Z",
+      "disclosed_at": null
+    },
+    "lugs|auto-filed|circle-audit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 25,
+      "first_seen": "2026-09-15T00:15:14.226Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|lug-verb": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:15:14.237Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|wheel-scheduler": {
+      "admitted": 2,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:15:14.330Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|p0-auto-bug-lug": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:15:15.594Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|footer-audit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:16:30.904Z",
+      "disclosed_at": null
+    }
+  },
+  "kind": "store_bound_state",
+  "written_at": "2026-09-15T00:16:30.904Z"
+}

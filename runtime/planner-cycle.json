@@ -1,0 +1,314 @@
+{
+  "kind": "planner_cycle",
+  "schema_version": 2,
+  "instance_root": "/home/mario/projects/wheelwright/tracks",
+  "computed_at": "2026-09-15T00:15:13.686Z",
+  "max_age_ms": 18000000,
+  "allocation": {
+    "instance_root": "/home/mario/projects/wheelwright/tracks",
+    "computed_at": "2026-09-15T00:15:13.686Z",
+    "max_age_ms": 18000000,
+    "refused": false,
+    "refusal_reason": null,
+    "shares": [],
+    "roster": {
+      "allocatable": [],
+      "excluded": [],
+      "unreadable": []
+    },
+    "floors": {
+      "declared": [],
+      "applied": [],
+      "not_applied": [],
+      "reserved_total": 0
+    },
+    "history": {
+      "by_advisor": {},
+      "total": 0,
+      "rows_read": 0,
+      "duplicate_rows_discarded": 0
+    },
+    "zero_share_advisors": [],
+    "disclosure": "no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal."
+  },
+  "queue": [],
+  "queue_length": 0,
+  "build_count": 0,
+  "maintain_count": 0,
+  "build_queue_error": null,
+  "cross_segment_ranking": "ranked",
+  "cross_segment_ranking_rule": "initiative_membership_first",
+  "cross_segment_ranking_reason": "Planner ranks build and maintain rows in ONE queue by the operator's 260911 decision on the comparable impact unit (planner-conductor-impact-design.md open question 2), verbatim: \"it should rank against the initiative above the work first then allocate capacity to complete non initiative work.\" Initiative membership is the first-order key: every row belonging to a live AP-ready initiative (build or maintain alike, initiative named on the row) ranks first, sequenced initiatives below the ones they wait on; non-initiative work takes the capacity that remains. Inside a tier, build-before-maintain is a declared convention, not a price -- build rows stay unpriced (share: null).",
+  "initiative_rows": 0,
+  "initiative_build_rows": 0,
+  "initiative_maintain_rows": 0,
+  "waiting_initiative_rows": 0,
+  "capacity": {
+    "unit": "maintain rows: fraction_of_wheel_runtime, summing to 1 across the allocation; build rows: unpriced slots, counted not priced",
+    "floors_reserved_off_top": 0,
+    "initiative_maintain_share": 0,
+    "remaining_maintain_share": 0,
+    "initiative_build_rows": 0,
+    "remaining_build_rows": 0,
+    "statement": "initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it."
+  },
+  "operator_queue": [],
+  "operator_queue_length": 0,
+  "operator_queue_rule": "operator_queue: one row per lug no autopilot run can advance, each class read from its own real source (docs/planner-operator-queue.md); ranked by unblocked weight (lugs whose lugEdges.js chain reaches the row's lug: lineage descendants + dependency associations), ties by operator-declared priority, then lug name. Classes emitted (3/6): operator_ruling=0, permission_denied_cleanup=0, canon_decision=0; plus ap_queue_gate_closed=0 moved out of the AP queue by the planner (sweep gate closed). NOT emitted -- no source stream on this instance: certification_adjudication (no runtime/readiness-sweep.jsonl on this instance -- no readiness sweep has run here); spoke_side_debt (this instance registers no canon/*.spoke.yaml, so there is no spoke cut status to read); definition_needed (no canon/initiatives/ on this instance, so no lug carries an initiative sequence rank). permission_denied_cleanup: 0 open guard refusal row(s), 0 of them a cleanup command, 0 naming a live lug; only the harness's own guards write a ledger row; Claude Code's permission classifier writes none anywhere the harness reads, so a classifier denial is unmeasured here until a row exists for it. A row leaves only when its source condition is gone on a later cycle; a lug blocked in two classes carries two rows.",
+  "operator_queue_sources": {
+    "operator_ruling": {
+      "present": true,
+      "source": "lugs/*.yaml open_questions",
+      "rows": 0
+    },
+    "certification_adjudication": {
+      "present": false,
+      "source": "runtime/readiness-sweep.jsonl",
+      "rows": 0
+    },
+    "permission_denied_cleanup": {
+      "present": true,
+      "source": "ledger/ledger.jsonl decision rows REFUSED by a *-guard or classifier attribution (status captured)",
+      "refusal_rows": 0,
+      "cleanup_refusals": 0,
+      "rows": 0,
+      "note": "only the harness's own guards write a ledger row; Claude Code's permission classifier writes none anywhere the harness reads, so a classifier denial is unmeasured here until a row exists for it"
+    },
+    "spoke_side_debt": {
+      "present": false,
+      "source": "canon/*.spoke.yaml -> <repo>/.cut-status.json",
+      "rows": 0
+    },
+    "definition_needed": {
+      "present": false,
+      "source": "canon/initiatives/ + lug state captured",
+      "rows": 0
+    },
+    "canon_decision": {
+      "present": true,
+      "source": "lug pointers naming a file rule 11 measures (loadCanon entity files + instructions_ref), measured by src/compiler/rules/11-no-oversized-file.js measureCanonContent; at cap = headroom < 30 (docs/done-transition-appends-push-near-cap-lugs-over-rule-11.md: the smallest real machine append measured at ~20-30 tokens; a file with less headroom than that cannot take one addition without a split)",
+      "files_under_cap": 170,
+      "files_measured": 0,
+      "files_at_cap": [],
+      "rows": 0
+    },
+    "ap_queue_gate_closed": {
+      "present": true,
+      "source": "readyWork.js build rows whose last runtime/readiness-sweep.jsonl row is refused_by a gate (moved out of the AP queue by buildPlannerCycle)",
+      "handed_in": 0,
+      "rows": 0
+    }
+  },
+  "ap_queue": [
+    {
+      "kind": "health",
+      "class": "health",
+      "signal": "circle_audit",
+      "subject": "conversation-track-ingestion",
+      "evidence": "circle conversation-track-ingestion audits PHANTOM (runs_on on_demand): could not resolve a real entry point from conformance fixture conformance/fixtures/conversation-track-ingestion/conversation-track-ingestion.test.js under the instance root /home/mario/projects/wheelwright/tracks (expected a path.join(REPO_ROOT, ...) construction)",
+      "clears_with": "fix what the reasons name, then node scripts/circle-audit.js /home/mario/projects/wheelwright/tracks (exit 0 = every circle CLOSED)",
+      "share": null,
+      "priority": null,
+      "verdict": "PHANTOM",
+      "class_rank": 0,
+      "class_ranking_basis": "signal order (circle_audit, ratchet_red_suite, cut_status, commits_ahead, stale_worktree, miss_backlog, ledger_bytes), then each store's own order",
+      "ap_rank": 0,
+      "interleave": {
+        "slot": 0,
+        "class": "health",
+        "deficit_at_pick": 0,
+        "runner_up": null,
+        "basis": "slot 0: health deficit 0.000 = floor 0.15 x (0.0 + 0) - (0.0 recorded + 0 emitted); no other class had rows left"
+      }
+    },
+    {
+      "kind": "health",
+      "class": "health",
+      "signal": "commits_ahead",
+      "subject": "origin/main",
+      "evidence": "13 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
+      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
+      "share": null,
+      "priority": null,
+      "count": 13,
+      "class_rank": 1,
+      "class_ranking_basis": "signal order (circle_audit, ratchet_red_suite, cut_status, commits_ahead, stale_worktree, miss_backlog, ledger_bytes), then each store's own order",
+      "ap_rank": 1,
+      "interleave": {
+        "slot": 1,
+        "class": "health",
+        "deficit_at_pick": -0.85,
+        "runner_up": null,
+        "basis": "slot 1: health deficit -0.850 = floor 0.15 x (0.0 + 1) - (0.0 recorded + 1 emitted); no other class had rows left"
+      }
+    }
+  ],
+  "ap_queue_length": 2,
+  "ap_queue_rule": "ap_queue: deficit_against_declared_floors -- at every slot k the class taken is the one with the largest deficit floor_c x (total + k) - (recorded_c + emitted_c) over the recorded at-bat stream (dispatch registry for the build classes, advisor recordOutcome rows for maintain, health unmeasured and placed at par); ties in class order initiative_build > build > maintain > health. Inside initiative_build: initiative sequence rank first (rule 4 kept inside the class); inside both build classes: a lug whose up edge (lugEdges.js derived_from / dependency) is not done ranks below it, dependency-free siblings carry parallel_wave n, then priority, then estimate ascending; maintain keeps the allocation's order; health keeps signal order. Build rows stay unpriced.",
+  "interleave_applied": true,
+  "interleave_reason": null,
+  "class_floors": {
+    "floors": {
+      "initiative_build": 0.5,
+      "build": 0.2,
+      "maintain": 0.15,
+      "health": 0.15
+    },
+    "source": "/home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml",
+    "basis": "operator_confirmed_260914",
+    "sum": 1,
+    "refused": false,
+    "refusal_reason": null,
+    "at_bat_definitions": {
+      "initiative_build": "one runtime/dispatch-registry.jsonl row (kind dispatch_row, last row per id) with status other than refused, whose lug_ref names a lug the live initiative index affiliates -- the dispatch is the commitment (queueDispatch's own words), so the run's outcome does not undo it",
+      "build": "the same registry rows whose lug_ref no live initiative affiliates",
+      "maintain": "one advisor autopilot recordOutcome row (readAdvisorDispatchRows, deduped by id -- the stream computeAdvisorAllocation already counts)",
+      "health": "UNMEASURED -- no store records a health row's clearing run yet. The class is placed AT PAR (its floor share of the measured total) so its floor interleaves from the first slot instead of flooding the head of the queue with a zero count no store ever wrote."
+    }
+  },
+  "class_at_bats": {
+    "initiative_build": 0,
+    "build": 0,
+    "maintain": 0,
+    "health": null,
+    "total_measured": 0,
+    "sources": {
+      "initiative_build": {
+        "store": "runtime/dispatch-registry.jsonl",
+        "present": false,
+        "rows": 0,
+        "refused_excluded": 0,
+        "note": "last row per id; status != refused; lug_ref in the live initiative index"
+      },
+      "build": {
+        "store": "runtime/dispatch-registry.jsonl",
+        "present": false,
+        "rows": 0,
+        "refused_excluded": 0,
+        "note": "last row per id; status != refused; lug_ref in no live initiative"
+      },
+      "maintain": {
+        "store": "ledger advisor recordOutcome rows (readAdvisorDispatchRows, deduped by id)",
+        "present": true,
+        "note": "the same count computeAdvisorAllocation.history.total reports"
+      },
+      "health": {
+        "store": null,
+        "present": false,
+        "unmeasured": true,
+        "note": "no store records a health row's clearing run; placed AT PAR (floor share of the measured total) so the floor interleaves from slot 0 instead of flooding the head with an unwritten zero"
+      }
+    },
+    "stream": {
+      "measured_at_bats": 0,
+      "health_stand_in": 0,
+      "total_with_stand_in": 0,
+      "emitted": {
+        "initiative_build": 0,
+        "build": 0,
+        "maintain": 0,
+        "health": 2
+      }
+    }
+  },
+  "class_pools": {
+    "initiative_build": 0,
+    "build": 0,
+    "maintain": 0,
+    "health": 2
+  },
+  "class_mix": {
+    "initiative_build": 0,
+    "build": 0,
+    "maintain": 0,
+    "health": 2
+  },
+  "class_mix_first_8": {
+    "initiative_build": 0,
+    "build": 0,
+    "maintain": 0,
+    "health": 2
+  },
+  "health_rows": [
+    {
+      "kind": "health",
+      "class": "health",
+      "signal": "circle_audit",
+      "subject": "conversation-track-ingestion",
+      "evidence": "circle conversation-track-ingestion audits PHANTOM (runs_on on_demand): could not resolve a real entry point from conformance fixture conformance/fixtures/conversation-track-ingestion/conversation-track-ingestion.test.js under the instance root /home/mario/projects/wheelwright/tracks (expected a path.join(REPO_ROOT, ...) construction)",
+      "clears_with": "fix what the reasons name, then node scripts/circle-audit.js /home/mario/projects/wheelwright/tracks (exit 0 = every circle CLOSED)",
+      "share": null,
+      "priority": null,
+      "verdict": "PHANTOM"
+    },
+    {
+      "kind": "health",
+      "class": "health",
+      "signal": "commits_ahead",
+      "subject": "origin/main",
+      "evidence": "13 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
+      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
+      "share": null,
+      "priority": null,
+      "count": 13
+    }
+  ],
+  "health_signals": {
+    "circle_audit": {
+      "present": true,
+      "source": "auditCircles",
+      "closed": 83,
+      "open": 0,
+      "phantom": 1,
+      "excluded": 0,
+      "rows": 1
+    },
+    "ratchet_red_suite": {
+      "present": false,
+      "reason": "no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here"
+    },
+    "cut_status": {
+      "present": true,
+      "source": "/home/mario/projects/wheelwright/tracks/.cut-status.json",
+      "ok": true,
+      "rows": 0
+    },
+    "commits_ahead": {
+      "present": true,
+      "upstream": "origin/main",
+      "ahead": 13,
+      "rows": 1
+    },
+    "stale_worktree": {
+      "present": true,
+      "source": "git worktree list vs runtime/dispatch-registry.jsonl external_targets and runtime/worktrees.jsonl",
+      "worktrees": 0,
+      "named_by_a_dispatch": 0,
+      "registered_live": 0,
+      "unregistered": 0,
+      "worktree_registry_present": false,
+      "rows": 0
+    },
+    "miss_backlog": {
+      "present": true,
+      "source": "ledger/ledger.jsonl rows with status captured",
+      "counts": {
+        "footer-miss": 0,
+        "taste-miss": 0,
+        "upkeep-miss": 0
+      },
+      "rows": 0
+    },
+    "ledger_bytes": {
+      "present": true,
+      "bytes": 17548,
+      "cap_bytes": 48000000,
+      "fraction_of_cap": 0,
+      "source": "/home/mario/projects/wheelwright/harness-factory/canon/policies/ledger-retention.policy.yaml",
+      "rows": 0
+    }
+  },
+  "moved_to_operator_queue": [],
+  "moved_to_operator_queue_source": "no runtime/readiness-sweep.jsonl on this instance -- no build row can be judged gate-closed (unmeasured, nothing moved)",
+  "disclosure": "0 queue row(s) in ONE ranked order (initiative_membership_first): 0 initiative row(s) first (0 build, 0 maintain), then 0 non-initiative build row(s) (ranked, unpriced) and 0 non-initiative maintain row(s) (priced). initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it. no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal. OPERATOR QUEUE: 0 row(s) the machine cannot advance (see operator_queue_rule). AP QUEUE: 2 row(s) interleaved by deficit_against_declared_floors against floors initiative_build=0.5, build=0.2, maintain=0.15, health=0.15 (operator_confirmed_260914; /home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml) over 0 measured at-bat(s) (initiative_build=0, build=0, maintain=0; health unmeasured, at par); class mix initiative_build=0, build=0, maintain=0, health=2. health: 2 row(s) from 6/7 signal(s) present (circle_audit=1, cut_status=0, commits_ahead=1, stale_worktree=0, miss_backlog=0, ledger_bytes=0); absent, nothing emitted: ratchet_red_suite (no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here)."
+}

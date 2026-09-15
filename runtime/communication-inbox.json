@@ -1,0 +1,15 @@
+{
+  "kind": "communication_inbox_record",
+  "trigger": "wheel_clock",
+  "session_id": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda",
+  "read_at": "2026-09-15T00:15:14.335Z",
+  "spoke": {
+    "name": "tracks",
+    "source": "canon/profile.yaml"
+  },
+  "siblings": [],
+  "files_read": 0,
+  "unreadable": [],
+  "open": [],
+  "digest": null
+}

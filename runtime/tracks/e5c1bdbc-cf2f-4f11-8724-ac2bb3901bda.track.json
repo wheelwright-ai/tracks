@@ -1,0 +1,187 @@
+{
+  "kind": "track",
+  "session_id": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda",
+  "started_at": "2026-09-14T23:46:30.759Z",
+  "closed_at": null,
+  "turn_ordinal": 1,
+  "last_stop_at": "2026-09-15T00:16:30.767Z",
+  "turn_focus": {
+    "text": "`wai brief` did not run — there is no kernel on this spoke (`WAI-Harness/kernel/bin/wai` and `WAI-Spoke/kernel/bin/wai`…",
+    "turn": 1,
+    "captured_at": "2026-09-15T00:16:30.760Z",
+    "source": "last_assistant_text"
+  },
+  "identity_triple": {
+    "user": null,
+    "machine": null,
+    "spoke": "tracks"
+  },
+  "active_lugs_and_transitions": [
+    {
+      "lug": "p0-bugfix-circle-audit-conversation-track-ingestion",
+      "from_state": "captured",
+      "to_state": "defined",
+      "timestamp": "2026-09-15T00:15:15.593Z"
+    }
+  ],
+  "directions_captured": [],
+  "cost_markers": {
+    "tokens": 0,
+    "wall_time_seconds": 0,
+    "count": 1,
+    "unmeasured": false
+  },
+  "decisions": [
+    {
+      "id": "ldg-deferred-machine_registry-1789431018865-msydbor2f2-refused-1789431018919-7hn721",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"wcl-init\", source_ref: \"src/basher/wclInit.js\"): capability deferred at bootstrap: machine_registry -- not asked about in the minimum first-pass interview -- offered when the operator names a real machine to register (registry/*.machine.yaml)",
+      "touched_at": "2026-09-15T00:10:18.919Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-deferred-tastegraph_overlay-1789431018923-uev5r5y6md-refused-1789431018923-f0kxhz",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"wcl-init\", source_ref: \"src/basher/wclInit.js\"): capability deferred at bootstrap: tastegraph_overlay -- not asked about in the minimum first-pass interview -- offered when the operator has taste preferences to state that differ from the hub master",
+      "touched_at": "2026-09-15T00:10:18.923Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-deferred-advisor_contracts-1789431018923-56gxm2bascp-refused-1789431018923-mt98n4",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"wcl-init\", source_ref: \"src/basher/wclInit.js\"): capability deferred at bootstrap: advisor_contracts -- not asked about in the minimum first-pass interview -- offered when the operator names a role that needs a standing advisor",
+      "touched_at": "2026-09-15T00:10:18.923Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-deferred-kb_capabilities_graph-1789431018924-b2vid65dm0s-refused-1789431018924-xqmk0w",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"wcl-init\", source_ref: \"src/basher/wclInit.js\"): capability deferred at bootstrap: kb_capabilities_graph -- not asked about in the minimum first-pass interview -- offered when the operator has a KB source to onboard",
+      "touched_at": "2026-09-15T00:10:18.924Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-arrival-audit-committed-1789431082041-t73l0o-refused-1789431082097-deojlk",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"harness-arrival-audit\", source_ref: \"96ffc65bf56c1c6a5e89ee6257fac2b6aab1f5d2\"): harness-arrival-audit: auto-committed 195 file(s) as 96ffc65b -- LEGITIMATE_CUT_ABSORPTION/ORGANIC_RUNTIME_CHURN: .claude/settings.json, WAI-Harness/spoke/advisors/expediter/ready-queue.json, WAI-Harn",
+      "touched_at": "2026-09-15T00:11:22.097Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-provider-config-dir-bootstrap-1789431082891-refused-1789431082892-dyji3w",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"claude\", source_ref: \"/home/mario/projects/wheelwright/tracks/.local/provider-claude-config\"): 260830-FBL-046: the persistent provider config dir (/home/mario/projects/wheelwright/tracks/.local/provider-claude-config) was bootstrapped from /home/mario/.claude/.credentials.json -- a real, one-ti",
+      "touched_at": "2026-09-15T00:11:22.892Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-arrival-audit-committed-1789431266676-eypwx2-refused-1789431266724-wair8e",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"harness-arrival-audit\", source_ref: \"9a6d6cb2695b7505216ea80bebed4a584fe4eef5\"): harness-arrival-audit: auto-committed 5 file(s) as 9a6d6cb2 -- LEGITIMATE_CUT_ABSORPTION/ORGANIC_RUNTIME_CHURN: .gitignore, ledger/ledger.jsonl, .cut-status.json, AMBASSADOR_BRIEF.md, CLAUDE.md.v2-pro",
+      "touched_at": "2026-09-15T00:14:26.724Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-_basher-managed_by-1789431312637-70xnel-refused-1789431313046-2oqtb8",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"_basher.managed_by\" -- v1-era governance label -- names an un-migrated standalone tool, not this repo, as owner (current: \"basher tools update\") (sourc",
+      "touched_at": "2026-09-15T00:15:13.046Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-_basher-new_entries-1789431313058-f64nax-refused-1789431313058-l1a01k",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"_basher.new_entries\" -- routes wheel-wide config changes to the standalone basher repo's own lug intake -- that repo's backlog points at the v1 framewo",
+      "touched_at": "2026-09-15T00:15:13.058Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-_basher_edit_record-edited_by-1789431313059-kael4e-refused-1789431313059-ya223f",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"_basher_edit_record.edited_by\" -- names the retired v1 repo (mywheel) -- this is a historical log entry describing a real past edit, not a live governa",
+      "touched_at": "2026-09-15T00:15:13.059Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-UserPromptSubmit-matcher--1789431313060-66mhh9-refused-1789431313060-jqdbls",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.UserPromptSubmit[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<n",
+      "touched_at": "2026-09-15T00:15:13.060Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-PreToolUse-matcher-AskUserQuestion--1789431313062-go73ck-refused-1789431313062-2jw581",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.PreToolUse[matcher=AskUserQuestion]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/h",
+      "touched_at": "2026-09-15T00:15:13.062Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-PreToolUse-matcher--1789431313065-qro3yh-refused-1789431313065-zedt21",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.PreToolUse[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.s",
+      "touched_at": "2026-09-15T00:15:13.065Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Stop-matcher--1789431313067-wmgvpm-refused-1789431313067-d5jtou",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.Stop[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft",
+      "touched_at": "2026-09-15T00:15:13.067Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Stop-matcher--1789431313070-vuoakt-refused-1789431313070-ib4y04",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.Stop[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft",
+      "touched_at": "2026-09-15T00:15:13.070Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Stop-matcher--1789431313071-vrgy1o-refused-1789431313071-jll1dq",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.Stop[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft",
+      "touched_at": "2026-09-15T00:15:13.071Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Notification-matcher--1789431313079-pb25kr-refused-1789431313079-ng71va",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.Notification[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>",
+      "touched_at": "2026-09-15T00:15:13.079Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-StopFailure-matcher--1789431313080-6dn4nw-refused-1789431313080-c6gyiy",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.StopFailure[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.",
+      "touched_at": "2026-09-15T00:15:13.080Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-SessionEnd-matcher--1789431313081-osu6fb-refused-1789431313081-m7afu9",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.SessionEnd[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.s",
+      "touched_at": "2026-09-15T00:15:13.081Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-PostToolUse-matcher-AskUserQuestion--1789431313082-5z2aob-refused-1789431313082-82leeh",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: stale reference at \"hooks.PostToolUse[matcher=AskUserQuestion]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/",
+      "touched_at": "2026-09-15T00:15:13.082Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-gap-hook-architecture-1789431313083-w39ab2-refused-1789431313084-8fz966",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: gap in \"hook architecture\" [cosmetic-not-breaking] -- the global file probes for 18 distinct ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh scripts (compact-resume-inject.s",
+      "touched_at": "2026-09-15T00:15:13.084Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-gap-permissions-allow-1789431313084-8lpur9-refused-1789431313084-tpj447",
+      "text": "refused: no announced session triple for this instance -- would have written (attribution: \"global-settings-drift-check\", source_ref: \"/home/mario/.claude/settings.json\"): global-settings-drift-check: gap in \"permissions.allow\" [disclosed-not-attempted] -- global file's permissions.allow is a broad v1-style blanket grant (Write(*), Read(*), Edit(*), etc.) (source: /home",
+      "touched_at": "2026-09-15T00:15:13.084Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-update-available-66e48e3a3055-1789431313643",
+      "text": "UPDATE AVAILABLE: cut 66e48e3a3055 (+3 circles, ~1 policies, 0 lug(s) closed; published 2026-09-14T23:27:44.981Z); this spoke is at f40bc3fe28ee -- the framework checkout is at f40bc3fe28ee, not the published 66e48e3a3055 -- pull harness-factory first; not applied (discovered by update-discovery, trigger session_start)",
+      "touched_at": "2026-09-15T00:15:13.895Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-canary-e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda-1789431313780",
+      "text": "CANARY: session-start liveness probe for session e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda -- excluded from all rollups, expires at session end.",
+      "touched_at": "2026-09-15T00:15:13.956Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-p0-circle-audit-conversation-track-ingestion-1789431314084-9u86",
+      "text": "P0 (p0_data_integrity): circle-completeness audit found a real PHANTOM circle -- conversation-track-ingestion: could not resolve a real entry point from conformance fixture conformance/fixtures/conversation-track-ingestion/conversation-track-ingestion.test.js under the instance root /home/mario/projects/wheelwright/tracks (expected a path.join(REPO_ROOT, ...) construction)",
+      "touched_at": "2026-09-15T00:15:14.220Z",
+      "prompt_ids_worked": []
+    }
+  ],
+  "handoff": null
+}

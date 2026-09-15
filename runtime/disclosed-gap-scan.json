@@ -1,0 +1,9 @@
+{
+  "kind": "disclosed_gap_scan_state",
+  "watermarks": {
+    "/home/mario/projects/wheelwright/tracks": "9a6d6cb2695b7505216ea80bebed4a584fe4eef5",
+    "/home/mario/projects/wheelwright/harness-factory": "f40bc3fe28ee8243ed31083bfd44c78aafdabec0"
+  },
+  "surfaced": [],
+  "updated_at": "2026-09-15T00:16:30.869Z"
+}

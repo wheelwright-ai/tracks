@@ -1,0 +1,7 @@
+{
+  "tick": 1,
+  "lastFiredTick": {
+    "planner_cycle": 1,
+    "communication_inbox": 1
+  }
+}
