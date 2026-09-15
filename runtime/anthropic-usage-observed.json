@@ -1,16 +1,16 @@
 {
-  "observed_at": "2026-09-15T03:42:47Z",
+  "observed_at": "2026-09-15T06:05:01Z",
   "source": "claude code statusline payload (first-party, polled by statusline-usage-poll.sh)",
   "observed_from_dir": "/home/mario/projects/wheelwright/tracks",
   "windows": {
     "five_hour": {
-      "used_percentage": 15,
-      "pct_left": 85,
+      "used_percentage": 24,
+      "pct_left": 76,
       "resets_at": "1789458600"
     },
     "seven_day": {
-      "used_percentage": 56.00000000000001,
-      "pct_left": 44,
+      "used_percentage": 57.99999999999999,
+      "pct_left": 42,
       "resets_at": "1789581600"
     }
   }

@@ -1,0 +1,30 @@
+{
+  "session_id": "9f14e87d-40ad-40ab-88d0-1fa8e4727f14",
+  "written_at": "2026-09-15T03:42:56.387Z",
+  "active_lug": null,
+  "top_of_ready_queue": [],
+  "last_session_decisions": [],
+  "last_session_directions": [],
+  "last_session_cost": null,
+  "open_prompt_ids": [],
+  "defined_outside_planner_queue": {
+    "cycle_state": "fresh",
+    "cycle_reason": "Planner's last cycle is 0 minute(s) old, inside its own declared 300-minute bound",
+    "computed_at": "2026-09-15T03:42:55.570Z",
+    "lugs": [
+      {
+        "name": "p0-bugfix-circle-audit-conversation-track-ingestion",
+        "priority": "critical",
+        "planner_reason": [
+          "readiness is null, not \"passed\" -- can only be true when explicitly and honestly set by a real fresh-context Proofer check",
+          "lug state is \"defined\", not \"ready\" -- already picked up or not there yet"
+        ]
+      }
+    ]
+  },
+  "live_worktrees": [],
+  "process_notes": [
+    "Landed a real mechanism this session? It is not done until it has a circle declaration (reference/circles/<name>.yaml + .md) and `node scripts/circle-audit.js .` reports it CLOSED -- an undeclared mechanism is invisible to the audit by construction."
+  ],
+  "text": "HANDOFF from session 9f14e87d-40ad-40ab-88d0-1fa8e4727f14 (2026-09-15T03:42:56.387Z):\nNo active lug left in progress.\nReady queue is empty.\nDefined lugs the Planner's last cycle did not queue (1, cycle fresh): p0-bugfix-circle-audit-conversation-track-ingestion -- readiness is null, not \"passed\" -- can only be true when explicitly and honestly set by a ...\nPROCESS NOTE: Landed a real mechanism this session? It is not done until it has a circle declaration (reference/circles/<name>.yaml + .md) and `node scripts/circle-audit.js .` reports it CLOSED -- an undeclared mechanism is invisible to the audit by construction."
+}

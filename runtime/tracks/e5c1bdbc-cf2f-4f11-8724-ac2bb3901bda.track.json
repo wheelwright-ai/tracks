@@ -3,12 +3,12 @@
   "session_id": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda",
   "started_at": "2026-09-14T23:46:30.759Z",
   "closed_at": null,
-  "turn_ordinal": 1,
-  "last_stop_at": "2026-09-15T00:16:30.767Z",
+  "turn_ordinal": 12,
+  "last_stop_at": "2026-09-15T05:52:46.832Z",
   "turn_focus": {
-    "text": "`wai brief` did not run — there is no kernel on this spoke (`WAI-Harness/kernel/bin/wai` and `WAI-Spoke/kernel/bin/wai`…",
-    "turn": 1,
-    "captured_at": "2026-09-15T00:16:30.760Z",
+    "text": "Signing off. State at exit:",
+    "turn": 12,
+    "captured_at": "2026-09-15T05:52:46.813Z",
     "source": "last_assistant_text"
   },
   "identity_triple": {
@@ -22,13 +22,31 @@
       "from_state": "captured",
       "to_state": "defined",
       "timestamp": "2026-09-15T00:15:15.593Z"
+    },
+    {
+      "lug": "p0-bugfix-circle-audit-conversation-track-ingestion",
+      "from_state": "defined",
+      "to_state": "ready",
+      "timestamp": "2026-09-15T03:44:25.540Z"
+    },
+    {
+      "lug": "p0-bugfix-circle-audit-conversation-track-ingestion",
+      "from_state": "ready",
+      "to_state": "in_progress",
+      "timestamp": "2026-09-15T03:44:27.509Z"
+    },
+    {
+      "lug": "p0-bugfix-circle-audit-conversation-track-ingestion",
+      "from_state": "in_progress",
+      "to_state": "review",
+      "timestamp": "2026-09-15T03:44:35.298Z"
     }
   ],
   "directions_captured": [],
   "cost_markers": {
-    "tokens": 0,
-    "wall_time_seconds": 0,
-    "count": 1,
+    "tokens": 20062230,
+    "wall_time_seconds": 7253.235000000001,
+    "count": 11,
     "unmeasured": false
   },
   "decisions": [
@@ -180,6 +198,174 @@
       "id": "ldg-p0-circle-audit-conversation-track-ingestion-1789431314084-9u86",
       "text": "P0 (p0_data_integrity): circle-completeness audit found a real PHANTOM circle -- conversation-track-ingestion: could not resolve a real entry point from conformance fixture conformance/fixtures/conversation-track-ingestion/conversation-track-ingestion.test.js under the instance root /home/mario/projects/wheelwright/tracks (expected a path.join(REPO_ROOT, ...) construction)",
       "touched_at": "2026-09-15T00:15:14.220Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-cut-held-active-session-1789431531711",
+      "text": "applyCut held a binding write (canon/circles + .claude/settings.json) against 1 active registered session(s): fox (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda). Spoke profile is not opted into live-apply (autonomy_table_defaults.live_apply_bindings). No write made.",
+      "touched_at": "2026-09-15T00:18:51.825Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-liveness-presumed-dead-e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda-1789443770626",
+      "text": "Session e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda (fox) on this spoke presumed dead by applyCut's liveness gate: no Stop within the 60-minute staleness window. Evidence: {\"reference\":\"2026-09-15T00:16:30.767Z\",\"age_minutes\":206,\"staleness_minutes\":60}. Hold released; write proceeds treating this session as inactive.",
+      "touched_at": "2026-09-15T03:42:50.678Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-arrival-audit-reverted-1789443770711-9jto9x",
+      "text": "harness-arrival-audit: auto-reverted \"canon/circles/conversation-track-ingestion.md\" -- classified CRASHED_AGENT_ARTIFACTS (\"canon/circles/conversation-track-ingestion.md\" is under a cut-owned path (only applyCut's own machinery ever writes there) and was deleted -- anomalous, treated as a crashed prior write)",
+      "touched_at": "2026-09-15T03:42:50.712Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-arrival-audit-reverted-1789443770719-wylkq4",
+      "text": "harness-arrival-audit: auto-reverted \"canon/circles/conversation-track-ingestion.yaml\" -- classified CRASHED_AGENT_ARTIFACTS (\"canon/circles/conversation-track-ingestion.yaml\" is under a cut-owned path (only applyCut's own machinery ever writes there) and was deleted -- anomalous, treated as a crashed prior write)",
+      "touched_at": "2026-09-15T03:42:50.720Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-arrival-audit-committed-1789443770795-1e4tnt",
+      "text": "harness-arrival-audit: auto-committed 11 file(s) as f0026029 -- LEGITIMATE_CUT_ABSORPTION/ORGANIC_RUNTIME_CHURN: AMBASSADOR_BRIEF.md, CLAUDE.md, docs/live-hook-capture.index.jsonl, docs/live-hook-capture.jsonl, ledger/ledger.jsonl, runtime/anthropic-usage-observed.json, runtime/communication-inbox-cursor/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json, runtime/hook-runlog.jsonl, runtime/pending-footer-correction/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json, runtime/store-bound-state.json, runtime/turn-start-attribution/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json",
+      "touched_at": "2026-09-15T03:42:50.796Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-_basher-managed_by-1789443773548-2dageh",
+      "text": "global-settings-drift-check: stale reference at \"_basher.managed_by\" -- v1-era governance label -- names an un-migrated standalone tool, not this repo, as owner (current: \"basher tools update\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.902Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-_basher-new_entries-1789443773914-rkf7bm",
+      "text": "global-settings-drift-check: stale reference at \"_basher.new_entries\" -- routes wheel-wide config changes to the standalone basher repo's own lug intake -- that repo's backlog points at the v1 framework repo (~/projects/wheelwright/framework), which the wheel family's own LEGACY.md records as retired 2026-08-26, so this routing claim is stale under Ruling 5 (current: \"document value + declare scope: spoke-local or wheel-wide. Wheel-wide changes: write a lug to /home/mario/projects/basher/WAI-Spoke/lugs/incoming/\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.915Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-_basher_edit_record-edited_by-1789443773917-9aoubu",
+      "text": "global-settings-drift-check: stale reference at \"_basher_edit_record.edited_by\" -- names the retired v1 repo (mywheel) -- this is a historical log entry describing a real past edit, not a live governance claim, so it is flagged for disclosure only; overwriting it would falsify the record of what actually happened (current: \"operator via mywheel s138 apply script (change-enforcement-surface-reconciliation-s138-v1)\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.918Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-UserPromptSubmit-matcher--1789443773919-pvvgei",
+      "text": "global-settings-drift-check: stale reference at \"hooks.UserPromptSubmit[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/notify-reset.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.919Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-PreToolUse-matcher-AskUserQuestion--1789443773921-027v6e",
+      "text": "global-settings-drift-check: stale reference at \"hooks.PreToolUse[matcher=AskUserQuestion]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/pre-tool-askquestion.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.921Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-PreToolUse-matcher--1789443773923-ruhs9d",
+      "text": "global-settings-drift-check: stale reference at \"hooks.PreToolUse[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/pre-tool-tab-reset.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.924Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Stop-matcher--1789443773928-z3y6vs",
+      "text": "global-settings-drift-check: stale reference at \"hooks.Stop[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/notify.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.929Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Stop-matcher--1789443773931-kb0qp0",
+      "text": "global-settings-drift-check: stale reference at \"hooks.Stop[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/stop-track-flush.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.936Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Stop-matcher--1789443773937-7omize",
+      "text": "global-settings-drift-check: stale reference at \"hooks.Stop[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/stop-savepoint-guard.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.938Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-Notification-matcher--1789443773941-6am6xj",
+      "text": "global-settings-drift-check: stale reference at \"hooks.Notification[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/notify.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.942Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-StopFailure-matcher--1789443773943-x7n90c",
+      "text": "global-settings-drift-check: stale reference at \"hooks.StopFailure[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/notify.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.943Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-SessionEnd-matcher--1789443773944-9w872z",
+      "text": "global-settings-drift-check: stale reference at \"hooks.SessionEnd[matcher=.*]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/tab-clear.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.945Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-stale-hooks-PostToolUse-matcher-AskUserQuestion--1789443773946-caus2f",
+      "text": "global-settings-drift-check: stale reference at \"hooks.PostToolUse[matcher=AskUserQuestion]\" -- hardcodes an absolute path into the standalone basher repo instead of the ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh soft-fail pattern (`[ -x \"$F\" ] && exec \"$F\"; true`) every other hook entry in this file uses -- ties every session on this machine, in any project, to one specific external repo's file layout (current: \"/home/mario/projects/basher/.claude/hooks/pre-tool-askquestion.sh\") (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.947Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-gap-hook-architecture-1789443773948-80sok5",
+      "text": "global-settings-drift-check: gap in \"hook architecture\" [cosmetic-not-breaking] -- the global file probes for 18 distinct ${CLAUDE_PROJECT_DIR}/.claude/hooks/<name>.sh scripts (compact-resume-inject.sh, notify-reset.sh, notify.sh, post-tool-use.sh, pre-compact.sh, pre-tool-askquestion.sh, pre-tool-guard.sh, pre-tool-tab-reset.sh, pre-write-guard.sh, session-end-lane.sh, session-start.sh, stop-savepoint-guard.sh, stop-test-runner.sh, stop-track-flush.sh, stop-worktree-hygiene.sh, tab-clear.sh, user-prompt-submit.sh, worktree-create.sh); harness-factory's own live, compiled .claude/settings.json (confirmed by reading it directly) carries none of those filenames -- v2's real, generated hook set is 38 direct `node src/hooks/<camelCase>Hook.js` commands wired into settings.json itself, no shell-script indirection at all (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.948Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-global-settings-drift-gap-permissions-allow-1789443773952-gsmica",
+      "text": "global-settings-drift-check: gap in \"permissions.allow\" [disclosed-not-attempted] -- global file's permissions.allow is a broad v1-style blanket grant (Write(*), Read(*), Edit(*), etc.) (source: /home/mario/.claude/settings.json)",
+      "touched_at": "2026-09-15T03:42:53.952Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-canary-9f14e87d-40ad-40ab-88d0-1fa8e4727f14-1789443774592",
+      "text": "CANARY: session-start liveness probe for session 9f14e87d-40ad-40ab-88d0-1fa8e4727f14 -- excluded from all rollups, expires at session end.",
+      "touched_at": "2026-09-15T03:42:54.754Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-metric-direction_regex_false_positive_rate-1789443775850-0",
+      "text": "reconcile-ledger counter-metric: direction_regex_false_positive_rate = n/a (nothing reviewed yet) (n=undefined)",
+      "touched_at": "2026-09-15T03:42:55.851Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-metric-overlap_dedup_false_positive_rate-1789443775851-1",
+      "text": "reconcile-ledger counter-metric: overlap_dedup_false_positive_rate = n/a (nothing reviewed yet) (n=undefined)",
+      "touched_at": "2026-09-15T03:42:55.852Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-metric-bash_lug_guard_repeat_denial_rate-1789443775854-0",
+      "text": "guard-denial-reconciliation counter-metric: bash_lug_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "touched_at": "2026-09-15T03:42:55.855Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-metric-bash_destructive_command_guard_repeat_denial_rate-1789443775855-1",
+      "text": "guard-denial-reconciliation counter-metric: bash_destructive_command_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "touched_at": "2026-09-15T03:42:55.856Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-metric-agent_target_scope_guard_repeat_denial_rate-1789443775856-2",
+      "text": "guard-denial-reconciliation counter-metric: agent_target_scope_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "touched_at": "2026-09-15T03:42:55.857Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-metric-agent_tool_scope_guard_repeat_denial_rate-1789443775857-3",
+      "text": "guard-denial-reconciliation counter-metric: agent_tool_scope_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "touched_at": "2026-09-15T03:42:55.857Z",
+      "prompt_ids_worked": []
+    },
+    {
+      "id": "ldg-wheel-clock-catchup-overflow-1789443775862-6iuz3n",
+      "text": "wheel-clock-catchup: 20 tick(s) owed (ceiling 5) -- fired 5, 15 tick(s) worth of owed real time carried forward to the next catch-up (not dropped)",
+      "touched_at": "2026-09-15T03:42:55.862Z",
       "prompt_ids_worked": []
     }
   ],

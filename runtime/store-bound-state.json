@@ -29,7 +29,7 @@
       "disclosed_at": null
     },
     "ledger|2026-09-15|lug-verb": {
-      "admitted": 1,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-09-15T00:15:14.237Z",
@@ -50,7 +50,7 @@
       "disclosed_at": null
     },
     "ledger|2026-09-15|footer-audit": {
-      "admitted": 1,
+      "admitted": 12,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-09-15T00:16:30.904Z",
@@ -97,8 +97,29 @@
       "cap": 2000,
       "first_seen": "2026-09-15T03:42:55.862Z",
       "disclosed_at": null
+    },
+    "ledger|2026-09-15|session-exit-commit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T03:42:58.306Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|pickup-reverification": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T03:44:25.936Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|cross-provider-verification": {
+      "admitted": 2,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T03:44:33.746Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-09-15T03:42:55.862Z"
+  "written_at": "2026-09-15T05:52:47.077Z"
 }

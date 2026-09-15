@@ -1,9 +1,9 @@
 {
   "kind": "disclosed_gap_scan_state",
   "watermarks": {
-    "/home/mario/projects/wheelwright/tracks": "9a6d6cb2695b7505216ea80bebed4a584fe4eef5",
-    "/home/mario/projects/wheelwright/harness-factory": "f40bc3fe28ee8243ed31083bfd44c78aafdabec0"
+    "/home/mario/projects/wheelwright/tracks": "7e85f546bf71ab08a4f821bf35977b310745dc70",
+    "/home/mario/projects/wheelwright/harness-factory": "992f0b3bd061f46a70e27d9e32090a6c07ecb7cf"
   },
   "surfaced": [],
-  "updated_at": "2026-09-15T00:16:30.869Z"
+  "updated_at": "2026-09-15T05:52:46.902Z"
 }

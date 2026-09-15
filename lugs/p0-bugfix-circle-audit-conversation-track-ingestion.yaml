@@ -37,7 +37,7 @@ estimate: >-
   yet
 executor: claude
 proof_required: true
-state: defined
+state: review
 p0_source_row_id: ldg-p0-circle-audit-conversation-track-ingestion-1789431314084-9u86
 p0_source_ref: circle-audit
 p0_cause: circle-audit:conversation-track-ingestion
@@ -49,3 +49,14 @@ author:
   input: pointers:5c56b4bb339cf8f8fd1cd82ef7b31c5ae22682881c501125f32bc7e888182e16
   recorded_at: '2026-09-15T00:15:14.237Z'
   source: session-registry
+readiness: stubbed
+pickup_reverification:
+  verdict: still_needed
+  checked_at: '2026-09-15T03:44:25.823Z'
+  checked_by: e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda
+  trigger: lug-verb:in_progress
+  ledger_row: ldg-prv-1789443865824
+  checks:
+    chain_disposition: needed -- no chain_id
+    dependency_states: needed -- no dependency edges
+    premise: needed -- nothing contradicts the premise

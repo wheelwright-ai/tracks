@@ -1,0 +1,88 @@
+{
+  "lug": "p0-bugfix-circle-audit-conversation-track-ingestion",
+  "pointer_digest": "pointers:5c56b4bb339cf8f8fd1cd82ef7b31c5ae22682881c501125f32bc7e888182e16",
+  "qualification": "priority: critical and proof_required: true",
+  "author": {
+    "session": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda",
+    "model": "claude-opus-5",
+    "provider": "claude",
+    "method": "authored_in_session",
+    "input": "pointers:5c56b4bb339cf8f8fd1cd82ef7b31c5ae22682881c501125f32bc7e888182e16",
+    "recorded_at": "2026-09-15T00:15:14.237Z",
+    "source": "session-registry"
+  },
+  "candidates_considered": [
+    "gemini",
+    "dashscope",
+    "kimi",
+    "deepseek"
+  ],
+  "rejected_candidates": [
+    {
+      "provider": "gemini",
+      "reason": "self_attestation: session e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda authored this work and cannot also certify it -- a self-check looks identical to a check right up to the moment it is wrong. Certification must be requested by, and run for, a session that is not the recorded author (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda).",
+      "refusal_reason": "self_attestation"
+    },
+    {
+      "provider": "dashscope",
+      "reason": "self_attestation: session e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda authored this work and cannot also certify it -- a self-check looks identical to a check right up to the moment it is wrong. Certification must be requested by, and run for, a session that is not the recorded author (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda).",
+      "refusal_reason": "self_attestation"
+    },
+    {
+      "provider": "kimi",
+      "reason": "self_attestation: session e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda authored this work and cannot also certify it -- a self-check looks identical to a check right up to the moment it is wrong. Certification must be requested by, and run for, a session that is not the recorded author (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda).",
+      "refusal_reason": "self_attestation"
+    },
+    {
+      "provider": "deepseek",
+      "reason": "self_attestation: session e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda authored this work and cannot also certify it -- a self-check looks identical to a check right up to the moment it is wrong. Certification must be requested by, and run for, a session that is not the recorded author (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda).",
+      "refusal_reason": "self_attestation"
+    }
+  ],
+  "requested_by_session": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda",
+  "wave": {
+    "wave_id": "clock-2026-09-15T03Z",
+    "wave_id_basis": "clock_hour",
+    "state_file": "runtime/cross-provider-wave-state.json",
+    "breaker": {
+      "declared": false,
+      "reason": "canon/proofer.advisor.yaml declares no cross_provider_wave_breaker block",
+      "candidate_timeout_ms": {}
+    }
+  },
+  "advisory_only": {
+    "declared": [],
+    "named_provider": null
+  },
+  "status": "complete",
+  "verdict": "REFUSED",
+  "provider": null,
+  "independence": null,
+  "attempts": [],
+  "reason": "no candidate provider is independent of this lug's author record (tried gemini, dashscope, kimi, deepseek)",
+  "finished_at": "2026-09-15T03:44:35.647Z",
+  "history": {
+    "runs_file": "runtime/cross-provider-certifications/p0-bugfix-circle-audit-conversation-track-ingestion.runs.jsonl",
+    "policy": "latest-wins: <lug>.json is the newest history entry; the newest 60 entries per lug are retained in <lug>.runs.jsonl, older ones pruned oldest-first (pruned_entries counts them)",
+    "max_entries": 60,
+    "entries": 2,
+    "runs": 1,
+    "latest_seq": 2,
+    "latest_run": 1,
+    "pruned_entries": 0,
+    "unreadable_lines": 0,
+    "trail": [
+      {
+        "run": 1,
+        "seq": 2,
+        "provider": null,
+        "model": null,
+        "verdict": "REFUSED",
+        "citations_checked": 0,
+        "weakest_tier": null,
+        "finished_at": "2026-09-15T03:44:35.647Z"
+      }
+    ],
+    "fabrication_followed_by_pass": false
+  }
+}
