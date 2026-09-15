@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-15T00:17:12Z",
+  "observed_at": "2026-09-15T00:18:42Z",
   "source": "claude code statusline payload (first-party, polled by statusline-usage-poll.sh)",
   "observed_from_dir": "/home/mario/projects/wheelwright/tracks",
   "windows": {

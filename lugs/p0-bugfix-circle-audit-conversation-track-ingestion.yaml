@@ -1,0 +1,51 @@
+kind: lug
+name: p0-bugfix-circle-audit-conversation-track-ingestion
+owner: otto
+schema_version: 1
+intent: >-
+  P0 (p0_data_integrity): circle-completeness audit found a real PHANTOM circle
+  -- conversation-track-ingestion: could not resolve a real entry point from
+  conformance fixture
+  conformance/fixtures/conversation-track-ingestion/conversation-track-ingestion.test.js
+  under the instance root /home/mario/projects/wheelwright/tracks (expected a
+  path.join(REPO_ROOT, ...) construction)
+outcome: >-
+  The real data-integrity failure recorded in ledger row
+  ldg-p0-circle-audit-conversation-track-ingestion-1789431314084-9u86
+  (source_ref: circle-audit, 2026-09-15) is fixed at its real cause -- the same
+  check that produced this P0 row no longer reports it on a clean re-run, and no
+  other code path can reproduce it silently.
+acceptance:
+  - >-
+    Ledger row
+    ldg-p0-circle-audit-conversation-track-ingestion-1789431314084-9u86 is
+    traced to a real root cause in the code named by this lug's pointers, not a
+    paraphrase of the row's own text.
+  - >-
+    Re-running the real check that produced ledger row
+    ldg-p0-circle-audit-conversation-track-ingestion-1789431314084-9u86
+    (source_ref: circle-audit) no longer reports this miss.
+constraints: []
+out_of_scope: []
+pointers:
+  - ledger/ledger.jsonl
+  - external:harness-factory/src/factory/circleAudit.js
+open_questions: []
+priority: critical
+estimate: >-
+  unestimated -- opened automatically from a P0 finding, not sized by a session
+  yet
+executor: claude
+proof_required: true
+state: defined
+p0_source_row_id: ldg-p0-circle-audit-conversation-track-ingestion-1789431314084-9u86
+p0_source_ref: circle-audit
+p0_cause: circle-audit:conversation-track-ingestion
+author:
+  session: e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda
+  model: claude-opus-5
+  provider: claude
+  method: authored_in_session
+  input: pointers:5c56b4bb339cf8f8fd1cd82ef7b31c5ae22682881c501125f32bc7e888182e16
+  recorded_at: '2026-09-15T00:15:14.237Z'
+  source: session-registry

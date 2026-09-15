@@ -55,8 +55,15 @@
       "cap": 2000,
       "first_seen": "2026-09-15T00:16:30.904Z",
       "disclosed_at": null
+    },
+    "ledger|2026-09-15|claude": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T00:18:51.824Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-09-15T00:16:30.904Z"
+  "written_at": "2026-09-15T00:18:51.825Z"
 }

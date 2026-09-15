@@ -62,3 +62,4 @@
 {"ts":"2026-09-15T00:16:30.996Z","hook":"footer-audit","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":3710573}
 {"ts":"2026-09-15T00:16:31.003Z","hook":"stop-turn-marker","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":3710581}
 {"ts":"2026-09-15T00:16:31.511Z","hook":"stop-agent-waiting-notify","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":3710579}
+{"ts":"2026-09-15T00:17:32.384Z","hook":"notification-agent-waiting-notify","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":3716009}

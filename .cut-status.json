@@ -1,86 +1,12 @@
 {
-  "ok": true,
+  "ok": false,
+  "held": true,
   "posture": "absorb_and_report",
   "version": "f40bc3fe28ee8243ed31083bfd44c78aafdabec0",
-  "liveApplied": false,
-  "announcedSessions": [],
-  "arrivalAudit": {
-    "audit": {
-      "ok": true,
-      "notGitRepo": false,
-      "auditedAt": "2026-09-15T00:14:26.606Z",
-      "findings": [
-        {
-          "path": ".gitignore",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".gitignore\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "ledger/ledger.jsonl",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"ledger/ledger.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": ".cut-status.json",
-          "statusCode": "??",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "AMBASSADOR_BRIEF.md",
-          "statusCode": "??",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"AMBASSADOR_BRIEF.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "CLAUDE.md.v2-proposed",
-          "statusCode": "??",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"CLAUDE.md.v2-proposed\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        }
-      ],
-      "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 1,
-        "ORGANIC_RUNTIME_CHURN": 4,
-        "CRASHED_AGENT_ARTIFACTS": 0,
-        "UNCLASSIFIABLE": 0
-      }
-    },
-    "reconciliation": {
-      "reverted": [],
-      "committed": [
-        ".gitignore",
-        "ledger/ledger.jsonl",
-        ".cut-status.json",
-        "AMBASSADOR_BRIEF.md",
-        "CLAUDE.md.v2-proposed"
-      ],
-      "commit": "9a6d6cb2695b7505216ea80bebed4a584fe4eef5",
-      "blocked": [],
-      "credentialBlocked": [],
-      "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789431266676-eypwx2-refused-1789431266724-wair8e"
-      ]
-    }
-  },
-  "secretsTemplateRetirement": {
-    "retired": false,
-    "reason": "no template to retire",
-    "retiredTo": null,
-    "sha256": null
-  },
-  "reported": [],
-  "lug_owed": false,
-  "warnings": [],
-  "appliedAt": "2026-09-15T00:14:27.482Z",
-  "previous_version": "66e48e3a30553788f6ca2f47f7744767e3a3a2bb"
+  "reason": "binding write held -- 1 active session(s) registered on this spoke and it is not opted into live-apply: fox (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda)",
+  "activeSessions": [
+    "fox (e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda)"
+  ],
+  "appliedAt": "2026-09-15T00:18:51.830Z",
+  "previous_version": "f40bc3fe28ee8243ed31083bfd44c78aafdabec0"
 }
