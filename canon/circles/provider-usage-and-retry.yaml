@@ -1,0 +1,88 @@
+kind: circle
+name: provider-usage-and-retry
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  any provider call is made through src/advisor/providerContract.js's
+  callProvider -- every caller: proofer.js (the cross-provider certification
+  path), machineProbe.js, and any script or fixture that calls it directly
+inputs:
+  - provider_name
+  - provider_response_or_failure
+  - provider_ceilings_declaration
+outputs:
+  - provider_usage_attempt_record
+  - provider_quota_signal
+  - ledger_row
+invariants:
+  - >-
+    ONE ROW PER ATTEMPT in runtime/provider-usage.jsonl -- successes, refusals,
+    timeouts, retried attempts and calls blocked by a ceiling all write a row;
+    an absence in that file means no call was made, and nothing else
+  - >-
+    the record is written unconditionally, NOT through
+    observability/eventLog.js, because appendEvent refuses to write with no
+    announced session triple -- which is exactly the headless-verifier case this
+    circle exists for
+  - >-
+    usage is what the provider itself reported: prompt/completion tokens from
+    the OpenAI-compatible usage block or the claude CLI's
+    input/output/modelUsage shape, and NULL -- never zero -- when the provider
+    reported nothing
+  - >-
+    error_kind distinguishes rate_limited (429), auth (401/403), server (>=500)
+    and http_error (everything else); a 401 and a 503 are never the same word
+    again
+  - >-
+    bounded retry, same provider only -- the contract never falls back to a
+    different provider, so a check is always answered by the provider the caller
+    named or by nobody
+  - >-
+    retry is attempted only for the kinds the lug's acceptance names
+    (rate_limited, server). RETRY_ON_TIMEOUT is a single constant, currently
+    false, carrying a documented operator decision pending: the incident that
+    opened the lug was a TIMEOUT
+  - >-
+    backoff is bounded exponential (500ms doubling, capped at 30s) and honours a
+    provider's own Retry-After when it sent one, itself capped by the same
+    ceiling
+  - >-
+    the result carries attempts and retry_history, so a caller that got a thin
+    answer can see it was thin
+  - >-
+    NO REAL CEILING IS SHIPPED for any provider: canon/provider-ceilings.yaml
+    ships with an empty providers map, because no quota or pricing figure has
+    been verified from real config
+  - >-
+    a ceiling carrying a number but no source: is REFUSED rather than enforced
+    -- the call proceeds and the refusal is stated; a limit nobody can trace is
+    not a limit
+  - >-
+    a declared, sourced ceiling blocks the call BEFORE any request is sent, and
+    writes both an attempt row and a ledger row naming the number and its source
+  - >-
+    unmeasured is never exhausted: a provider whose calls reported no usage, or
+    that has no rows at all, is never blocked -- a wrongly blocked verification
+    silently thins a review, which is the failure this circle exists to end
+  - >-
+    the ceiling gate can never block by failing: any error inside it allows the
+    call and says why
+  - >-
+    NO SECRET IS EVER RECORDED -- a usage record names the provider and the
+    cost, never the credential; free text carried from a provider's own error
+    body is redacted first
+failure_routing: lug:provider-contract-has-no-retry-backoff-or-usage-record
+counter_metric: provider_call_attempt_failure_rate
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - cross-provider-verification
+  - external:operator
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/provider-usage-and-retry/provider-usage-and-retry.conformance.test.js
+concern: third-party-provider-spend-and-failure-record
+instructions_ref: reference/circles/provider-usage-and-retry.md
+duplicate_of: provider-usage-and-retry

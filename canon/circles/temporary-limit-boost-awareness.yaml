@@ -1,0 +1,71 @@
+kind: circle
+name: temporary-limit-boost-awareness
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a caller asks whether a temporary rate-limit boost is currently active on this
+  account -- every conductor heartbeat tick (detectLimitBoost +
+  boostExpiryAlert), every paceFromReading given a boost fact, and every
+  headless usage poll's own operator-facing output
+inputs:
+  - claude_code_cached_growthbook_promo_notice
+  - anthropic_usage_observed_reading
+outputs:
+  - limit_boost_fact
+  - boost_expiry_signal
+  - boost_adjusted_pace_runway
+invariants:
+  - >-
+    the four statuses are never collapsed: announced (a real notice in a fresh
+    flag cache), lapsed (a real notice past its own stated expiry), absent (a
+    fresh cache carrying no notice -- the only real negative), unknown (no
+    readable cache, no age stamp, or a cache older than
+    MAX_FLAG_CACHE_AGE_HOURS)
+  - >-
+    a boost is NEVER inferred from a utilization percentage, from a
+    generous-looking headroom figure, or from any flag that does not itself
+    state a boosted bar -- there is exactly one path to `announced` and it is a
+    real notice a reader can go and look at
+  - >-
+    the notice text is carried through verbatim on every fact, and
+    magnitude/expiry are populated only on a strict pattern match against the
+    notice's own words; a notice that stops matching yields nulls with a named
+    reason rather than a guessed number
+  - >-
+    the year and timezone absent from the notice text are resolved by a
+    disclosed rule and reported as expiry_precision: day with the assumptions
+    listed -- never presented as a provider-declared instant
+  - >-
+    pacing rescales no percentage: a boost's only effect is to shorten the
+    deadline a runway is measured to, to min(window reset, conservative boost
+    expiry), on the provider's own unmodified utilization figures
+  - >-
+    a notice naming the five_hour bar is REFUSED by the pace model and the
+    refusal disclosed -- the five-hour Envelope's conservative posture may never
+    weaken to buy opportunistic speed
+  - >-
+    only status `announced` changes pacing; unknown, absent and lapsed leave
+    every pace figure bit-identical to the pre-boost behaviour
+  - >-
+    the expiry signal fires on the earlier (conservative) expiry bound and on
+    every heartbeat outcome including declines, so a boost is surfaced before it
+    lapses rather than after
+  - >-
+    read-only: the flag cache and the usage reading are read, never written,
+    refreshed or rotated
+failure_routing: lug:navigator-and-conductor-blind-to-temporary-limit-boosts
+counter_metric: limit_boost_status_unknown_rate
+enforcement: kernel_check
+depends_on:
+  - anthropic-rate-limit-five-hour-envelope
+consumers:
+  - conductor-wave-gate
+  - external:operator (the headless poller's own boost line)
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/limit-boost-awareness/limit-boost-awareness.conformance.test.js
+concern: temporary-rate-limit-boost-observation-and-opportunistic-pacing
+instructions_ref: reference/circles/temporary-limit-boost-awareness.md
+duplicate_of: temporary-limit-boost-awareness

@@ -1,0 +1,30 @@
+kind: circle
+name: capture-direction
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: user submits a prompt containing a standing-rule marker phrase
+inputs:
+  - user_prompt
+outputs:
+  - ledger_row
+invariants:
+  - runs within the same turn the direction was said in
+  - never blocks the prompt
+failure_routing: lug:capture-direction-failure
+counter_metric: directions_captured_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:reconcile-ledger
+  - external:wilbur
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/captureDirectionHook.js
+conformance: >-
+  conformance/fixtures/circle-capture-direction/capture-direction.conformance.test.js
+concern: direction-capture
+instructions_ref: reference/circles/capture-direction.md
+duplicate_of: capture-direction

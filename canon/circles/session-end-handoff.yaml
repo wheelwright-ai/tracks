@@ -1,0 +1,33 @@
+kind: circle
+name: session-end-handoff
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a real session ends (SessionEnd event)
+inputs:
+  - active_lug_pointer
+  - ready_work_queue
+  - track_artifact
+outputs:
+  - handoff
+  - closed_track_artifact
+invariants:
+  - every real session end produces exactly one handoff
+  - the track is closed (closed_at set) exactly once, with the same handoff
+failure_routing: lug:session-end-handoff-failure
+counter_metric: handoff_written_rate
+enforcement: hook
+depends_on:
+  - external:session-track-write
+consumers:
+  - external:session-continuity-checkpoint
+runs_on: hook_event
+hook_event_name: SessionEnd
+hook_matcher: ''
+hook_script: src/hooks/sessionEndHandoffHook.js
+conformance: >-
+  conformance/fixtures/session-end-handoff/session-end-handoff.conformance.test.js
+concern: session-end-handoff-writeback
+instructions_ref: reference/circles/session-end-handoff.md
+duplicate_of: session-end-handoff

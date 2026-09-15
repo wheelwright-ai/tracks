@@ -1,0 +1,28 @@
+kind: circle
+name: bash-lug-guard
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a Bash command is about to run
+inputs:
+  - bash_command
+outputs:
+  - deny_decision
+invariants:
+  - never blocks the kernel verb script itself
+  - heuristic, not a parser -- documented as such, not claimed as complete
+failure_routing: lug:bash-lug-guard-failure
+counter_metric: bash_lug_write_block_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:lug-integrity-checksum
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Bash
+hook_script: src/hooks/bashLugGuardHook.js
+conformance: conformance/fixtures/circle-bash-lug-guard/bash-lug-guard.conformance.test.js
+concern: lug-bypass-prevention-proactive
+instructions_ref: reference/circles/bash-lug-guard.md
+duplicate_of: bash-lug-guard

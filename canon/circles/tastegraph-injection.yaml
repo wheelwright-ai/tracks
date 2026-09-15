@@ -1,0 +1,56 @@
+kind: circle
+name: tastegraph-injection
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a real prompt is submitted (UserPromptSubmit), after the wakeup block handed
+  the session the merged tastegraph and a master or overlay change has landed
+  since
+inputs:
+  - tastegraph_master
+  - tastegraph_overlay
+  - tastegraph_refresh_state
+outputs:
+  - taste_wakeup_block
+  - taste_updated_injection
+  - taste_update_ledger_row
+  - taste_miss_ledger_row
+invariants:
+  - the master stays hub-owned; a spoke never edits it, only its overlay
+  - >-
+    the wakeup block is composed inside buildFullCheckpointInjection, so rule
+    12's cap measures the same text it injects -- the cap is never raised for
+    the tastes; the block trims itself
+  - >-
+    one taste-update ledger row per tastegraph version, whichever caller
+    (wheel-clock job or prompt hook) noticed it first
+  - >-
+    per-session, not delete-on-read: every session in the instance learns an
+    update once
+  - >-
+    a taste-miss row is heuristic and says so; only communication.* tastes with
+    a mechanical checker are measured, the rest are reported unmeasured
+failure_routing: lug:tastegraph-injection-failure
+counter_metric: taste_miss_rate_per_reported_turn
+enforcement: hook
+depends_on:
+  - session-continuity-checkpoint
+  - footer-audit
+  - external:harness-factory/src/tastegraph/injection.js
+  - external:harness-factory/src/tastegraph/communicationAudit.js
+consumers:
+  - warmup-goals-review
+  - >-
+    external:operator (the hub advisor's taste analysis reaches behaviour: every
+    session sees the merged set at wakeup, learns a change on its next turn, and
+    has its own reports held against the measurable tastes)
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/tasteUpdateInjectionHook.js
+conformance: conformance/fixtures/taste-injection/taste-injection.conformance.test.js
+concern: tastegraph-reaches-behaviour
+instructions_ref: reference/circles/tastegraph-injection.md
+duplicate_of: tastegraph-injection

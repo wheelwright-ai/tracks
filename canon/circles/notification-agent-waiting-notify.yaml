@@ -1,0 +1,36 @@
+kind: circle
+name: notification-agent-waiting-notify
+owner: basher
+level: spoke
+status: live
+schema_version: 1
+trigger: Claude Code sends a real permission_prompt or idle_prompt notification
+inputs:
+  - session_registry
+outputs:
+  - desktop_toast_notification
+invariants:
+  - >-
+    best-effort only -- a failed or unavailable toast transport never blocks the
+    real notification Claude Code itself already sent
+  - headless sub-sessions never notify
+  - >-
+    per-spoke posture (autonomy_table_defaults.agent_waiting_notify), default on
+    for an interactive session
+failure_routing: lug:agent-waiting-notify-failure
+counter_metric: agent_waiting_notify_delivery_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (a real permission prompt or idle-waiting moment, surfaced
+    off-screen)
+runs_on: hook_event
+hook_event_name: Notification
+hook_matcher: permission_prompt|idle_prompt
+hook_script: src/hooks/notificationNotifyHook.js
+conformance: >-
+  conformance/fixtures/circle-agent-waiting-notify/agent-waiting-notify.conformance.test.js
+concern: operator-notification-permission-idle
+instructions_ref: reference/circles/notification-agent-waiting-notify.md
+duplicate_of: notification-agent-waiting-notify

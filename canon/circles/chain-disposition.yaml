@@ -1,0 +1,83 @@
+kind: circle
+name: chain-disposition
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  an operator or third-party session asks for a chain's verdict -- `node
+  scripts/chain-disposition.js <chain-id> [--write --session-id=<id>]`
+inputs:
+  - chain_id
+  - lug
+  - cross_provider_certification_record
+  - author_record
+  - lug_transition_event
+  - proofer_advisor
+outputs:
+  - chain_disposition_record
+  - ledger_row
+  - event_log_row
+invariants:
+  - >-
+    no provider is ever called on any path -- a chain is aggregated from
+    per-node certification records that already exist, never dispositioned by
+    re-running one certification over concatenated node content
+  - >-
+    a chain disposition may only be written by a third party: a session that
+    authored or executed ANY node of the chain is refused (self_attestation),
+    and the witness must pass the four-axis independence check against every
+    node's author record
+  - >-
+    a refusal writes nothing at all -- no partial disposition is ever left
+    behind
+  - >-
+    disposition never deletes: no lug file is written, moved, renamed or removed
+    on any path, for any verdict, and every prior verdict is kept in history[]
+  - >-
+    a deprecated chain stays fully readable end to end -- deprecation is lazy, a
+    record and not a cancellation; in-flight work is re-verified at pickup
+    instead of being chased
+  - >-
+    one unsuperseded FAILED node deprecates the chain; a FAILED node is
+    superseded only by a CONFIRMED (never PLAUSIBLE) certification on a node
+    that really derives from it
+  - >-
+    FABRICATED, BLOCKED and REFUSED are inconclusive, never negative -- they
+    seek refresh and can never deprecate a chain
+  - >-
+    silence is never a pass: a node at review or done that qualifies and has no
+    usable record blocks closure, exactly as checkCrossProviderGateForDone
+    blocks it at node scope
+  - >-
+    an exempt node (not high/critical, or proof_required false) contributes
+    neither evidence nor obstruction, and closure additionally requires at least
+    one real satisfying certification somewhere in the chain
+  - >-
+    a stale certification (made against a different pointer set) blocks closure
+    with its own distinct reason, never reading as never-certified
+  - >-
+    provider diversity across nodes is recorded as strengthening the evidence
+    and is NEVER an input to the verdict -- verdicts from different providers
+    are not calibrated against each other and are never added up
+  - >-
+    certification strength (confirmed vs plausible-only) is recorded on the
+    closure, never rounded up
+  - >-
+    test standing is computed and reported on the same record but is never an
+    input to the disposition -- it is a repo fact an author can change, and
+    letting it move the verdict would break the third-party-only constraint
+failure_routing: lug:chain-scope-disposition-from-node-certifications
+counter_metric: chain_disposition_verdict_rate
+enforcement: kernel_check
+depends_on:
+  - cross-provider-verification
+  - lug-kernel-verb
+consumers:
+  - external:operator
+  - external:proofer
+runs_on: on_demand
+conformance: conformance/fixtures/chain-disposition/chain-disposition.conformance.test.js
+concern: chain-scope-verdict-from-node-scope-certifications
+instructions_ref: reference/circles/chain-disposition.md
+duplicate_of: chain-disposition

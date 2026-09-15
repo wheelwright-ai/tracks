@@ -1,0 +1,52 @@
+kind: wheel_clock
+name: spoke-wheel-clock
+owner: ozi
+status: live
+schema_version: 1
+rationale: >-
+  The clock every freshly scaffolded spoke receives (lug
+  scaffolded-spoke-ships-schedule-circles-with-no-wheel-clock): copied
+  verbatim by src/factory/scaffold.js into canon/spoke.wheel-clock.yaml
+  when the target declares no clock of its own -- never invented in code,
+  never overwriting one that exists. Names no advisor because a scaffold
+  has none yet; the instance's own Ozi, when declared, may take this file
+  over (advisor: <name>). Jobs are the ones a fresh spoke can really run
+  from its own data on day one: its ledger, its canon, its cut status.
+  Every schedule circle whose requires_wheel_clock_job is not declared
+  here is excluded from that spoke's cut, so the spoke never carries a
+  circle it cannot run. Cadence 6 = slow-drift class; 3 = per-cut class.
+cadence_unit: wheel_ticks -- one tickWheelScheduler() call
+jobs:
+  planner_cycle:
+    job: plannerCycle
+    cadence_ticks: 1
+    rationale: >-
+      lug planner-balances-build-maintain-health-with-declared-floors: every
+      spoke plans its own AP queue (build, maintain, health, by declared
+      floors) from its own data; first key so it runs before every other job.
+  update_discovery:
+    job: updateDiscovery
+    cadence_ticks: 3
+    rationale: >-
+      the update-discovery circle's own declared wheel-clock arm -- a spoke
+      compares its .cut-status.json to the hub's published cut on cadence,
+      not only at session start.
+  cartographer_map:
+    job: regenerateCartographerMap
+    cadence_ticks: 3
+    rationale: a level-spoke circle; maps this spoke's circles to the framework that implements them
+  ledger_reconciliation:
+    job: reconcileLedger
+    cadence_ticks: 6
+    rationale: proposes only, never auto-applies; reads this spoke's own ledger
+  guard_denial_reconciliation:
+    job: reconcileGuardDenials
+    cadence_ticks: 6
+    rationale: the four guard circles run on every spoke and write their denials to its ledger
+  communication_inbox:
+    job: communicationInbox
+    cadence_ticks: 1
+    rationale: >-
+      lug communication-inbox-circle-and-fair-ranking: every spoke gains
+      an inbox -- sibling spokes' open communication lugs targeting this
+      one, read on the clock, written to its own runtime only.

@@ -1,0 +1,84 @@
+kind: circle
+name: readiness-certification-sweep
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  the review-state backlog is swept for real check results -- `node
+  scripts/readiness-sweep.js [instanceRoot] --session-id=<id>
+  [--certify=none|request|run]` walks every review lug and every ready+passed
+  lug in scope (critical first, then the lugs that unblock the most others;
+  --priorities widens), re-runs each lug's own conformance fixture, reads the
+  done gate through the harness's own functions, and asks the kernel verb for
+  done
+inputs:
+  - lug
+  - conformance_fixture
+  - certification_record
+  - kernel_verb
+outputs:
+  - readiness_sweep_row
+  - readiness_sweep_run
+  - tally_section
+  - ledger_row
+invariants:
+  - >-
+    EVERY REACHED LUG GETS A RECORDED RESULT: one runtime/readiness-sweep.jsonl
+    row per lug with a disposition (done | left_at_review | left_at_ready), a
+    reason AND the refusing gate by name (refused_by). A lug with no fixture is
+    recorded as `no fixture to re-run`; a closed gate quotes the gate; a verb
+    refusal is quoted verbatim. Nothing is skipped silently and nothing is
+    rubber-stamped
+  - >-
+    DONE ONLY THROUGH THE KERNEL VERB, ONLY ON A FIXTURE RE-RUN GREEN NOW: the
+    lug's own fixture is resolved (its `// lug:` marker across instance and
+    framework repos, plus its tests: entries) and EXECUTED by this sweep; red
+    never reaches the verb; a declared test file missing on disk is
+    INCONCLUSIVE, never trusted. The verb's refusal is the verdict -- no
+    pre_attribution_flag row, no hand edit, no gate weakened
+  - >-
+    NEVER runProofer WITHOUT certifyOnly: a Proofer PASS moves review -> ready
+    and would drag merged work back into the ready queue. Certification happens
+    only through scripts/cross-provider-certify.js (policy run), the detached
+    requester the initiative drive uses (policy request), or not at all (policy
+    none, the default)
+  - >-
+    THE TALLY IS RENDERED FROM THE ROWS, NEVER HAND-KEPT: N reviewed = M done +
+    K left at review, with reasons ranked by class; the tally doc section
+    between the TALLY markers is re-rendered after every lug so a kill mid-sweep
+    loses at most the lug in flight
+  - >-
+    A SPENT BUDGET STOPS THE SWEEP: on the wall-clock budget or --max-lugs it
+    stops before the next lug, names every unreached lug in `not_reached`,
+    counts none of them as reviewed, and the CLI exits 3 -- a truncated sweep is
+    never read as a complete one
+  - >-
+    WRITES ONLY ITS OWN EVIDENCE: the stream, the pointed tally doc, one ledger
+    row per run. Lug files change only through the verb; certification records
+    only through the certifier. --dry-run writes nothing
+  - >-
+    A PROOFER PASS IS NEVER INVISIBLE: the sweep enumerates ready+passed (the
+    Proofer's post-PASS shape), never ready+stubbed. ONE PROMOTE PATH:
+    donePromotion.js promoteLugToDone is the only body that reads the gate and
+    asks the verb for done, for the sweep and the initiative drive alike
+  - >-
+    no lug is filed by this mechanism. A left-at-review reason is information,
+    reported in the tally; a lug is opened only for a real remediation owed
+failure_routing: lug:readiness-certification-sweep-of-review-state-backlog
+counter_metric: review_lugs_reached_without_a_recorded_result
+enforcement: kernel_check
+depends_on:
+  - lug-kernel-verb
+  - cross-provider-verification
+  - done-gate-two-store-certification
+consumers:
+  - initiative-focus
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/readiness-certification-sweep/readiness-certification-sweep.conformance.test.js
+concern: readiness-certification-sweep-of-review-state-backlog
+instructions_ref: reference/circles/readiness-certification-sweep.md
+duplicate_of: readiness-certification-sweep

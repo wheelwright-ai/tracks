@@ -1,0 +1,64 @@
+kind: circle
+name: liveness-lease
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+interface_version: v1
+trigger: >-
+  a supervised dispatched session runs -- the running session calls the one
+  sanctioned refresh (refreshLivenessLease / leaseForStep,
+  src/lugTracking/livenessLease.js, or `node scripts/liveness-lease.js refresh`)
+  before any step longer than its remaining countdown, and the launch supervisor
+  (src/basher/idleWatchdog.js) reads the lease off the lug on every tick of the
+  child's life
+inputs:
+  - lug_file
+  - dispatch_row
+  - launch_envelope
+outputs:
+  - liveness_lease
+  - launch_envelope
+  - dispatch_journal
+  - dispatch_row
+  - liveness_fallback_section
+invariants:
+  - >-
+    the lease is verb-owned bookkeeping on the lug (rule 11's
+    VERB_OWNED_LUG_FIELDS, the one list) with countdown_ms, refreshed_at,
+    refreshed_by and the step -- written by exactly one module, never counted
+    against the author
+  - >-
+    a refresh that names no step is refused; a bare heartbeat is the silence
+    this replaces
+  - >-
+    the supervisor kills for silence only when now exceeds refreshed_at +
+    countdown_ms; while a declared lease is live, silence does not kill
+  - >-
+    a kill records the last refresh time, the declared countdown and the named
+    step -- "it stopped updating at T during step S" is a fact on the row, in
+    the journal and in the launch reason, never a guess
+  - >-
+    the wall-clock budget still bounds the whole run: the refresh clamps to the
+    budget deadline and the supervisor clamps again on its own clock, so a lease
+    can never extend past it
+  - >-
+    a run that declares no lease stays on the flat idle window, byte-for-byte as
+    before, and the fallback census reaches the operator once with counts --
+    never a lug filed
+  - >-
+    a lease that expired before this run began is a prior run's and is never
+    honoured
+failure_routing: lug:liveness-lease-failure
+counter_metric: legitimate_runs_killed_for_silence
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:otto
+  - external:conductor
+  - external:operator
+runs_on: on_demand
+conformance: conformance/fixtures/liveness-lease/liveness-lease.conformance.test.js
+concern: long-running-work-liveness
+instructions_ref: reference/circles/liveness-lease.md
+duplicate_of: liveness-lease

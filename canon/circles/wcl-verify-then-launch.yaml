@@ -1,0 +1,41 @@
+kind: circle
+name: wcl-verify-then-launch
+owner: basher
+level: spoke
+status: live
+schema_version: 1
+trigger: the operator runs `wcl <spoke>`
+inputs:
+  - spoke_name
+outputs:
+  - composed_environment
+  - launched_session
+invariants:
+  - >-
+    verify before launch -- sync-on-wake, custody, staleness, pending cut,
+    secrets, credential pre-flight, each one real line of output
+  - a failure names the fix, never a bare refusal
+  - >-
+    a spoke still in its shadow window (an unpromoted deploy lug) delegates to
+    the plain v1 launch path instead of composing -- checked fresh on every
+    launch, from the lug's own real state
+  - >-
+    never forces a git pull -- fast-forward only, refuses on a dirty tree rather
+    than overwriting it
+  - >-
+    after the cut, every bound `node <script>` hook must resolve on disk --
+    absolute for an adopting spoke, relative only for the self-hosting one --
+    and a hook that does not is refused by event, command and reason
+    (checkHookBindingResolution), never discovered as an ENOENT at session end
+failure_routing: lug:wcl-verify-then-launch-failure
+counter_metric: wcl_launch_refusal_rate
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:operator
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/circle-wcl-verify-then-launch/wcl-verify-then-launch.conformance.test.js
+concern: operator-launch-composition
+instructions_ref: reference/circles/wcl-verify-then-launch.md
+duplicate_of: wcl-verify-then-launch

@@ -1,0 +1,42 @@
+kind: circle
+name: cartographer
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: the wheel-scheduler's cartographer_map job, on its declared cadence
+inputs:
+  - reference_circles
+  - compiler_rules
+  - canon_advisors
+  - conformance_tests
+outputs:
+  - cartographer_map_artifact
+  - wakeup_index
+  - location_index
+invariants:
+  - >-
+    the full map is written only through regenerateCartographerMap() -- never
+    hand-edited
+  - >-
+    the wakeup summary stays within rule 12's remaining headroom, measured every
+    run
+  - >-
+    a circle/policy/advisor with no resolvable implementing file is reported as
+    unfound, never silently dropped
+failure_routing: lug:cartographer-failure
+counter_metric: map_completeness_ratio
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:session-continuity-checkpoint
+  - external:warmup-goals-review
+  - external:proofer
+  - external:ready-gate-stub
+runs_on: schedule
+requires_wheel_clock_job: regenerateCartographerMap
+conformance: conformance/fixtures/cartographer/cartographer.conformance.test.js
+concern: spoke-understanding
+instructions_ref: reference/circles/cartographer.md
+interface_version: v1
+duplicate_of: cartographer

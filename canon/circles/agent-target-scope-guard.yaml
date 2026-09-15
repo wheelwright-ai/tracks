@@ -1,0 +1,48 @@
+kind: circle
+name: agent-target-scope-guard
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a Write, Edit, NotebookEdit or Bash call is about to run from inside a
+  dispatched Agent-tool fork
+inputs:
+  - fork_tool_call_target_path
+  - dispatch_time_scope_grant
+outputs:
+  - deny_decision
+invariants:
+  - >-
+    the target scope is bound at dispatch time by the dispatching call -- a fork
+    can never author, widen or self-declare the grant that binds it
+  - >-
+    no prompt is read: a fork with no restrictive language in its prompt is held
+    to its real target exactly as one with it
+  - >-
+    fires only on tool calls carrying a real agent_id (a dispatched fork's own
+    calls); a parent session's calls are untouched
+  - >-
+    a write outside the granted target is refused with a named reason quoting
+    the real path, and the refusal is a permanent ledger row
+  - reads are never bounded -- this guard bounds writes only
+  - >-
+    heuristic, not a parser, for Bash write shapes -- documented as such, not
+    claimed as complete
+failure_routing: lug:fbl-101-background-agent-cross-workstream-contamination
+counter_metric: agent_fork_out_of_target_write_refusal_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (a fork dispatched for one workstream silently writing
+    into a third, live repo is the real risk this closes -- 260902-FBL-100)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Edit|Write|Bash
+hook_script: src/hooks/agentTargetScopeGuardHook.js
+conformance: >-
+  conformance/fixtures/circle-agent-target-scope-guard/agent-target-scope-guard.conformance.test.js
+concern: agent-target-path-enforcement
+instructions_ref: reference/circles/agent-target-scope-guard.md
+duplicate_of: agent-target-scope-guard

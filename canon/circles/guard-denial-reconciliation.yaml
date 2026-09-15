@@ -1,0 +1,38 @@
+kind: circle
+name: guard-denial-reconciliation
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: wheel_clock job guard_denial_reconciliation (canon/otto.advisor.yaml)
+inputs:
+  - ledger
+outputs:
+  - counter_metric_rows
+  - proposals
+invariants:
+  - >-
+    never mutates an existing ledger row; only additive counter-metric and
+    proposal rows each run
+  - >-
+    never changes any guard's own denial logic/patterns -- this circle reads the
+    4 guard circles' real denial rows, it does not alter what they block
+  - deterministic given the same ledger
+failure_routing: lug:guard-circles-denials-untracked-and-never-reconciled
+counter_metric: guard_denial_reconciliation_proposal_review_rate
+enforcement: kernel_check
+depends_on:
+  - bash-lug-guard
+  - bash-destructive-command-guard
+  - agent-target-scope-guard
+  - agent-tool-scope-guard
+consumers:
+  - external:otto
+  - external:wilbur
+runs_on: schedule
+requires_wheel_clock_job: reconcileGuardDenials
+conformance: >-
+  conformance/fixtures/circle-guard-denial-reconciliation/guard-denial-reconciliation.conformance.test.js
+concern: guard-denial-feedback-loop
+instructions_ref: reference/circles/guard-denial-reconciliation.md
+duplicate_of: guard-denial-reconciliation

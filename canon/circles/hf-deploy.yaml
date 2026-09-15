@@ -1,0 +1,67 @@
+kind: circle
+name: hf-deploy
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+interface_version: v1
+trigger: >-
+  the orchestrating (non-authoring) session runs `hf deploy [--spokes a,b]
+  [--stage fold,push,cut,relaunch,clean]` (src/factory/deploy.js
+  runDeployCommand) to take the fleet's finished work to every registered spoke;
+  or the hub wheel clock's deploy_fleet job (runScheduledDeploy) finds main
+  proven green with foldable branches or commits ahead of origin and launches
+  fold+push+cut detached
+inputs:
+  - dispatch_row
+  - lug_file
+  - spoke_registry
+  - cut_manifest
+outputs:
+  - deploy_run_record
+  - ledger_rows
+  - cut_status
+  - dispatch_row
+invariants:
+  - >-
+    five stages in one order -- fold, push, cut, relaunch, clean -- each written
+    to runtime/deploy-runs.jsonl as a started row and a terminal row with
+    per-spoke outcomes, plus one hub ledger row; a run that dies mid-stage
+    resumes at that stage on the next bare invocation, completed stages skipped
+    by name
+  - >-
+    fold cherry-picks only dispatch/* branches whose worktree a hub dispatch row
+    names and whose lug is at review or done; a conflict refuses that branch by
+    name and leaves it untouched; main only ever fast-forwards
+  - >-
+    push runs the repo's own pre-push gate with the bypass variable scrubbed
+    from the environment; a red gate is quoted, never bypassed; a repo behind
+    its origin is refused, never force-pushed
+  - >-
+    cut goes through applyCut, so every hold it honours (upgrade posture, active
+    session without live-apply, unclassifiable arrival) is this verb's hold too;
+    cut-owned files are committed by pathspec through the spoke's pre-commit
+    gate
+  - >-
+    relaunch re-queues, never launches: a dispatch refused for a stale spoke is
+    queued again with its own prompt, scope and targets and the refused row
+    marked relaunched_as, once
+  - >-
+    clean removes only a branch whose every commit is on main by patch id and
+    whose worktree carries no uncommitted tracked change
+  - >-
+    the verb authors no application code: a fold conflict or a red gate is
+    reported with its reason, never patched in place
+failure_routing: lug:hf-deploy-failure
+counter_metric: deploy_stages_refused_ratio
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:operator
+  - external:otto
+  - external:conductor
+runs_on: on_demand
+conformance: conformance/fixtures/hf-deploy-verb/hf-deploy-verb.conformance.test.js
+concern: fleet-deployment
+instructions_ref: reference/circles/hf-deploy.md
+duplicate_of: hf-deploy

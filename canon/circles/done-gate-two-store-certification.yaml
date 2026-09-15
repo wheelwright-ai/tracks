@@ -1,0 +1,91 @@
+kind: circle
+name: done-gate-two-store-certification
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a qualifying lug (high/critical AND proof_required) transitions into done --
+  checkCrossProviderGateForDone (src/advisor/crossProviderVerification.js) at
+  the kernel verb, and the drive's promote_to_done
+  (src/conductor/initiativeFocus.js) for a lug at review OR at ready with
+  readiness passed; and at session start, where buildExternalChainSection
+  reports the external chain's failure modes with counts
+inputs:
+  - lug
+  - cross_provider_certification_record
+  - proofer_ready_ledger_row
+  - author_record
+outputs:
+  - lug_transition
+  - ledger_row
+  - cross_provider_certification_record
+  - initiative_focus_step
+  - session_start_surface
+invariants:
+  - >-
+    the gate reads BOTH stores -- the external chain's record
+    (runtime/cross-provider-certifications/<lug>.json) and the Proofer's own
+    ready-proofer ledger row -- and states which one it acted on (acted_on:
+    external | proofer); a refusal names what each store held
+  - >-
+    the external chain is the PREFERRED second opinion: a CONFIRMED/PLAUSIBLE
+    record against the current pointer set opens done as before; a lug whose
+    chain has not been tried (absent, required, in flight) is held for it even
+    with a Proofer PASS on record -- held, not waived, and the drive requests
+    the chain
+  - >-
+    a real Proofer PASS (fresh context, non-author requester, verbatim
+    citations, independence enforceable and carried) is SUFFICIENT for done once
+    the chain was tried and produced no usable verdict: FABRICATED, BLOCKED,
+    REFUSED, stale, or died in flight
+  - >-
+    a FAILED external verdict -- a real negative with evidence -- is never
+    overridden by a Proofer PASS; the refusal names both verdicts
+  - >-
+    a FABRICATED external verdict still blocks when it is the ONLY verdict; it
+    yields only to a Proofer PASS it could not refute
+  - >-
+    when the Proofer PASS wins, BOTH verdicts are recorded: a ledger row
+    (ldg-verb-done-certification-<lug>-*) naming the Proofer row and every
+    external attempt, and a superseded_by_proofer_pass block on the external
+    record, whose own verdict is left as the chain wrote it -- nothing is waived
+    silently
+  - >-
+    independence.js and the self_attestation refusal are not weakened: the
+    Proofer row carries certifier_session and pointer_digest and the gate
+    re-checks both -- a row whose requester is the recorded author, whose
+    independence is unenforceable, or whose pointer set changed is refused by
+    name
+  - >-
+    the drive ranks ready + readiness passed ahead of review and promotes it
+    through the same path; ready + stubbed still takes the dispatch path
+  - >-
+    review_to_done_lug_transitions_last_7d counts the Proofer's review ->
+    ready(passed) -> done exit, and only that; a plain ready -> done is not
+    counted
+  - >-
+    the external chain's failure modes reach the operator ONCE -- at the session
+    start after the counts move (signature in
+    runtime/external-chain-notice.json) -- as classes (provider + verdict +
+    mechanism) with counts and the count of lugs with ZERO usable outside
+    voices; no lug is ever filed for a failure mode
+failure_routing: lug:done-gate-ignores-a-proofer-pass-and-reads-only-the-external-chain
+counter_metric: done_transitions_acted_on_proofer_store_last_7d
+enforcement: kernel_check
+depends_on:
+  - lug-kernel-verb
+  - cross-provider-verification
+  - initiative-focus
+consumers:
+  - initiative-focus
+  - warmup-goals-review
+  - external:proofer
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/done-gate-two-store-certification/done-gate-two-store-certification.conformance.test.js
+concern: done-gate-reads-both-certification-stores
+instructions_ref: reference/circles/done-gate-two-store-certification.md
+duplicate_of: done-gate-two-store-certification

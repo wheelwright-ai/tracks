@@ -1,0 +1,45 @@
+kind: circle
+name: git-boundary-test-gate
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a real `git commit` or `git push` runs in harness-factory or wheel-hub
+inputs:
+  - staged_paths
+  - suite_set
+  - ratchet_baseline
+  - content_hash_receipt
+outputs:
+  - commit_refusal
+  - push_refusal
+  - ratchet_baseline
+  - content_hash_receipt
+  - ledger_row
+invariants:
+  - >-
+    a commit runs the suites covering what it STAGED, never the full sweep --
+    scope at commit, completeness at push
+  - >-
+    a timeout is not a pass, and an unreached suite leaves the failure set
+    UNKNOWN, which is not NOT-WORSE
+  - >-
+    a pre-existing failure never blocks; a NEW failure always does; the ratchet
+    baseline may only shrink
+  - >-
+    a skip happens only on a positive content-hash receipt written by a run that
+    exited 0, and never while the covered scope is dirty
+  - bypass is possible only via WHEEL_SKIP_TEST_GATE, and it writes a ledger row
+failure_routing: lug:git-boundary-has-no-test-gate
+counter_metric: git_boundary_gate_refusal_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:operator
+  - external:session-exit-commit
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/git-boundary-test-gate/git-boundary-test-gate.conformance.test.js
+concern: untested-code-crossing-the-git-boundary
+instructions_ref: reference/circles/git-boundary-test-gate.md
+duplicate_of: git-boundary-test-gate

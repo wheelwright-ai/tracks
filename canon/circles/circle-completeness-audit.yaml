@@ -1,0 +1,49 @@
+kind: circle
+name: circle-completeness-audit
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: a real session starts (SessionStart event)
+inputs:
+  - canon_circles
+  - settings_json
+  - wheel_clock_jobs
+  - job_runners
+outputs:
+  - circle_verdicts
+  - p0_bug_fix_lug
+invariants:
+  - >-
+    detection only -- never repairs a PHANTOM or OPEN circle, same discipline
+    hook-binding-drift's own detection-only scope already established
+  - >-
+    verdicts are sourced from live inspection (settings.json's real bindings,
+    wheel_clock.jobs' real declarations, JOB_RUNNERS' real map, a conformance
+    fixture's own real entry-point reference) -- never a second, hand-maintained
+    registry that can itself go stale the way mywheel's own CIRCLES list could
+  - >-
+    a real PHANTOM verdict opens a real bug-fix lug via the existing
+    p0AutoBugLug.js gate -- never a second, divergent auto-lug-filer
+  - >-
+    a failed check never blocks the real session start it exists to inform, same
+    discipline every sibling SessionStart hook already follows
+failure_routing: lug:absorb-mywheel-circle-audit-tool
+counter_metric: circle_phantom_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (a phantom or open circle is a loud finding at wakeup, and
+    a real bug-fix lug at the top of the queue, not a silent one discovered days
+    later by an unrelated incident -- exactly wheel-clock-catchup and
+    reconcile-ledger's own real history)
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/circleAuditHook.js
+conformance: >-
+  conformance/fixtures/circle-circle-completeness-audit/circle-completeness-audit.conformance.test.js
+concern: circle-completeness-detection
+instructions_ref: reference/circles/circle-completeness-audit.md
+duplicate_of: circle-completeness-audit

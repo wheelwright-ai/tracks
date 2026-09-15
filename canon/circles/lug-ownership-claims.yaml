@@ -1,0 +1,86 @@
+kind: circle
+name: lug-ownership-claims
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a lug's ownership is claimed, contested or diverged -- applyLugVerb
+  (src/lugTracking/lugVerb.js) appends a claim at in_progress and a release at
+  review/done, refusing a lug another LIVE session holds unless --drive=<reason>
+  or --collaborate=<sub-scope>; `node scripts/lug-claim.js list|contend|release`
+  reads the table on demand; the four lug-write guards (bash-lug-guard,
+  definition-complete-gate, ready-gate-stub, lug-lifecycle-tracker) refuse a
+  write to another live session's claimed lug through
+  src/hooks/lib/claimGuard.js; the session-end handoff releases what the ending
+  session held; lugIntegrity.classifyViolation, a dirty-file takeover or `node
+  scripts/lug-divergence.js resolve` write or settle
+  runtime/divergences/<id>.json
+inputs:
+  - lug
+  - session_registry
+  - track
+  - dispatch_scope_grant
+outputs:
+  - lug_claim
+  - lug_release
+  - contend_reading
+  - lug_divergence
+  - ledger_row
+  - message
+invariants:
+  - >-
+    the claim table runtime/lug-claims.jsonl is APPEND-ONLY under withFileLock;
+    a live claim is the last row per lug when it is a claim; first claim wins
+    and no row is ever rewritten
+  - >-
+    PRECEDENCE is counterparty rank (3 operator, 2 top-level, 1 dispatched),
+    then the lug's own priority, then first claim -- three signals and NO
+    fourth; the rank is computed by the claiming process about itself and
+    written on the row with its basis
+  - >-
+    collaborate-vs-drive is a DETERMINISTIC reading returned with its reason:
+    drive only when the owner is stale (absent from the session registry, or no
+    turn marker in 30 min) or the contender outranks it; a deviation (--drive)
+    is a ledger decision row
+  - >-
+    COLLABORATE is a declared sub-scope and a Message to the owner's session in
+    the hub's messages/messages.jsonl -- no claim, no transition, never a second
+    pair of hands on the lug file
+  - >-
+    the guards refuse a write to another LIVE session's claimed lug quoting the
+    reading; they NEVER rewrite the other session's version; posture per
+    canon/profile.yaml lug_claim_guard_posture (deny default, warn never blocks
+    but still writes the row)
+  - >-
+    a DIVERGENCE is a record (both versions verbatim, unified diff, authors,
+    reasons, impact: priority, state per side, done-gate inputs that differ,
+    dependants) resolved through a verb; applyLugVerb refuses every transition
+    on a lug with an open divergence, naming the id
+  - >-
+    the integrity backstop records a divergence instead of healing when a
+    lifecycle-field mismatch has two distinct sessions in evidence; one open
+    record per lug, never one per Stop
+  - >-
+    open divergences lead the goals review; every claim, release, takeover,
+    collaboration and resolution is on the ledger
+failure_routing: lug:lug-ownership-claims-and-divergence-review-across-live-sessions
+counter_metric: lug_writes_that_silently_overwrote_another_live_session
+enforcement: kernel_check
+depends_on:
+  - lug-kernel-verb
+consumers:
+  - bash-lug-guard
+  - definition-complete-gate
+  - ready-gate-stub
+  - lug-lifecycle-tracker
+  - session-end-handoff
+  - warmup-goals-review
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/lug-ownership-claims/lug-ownership-claims.conformance.test.js
+concern: lug-ownership-claims-and-divergence
+instructions_ref: reference/circles/lug-ownership-claims.md
+duplicate_of: lug-ownership-claims

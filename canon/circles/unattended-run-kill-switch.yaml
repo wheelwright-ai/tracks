@@ -1,0 +1,86 @@
+kind: circle
+name: unattended-run-kill-switch
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  any caller is about to spend, or is already spending, the operator's
+  subscription with nobody at the machine -- checked at every launch gate
+  (executeDispatch, runHeartbeat Gate 0, runAdvisorAutopilot Gate 0) and POLLED
+  by every launch supervisor for the whole life of its child. Raised with `hf
+  stop` or, with no node required, `touch <instance-root>/runtime/stop.flag`.
+inputs:
+  - stop_flag_file
+  - dispatch_child_registry
+  - dispatch_registry
+  - turn_markers
+outputs:
+  - halted_launches
+  - terminated_children
+  - run_cost_total
+  - ledger_rows
+invariants:
+  - >-
+    FAIL SAFE, the load-bearing rule: if the stop file cannot be READ for any
+    reason, that is a STOP, not a go. A clean ENOENT on a readable instance root
+    is the only reading that permits unattended spend. A wrong stop costs a
+    declined wave, recorded and visible; a wrong go keeps spending an absent
+    operator's quota through the exact fault that made the switch unreadable.
+  - >-
+    it halts BOTH halves or it is not a kill switch: new launches at the next
+    gate AND every already-running child, through its recorded pids. Halting new
+    launches while running dispatches keep spending is the failure this closes,
+    not a partial success.
+  - >-
+    a halted tick consumes nothing -- no reading, no reconciliation, above all
+    no five-hour window boundary -- so clearing the flag restores the wheel to
+    exactly where it was
+  - >-
+    a child terminated by the stop switch is recorded `killed`, never
+    `timed_out`: a session the operator halted did not run too long, and calling
+    it a timeout sends the morning reader hunting a watchdog bug that is not
+    there
+  - >-
+    the file IS the interface: `touch runtime/stop.flag` from any shell halts
+    the wheel completely, with no node and no working harness. The JSON body `hf
+    stop` writes is a courtesy; an empty hand-touched file is a full stop. The
+    CLI exists only because it can ALSO reach running children and queued rows.
+  - >-
+    the halt is fault-isolated: a killPendingDispatches failure (unresolvable
+    counterparty, unloadable canon) is reported honestly and does NOT prevent
+    the flag going up or children being signalled -- a kill switch that refuses
+    to halt because it could not load a YAML file is an elaborate way of not
+    having one
+  - >-
+    process liveness is CHECKED with signal 0, never inferred from a missing
+    'ended' row: a SIGKILLed supervisor never writes one, and a recycled pid
+    must never be signalled on a stranger's behalf
+  - >-
+    cost is SUMMED FROM REAL TURN MARKERS ONLY -- never estimated, never priced,
+    never defaulted to zero. A dispatch whose cost was not really measured
+    reports `unmeasured`.
+  - >-
+    every whole-run total is three numbers, not one: the measured sum, how many
+    dispatches it covers, and how many it does NOT. A confident wrong number is
+    worse than an honest gap.
+failure_routing: lug:unattended-run-has-no-kill-switch-or-whole-run-cost-total
+counter_metric: unmeasured_dispatch_cost_rate
+enforcement: kernel_check
+depends_on:
+  - conductor-heartbeat
+  - conductor-wave-gate
+  - stop-turn-marker
+consumers:
+  - >-
+    external:operator (`hf stop`, `hf stop --status`, and the morning warmup's
+    run-cost section)
+  - >-
+    external:minder (the dispatch registry's per-row cost fields, which the
+    Conductor-waves view reads)
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/unattended-run-kill-switch/unattended-run-kill-switch.conformance.test.js
+concern: unattended-run-halt-and-cost-accounting
+instructions_ref: reference/circles/unattended-run-kill-switch.md
+duplicate_of: unattended-run-kill-switch

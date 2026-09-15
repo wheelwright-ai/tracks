@@ -1,0 +1,42 @@
+kind: circle
+name: calibration-record
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: an operator or agent asks what a named heuristic's real error rate is
+inputs:
+  - subject_mechanism
+  - real_evidence_stream
+outputs:
+  - calibration_record
+invariants:
+  - >-
+    reads the real evidence streams and never duplicates them -- a record stores
+    counts and pointers, and the schema refuses one carrying copies of its
+    source rows
+  - >-
+    only a stream this build genuinely writes may be cited; an invented stream
+    is refused at build time
+  - >-
+    undetermined observations are excluded from the rate, never scored as either
+    a hit or a miss
+  - >-
+    no adjudicated observations means measured:false with a stated reason --
+    explicitly not a zero rate
+  - a reading supersedes its predecessor by id; nothing is overwritten
+  - >-
+    this is not the TasteGraph: inferred, confidence-scored entries live here
+    precisely because decision D8 is unanswered
+failure_routing: lug:wheelwright-handoff-phase-1-foundation-schemas-and-stores
+counter_metric: calibrated_heuristic_count
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:operator
+  - external:otto
+runs_on: on_demand
+conformance: conformance/fixtures/calibration-record/calibration-record.conformance.test.js
+concern: heuristic-error-rate-measurement
+instructions_ref: reference/circles/calibration-record.md
+duplicate_of: calibration-record

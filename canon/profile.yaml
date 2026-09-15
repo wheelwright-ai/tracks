@@ -1,0 +1,18 @@
+kind: profile
+name: tracks
+owner: mario
+status: live
+schema_version: 1
+team_shape: >-
+  Tracks -- structured records of AI conversations (WAI Points in JSONL); an
+  existing v1 WAI-Harness spoke (cut 4.14.58) onboarded to the v2 harness on
+  2026-09-14
+compliance: none
+environment: WSL2
+autonomy_comfort: medium
+autonomy_table_defaults:
+  lug_execution: auto_with_notify
+  dependency_changes: review
+  external_contact: review
+  upgrade_absorption: absorb_and_report
+goals_review_top_n: 3

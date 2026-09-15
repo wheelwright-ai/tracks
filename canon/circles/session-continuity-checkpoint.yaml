@@ -1,0 +1,33 @@
+kind: circle
+name: session-continuity-checkpoint
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a session starts
+inputs:
+  - active_lug_pointer
+  - backlog
+outputs:
+  - additional_context
+invariants:
+  - never blocks session start
+  - >-
+    the active lug loads in full; the rest of the backlog loads as one-line
+    summaries
+  - silent when nothing is in flight and the backlog is empty
+failure_routing: lug:session-continuity-checkpoint-failure
+counter_metric: checkpoint_delivered_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:operator
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/sessionCheckpointHook.js
+conformance: >-
+  conformance/fixtures/circle-session-continuity-checkpoint/session-continuity-checkpoint.conformance.test.js
+concern: session-continuity
+instructions_ref: reference/circles/session-continuity-checkpoint.md
+duplicate_of: session-continuity-checkpoint

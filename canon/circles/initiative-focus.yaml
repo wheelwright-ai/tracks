@@ -1,0 +1,79 @@
+kind: circle
+name: initiative-focus
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  an initiative is read, ranked or driven -- every session start
+  (buildInitiativeFocusSection through goalsReview.js), every Planner cycle
+  (initiativeLugIndex + rankByInitiativePrecedence in src/planner/planner.js),
+  and every autopilot launch (driveApReadyInitiatives from runAdvisorAutopilot,
+  src/otto/advisorAutopilot.js) -- src/conductor/initiativeFocus.js
+inputs:
+  - initiative
+  - lug
+  - success_prediction_registry
+  - cross_provider_certification_record
+  - dispatch_registry
+outputs:
+  - initiative_focus_step
+  - lug_transition
+  - dispatch_row
+  - ledger_row
+  - session_start_surface
+invariants:
+  - >-
+    an initiative's state is derived from its own open_questions and nowhere
+    else: non-empty is IN-DESIGN (the operator's questions, listed verbatim),
+    empty is AP-READY (the agent's work); the goals review asks the operator
+    nothing an initiative's open_questions does not contain
+  - >-
+    an initiative is a pointer list: every lug state reported or acted on is
+    read from lugs/<name>.yaml at call time and is never written onto, or cached
+    on, the initiative
+  - >-
+    Planner names the initiative on every affiliated row and, since the
+    operator's 260911 decision (planner-cross-segment-ranking), ranks initiative
+    membership FIRST across build and maintain alike; operator-declared priority
+    governs inside each tier; the within-tier ranker rankByInitiativePrecedence
+    never re-ranks across tiers
+  - >-
+    the autopilot drives one AP-ready initiative one step per pass --
+    defined->ready, review->done and ready(readiness passed)->done only through
+    the kernel verb, ready(stubbed)->dispatch through the real dispatch
+    mechanism at most MAX_DISPATCHES_PER_DRIVE times per pass,
+    review->certification requested out of process -- and records every step,
+    with its outcome and reason, in runtime/initiative-focus.jsonl against the
+    initiative
+  - >-
+    an initiative sequenced_after an unlanded initiative is reported WAITING on
+    it by name and is NOT driven; a step a real gate refused is recorded as
+    blocked with the gate's own reason and, for certification, the verdict --
+    the record never says driving about something stalled
+  - >-
+    every initiative metric reader in METRIC_READERS reads the real store it
+    names and returns measured:false with the reason when that store cannot
+    answer; none substitutes a zero, and its domain is the metric's measured
+    operating range, stated in domain_basis
+  - >-
+    progress is reported ONCE per session start with counts through the operator
+    channel; no code path in this circle files a lug to report it
+failure_routing: lug:initiatives-get-focus-and-drive-their-lugs-to-done-in-autopilot
+counter_metric: ap_ready_initiatives_with_no_drive_step_recorded_in_7d
+enforcement: kernel_check
+depends_on:
+  - lug-kernel-verb
+  - success-prediction
+  - cross-provider-verification
+consumers:
+  - warmup-goals-review
+  - conductor-wave-gate
+  - planner-cycle-allocation
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/initiative-focus/initiative-focus.conformance.test.js
+concern: initiatives-get-focus-and-land
+instructions_ref: reference/circles/initiative-focus.md
+duplicate_of: initiative-focus

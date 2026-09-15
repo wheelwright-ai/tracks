@@ -1,0 +1,73 @@
+kind: circle
+name: update-discovery
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a real session starts (SessionStart event) in any spoke that receives cuts,
+  and the spoke's wheel_clock job update_discovery (JOB_RUNNERS.updateDiscovery)
+  on its declared cadence -- the spoke compares its .cut-status.json to the
+  hub's registry/latest-cut.json, published by hf deploy's cut stage
+  (src/factory/cutPublish.js, from stageCut); Otto's autopilot records who is
+  behind (src/otto/cutLaggards.js) and the hub goals review prints it
+inputs:
+  - latest_cut_record
+  - cut_status
+  - spoke_drift
+  - session_registry
+  - cut_attestation_stream
+outputs:
+  - cut_applied_natively
+  - update_available_finding
+  - update_available_ledger_row
+  - cut_laggard_report
+invariants:
+  - >-
+    the published record is written only by the cut stage of hf deploy from the
+    framework's real HEAD, never by hand -- its delta (circles/policies added,
+    changed, removed; lugs closed) is measured by git from the previously
+    published version
+  - >-
+    a cut is applied inline only when the launcher's own verdict calls it
+    pending (spokeDrift.js's pendingCutVerdict: canon/circles byte-identical to
+    the recorded cut) AND session-registry shows no other live session in the
+    spoke -- the discovering session's own row is excluded, never a second
+    session's
+  - >-
+    never applied over a live session, never a version other than the published
+    one (a framework checkout not at the published cut reports), never a retry
+    of a rollback at the same version without a person looking
+  - >-
+    the compile is never bypassed: applyCut's own refuse-class rollback and its
+    holds are reported exactly as today
+  - >-
+    one ledger row per version, not per tick or per session start
+    (update_available / update_applied, keyed on the version)
+  - >-
+    cut_published_to_spoke_absorbed_hours is computed from the hub ledger's
+    cut_published row to the spoke's own attestation, never estimated; a spoke
+    that never attested reads null with the reason
+  - the laggard report is read-only over the two stores and files nothing
+failure_routing: >-
+  lug:spokes-discover-and-pull-the-current-cut-natively-instead-of-max-pushing-it
+counter_metric: cut_published_to_spoke_absorbed_hours
+enforcement: hook
+depends_on:
+  - applyCut
+  - pendingCutVerdict
+  - checkSpokeLiveness
+  - publishLatestCut
+  - updateDiscovery
+consumers:
+  - external:otto (the laggard report in the hub goals review)
+  - external:operator (UPDATE AVAILABLE at wakeup instead of a hand push)
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/updateDiscoveryHook.js
+hook_timeout_seconds: 180
+conformance: conformance/fixtures/update-discovery/update-discovery.conformance.test.js
+concern: native-cut-discovery
+instructions_ref: reference/circles/update-discovery.md
+duplicate_of: update-discovery

@@ -1,0 +1,49 @@
+kind: circle
+name: design-salvage-review
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  an operator or agent runs a salvage pass over work at risk of falling onto the
+  cutting floor
+inputs:
+  - instance_root
+  - framework_root
+outputs:
+  - design_salvage_review
+invariants:
+  - >-
+    drives the REAL detectors and reimplements none of them -- every available
+    signal names an existing module, script or artifact, and reimplemented is a
+    fixed false the schema will not let a caller set
+  - >-
+    a signal that could not run is recorded with a reason and a null count,
+    never omitted and never a fake zero -- a silently skipped signal reads as a
+    clean one
+  - >-
+    a signal blocked on an unanswered operator decision names that decision id
+    rather than picking a side
+  - >-
+    reviving something requires changed evidence, dependency, context or
+    priority; the change_kind enum has no age and no connectedness member
+  - >-
+    findings are pointed at where they already live, never copied into the
+    review
+  - >-
+    a pass with dark detectors does not claim high confidence in its own
+    coverage
+failure_routing: lug:wheelwright-handoff-phase-1-foundation-schemas-and-stores
+counter_metric: salvage_signals_with_a_live_detector
+enforcement: kernel_check
+depends_on:
+  - cartographer
+consumers:
+  - external:operator
+  - external:otto
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/design-salvage-review/design-salvage-review.conformance.test.js
+concern: design-preservation-salvage
+instructions_ref: reference/circles/design-salvage-review.md
+duplicate_of: design-salvage-review

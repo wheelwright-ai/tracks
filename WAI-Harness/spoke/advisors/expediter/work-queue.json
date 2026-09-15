@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-07-31T12:00:51.910802+00:00",
+  "generated_at": "2026-08-21T23:30:43.774749+00:00",
   "priority_sequence": [
     "teachings",
     "refinement",
@@ -12,12 +12,6 @@
     "teachings": {
       "autonomous": [],
       "attended": [
-        {
-          "id": "teaching-pending",
-          "type": "teaching",
-          "score": 0,
-          "note": "pending adoption from hub"
-        },
         {
           "id": "teaching-pending",
           "type": "teaching",
@@ -289,10 +283,31 @@
     "work": {
       "autonomous": [
         {
+          "id": "upgrade-report-tracks-20260731T170052-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 45.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260817T042036-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 45.0,
+          "wave": ""
+        },
+        {
           "id": "unknown",
           "type": "unknown",
           "model_fit": "unset",
           "score": 18.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260816T234528-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
           "wave": ""
         },
         {
@@ -303,7 +318,70 @@
           "wave": ""
         },
         {
+          "id": "upgrade-report-tracks-20260731T170815-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260816T070203-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260815T004516-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260731T144909-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260815T005143-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260816T030157-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260731T220055-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
           "id": "upgrade-report-tracks-20260726T083413-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260801T220240-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
+          "id": "upgrade-report-tracks-20260801T170053-v1",
           "type": "upgrade-report",
           "model_fit": "unset",
           "score": 15.0,
@@ -338,6 +416,13 @@
           "wave": ""
         },
         {
+          "id": "upgrade-report-tracks-20260821T233043-v1",
+          "type": "upgrade-report",
+          "model_fit": "unset",
+          "score": 15.0,
+          "wave": ""
+        },
+        {
           "id": "good-hot-patch",
           "type": "unknown",
           "model_fit": "unset",
@@ -356,6 +441,20 @@
           "type": "needs-you",
           "model_fit": "unset",
           "score": 10.0,
+          "wave": ""
+        },
+        {
+          "id": "review-untracked-project-source-v1",
+          "type": "review",
+          "model_fit": "sonnet",
+          "score": 6.0,
+          "wave": ""
+        },
+        {
+          "id": "impl-tracks-publish-sanitized-prompt-v1",
+          "type": "impl",
+          "model_fit": "sonnet",
+          "score": 6.0,
           "wave": ""
         },
         {
@@ -552,14 +651,14 @@
   "counts": {
     "teachings": {
       "autonomous": 0,
-      "attended": 41
+      "attended": 40
     },
     "refinement": {
       "autonomous": 3,
       "attended": 0
     },
     "work": {
-      "autonomous": 13,
+      "autonomous": 28,
       "attended": 0
     },
     "scouting": {
@@ -568,7 +667,7 @@
     }
   },
   "totals": {
-    "autonomous": 39,
-    "attended": 41
+    "autonomous": 54,
+    "attended": 40
   }
 }

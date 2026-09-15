@@ -1,0 +1,68 @@
+kind: circle
+name: lug-type-lifecycles
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a lug's type-specific lifecycle is consulted -- every applyLugVerb transition
+  reads statesForLug (src/lugTracking/lugType.js) at the one sanctioned mutation
+  path; every schema validation of a lug applies the per-type state enum in
+  schemas/lug.schema.json; and the lug-integrity-checksum heal reads
+  resetStateForLug to pick the entry state of the lug's OWN lifecycle
+inputs:
+  - lug
+  - new_state
+outputs:
+  - lifecycle
+  - transition_refusal
+  - reset_state
+invariants:
+  - >-
+    EVERY settled type has a lifecycle -- work: captured -> defined -> ready ->
+    in_progress -> review -> done (+ returned); pebble: captured -> discussed ->
+    hypothesis -> experiment -> active (+ incubated / extracted / composted /
+    superseded); notice: posted -> acknowledged -> retired; remember: active ->
+    superseded. None is held to the permissive union
+  - >-
+    notice and remember are MINIMAL, by operator ruling 260911 ('give them
+    respective workflows/state to understand how refined/complete it is'): three
+    states and two. A state nobody will set is the failure mode. Neither can
+    reach in_progress or done -- neither means anything for a notice or a
+    remembered fact
+  - >-
+    work's lifecycle is NEVER narrowed as a side effect: `returned` exists on
+    disk and stays
+  - >-
+    the schema's per-type enum and STATES_BY_TYPE are two readings of one ruling
+    and cannot drift: the fixture asserts each type's schema block equals its
+    module list, every claimed state is in the union, and the union holds
+    nothing unclaimed
+  - >-
+    refused at BOTH the schema and the verb, naming the type: an
+    out-of-lifecycle state is refused at the real point of the mistake, not
+    discovered by a later compile
+  - >-
+    a reset heals to the entry state of the lug's OWN lifecycle (work ->
+    defined, pebble -> captured, notice -> posted, remember -> active); null
+    only for a type this build does not know, where the state is left alone
+  - >-
+    ZERO REGRESSION, measured not asserted: every real lug on disk still
+    validates; the fixture FAILS, never skips, when the real corpus or the
+    settled record is unreachable
+failure_routing: lug:notice-and-remember-lug-types-have-no-lifecycle
+counter_metric: lugs_on_disk_at_a_state_outside_their_types_lifecycle
+enforcement: kernel_check
+depends_on:
+  - lug-kernel-verb
+consumers:
+  - lug-kernel-verb
+  - lug-integrity-checksum
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/lug-type-lifecycles/lug-type-lifecycles.conformance.test.js
+concern: lug-type-lifecycles
+instructions_ref: reference/circles/lug-type-lifecycles.md
+duplicate_of: lug-type-lifecycles

@@ -1,0 +1,39 @@
+kind: circle
+name: footer-audit
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: a turn ends (Stop event)
+inputs:
+  - transcript_path
+  - track_artifact
+  - session_registry
+outputs:
+  - footer_miss_ledger_row
+invariants:
+  - >-
+    audits against the turn_ordinal as it stood BEFORE this Stop's own
+    trackWriteHook increment -- the value knowable when the audited response was
+    composed
+  - >-
+    a miss always writes a real ledger row (row_kind: footer-miss); a present
+    footer writes nothing
+  - >-
+    the first-ever Stop for a session (no track yet) is honestly silent, not a
+    fabricated audit
+failure_routing: lug:footer-audit-failure
+counter_metric: footer_miss_rate
+enforcement: hook
+depends_on:
+  - external:track-governance.policy.yaml (the ported v1 rule)
+consumers:
+  - external:warmup-goals-review (surfaces accumulated misses)
+runs_on: hook_event
+hook_event_name: Stop
+hook_matcher: ''
+hook_script: src/hooks/footerAuditHook.js
+conformance: conformance/fixtures/footer-audit/footer-audit.conformance.test.js
+concern: footer-enforcement
+instructions_ref: reference/circles/footer-audit.md
+duplicate_of: footer-audit

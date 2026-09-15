@@ -1,0 +1,63 @@
+kind: circle
+name: scheduler-failure-operator-channel
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a wheel_clock job fails on consecutive ticks (evaluated at the end of every
+  real tickWheelScheduler run), and again when a session start composes the
+  goals review
+inputs:
+  - wheel_scheduler_ledger_rows
+  - open_lug_set
+  - notify_posture
+outputs:
+  - operator_toast
+  - ledger_row
+  - session_start_surface
+invariants:
+  - >-
+    a job failing on consecutive ticks reaches the operator -- never a ledger
+    row alone
+  - one notification per streak, per job, never one per failing tick
+  - >-
+    a success resets the streak, so the next real run of failures announces
+    again
+  - >-
+    the same job failing a genuinely different way announces again -- a new
+    class is a new finding
+  - >-
+    the session-start surface reports failure CLASSES with counts and
+    first/last-seen, never one line per failing row
+  - >-
+    a class an open lug already names is reported as known, with that lug's
+    name, not re-reported as new
+  - >-
+    only jobs in a live streak surface -- a class that stopped happening
+    disappears on its own
+  - >-
+    streaks and classes are derived from the real ledger rows, never from a
+    second counter that could drift from them
+  - >-
+    an undeliverable toast (no transport, posture off, headless) is disclosed
+    with its real reason and still leaves the durable ledger row
+  - >-
+    the channel never throws past its own boundary -- a broken operator channel
+    must not take down the wheel clock
+failure_routing: lug:wheel-scheduler-failures-have-no-operator-channel
+counter_metric: silent_scheduled_failure_rate
+enforcement: kernel_check
+depends_on:
+  - wheel-scheduler
+  - warmup-goals-review
+  - stop-agent-waiting-notify
+consumers:
+  - external:operator
+  - external:otto
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/scheduler-failure-operator-channel/scheduler-failure-operator-channel.conformance.test.js
+concern: scheduled-failure-visibility
+instructions_ref: reference/circles/scheduler-failure-operator-channel.md
+duplicate_of: scheduler-failure-operator-channel

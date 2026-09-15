@@ -1,0 +1,77 @@
+kind: circle
+name: orphan-dispatch-disposition
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  an orphaned dispatch row is re-reconciled against the real evidence its child
+  left on disk -- `node scripts/orphan-disposition.js <instanceRoot>` runs the
+  sweep on demand, and every session start reports the standing result once
+  through goalsReview.js's buildOrphanDispositionSection
+inputs:
+  - dispatch_row
+  - lug
+  - conformance_fixture
+  - circle_audit
+outputs:
+  - orphan_disposition
+  - operator_section
+  - ledger_row
+invariants:
+  - >-
+    SUPERVISOR OUTCOME AND WORK VERDICT ARE TWO FIELDS, NEVER ONE: `orphaned`
+    says how the supervising wrapper ended and is never a verdict on the work.
+    This circle writes `work_verdict` and never touches `status`
+  - >-
+    THREE work verdicts, separately recorded: completed, partial, unknown.
+    `unknown` is mandatory and is never upgraded to completed to improve a count
+    -- it says why it could not be settled
+  - >-
+    NEVER INFER COMPLETION FROM THE LUG'S OWN STATE. A lug reaching `review` was
+    written by the same session whose work is in question -- self-certification,
+    the rule already settled for chain disposition. The state IS recorded, at
+    EVIDENCE_WEIGHT 0, so a reader can see it was not counted
+  - >-
+    a COMPLETED verdict requires EXECUTABLE proof the reconciler obtained
+    itself: a declared fixture RUN by this reconciler that exited 0, plus at
+    least one independent corroborator (a CLOSED circle audit or a present
+    artifact). No passing fixture, no completed verdict -- inspection alone can
+    never settle it
+  - >-
+    a fixture that could not be run to a verdict is INCONCLUSIVE, recorded as
+    neither a pass nor a fail; and any non-passing fixture blocks a COMPLETED
+    verdict whatever else is present
+  - >-
+    APPEND-ONLY: the original dispatch rows are never rewritten or deleted. A
+    disposition is a new forward record in runtime/orphan-dispositions.jsonl
+    citing `resolves_dispatch_id`; re-running a sweep appends again and readers
+    take latest-wins
+  - >-
+    A WORK VERDICT IS NOT A COST MEASUREMENT. This circle writes no cost field;
+    runCostTotal.js keeps reporting an orphan `unmeasured` unless a real
+    measurement exists on the row, and its disposition input is display-only
+  - >-
+    reported ONCE with counts through the operator channel, grouped by CAUSE and
+    never one line per row. A cause key names a cause and never carries a
+    dispatch id, lug name or timestamp -- a key with a coordinate in it makes
+    every occurrence its own cause
+  - >-
+    no lug is filed by this mechanism. A lug is a unit of work someone owes; a
+    verdict is information, and information is reported, not filed as work
+failure_routing: lug:orphaned-dispatch-rows-are-never-reconciled-against-disk-evidence
+counter_metric: orphaned_rows_with_no_work_verdict
+enforcement: kernel_check
+depends_on:
+  - lug-kernel-verb
+  - circle-completeness-audit
+consumers:
+  - warmup-goals-review
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/orphan-dispatch-disposition/orphan-dispatch-disposition.conformance.test.js
+concern: orphaned-dispatch-rows-are-never-reconciled-against-disk-evidence
+instructions_ref: reference/circles/orphan-dispatch-disposition.md
+duplicate_of: orphan-dispatch-disposition

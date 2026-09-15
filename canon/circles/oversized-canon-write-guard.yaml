@@ -1,0 +1,52 @@
+kind: circle
+name: oversized-canon-write-guard
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a Write or Edit call is about to run against a canon entity file or a
+  circle/advisor instructions doc, in any session -- top-level or dispatched
+inputs:
+  - proposed_file_content
+  - target_file_path
+outputs:
+  - deny_decision
+invariants:
+  - >-
+    counts tokens with the compiler's own tokenizer (o200k_base) against rule
+    11's own PER_FILE_TOKEN_CAP -- imported, never restated -- so write-time and
+    compile-time can never disagree
+  - >-
+    measures with rule 11's own measureCanonContent: on a lug file the
+    verb-owned bookkeeping (VERB_OWNED_LUG_FIELDS, declared once in the rule) is
+    excluded, so the guard, the compile rule and the verb hold the same authored
+    contract to the cap
+  - >-
+    refuses with the measured count, the cap, the file and the fix path; never
+    truncates or edits the content
+  - >-
+    scope is rule 11's scope: a kind-bearing yaml entity file, its
+    instructions_ref target, or a doc a sibling yaml names as instructions_ref
+    -- a loader skip dir is never checked
+  - >-
+    a write over the cap but strictly smaller than the file already on disk is
+    allowed as progress and announced, not refused
+  - Bash writes are not measured here -- disclosed; compile remains the backstop
+failure_routing: lug:oversized-canon-write-guard-failure
+counter_metric: oversized_canon_write_refusal_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:wcl-verify-then-launch (a doc this guard refuses never reaches the
+    operator as a launch-time hygiene report)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Edit|Write
+hook_script: src/hooks/oversizedCanonWriteGuardHook.js
+conformance: >-
+  conformance/fixtures/circle-oversized-canon-write-guard/oversized-canon-write-guard.conformance.test.js
+concern: canon-file-size-at-write-time
+instructions_ref: reference/circles/oversized-canon-write-guard.md
+duplicate_of: oversized-canon-write-guard

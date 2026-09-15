@@ -1,0 +1,93 @@
+kind: circle
+name: run-roi-extraction
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  every autopilot run ENDS here -- finishAutopilotRun
+  (src/conductor/roiExtraction.js) is reached from runAdvisorAutopilot's close
+  path (launch, decline, and its abnormal-end guard alike), from
+  src/conductor/heartbeat.js finish() on an out-of-session no-launch, and from
+  scripts/conductor-heartbeat.mjs's launch arm in its own `finally`; and as the
+  reconciliation sweep over waves opened and never closed -- the wheel-clock
+  open_wave_reconciliation job on its cadence, or
+  scripts/reconcile-open-waves.js on demand
+inputs:
+  - wave_records
+  - dispatch_registry_rows
+  - turn_markers
+  - advisor_dispatch_ledger_rows
+  - lug_transition_events
+outputs:
+  - run_roi_extraction
+  - wave_records
+  - remediation_lug
+  - session_start_surface
+invariants:
+  - >-
+    a run cannot end without an extraction: the launch path, the decline path
+    and the abnormal-end path all reach it, and a run that throws still produces
+    one marked complete: false rather than none
+  - >-
+    every KPI names where its number came from, and a KPI that could not be
+    measured carries value null with state "unmeasured" -- never a zero, because
+    a zero is a claim
+  - >-
+    no caller can hand the extractor a verdict: every KPI is backed by an
+    artifact written by a different process than the run being evaluated, and a
+    KPI with no corroborating artifact stays unmeasured
+  - >-
+    a dispatch the run CLAIMS succeeded with no advisor-dispatch ledger twin is
+    counted as unrecorded and reported, never promoted into a measured success
+  - >-
+    the remediation decision is always explicit -- a named cause with the
+    evidence and the declared threshold it crossed, or "none owed" with a stated
+    reason per rule
+  - >-
+    every cause key names a CAUSE and never a per-event coordinate, so N
+    occurrences of one fault collapse to one finding; a cause already named by
+    an open lug is reported, not re-filed
+  - >-
+    at most one remediation lug is filed per run, strongest evidence first;
+    every other owed cause is REPORTED on the wave record and in the operator
+    channel, so the mechanism cannot flood the backlog by construction
+  - >-
+    a filed remediation lug reaches `defined` through the kernel verb's own
+    admission gate, never by a direct state write
+  - >-
+    the extraction rides on the wave record the run already opened -- one
+    stream, one shape -- and is a declared data point in WAVE_RECORD_DATA_POINTS
+    with its own gatherer, consumer and staleness age
+  - >-
+    the steering damps WHICH spoke a wave goes to and can never turn a launch
+    into a no-launch; a spoke's factor is at most 1.00, so no run can raise its
+    own spoke's weight on its own extraction, and it is floored so no amount of
+    damping drives a spoke to nothing
+  - >-
+    the per-run history read is bounded to a tail and says so; only the
+    scheduled reconciliation sweep reads the whole stream, and it leaves its
+    count where the wave-never-closed rule reads it, so a leak older than the
+    tail is counted, never invisible
+  - >-
+    a wave opened more than one five-hour window ago with no closed row is
+    closed EXPLICITLY as unrecoverable, with an unmeasured outcome naming why
+    and reconciled: true -- never with a guessed result and never left silent
+  - >-
+    the operator channel reports causes with counts and is SILENT when nothing
+    is owed
+failure_routing: lug:autopilot-run-ends-with-an-roi-extractor-that-steers-the-next-wave
+counter_metric: waves_closed_without_an_extraction
+enforcement: kernel_check
+depends_on:
+  - conductor-wave-gate
+consumers:
+  - conductor-wave-gate
+  - external:operator
+  - external:otto
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/run-roi-extraction/run-roi-extraction.conformance.test.js
+concern: per-run-roi-extraction
+instructions_ref: reference/circles/run-roi-extraction.md
+duplicate_of: run-roi-extraction

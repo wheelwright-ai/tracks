@@ -1,0 +1,70 @@
+kind: circle
+name: worktree-registry
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a git worktree is created, removed, judged or handed off by the harness --
+  addWorktree/removeWorktree (src/factory/worktreeRegistry.js) at every `git
+  worktree add` in src/ (rollbackCut's pinned checkout, hf deploy's fold
+  integrate tree, stageClean's removals); `node scripts/worktree.js
+  add|list|remove|reap` by the orchestrating session in place of raw git;
+  healthSignals.js's stale_worktree signal on every Planner cycle; and
+  buildHandoff at every session end
+inputs:
+  - git_worktree
+  - session_id
+  - dispatch_registry
+outputs:
+  - worktree_row
+  - removal_refusal
+  - health_row
+  - handoff_worktrees
+invariants:
+  - >-
+    ONE registrar: every `git worktree add` in src/ goes through addWorktree,
+    which runs git and appends the row in one call; the fixture greps src/ and
+    fails on any raw call
+  - >-
+    every row carries repo, path, branch, head_at_create, session_id, prompt_id,
+    purpose, created_at, ttl_ms, expires_at -- purpose is REQUIRED, session_id
+    unknown is written null, never invented; an expiry nobody declared is
+    refused, not defaulted
+  - >-
+    runtime/worktrees.jsonl is append-only, last row per id wins; a removal
+    appends the row with closed_at, closed_by and how it was removed
+  - >-
+    NEVER remove a worktree with a commit not on main by patch id (`git cherry`,
+    the fold's own test) -- refuse naming the commits; a dirty tree is refused
+    too; force needs a stated reason and the closed row records it
+  - >-
+    a harness-made temp worktree (rollback, integrate) is removed in a finally
+    block, so a throw mid-run leaves no tree; the fixture plants the throw
+  - >-
+    the health signal judges every linked worktree: live-dispatch-named ->
+    owned; terminal-dispatch-named, expired, or its session gone -> stale with
+    session/purpose/age; known to no store -> 'unregistered' with the creating
+    commit's author and date from git; every row carries the clearing command
+  - >-
+    the handoff lists the ending session's still-open rows; the reaper removes
+    only expired rows fully on main and lists the rest
+  - >-
+    a worktree the operator makes by hand is out of scope and shows as
+    unregistered
+failure_routing: lug:every-harness-worktree-carries-its-session-purpose-and-expiry
+counter_metric: linked_worktrees_with_no_registry_row
+enforcement: kernel_check
+depends_on:
+  - session-registry
+consumers:
+  - planner-cycle-allocation
+  - session-end-handoff
+  - hf-deploy
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/worktree-registry/worktree-registry.conformance.test.js
+concern: worktree-provenance-and-expiry
+instructions_ref: reference/circles/worktree-registry.md
+duplicate_of: worktree-registry

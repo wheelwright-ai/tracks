@@ -1,0 +1,32 @@
+kind: circle
+name: reconcile-ledger
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: wheel_clock job ledger_reconciliation (canon/otto.advisor.yaml)
+inputs:
+  - ledger
+  - canon_snapshot
+outputs:
+  - proposals
+  - counter_metric_rows
+invariants:
+  - >-
+    never mutates an existing ledger row; proposals only, plus additive
+    counter-metric rows each run
+  - deterministic given the same ledger and canon snapshot
+failure_routing: lug:reconcile-ledger-failure
+counter_metric: proposal_acceptance_rate
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:otto
+  - external:wilbur
+runs_on: schedule
+requires_wheel_clock_job: reconcileLedger
+conformance: >-
+  conformance/fixtures/circle-reconcile-ledger/reconcile-ledger.conformance.test.js
+concern: ledger-reconciliation
+instructions_ref: reference/circles/reconcile-ledger.md
+duplicate_of: reconcile-ledger

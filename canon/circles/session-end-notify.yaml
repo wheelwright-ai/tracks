@@ -1,0 +1,35 @@
+kind: circle
+name: session-end-notify
+owner: basher
+level: spoke
+status: live
+schema_version: 1
+trigger: a real session ends
+inputs:
+  - session_registry
+outputs:
+  - desktop_toast_notification
+invariants:
+  - >-
+    best-effort only -- a failed or unavailable toast transport never blocks a
+    real session close
+  - >-
+    no transport means no notification, never a synthetic/logged stand-in
+    claimed as a real one
+failure_routing: lug:session-end-notify-failure
+counter_metric: session_end_notify_delivery_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (real-time awareness that a session closed, without
+    watching the terminal)
+runs_on: hook_event
+hook_event_name: SessionEnd
+hook_matcher: ''
+hook_script: src/hooks/sessionEndNotifyHook.js
+conformance: >-
+  conformance/fixtures/circle-session-end-notify/session-end-notify.conformance.test.js
+concern: operator-notification-session-exit
+instructions_ref: reference/circles/session-end-notify.md
+duplicate_of: session-end-notify

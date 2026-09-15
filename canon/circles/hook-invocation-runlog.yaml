@@ -1,0 +1,69 @@
+kind: circle
+name: hook-invocation-runlog
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  every hook invocation in this build -- makeCapture (src/hooks/lib/hookIO.js)
+  records the invocation's duration and outcome on its way out, whether the hook
+  exited cleanly, exited non-zero, threw, or never reached its own exit path at
+  all; and again when a session start or warmup composes the operator surface
+  from the recorded rows
+inputs:
+  - hook_stdin_envelope
+  - hook_exit_code
+  - hook_runlog_rows
+  - live_hook_bindings
+outputs:
+  - hook_runlog_row
+  - session_start_surface
+  - warmup_health_output
+invariants:
+  - >-
+    every hook invocation appends exactly one runlog row -- never two, never
+    none
+  - >-
+    a hook that throws, rejects, or exits without reaching capture.exit still
+    produces a row, with its real exit code and, where the runtime gave one, its
+    error message
+  - >-
+    observing a hook's failure never changes it -- the exception is monitored,
+    not caught, so the hook's own exit code is exactly what it would have been
+  - >-
+    a runlog failure never changes a hook's decision, and never makes the
+    invocation unrecordable in the capture beside it
+  - >-
+    the runlog is bounded by canon (hook-runlog-retention.policy.yaml), never by
+    a number typed at the write site, and rotates before the append so the
+    current invocation's row is never the one dropped
+  - >-
+    the operator surface reports HOOKS with counts and percentiles, never one
+    line per invocation
+  - >-
+    a hook is reported slow against its own real declared timeout, joined live
+    from canon and the settings.json on disk -- never against a fabricated
+    default
+  - >-
+    a hook that stopped failing, or stopped being slow, disappears from the
+    surface on its own
+  - >-
+    findings are derived from the rows on disk, so the first run sees the whole
+    recorded history rather than starting from zero
+  - >-
+    the write path never imports the reporting path, so no hook process pays for
+    reporting code it does not run
+failure_routing: lug:hooks-have-no-per-invocation-timing-and-outcome-log
+counter_metric: silent_hook_failure_rate
+enforcement: kernel_check
+depends_on:
+  - warmup-goals-review
+consumers:
+  - external:operator
+  - external:otto
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/hook-invocation-runlog/hook-invocation-runlog.conformance.test.js
+concern: hook-invocation-visibility
+instructions_ref: reference/circles/hook-invocation-runlog.md
+duplicate_of: hook-invocation-runlog

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "spoke_id": "tracks",
-  "generated_at": "2026-07-31T12:00:51.880614+00:00",
+  "generated_at": "2026-08-21T23:30:43.727402+00:00",
   "priority_sequence": [
     "teachings",
     "work(initiative-scoped first)",
@@ -38,6 +38,15 @@
         "route": "gastown",
         "score": 2.5,
         "initiative_scoped": true
+      },
+      {
+        "id": "impl-tracks-publish-sanitized-prompt-v1",
+        "type": "impl",
+        "type_row": "work",
+        "column": "autonomous",
+        "route": "subagent",
+        "score": 6.0,
+        "initiative_scoped": false
       },
       {
         "id": "crew-recommend-deployment_automation-20260627-013853",
@@ -249,14 +258,14 @@
     ],
     "needs_you": [
       {
-        "id": "teachings-pending-41",
+        "id": "teachings-pending-40",
         "type": "teaching",
         "type_row": "teachings",
         "column": "needs-you",
         "route": null,
         "score": 0,
         "initiative_scoped": false,
-        "note": "41 teaching(s) pending adoption; adopt before acting (inbox-first)."
+        "note": "40 teaching(s) pending adoption; adopt before acting (inbox-first)."
       },
       {
         "id": "lug-station-orchestrator-v1",
@@ -286,12 +295,39 @@
         "initiative_scoped": false
       },
       {
+        "id": "upgrade-report-tracks-20260731T170052-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 45.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260817T042036-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 45.0,
+        "initiative_scoped": false
+      },
+      {
         "id": "unknown",
         "type": "unknown",
         "type_row": "triage",
         "column": "needs-you",
         "route": "subagent",
         "score": 18.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260816T234528-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
         "initiative_scoped": false
       },
       {
@@ -304,7 +340,88 @@
         "initiative_scoped": false
       },
       {
+        "id": "upgrade-report-tracks-20260731T170815-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260816T070203-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260815T004516-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260731T144909-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260815T005143-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260816T030157-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260731T220055-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
         "id": "upgrade-report-tracks-20260726T083413-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260801T220240-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
+        "id": "upgrade-report-tracks-20260801T170053-v1",
         "type": "upgrade-report",
         "type_row": "triage",
         "column": "needs-you",
@@ -349,6 +466,15 @@
         "initiative_scoped": false
       },
       {
+        "id": "upgrade-report-tracks-20260821T233043-v1",
+        "type": "upgrade-report",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 15.0,
+        "initiative_scoped": false
+      },
+      {
         "id": "good-hot-patch",
         "type": "unknown",
         "type_row": "triage",
@@ -374,6 +500,15 @@
         "route": "subagent",
         "score": 10.0,
         "initiative_scoped": false
+      },
+      {
+        "id": "review-untracked-project-source-v1",
+        "type": "review",
+        "type_row": "triage",
+        "column": "needs-you",
+        "route": "subagent",
+        "score": 6.0,
+        "initiative_scoped": false
       }
     ]
   },
@@ -382,8 +517,8 @@
     "needs_you": "user-needed"
   },
   "counts": {
-    "total": 40,
-    "autonomous": 26,
-    "needs_you": 14
+    "total": 55,
+    "autonomous": 27,
+    "needs_you": 28
   }
 }

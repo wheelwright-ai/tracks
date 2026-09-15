@@ -1,0 +1,68 @@
+kind: circle
+name: session-exit-commit
+owner: basher
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a real session ends (SessionEnd event), after the handoff is written and the
+  track closed
+inputs:
+  - closed_track_artifact
+  - session_registry_row
+  - last_test_run_record
+  - spoke_profile_posture
+outputs:
+  - commit
+  - push_result
+  - ledger_row
+invariants:
+  - >-
+    no commit ever contains credential material: rule 13's credential patterns
+    run over the staged set first, and a finding blocks the commit and unstages
+  - >-
+    a red aggregator never reaches the mainline: the work lands on a WIP branch,
+    unpushed, with a ledger row
+  - >-
+    never --force and never --no-verify: a rejected push and a refusing hook are
+    both reported, never overridden
+  - >-
+    the commit message is generated from the session's real track --
+    coordinates, lug transitions, prompt ids -- never typed
+  - >-
+    a push that fails leaves the commit local and is announced at the next
+    wakeup's what-changed
+  - >-
+    a refused commit is surfaced, never silent: the hook prints the refusal
+    verdict to stderr and exits non-zero so Claude Code shows it, and the ledger
+    row carries the verdict line intact -- never the first 500 characters of
+    gate chatter
+  - >-
+    the hook's timeout is derived from measurement (hook_timeout_seconds: 480 =
+    2.2x the 217s a real two-repo exit took through three gates per repo on
+    260911), never a round default
+  - >-
+    every step spends against that declared budget: the pre-commit and pre-push
+    gates inherit what is left (WHEEL_TEST_GATE_BUDGET_MS) and refuse TIMED
+    OUT/UNKNOWN inside it, a push that cannot fit is DEFERRED with a row and the
+    commit kept, and a repo reached with no budget is reported not attempted --
+    the hook is never cancelled mid-suite
+failure_routing: lug:session-exit-commit-failure
+counter_metric: session_exit_pushed_rate
+enforcement: hook
+depends_on:
+  - external:session-end-handoff
+  - external:session-track-write
+  - external:session-registry
+consumers:
+  - external:warmup-goals-review
+runs_on: hook_event
+hook_event_name: SessionEnd
+hook_matcher: ''
+hook_script: src/hooks/sessionExitCommitHook.js
+hook_timeout_seconds: 480
+conformance: >-
+  conformance/fixtures/session-exit-commit/session-exit-commit.conformance.test.js
+concern: session-exit-commit-and-push
+instructions_ref: reference/circles/session-exit-commit.md
+duplicate_of: session-exit-commit

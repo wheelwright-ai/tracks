@@ -1,0 +1,47 @@
+kind: circle
+name: wheel-clock-catchup
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: a real session starts (SessionStart event)
+inputs:
+  - wheel_clock_catchup_state
+  - wheel_scheduler_state
+outputs:
+  - wheel_clock_ticks_fired
+  - wheel_clock_catchup_finding
+invariants:
+  - >-
+    owed ticks are computed from real persisted elapsed wall-clock time
+    (runtime/wheel-clock-catchup-state.json), never a guessed/hardcoded '1 tick
+    per session start' count
+  - >-
+    a burst of session starts never runs away -- ticks-per-catch-up is
+    ceiling-bound, and any overflow carries forward as disclosed debt, never
+    silently dropped
+  - >-
+    non-blocking -- a thrown error inside the catch-up never blocks a real
+    session start, same discipline every sibling SessionStart hook already
+    follows
+failure_routing: lug:wheel-clock-catchup-hook-undeclared-and-undistributed
+counter_metric: wheel_clock_catchup_ticks_fired_rate
+enforcement: hook
+depends_on:
+  - runWheelClockCatchup
+  - computeOwedTicks
+  - runWheelSchedulerFor
+consumers:
+  - >-
+    external:otto (advisor_activation and every other wheel_clock job are
+    dormant outside a manual `wcl` invocation until this circle's real binding
+    fires them)
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/wheelClockCatchupHook.js
+conformance: >-
+  conformance/fixtures/wheel-clock-catchup/wheel-clock-catchup.conformance.test.js
+concern: wheel-clock-catchup-driver
+instructions_ref: reference/circles/wheel-clock-catchup.md
+duplicate_of: wheel-clock-catchup

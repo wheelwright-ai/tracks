@@ -1,0 +1,60 @@
+kind: circle
+name: falsifiability-gate
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  an operator or agent asks whether a verify command CAN fail, before trusting
+  that it passed
+inputs:
+  - verify_command
+  - artifact_under_check
+  - claim_class
+outputs:
+  - falsifiability_verdict
+  - counterfactual_exit_codes
+  - unproven_count
+invariants:
+  - >-
+    a check is only certified falsifiable when its real exit code moved on a
+    real mutated mirror of the artifact it names -- never on inspection of the
+    command text alone
+  - >-
+    the counterfactual is built by mirroring, never by writing: nothing under
+    the real root is written, moved or removed by any verdict
+  - >-
+    a class with no cheap counterfactual (a whole-suite claim, an end-to-end
+    behavioural step) returns unproven with its reason, never a pass --
+    inventing an oracle for it would be the defect being gated
+  - >-
+    unproven is counted and printed separately from falsifiable and
+    unfalsifiable; a gate that hid its own blind spots would read as coverage
+  - >-
+    a check that already fails today is unproven, not unfalsifiable -- there is
+    nothing to break when the answer is already the failing one
+  - >-
+    a check reading a path outside the tree the mirror can reach is unproven,
+    not unfalsifiable; a mutation that changes nothing there says nothing
+  - >-
+    a mutating command is refused rather than run, because the baseline run
+    happens against the real tree
+  - >-
+    every child runs with NODE_OPTIONS=--preserve-symlinks-main, so a mirrored
+    Node check sees the scratch tree rather than silently resolving back to the
+    real one and reporting a good check as unfalsifiable
+failure_routing: lug:verify-commands-have-no-falsifiability-gate
+counter_metric: unproven_check_count
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:assayer
+  - external:proofer
+  - external:operator
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/falsifiability-gate/falsifiability-gate.conformance.test.js
+concern: check-trustworthiness
+instructions_ref: reference/circles/falsifiability-gate.md
+interface_version: v1
+duplicate_of: falsifiability-gate

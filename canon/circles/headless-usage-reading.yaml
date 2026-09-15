@@ -1,0 +1,52 @@
+kind: circle
+name: headless-usage-reading
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  scripts/headless-usage-poll.mjs is run (no session, no statusline, no TTY), or
+  scripts/conductor-heartbeat.mjs is run with --poll, which calls
+  pollHeadlessUsage before deciding
+inputs:
+  - claude_code_oauth_credential
+  - anthropic_oauth_usage_endpoint
+outputs:
+  - anthropic_usage_observed_reading
+invariants:
+  - >-
+    never writes a reading it did not genuinely receive: no credential, an
+    expired token, a non-200, an unparseable body, or a payload carrying neither
+    window each write NOTHING and name the stage that failed -- the reading
+    already on disk is left to age out honestly under the Envelope's own 5h rule
+  - >-
+    read-only on the credential -- never refreshes or rotates it, because
+    refreshing rotates the refresh token server-side and would race whatever
+    live session owns the file
+  - >-
+    costs zero inference tokens: GET /api/oauth/usage is not a model call and
+    consumes no part of the window it reports on
+  - >-
+    resets_at is rounded to the minute -- a deliberate LOSS of precision, never
+    an invention of it, so a headless-sourced baseline and a statusline-sourced
+    reading declare the same boundary as the same instant
+  - >-
+    writes the same file in the same shape the statusline poller already writes
+    -- a second writer on a proven path, never a second path, so no consumer
+    downstream learns a new kind of reading exists
+  - >-
+    the write is atomic (tmp + rename); a reading that landed in one of the two
+    targets is still a real reading
+failure_routing: lug:five-hour-reading-needs-a-headless-poll-not-only-a-session-statusline
+counter_metric: headless_usage_poll_failure_rate
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - anthropic-rate-limit-five-hour-envelope
+  - conductor-heartbeat
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/headless-usage-reading/headless-usage-reading.conformance.test.js
+concern: out-of-session-five-hour-reading-source
+instructions_ref: reference/circles/headless-usage-reading.md
+duplicate_of: headless-usage-reading

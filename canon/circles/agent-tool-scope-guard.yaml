@@ -1,0 +1,58 @@
+kind: circle
+name: agent-tool-scope-guard
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: an Agent-tool call is about to run, or a dispatched fork reaches for a write
+inputs:
+  - agent_tool_prompt
+  - dispatched_fork_tool_call
+  - canon_scope_declaration_phrases
+outputs:
+  - deny_decision
+invariants:
+  - heuristic, not a parser -- documented as such, not claimed as complete
+  - >-
+    a full-scope call (no claimed restriction) is always allowed, and always
+    logged as a real ledger row naming the fork's purpose
+  - >-
+    research-only or write-within-paths work is redirected to the wheel's own
+    headless path (providerContract / wcl), never silently allowed through
+    unscoped
+  - >-
+    a dispatch's own scope declaration is recorded at dispatch time, before the
+    fork exists -- a fork can never author, widen or clear the declaration that
+    binds it
+  - >-
+    a fork that reaches for a Write, Edit, NotebookEdit or write-shaped Bash
+    after its dispatch declared a restricted scope is refused, with the
+    declaring phrase quoted verbatim, and the refusal surfaced to the parent
+    session in band -- not only to the fork and the ledger
+  - >-
+    the guard fires on the declaration having been made, never on the write tool
+    by itself: a fork dispatched with no declaration writes normally
+  - >-
+    a refusal is a permanent, appended ledger row -- never cleared by the fork
+    later self-correcting or reporting success
+  - >-
+    both phrase tiers live in one canon-registered file
+    (canon/scope-declaration-phrases.yaml), retunable by a future lug without
+    touching the hook
+failure_routing: lug:fbl065-agent-tool-scope-guard
+counter_metric: agent_tool_restricted_scope_refusal_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (a false sense of scoped safety on unenforceable
+    infrastructure is the real risk this closes)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Agent|Write|Edit|NotebookEdit|Bash
+hook_script: src/hooks/agentToolScopeGuardHook.js
+conformance: >-
+  conformance/fixtures/circle-agent-tool-scope-guard/agent-tool-scope-guard.conformance.test.js
+concern: agent-tool-scope-enforcement
+instructions_ref: reference/circles/agent-tool-scope-guard.md
+duplicate_of: agent-tool-scope-guard

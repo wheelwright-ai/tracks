@@ -1,0 +1,33 @@
+kind: circle
+name: footer-correction-injection
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a real prompt is submitted, following a turn footer-audit flagged as missed
+inputs:
+  - pending_footer_correction
+outputs:
+  - self_correcting_footer_injection
+invariants:
+  - >-
+    one-shot -- consumed (read then deleted) so it surfaces exactly once, on the
+    very next turn
+  - never denies, never blocks -- pure additionalContext
+failure_routing: lug:footer-correction-injection-failure
+counter_metric: footer_miss_self_correction_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (a missed footer is now self-correcting on the following
+    turn, not silent until the ledger is checked)
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/footerCorrectionInjectionHook.js
+conformance: >-
+  conformance/fixtures/circle-footer-correction-injection/footer-correction-injection.conformance.test.js
+concern: footer-mandatory-self-correction
+instructions_ref: reference/circles/footer-correction-injection.md
+duplicate_of: footer-correction-injection

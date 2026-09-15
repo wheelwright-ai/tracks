@@ -1,0 +1,33 @@
+kind: circle
+name: lug-kernel-verb
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: an operator or agent runs the verb to change a lug's state
+inputs:
+  - lug
+  - new_state
+outputs:
+  - lug
+  - checksum_baseline_entry
+  - ledger_row
+invariants:
+  - the only authorized path that mutates a lug's state
+  - >-
+    enforces the same rules as definition-complete-gate, ready-gate-stub, and
+    lug-lifecycle-tracker -- one source of truth, not a parallel set of rules
+  - records a checksum baseline on every successful write
+failure_routing: lug:lug-kernel-verb-failure
+counter_metric: lug_verb_success_rate
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:conductor
+  - external:operator
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/circle-lug-kernel-verb/lug-kernel-verb.conformance.test.js
+concern: lug-mutation-authority
+instructions_ref: reference/circles/lug-kernel-verb.md
+duplicate_of: lug-kernel-verb

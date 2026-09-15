@@ -1,0 +1,57 @@
+kind: circle
+name: conductor-harness-factory-leverage-routing
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  buildReadyWorkQueue (src/conductor/readyWork.js) is called to rank the
+  ready-work queue -- every real caller: goalsReview.js, warmup.js,
+  conductor.js's planRouting, waveDecision.js's candidate-pool build,
+  factory/positionMap.js, lugTracking/handoff.js
+inputs:
+  - ready_lugs
+  - priority_policy
+  - harness_factory_proof
+outputs:
+  - ready_work_queue_order
+invariants:
+  - >-
+    the tie-break only ever reorders lugs that already share the same declared
+    priority tier -- it never promotes a lower-declared-priority lug ahead of a
+    higher one, and never demotes one lug below a lower-priority lug
+  - >-
+    a lug only qualifies as harness-factory-targeted when it names a real
+    external:harness-factory/ pointer -- a bare mention of harness-factory in
+    intent/outcome prose is never enough
+  - >-
+    proof is checked against real, resolvable evidence -- a conformance_fixture
+    path that really exists on disk under the resolved harness-factory framework
+    root, and/or an explicit circle_audit_result of CLOSED -- never a lug's own
+    unverified say-so
+  - >-
+    the tie-break is itself policy-gated: it only fires when
+    canon/priority-policy.policy.yaml is status active and carries the
+    harness_factory_proven_leverage_tiebreak rule by id -- removing the rule
+    from policy silently turns the mechanism back off, with no code change
+    required
+  - >-
+    absent proof, or absent the rule, ranking falls back to the untouched
+    name-sort tie-break buildReadyWorkQueue already had before this lug -- never
+    a crash, never an unranked queue
+failure_routing: lug:conductor-harness-factory-leverage-routing
+counter_metric: harness_factory_leverage_tiebreak_fire_rate
+enforcement: kernel_check
+depends_on:
+  - wheel-default-priority-policy
+consumers:
+  - conductor-wave-gate
+  - >-
+    external:otto (goalsReview.js and warmup.js -- what a session sees first
+    when it asks what's ready)
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/harness-factory-leverage-routing/harness-factory-leverage-routing.conformance.test.js
+concern: ready-work-ranking
+instructions_ref: reference/circles/conductor-harness-factory-leverage-routing.md
+duplicate_of: conductor-harness-factory-leverage-routing

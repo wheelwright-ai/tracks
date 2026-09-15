@@ -1,0 +1,88 @@
+kind: circle
+name: lug-edges
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a lug's edges are written or read -- every applyLugVerb transition runs
+  checkLugEdges (src/lugTracking/lugEdges.js) at the one sanctioned mutation
+  path; `node scripts/lug-edges.js up|down|verifications|chain|relates|audit`
+  reads them on demand; and the two pre-existing consumers of the fields,
+  chainDisposition.resolveChain and pickupReverification.dependencyRefs, now
+  import the shared normalizer instead of re-reading derived_from
+inputs:
+  - lug
+  - lug_store
+outputs:
+  - lineage_index
+  - chain_identity
+  - association_edge
+  - edge_refusal
+  - ledger_row
+invariants:
+  - >-
+    EXACTLY ONE lineage direction is stored: `derived_from`, on the child. The
+    downstream direction is derived by index, NEVER stored -- two stored
+    directions could disagree
+  - >-
+    MECHANICAL, not documentary: eleven downstream field names are refused by
+    both the schema's not/required block AND checkLugEdges at the verb; the
+    fixture asserts the two lists match
+  - >-
+    `verification` is a LINEAGE relation -- 'every verification of this' is a
+    plain downstream traversal, not a second index. The relation is on the EDGE,
+    so one node can refine one parent and verify another
+  - >-
+    a merge is expressed STRUCTURALLY, by a node having more than one parent --
+    there is deliberately no `merge` relation
+  - >-
+    EVIDENCE IS REQUIRED on every association edge as a provenance pointer
+    ({source_type, source_ref}), NEVER prose. A pointer addressing nothing is
+    refused
+  - >-
+    association is non-directional: edges read from both sides, carrying who
+    asserted them. A DISAGREEING reciprocal pair is reported, NEVER silently
+    resolved or refused
+  - >-
+    chain_id is minted at first refinement, inherited after. An invented one is
+    refused, checked against ANCESTORS -- a component-wide check would wrongly
+    pass it
+  - >-
+    a MERGE resolves by union, NEVER rewriting: canonical chain_id is the
+    lexicographically smallest alias, reported with the full alias set; every
+    pre-merge id stays a live address
+  - >-
+    lineage is a DAG: cycles are detected, traversal terminates, a self-parent
+    is refused
+  - >-
+    `consumers` is UNCHANGED and is NOT an edge -- a canon-entity concept
+    unenforced for lugs, distinct from both the derived downstream direction and
+    relates_to: dependency
+  - >-
+    `duplicate_of` is UNCHANGED and outranks the new edges: a FACT vs
+    supersession_candidate's HYPOTHESIS. Never auto-promoted, never migrated
+    into derived_from -- a duplicate IS the original filed twice
+  - >-
+    the verb's check is single-lug plus a targeted read of named parents, NOT a
+    corpus walk. Corpus-scope checks live in auditLugEdges / `lug-edges.js
+    audit`, which exits non-zero to gate
+  - >-
+    ZERO MIGRATION, measured not asserted: 0 of 2,714 real lug files carry any
+    edge field; the fixture FAILS, never skips, when the real corpus is
+    unreachable
+failure_routing: lug:implement-lug-lineage-and-association-edges
+counter_metric: association_edges_asserted_without_resolvable_evidence
+enforcement: kernel_check
+depends_on:
+  - lug-kernel-verb
+consumers:
+  - chain-disposition
+  - pickup-time-reverification
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/lug-edges/lug-edges.conformance.test.js
+concern: lug-lineage-and-association-edges
+instructions_ref: reference/circles/lug-edges.md
+duplicate_of: lug-edges

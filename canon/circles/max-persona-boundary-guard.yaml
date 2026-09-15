@@ -1,0 +1,84 @@
+kind: circle
+name: max-persona-boundary-guard
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a Write, Edit or NotebookEdit call is about to run from the top-level
+  (non-dispatched) session
+inputs:
+  - top_level_tool_call_target_path
+  - session_dispatch_context
+outputs:
+  - deny_decision
+  - orchestration_scaffold_allowed_row
+  - framework_warn_posture_row
+invariants:
+  - >-
+    fires only when this call is NOT from a dispatched fork AND not from a
+    dispatched session -- the inverse of agent-tool-scope-guard and
+    agent-target-scope-guard, whose own first line exempts exactly this case
+  - >-
+    "dispatched" is decided on the two signals that already exist: agent_id on
+    the hook stdin (an Agent-tool fork), or a live dispatch-scope grant written
+    for this session's own root before the session existed (a headless
+    dispatched session) -- no new detection mechanism
+  - >-
+    a grant proves this session is dispatched only when the grant's own root
+    contains this session's cwd -- a live grant written for some other worktree
+    never makes the orchestrating session look dispatched
+  - >-
+    declarative content is never blocked: lugs/, canon/, docs/, registry/, and
+    the runtime/ and ledger/ trees every session is required to write
+  - >-
+    review and merge operations are never blocked, structurally: the matcher
+    excludes Bash, so git merge, git commit, git cherry-pick and git checkout
+    --ours/--theirs are unreachable from this guard
+  - >-
+    resolving a merge conflict by hand-writing a reconciled hunk in application
+    code is original authorship and is refused -- taking one side wholesale is a
+    derivation and is not
+  - >-
+    application code is matched by real extension or by a spoke's own code
+    directory, generalized across spokes -- never by one spoke's hardcoded
+    layout
+  - >-
+    the refusal names the real path, why it classified as code, why this session
+    counts as top-level, and the real dispatch call to make instead -- never a
+    bare denial
+  - >-
+    a refusal is a permanent, appended ledger row -- never cleared by the
+    session later deciding it was justified
+  - >-
+    posture is profile-configurable (deny | warn); warn never blocks but still
+    writes the row, so a relaxation is disclosed rather than silent
+  - >-
+    260913 ruling (the operator, session 2776bea2): a target outside every repo
+    that is not deployed provider config ($HOME/.claude, $CLAUDE_CONFIG_DIR, any
+    provider-claude-config segment) is orchestration scaffold -- allowed, and
+    disclosed by an ALLOWED ledger row naming the path
+  - >-
+    260913 ruling: the framework's own self-hosting checkout
+    (isSelfHostingFramework, no canon/profile.yaml) runs in warn posture by
+    default; a scaffolded spoke stays deny; an explicit canon posture always
+    wins
+failure_routing: lug:max-persona-boundary-enforced-mechanically-not-by-memory
+counter_metric: top_level_application_code_authorship_refusal_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (an orchestrating session that authors application code
+    itself produces work with no lug, no dispatch record, no fixture and no
+    reviewer but its own author -- the real risk this closes, hit twice live on
+    260907)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Edit|Write|NotebookEdit
+hook_script: src/hooks/maxPersonaBoundaryGuardHook.js
+conformance: >-
+  conformance/fixtures/circle-max-persona-boundary-guard/max-persona-boundary-guard.conformance.test.js
+concern: top-level-authorship-boundary
+instructions_ref: reference/circles/max-persona-boundary-guard.md
+duplicate_of: max-persona-boundary-guard

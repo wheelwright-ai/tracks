@@ -1,0 +1,35 @@
+kind: circle
+name: turn-start-attribution
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a real prompt is submitted
+inputs:
+  - active_lug_pointer
+  - active_advisor_pointer
+outputs:
+  - turn_start_attribution_snapshot
+invariants:
+  - captured once per turn, at UserPromptSubmit -- never re-derived at Stop time
+  - >-
+    overwrites, never accumulates -- one snapshot per session, consumed (read
+    then deleted) by Stop
+  - pure bookkeeping -- never denies, never injects additionalContext
+failure_routing: lug:turn-start-attribution-failure
+counter_metric: turn_start_attribution_orphan_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:stop-turn-marker (consumes the snapshot instead of a live query, so
+    a lug cleared mid-turn -- done -- still gets that turn's own cost)
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/turnStartAttributionHook.js
+conformance: >-
+  conformance/fixtures/circle-turn-start-attribution/turn-start-attribution.conformance.test.js
+concern: turn-cost-attribution-accuracy
+instructions_ref: reference/circles/turn-start-attribution.md
+duplicate_of: turn-start-attribution

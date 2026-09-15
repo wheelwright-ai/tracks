@@ -1,0 +1,59 @@
+kind: circle
+name: planner-cycle-allocation
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  wheel_clock job planner_cycle (canon/otto.advisor.yaml), declared FIRST so it
+  fires before every other scheduled job
+inputs:
+  - advisor_roster
+  - ledger
+  - ready_work_queue
+outputs:
+  - planner_cycle_artifact
+  - ledger_rows
+invariants:
+  - >-
+    a declared guaranteed_runtime_share floor is reserved off the top before any
+    weighting, so weighting can only ADD to it -- and the result is asserted
+    against the floor again before it is returned; Planner may never reduce a
+    floor
+  - >-
+    an advisor file that cannot be read makes Planner REFUSE to emit any shares
+    at all, naming the file and the parse error -- it never allocates around a
+    roster it could not fully read
+  - >-
+    only advisors that are status: live AND declare a real autopilot_budget_ms
+    receive a share; every exclusion is named, never silent
+  - >-
+    build rows are ranked but NEVER priced (share: null) -- no measurement
+    prices a lug against an advisor's runtime share; the operator's 260911
+    decision made initiative membership the ranking key
+    (planner-cross-segment-ranking), not a price
+  - >-
+    no LLM call, no network: the cycle is real arithmetic over real recorded
+    dispatch history, deterministic given the same roster and ledger
+  - >-
+    an allocatable advisor that receives a zero share this cycle is reported by
+    name in zero_share_advisors -- starvation is a finding, never a rounding
+    artifact
+  - >-
+    the persisted cycle declares its own max_age_ms and a consumer reports it as
+    stale past that bound rather than trusting it as current
+failure_routing: lug:build-planner-advisor-kind
+counter_metric: advisor_at_bat_evenness
+enforcement: kernel_check
+depends_on:
+  - plannerCycle
+consumers:
+  - external:otto
+  - external:conductor
+runs_on: schedule
+requires_wheel_clock_job: plannerCycle
+conformance: >-
+  conformance/fixtures/planner-cycle-allocation/planner-cycle-allocation.conformance.test.js
+concern: advisor-budget-allocation
+instructions_ref: reference/circles/planner-cycle-allocation.md
+duplicate_of: planner-cycle-allocation

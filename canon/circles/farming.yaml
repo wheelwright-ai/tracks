@@ -1,0 +1,77 @@
+kind: circle
+name: farming
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a solution recurring across spokes is detected, abstracted, promoted or
+  demoted -- detectRecurrence / proposePromotion / proposeDemotion /
+  certifyHarvest / applyHarvest / auditPromotions (src/otto/farming.js), run by
+  `node scripts/farming.js detect|propose|demote|certify|apply|audit`; and every
+  session start, where buildFarmSection reports through goalsReview.js
+inputs:
+  - source_file
+  - pattern
+  - chain_identity
+outputs:
+  - artifact
+  - ledger_row
+  - operator_section
+  - edge_refusal
+invariants:
+  - >-
+    RECURRENCE IS DETECTED FROM REAL SPOKE CONTENT, NEVER ASSERTED OR
+    FUZZY-MATCHED. The unit is a spoke-AUTHORED canon entity (exact kind:name,
+    the file and its sha256 cited); cut copies (duplicate_of), promoted copies
+    and anything reference/circles carries are excluded. Roots sharing a real
+    path or a git remote count once
+  - >-
+    THE BAR IS THREE INDEPENDENT ROOTS, STATED WITH ITS REASONING on every
+    report: the smallest integer clearing 'two occurrences isn't a pattern'; a
+    floor, not a fraction of the fleet; not claimed statistically sufficient.
+    Below-bar keys are reported below, never rounded up
+  - >-
+    AN ABSTRACTION PRESERVES WHAT DIFFERED. The variation surface is COMPUTED
+    from the origins, never supplied: a differing path left unresolved is
+    refused (dropped_difference), a resolved path that never differed is refused
+    (invented_difference), a value no origin carries is refused
+    (unobserved_default)
+  - >-
+    A PROMOTED ENTITY CARRIES visibility: promoted, promoted_from (the
+    exemplar), derived_from naming every origin file with its hash, and the
+    whole harvest record -- auditable against disk by auditPromotions
+  - >-
+    THE ONLY WRITE IS INTO THE FRAMEWORK'S reference/circles/. No spoke root is
+    touched; a promotion reaches a spoke through applyCut's own scaffold of
+    reference/circles on its next cut and through nothing else. A kind the cut
+    does not carry is reported, never shipped a second way
+  - >-
+    THE HARVESTER CANNOT CERTIFY ITS OWN HARVEST. Every proposal names its
+    author; apply needs a certify row whose witness checkIndependence finds
+    independent of that author. Self-attestation and a matching witness vector
+    are refused and the refusal is a ledger row
+  - >-
+    DEMOTION RETRACTS THE SAME WAY: propose on resolved evidence pointers ->
+    third-party certify -> apply removes the same file, refusing one that
+    drifted since. Add-only is a ratchet; the store is a history, not a lock
+  - >-
+    NO LUG IS FILED to convey a recurrence. One report file, one ledger row per
+    step, one goals-review section, silent when nothing needs acting on
+failure_routing: lug:farm-recurring-spoke-solutions-into-promoted-shared-abstractions
+counter_metric: promotions_applied_without_independent_certification
+enforcement: kernel_check
+depends_on:
+  - pattern-language
+  - lug-edges
+  - hf-deploy
+consumers:
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/farming/farming.conformance.test.js
+concern: >-
+  a solution solved in several spokes is promoted once, with its differences
+  kept, and demoted on evidence
+instructions_ref: reference/circles/farming.md
+duplicate_of: farming

@@ -1,0 +1,35 @@
+kind: circle
+name: session-registry
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: a session starts (SessionStart event)
+inputs:
+  - session_id
+  - identity_triple
+  - wcl_launch_mode_env
+outputs:
+  - session_registry_row
+invariants:
+  - >-
+    idempotent per session_id -- a resume/compact re-fire of SessionStart never
+    mints a second registry row or a second callsign for the same real session
+  - >-
+    callsign uniqueness holds per spoke within a rolling 30-day window; pairs on
+    exhaustion, never numbers
+failure_routing: lug:session-registry-failure
+counter_metric: session_registration_success_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:applyCut (session liveness gate)
+  - external:wcl sessions <spoke>
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/sessionRegistryHook.js
+conformance: conformance/fixtures/session-registry/session-registry.conformance.test.js
+concern: session-identity
+instructions_ref: reference/circles/session-registry.md
+duplicate_of: session-registry

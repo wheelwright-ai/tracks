@@ -1,0 +1,70 @@
+kind: circle
+name: precompact-checkpoint
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a real context compaction is about to happen (PreCompact event, manual or
+  auto)
+inputs:
+  - active_lug_pointer
+  - active_advisor_pointer
+  - ledger
+  - session_track_artifact
+  - disclosed_gap_phrases
+outputs:
+  - precompact_checkpoint_file
+  - precompact_ledger_row
+  - closed_track_segment
+  - reopened_track_artifact
+  - track_rotation_ledger_row
+  - disclosed_gap_finding_rows
+invariants:
+  - >-
+    never blocks the compaction -- exits 0 even when the checkpoint dir is
+    unwritable or nothing is active
+  - >-
+    never overwrites a prior checkpoint for the same session -- one file per
+    real PreCompact firing, timestamped
+  - >-
+    the rotation duty never replaces the checkpoint duty -- both run on the same
+    firing, in separate try/catch blocks, checkpoint first
+  - >-
+    rotation never truncates or deletes real history -- the closed segment keeps
+    every decision, transition and direction it had, and stays on disk under
+    runtime/track-segments/<session_id>/
+  - >-
+    rotation preserves session identity -- the fresh track carries the same
+    session_id, identity_triple and turn_ordinal, so it is the same session's
+    NEXT file, not a new session
+  - >-
+    rotation leaves runtime/tracks/ with exactly one file per session, so every
+    existing directory-walking reader (archiveOldTracks, minder's /wheel-ops
+    readTracks) is unaffected
+  - >-
+    the review pass reads the ONE canon phrase list
+    (canon/disclosed-gap-phrases.yaml) and never auto-files or auto-dismisses a
+    finding -- a human or Max decides
+  - >-
+    rotation refuses rather than half-acts on an already-closed track --
+    session-end owns that close
+failure_routing: lug:precompact-checkpoint-failure
+counter_metric: precompact_checkpoint_write_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:operator
+  - external:hook-liveness-matrix
+runs_on: hook_event
+hook_event_name: PreCompact
+hook_matcher: ''
+hook_script: src/hooks/preCompactCheckpointHook.js
+conformance: >-
+  conformance/fixtures/circle-precompact-checkpoint/precompact-checkpoint.conformance.test.js
+conformance_additional:
+  - >-
+    conformance/fixtures/track-rotation-on-precompact/track-rotation.conformance.test.js
+concern: session-continuity-through-compaction
+instructions_ref: reference/circles/precompact-checkpoint.md
+duplicate_of: precompact-checkpoint

@@ -1,0 +1,35 @@
+kind: circle
+name: warmup-goals-review
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a session starts
+inputs:
+  - ready_work_queue
+  - navigator_cut
+  - autonomy_line
+outputs:
+  - additional_context
+invariants:
+  - never blocks session start
+  - directive, not passive -- names a specific next action, not just context
+  - stays under 300 tokens
+  - silent only when there are no lugs at all
+failure_routing: lug:warmup-goals-review-failure
+counter_metric: goals_review_delivered_rate
+enforcement: hook
+depends_on:
+  - ready-gate-stub
+  - lug-kernel-verb
+consumers:
+  - external:operator
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/warmupGoalsReviewHook.js
+conformance: >-
+  conformance/fixtures/circle-warmup-goals-review/warmup-goals-review.conformance.test.js
+concern: goals-review
+instructions_ref: reference/circles/warmup-goals-review.md
+duplicate_of: warmup-goals-review

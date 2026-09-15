@@ -1,0 +1,46 @@
+kind: circle
+name: lug-integrity-checksum
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a turn ends (Stop event)
+inputs:
+  - lug_store
+  - transcript
+outputs:
+  - ledger_row
+invariants:
+  - never touches a lug with no baseline entry
+  - never mutates a lug matching its baseline
+  - >-
+    never demotes a lug whose lifecycle fields (state, readiness) are unchanged
+    from the verb's last recorded write -- a content edit is adopted, not healed
+  - >-
+    heals every out-of-verb change to a lifecycle field, and every mismatch
+    whose baseline recorded no lifecycle to compare against
+  - >-
+    returns a violating lug's state to its own type's reset state -- defined for
+    work (unchanged), captured for a pebble -- and only its state
+  - >-
+    never writes a state the lug's type cannot legally hold; where no lifecycle
+    is settled for a type, leaves the state alone and says so in the ledger
+  - >-
+    never reverts a lug whose current content is a real committed version of
+    that same path in git history -- that is a merge, not a hand-edit
+failure_routing: lug:lug-integrity-checksum-failure
+counter_metric: lug_integrity_violation_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:wilbur
+  - external:otto
+runs_on: hook_event
+hook_event_name: Stop
+hook_matcher: ''
+hook_script: src/hooks/lugIntegrityHook.js
+conformance: >-
+  conformance/fixtures/circle-lug-integrity-checksum/lug-integrity-checksum.conformance.test.js
+concern: lug-bypass-prevention-backstop
+instructions_ref: reference/circles/lug-integrity-checksum.md
+duplicate_of: lug-integrity-checksum

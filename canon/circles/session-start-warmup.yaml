@@ -1,0 +1,28 @@
+kind: circle
+name: session-start-warmup
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a session starts
+inputs: []
+outputs:
+  - warmup_capture_row
+invariants:
+  - never blocks session start
+  - writes exactly one row per real SessionStart firing
+failure_routing: lug:session-start-warmup-failure
+counter_metric: session_start_fire_count
+enforcement: hook
+depends_on: []
+consumers:
+  - external:operator
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/sessionStartWarmupHook.js
+conformance: >-
+  conformance/fixtures/circle-session-start-warmup/session-start-warmup.conformance.test.js
+concern: hook-firing-canary
+instructions_ref: reference/circles/session-start-warmup.md
+duplicate_of: session-start-warmup

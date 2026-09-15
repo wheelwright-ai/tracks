@@ -1,0 +1,64 @@
+kind: circle
+name: stop-turn-marker
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a turn ends (Stop event)
+inputs:
+  - active_lug_pointer
+  - disclosed_gap_phrases
+  - disclosed_gap_scan_exclusions
+  - turn_diff
+outputs:
+  - turn_marker
+  - disclosed_gap_finding
+  - disclosed_gap_ledger_row
+  - disclosed_gap_turn_block
+invariants:
+  - one marker per turn, tagged with whichever lug was active
+  - >-
+    silent when no lug is active AND this turn disclosed no gap -- a finding is
+    surfaced even on a turn with nothing to attribute cost to
+  - >-
+    the scan duty never replaces the marker duty -- both run on the same firing,
+    in separate try/catch blocks, and a scan failure is disclosed as a ledger
+    row while the marker is still written
+  - >-
+    the scan reads the ONE canon phrase list (canon/disclosed-gap-phrases.yaml)
+    -- it never forks a second list
+  - >-
+    a new finding blocks the turn from ending silently exactly once, never in a
+    loop: a turn already continuing from a block (stop_hook_active) restates the
+    finding instead of blocking again
+  - >-
+    nothing is auto-filed and nothing is auto-closed -- a finding stays open
+    until a human or Max names a lug or a dismissal reason (hf gap-findings
+    resolve)
+  - >-
+    a phrase already carried by a real lug, or written into lugs/, ledger/ or
+    runtime/ or into this mechanism's own files, is suppressed with its reason
+    -- the same gap is never double-filed
+  - >-
+    this is an additional, narrower signal: reference aging
+    (warmup-goals-review's REFERENCES AGED block) is neither read nor replaced
+    here
+failure_routing: lug:stop-turn-marker-failure
+counter_metric: turn_marker_write_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:lug-lifecycle-tracker
+  - external:operator
+runs_on: hook_event
+hook_event_name: Stop
+hook_matcher: ''
+hook_script: src/hooks/stopTurnMarkerHook.js
+conformance: >-
+  conformance/fixtures/circle-stop-turn-marker/stop-turn-marker.conformance.test.js
+conformance_additional:
+  - >-
+    conformance/fixtures/disclosed-gap-turn-scan/disclosed-gap-turn-scan.conformance.test.js
+concern: lug-cost-tracking
+instructions_ref: reference/circles/stop-turn-marker.md
+duplicate_of: stop-turn-marker

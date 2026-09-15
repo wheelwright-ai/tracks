@@ -1,0 +1,41 @@
+kind: circle
+name: global-settings-drift-check
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a real session starts
+inputs:
+  - global_settings_json
+  - global_statusline_sh
+outputs:
+  - global_settings_drift_finding
+invariants:
+  - >-
+    preview-only -- never writes ~/.claude/settings.json or
+    ~/.claude/statusline.sh, at any point, for any reason (same hard constraint
+    globalSettingsPreview.js itself carries)
+  - >-
+    reuses buildGlobalSettingsPreview (src/basher/globalSettingsPreview.js) for
+    the real comparison -- never a second, hand-rolled definition of what v2
+    convention is
+  - >-
+    a finding already open (an unresolved ledger row from a prior run) is never
+    re-written -- idempotent per finding_key
+failure_routing: lug:global-settings-drift-has-no-recurring-check
+counter_metric: global_settings_drift_finding_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (global config drift is a loud finding at wakeup, not a
+    silent one only found when a human happens to run `wcl global-settings`)
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/globalSettingsDriftHook.js
+conformance: >-
+  conformance/fixtures/circle-global-settings-drift-check/global-settings-drift-check.conformance.test.js
+concern: global-config-drift-detection
+instructions_ref: reference/circles/global-settings-drift-check.md
+duplicate_of: global-settings-drift-check

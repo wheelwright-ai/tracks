@@ -1,0 +1,84 @@
+kind: circle
+name: cross-provider-verification
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a lug transitions into review with priority high or critical AND
+  proof_required: true
+inputs:
+  - lug
+  - author_record
+  - proofer_advisor
+outputs:
+  - cross_provider_certification_record
+  - ledger_row
+  - event_log_row
+invariants:
+  - >-
+    a real no-op for any lug that is not (priority high or critical) AND
+    proof_required: true -- no record, no ledger row, no spawn, no provider call
+  - >-
+    the certifying provider is chosen by the existing four-axis independence
+    check (src/advisor/independence.js), never named by the caller alone
+  - >-
+    a candidate whose provider name equals the recorded author's provider is
+    refused outright -- a same-provider certification is not a cross-provider
+    one
+  - >-
+    the certification runs through proofer.js's existing path (evidence bundle,
+    verbatim-citation fabrication check, two independence passes), never a
+    second implementation
+  - >-
+    certifyOnly: a cross-provider PASS never mutates readiness -- this is a
+    review->done gate, not the readiness gate (standing ledger rule
+    260829-FBL-026 is untouched)
+  - >-
+    a qualifying lug cannot reach done without a CONFIRMED or PLAUSIBLE record
+    OR a real Proofer PASS the exhausted chain could not refute
+    (done-gate-two-store-certification); every other outcome blocks with a
+    named, disclosed reason and is never silently waived
+  - >-
+    a certification that dies mid-flight leaves a `running` record that ages
+    into a named block, never into an absence
+  - >-
+    the whole independent candidate list is exhausted, not just its head: a
+    FABRICATED verdict, or a BLOCKED one attributable to the candidate, moves to
+    the next independent candidate
+    (lug:cross-provider-gate-has-no-fallback-on-fabrication-or-block)
+  - >-
+    a real FAILED verdict ends the chain immediately -- fallback exists for
+    candidates that could not answer, never for answers we dislike
+  - >-
+    a BLOCKED outcome attributable to the INSTANCE rather than the candidate
+    (incomplete evidence, no advisor entity -- no provider call was made) ends
+    the chain: every candidate would hit it identically
+  - >-
+    the fabrication check is never weakened by the fallback -- a fabricated
+    verdict is always rejected, and four fabricated PASSes do not add up to one
+    real one
+  - >-
+    EVERY tried candidate's real failure is recorded (record.attempts[], one
+    ledger row and one event per attempt), never only the last one's
+  - >-
+    an operator-named --provider is exactly one call, never a chain -- no silent
+    substitution of a provider the operator did not name
+failure_routing: lug:cross-provider-verification-for-high-priority-proof-required-lugs
+counter_metric: cross_provider_certification_verdict_rate
+enforcement: hook
+depends_on:
+  - lug-kernel-verb
+  - lug-lifecycle-tracker
+consumers:
+  - external:proofer
+  - external:operator
+runs_on: hook_event
+hook_event_name: PostToolUse
+hook_matcher: Edit|Write
+hook_script: src/hooks/crossProviderVerificationHook.js
+conformance: >-
+  conformance/fixtures/cross-provider-verification/cross-provider-verification.conformance.test.js
+concern: independent-verification-of-high-priority-work
+instructions_ref: reference/circles/cross-provider-verification.md
+duplicate_of: cross-provider-verification

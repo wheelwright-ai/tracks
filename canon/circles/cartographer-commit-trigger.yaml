@@ -1,0 +1,39 @@
+kind: circle
+name: cartographer-commit-trigger
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a real git commit lands in harness-factory (PostToolUse, Bash matching git
+  commit)
+inputs:
+  - bash_tool_response
+  - reference_circles
+  - compiler_rules
+outputs:
+  - cartographer_map_artifact
+invariants:
+  - never blocks the commit -- runs after the tool already completed
+  - >-
+    a commit that doesn't touch circle/policy/advisor files never triggers a
+    wasted regeneration
+  - >-
+    the full map is written only through regenerateCartographerMap() -- same
+    producer the scheduler already uses
+failure_routing: lug:cartographer-failure
+counter_metric: map_completeness_ratio
+enforcement: hook
+depends_on: []
+consumers:
+  - external:session-continuity-checkpoint
+  - external:warmup-goals-review
+runs_on: hook_event
+hook_event_name: PostToolUse
+hook_matcher: Bash
+hook_script: src/hooks/cartographerCommitTriggerHook.js
+conformance: >-
+  conformance/fixtures/circle-cartographer-commit-trigger/cartographer-commit-trigger.conformance.test.js
+concern: spoke-understanding-commit-freshness
+instructions_ref: reference/circles/cartographer-commit-trigger.md
+duplicate_of: cartographer-commit-trigger

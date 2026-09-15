@@ -1,0 +1,48 @@
+kind: circle
+name: default-forward-veto-ledger
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a default-forward act is about to happen -- today, a dispatch queued or
+  executed with no human at the keyboard
+inputs:
+  - default_forward_act
+  - declared_rollback
+  - canary_scope
+outputs:
+  - decision_entry
+  - ledger_row
+  - session_start_surface
+invariants:
+  - >-
+    an act with no declared rollback is REFUSED, not recorded -- irreversible
+    acts are the operator's
+  - an act with no canary scope is REFUSED, not recorded
+  - the act is recorded BEFORE it happens, never after
+  - >-
+    every recorded act carries a real veto window (24h default, tunable via
+    canon/profile.yaml veto_window_hours)
+  - >-
+    acts inside the window are listed separately from acts that have settled,
+    and surface at session start with the rollback verbatim
+  - no rollback is ever executed here -- the operator runs it
+  - >-
+    a malformed line is skipped, never fatal: the ledger must still read after a
+    bad write
+  - 'append-only: a settled or vetoed act is marked, never deleted'
+failure_routing: lug:default-forward-acts-have-no-rollback-and-veto-ledger
+counter_metric: default_forward_acts_recorded_rate
+enforcement: kernel_check
+depends_on:
+  - warmup-goals-review
+consumers:
+  - external:operator
+  - external:conductor
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/default-forward-veto-ledger/default-forward-veto-ledger.conformance.test.js
+concern: default-forward-reversibility
+instructions_ref: reference/circles/default-forward-veto-ledger.md
+duplicate_of: default-forward-veto-ledger

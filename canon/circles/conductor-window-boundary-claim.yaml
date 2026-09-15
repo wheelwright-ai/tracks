@@ -1,0 +1,69 @@
+kind: circle
+name: conductor-window-boundary-claim
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a cron-driven process is about to act on a detected five-hour window boundary
+  -- scripts/conductor-heartbeat.mjs --launch, or the wheel clock's
+  advisor_activation job (runAdvisorAutopilot) reaching a decideWave LAUNCH.
+  Both are installed as separate */10 crontab entries that fire in the same
+  minute, so both really can reach the same boundary together.
+inputs:
+  - five_hour_window_state
+  - window_start_detection
+  - wave_decision
+outputs:
+  - window_boundary_claim
+  - wave_records
+invariants:
+  - >-
+    at most one process may act on any one window boundary: the claim is a file
+    created with O_CREAT|O_EXCL, so of any number of concurrent creators exactly
+    one succeeds and every other gets EEXIST
+  - >-
+    the claim is keyed on the STORED BASELINE's own first-party resets_at -- the
+    window that ended -- never on the reading that revealed the crossing,
+    because the heartbeat's --poll refreshes the reading mid-race and two keys
+    for one boundary would restage the race one layer down
+  - >-
+    losing the claim is a clean no-op, never an error and never a retry: a
+    boundary is a one-time event, so there is nothing to retry and no retry-spam
+    is possible
+  - >-
+    a claim is taken only by a caller that is really about to act. A decide-only
+    heartbeat (no --launch) claims nothing, so it can never strand a boundary
+    that nobody then handles
+  - >-
+    a claim never expires and is never released -- an event already acted on
+    does not become actionable again with age. Disclosed cost: a winner that
+    dies before launching spends that boundary, which is the
+    additive-conservative direction the whole conductor errs in
+  - >-
+    a claim that cannot be written at all (any error other than EEXIST) is read
+    as NOT claimed -- an exclusion that cannot be proven is not an exclusion, so
+    the caller declines rather than launching a possible second wave
+  - >-
+    neither cron entry is removed and neither job is merged into the other:
+    exactly one shared action is excluded, and nothing else about either driver
+    changes
+  - >-
+    the loser's refusal is a real recorded decision -- one wave record, opened
+    AND closed, naming the holder -- never a silent absence
+failure_routing: lug:conductor-two-cron-drivers-race-the-same-window-boundary
+counter_metric: window_boundary_double_claim_rate
+enforcement: kernel_check
+depends_on:
+  - conductor-wave-gate
+  - conductor-heartbeat
+consumers:
+  - >-
+    external:operator (runtime/window-boundary-claims/, and the
+    window_boundary_already_claimed rows in runtime/wave-records.jsonl)
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/conductor-boundary-claim/conductor-boundary-claim.conformance.test.js
+concern: mutual-exclusion-on-the-window-boundary-event
+instructions_ref: reference/circles/conductor-window-boundary-claim.md
+duplicate_of: conductor-window-boundary-claim

@@ -1,0 +1,32 @@
+kind: circle
+name: lug-lifecycle-tracker
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a lug's state field is edited to in_progress or done
+inputs:
+  - lug
+  - track
+outputs:
+  - active_lug_pointer
+  - lifecycle_result
+invariants:
+  - never mutates the lug it checks
+  - a lug cannot become done without a referencing test and a matching cost
+failure_routing: lug:lug-lifecycle-tracker-failure
+counter_metric: lug_traceability_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:conductor
+  - external:proofer
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Edit|Write
+hook_script: src/hooks/lugLifecycleHook.js
+conformance: >-
+  conformance/fixtures/circle-lug-lifecycle-tracker/lug-lifecycle-tracker.conformance.test.js
+concern: lug-completion-gate
+instructions_ref: reference/circles/lug-lifecycle-tracker.md
+duplicate_of: lug-lifecycle-tracker

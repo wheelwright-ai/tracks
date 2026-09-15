@@ -1,0 +1,95 @@
+kind: circle
+name: success-prediction
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a success prediction is registered, superseded or reviewed --
+  registerPrediction / supersedePrediction / reviewPrediction /
+  reviewDuePredictions (src/conductor/successPrediction.js), via
+  scripts/success-prediction.js on demand; and every session start, where
+  buildSuccessPredictionSection reports verdict counts through goalsReview.js
+inputs:
+  - advisor
+  - initiative
+  - success_prediction_registry
+  - turn_markers
+  - author_record
+outputs:
+  - success_prediction_record
+  - success_prediction_verdict
+  - remediation_lug
+  - ledger_row
+  - session_start_surface
+invariants:
+  - >-
+    a prediction is registered BEFORE the work and immutable after: the registry
+    is append-only, the module has no update path, and a change is a superseding
+    row that never rewrites the original
+  - >-
+    superseding is REFUSED once any verdict exists, and once check_by has passed
+    -- editing the target to match the result is the failure mode this circle
+    exists to prevent -- and a refusal writes nothing
+  - >-
+    canon DECLARES a prediction so it is machine-readable, but canon is not the
+    bar: the registered row carries a digest, verdicts are judged against it,
+    and a later canon edit is reported as divergence, not absorbed
+  - >-
+    a prediction is accepted only when certified FALSIFIABLE by
+    canon/circles/falsifiability-gate.yaml's standard -- the verdict really
+    moved on a mutated mirror of the observation, swept across the metric's
+    domain, never on its wording. A reader with no finite domain returns
+    UNPROVEN and is refused, never passed, and a prediction no observation could
+    SATISFY is refused alongside one none could refute
+  - >-
+    a trivially-safe prediction is refused with its class named -- already true
+    at the baseline, or near-vacuous (90%+ of the domain satisfies it); one with
+    no measured baseline is refused unless first_baseline: true is declared
+  - >-
+    the review is by a THIRD PARTY or not at all: the registrant and every
+    recorded executor session are refused, and the reviewer must pass the
+    four-axis src/advisor/independence.js check chain disposition uses. A
+    refusal writes nothing
+  - >-
+    the verdict has THREE outcomes -- achieved, missed, unevaluable -- and
+    unevaluable is never scored as either: the achieved rate's denominator is
+    achieved+missed only, and says so
+  - >-
+    no reader substitutes a zero for an absent measurement: a reading is
+    measured with a real number, or unmeasured with value null and a reason; a
+    reader that throws is reported, never swallowed
+  - >-
+    a MISSED prediction triggers a real deeper review -- the gap, whether the
+    metric moved at all from its baseline, and prior misses -- and opens ONE
+    remediation lug through the kernel verb
+  - >-
+    NO LUG IS EVER FILED TO REPORT A VERDICT: N verdicts become ONE
+    operator-channel section with counts, silent when nothing is owed and every
+    canon subject already declares one; only a real owed remediation becomes a
+    lug
+  - >-
+    every cause key names a CAUSE (subject kind, subject, metric), never a
+    per-event coordinate -- no session id, run id, date or timestamp -- so N
+    occurrences collapse to one finding; at most one lug is filed per sweep, the
+    rest REPORTED
+  - >-
+    a subject whose prediction is unevaluable three times running is surfaced as
+    a finding against its own DEFINITION -- an unmeasurable counter_metric is a
+    defect, not a neutral outcome
+failure_routing: lug:initiatives-and-advisors-carry-a-falsifiable-success-prediction
+counter_metric: predictions_registered_without_a_third_party_verdict
+enforcement: kernel_check
+depends_on:
+  - falsifiability-gate
+  - lug-kernel-verb
+consumers:
+  - run-roi-extraction
+  - external:operator
+  - external:otto
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/success-prediction/success-prediction.conformance.test.js
+concern: pre-registered-falsifiable-success-claims
+instructions_ref: reference/circles/success-prediction.md
+duplicate_of: success-prediction

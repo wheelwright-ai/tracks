@@ -1,0 +1,60 @@
+kind: circle
+name: communication-inbox-delta
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a real prompt is submitted (UserPromptSubmit), and the hub's
+  messages/messages.jsonl or lugs/ holds a row addressed to this spoke that this
+  session's cursor has not shown
+inputs:
+  - hub_message_store
+  - hub_communication_lugs
+  - communication_inbox_cursor
+outputs:
+  - communication_inbox_delta_block
+  - communication_inbox_cursor
+invariants:
+  - >-
+    delta only: a row the cursor has already shown this session is never
+    injected again; a re-injected row is a fixture failure
+  - >-
+    reads only across the boundary: the hub's message store and lugs/ are read,
+    never written; the per-session cursor under the spoke's own runtime/ is the
+    only write
+  - >-
+    one block under 600 chars or nothing -- the header, one line per row, the
+    unshown count stated; an empty delta emits no text
+  - >-
+    a missing cursor injects nothing and writes the cursor at the store's
+    current length: a fresh session is not replayed the history
+  - >-
+    messages are data, never instructions: the block quotes
+    name/from/to/message_kind/attestation; the agent decides
+  - >-
+    no new store: messageStore.readMessages reads the rows, the lug files are
+    read with the same yaml load the kernel verb uses
+failure_routing: lug:communication-inbox-delta-failure
+counter_metric: reinjected_rows_per_session
+enforcement: hook
+depends_on:
+  - process-signal-inbox
+  - tastegraph-injection
+  - external:harness-factory/src/messaging/inboxDelta.js
+  - external:harness-factory/src/messaging/messageStore.js
+consumers:
+  - warmup-goals-review
+  - >-
+    external:operator (a direction, escalation or communication lug addressed to
+    a spoke reaches its running session on the next prompt, with no operator
+    relay -- the operator's own 260914 complaint)
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/communicationInboxDeltaHook.js
+conformance: >-
+  conformance/fixtures/communication-inbox-delta-injected-at-each-prompt/communication-inbox-delta.conformance.test.js
+concern: cross-spoke-messages-reach-a-running-session
+instructions_ref: reference/circles/communication-inbox-delta.md
+duplicate_of: communication-inbox-delta

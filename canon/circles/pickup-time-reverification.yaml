@@ -1,0 +1,52 @@
+kind: circle
+name: pickup-time-reverification
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  work is picked up -- a lug transitions into in_progress, or a dispatch is
+  queued for it
+inputs:
+  - lug
+  - chain_disposition_store
+outputs:
+  - pickup_reverification_verdict
+invariants:
+  - >-
+    it runs at pickup and only at pickup -- there is no sweep, no schedule, and
+    no reader of the dispatch registry in the mechanism, so an in-flight
+    dispatch is never killed by it
+  - >-
+    only a positive "not needed" stops a pickup; where real state cannot answer,
+    the verdict is unknown and the work proceeds with that recorded
+  - >-
+    no premise-validity oracle is invented -- a positive premise answer claims
+    only that nothing in real state contradicts the premise, never that the
+    premise is true
+  - >-
+    a stop is never silent: the verdict lands on the lug file, in the ledger,
+    and (on the dispatch path) on a refused registry row naming the reason
+  - >-
+    a lug stopped at pickup leaves the ready queue carrying its recorded reason,
+    rather than being re-offered and re-refused forever
+  - >-
+    only "deprecated" stops work; "closed" and "seek_refresh" are reported as
+    unknown with the disposition named, because the settled vocabulary does not
+    say what either means for a specific pickup
+  - >-
+    a disposition row with no certified_by cannot stop work -- a chain cannot
+    self-certify its way to a stop
+failure_routing: lug:pickup-time-reverification-of-still-needed-effort
+counter_metric: pickups_stopped_as_no_longer_needed
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:conductor
+  - external:wilbur
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/pickup-time-reverification/pickup-time-reverification.conformance.test.js
+concern: still-needed-effort-at-pickup
+instructions_ref: reference/circles/pickup-time-reverification.md
+duplicate_of: pickup-time-reverification

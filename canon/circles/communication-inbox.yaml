@@ -1,0 +1,74 @@
+kind: circle
+name: communication-inbox
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a session starts -- every SessionStart composes the goals review
+  (buildGoalsReviewInjectionParts, src/conductor/goalsReview.js), which reads
+  the inbox live and prints the one digest line, and the SessionStart
+  wheel-clock catch-up fires the job when a tick is owed -- and the spoke's
+  wheel_clock job communication_inbox (JOB_RUNNERS.communicationInbox) on its
+  declared cadence, for the out-of-session loop: the spoke reads every sibling
+  spoke's lugs/ for type: communication lugs whose target_spoke names it and
+  whose status is still open (not fulfilled / declined / closed), ranks them
+  through rankCommunicationInbox (src/conductor/readyWork.js, the ONE ordering
+  the ready-work queue, the senior inbox and the advisor inbox all call), and
+  writes only its own runtime/communication-inbox.json
+inputs:
+  - sibling_spoke_lugs
+  - known_repos
+  - hub_spoke_cards
+  - seniority_roles
+outputs:
+  - communication_inbox_record
+  - communication_inbox_digest_line
+  - ranked_inbox_rows
+invariants:
+  - >-
+    reads only across the spoke boundary: a sibling's lugs/ is read, never
+    written, never touched -- every write in the communication lifecycle lands
+    in the writer's own spoke (design 2); the fixture hashes the sibling trees
+    before and after
+  - >-
+    one ordering: rankCommunicationInbox is the only function that orders
+    communication lugs; the ready-work queue, the senior inbox and the Max
+    second-opinion inbox are three views of its one result, and the fixture
+    refuses a second ordering function under src/
+  - >-
+    exactly one escalation bump per lug per read: the effective priority is
+    computed from the STORED priority and escalation rule every time, never from
+    a prior read's effective value; the stored field is never rewritten
+  - >-
+    an undeclared seniority role is null on the row and ranks after every
+    declared one -- never a silently assumed peer
+  - >-
+    one digest line, through the goals review's composer, silent when nothing is
+    addressed here; no hook of its own, so the inbox is never printed twice and
+    no settings.json binding is added
+  - >-
+    never blocks a session start on its own failure: the composer reports a
+    failed read as one line
+failure_routing: lug:communication-inbox-circle-and-fair-ranking
+counter_metric: communication_request_inbox_to_pickup_hours
+enforcement: kernel_check
+depends_on:
+  - communicationInbox
+  - rankCommunicationInbox
+  - readCommunicationInbox
+  - buildGoalsReviewInjectionParts
+consumers:
+  - >-
+    external:ozi (the digest line and the ready-work queue's effective
+    priorities)
+  - external:max (buildAdvisorInbox -- the second-opinion view)
+  - external:otto (runtime/communication-inbox.json for the out-of-session loop)
+interface_version: v1
+runs_on: schedule
+requires_wheel_clock_job: communicationInbox
+conformance: >-
+  conformance/fixtures/communication-inbox/communication-inbox.conformance.test.js
+concern: cross-spoke-communication
+instructions_ref: reference/circles/communication-inbox.md
+duplicate_of: communication-inbox

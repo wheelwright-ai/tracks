@@ -1,0 +1,60 @@
+kind: circle
+name: rule-12-live-state-report
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+interface_version: v1
+trigger: >-
+  a compile runs against a spoke with lugs (run + warn in
+  src/compiler/rules/12-no-oversized-session-start.js, measured once per compile
+  via ctx.sessionStartMeasurement) -- `hf compile`, `wcl compile`, the commit
+  and push gates, wcl's stale-instance step, applyCut's scratch and real
+  recompiles; and on demand when an operator or session runs `node
+  scripts/acknowledge-live-state.js` to shrink the live-state backlog the
+  warning names
+inputs:
+  - session_start_surface
+  - ledger_rows
+  - active_lug_pointer
+  - default_forward_decisions
+outputs:
+  - compile_verdict
+  - compile_warning
+  - ledger_row
+  - default_forward_decisions
+invariants:
+  - >-
+    every block a SessionStart hook injects declares itself canon or live at its
+    composer (src/lugTracking/injectionDerivation.js); the rule never infers a
+    part's derivation from its text
+  - >-
+    the refusal sums the canon-derived parts only -- two compiles of one
+    unchanged canon give one verdict, whatever runtime/ and ledger/ hold
+  - >-
+    the live parts are measured exactly as before and reported as a compile
+    warning when the whole injection is over the cap, with the total, the
+    canon/live split and every live section's own number -- never hidden, never
+    a refusal, and the cap is never raised for it
+  - >-
+    every live-growing section carries a declared count cap and a "+N more, see
+    <store>" tail at its composer; the hook and the rule read one composer each,
+    so the injected text and the measured text are the same string
+  - >-
+    upkeep-miss, footer-miss and vetoable-act rows shrink only through the one
+    acknowledge path, with a reason, status set on the row and nothing deleted;
+    no reason, no acknowledgement
+failure_routing: lug:rule-12-live-state-report-failure
+counter_metric: hub_compile_verdicts_flipped_with_no_canon_change
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:operator
+  - external:otto
+  - external:conductor
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/rule-12-live-state-reported-not-refused/rule-12-live-state-reported-not-refused.conformance.test.js
+concern: session-start-cap-canon-verdict
+instructions_ref: reference/circles/rule-12-live-state-report.md
+duplicate_of: rule-12-live-state-report

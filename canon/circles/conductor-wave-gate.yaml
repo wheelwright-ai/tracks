@@ -1,0 +1,75 @@
+kind: circle
+name: conductor-wave-gate
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a real caller asks whether a five-hour window just started and whether to
+  spend it -- src/otto/advisorAutopilot.js runAdvisorAutopilot in session (on
+  the advisor_activation wheel-clock job), or scripts/conductor-heartbeat.mjs
+  out of session; the repeat arm is reviewWaveAndDecideRepeat after a wave
+  closes
+inputs:
+  - five_hour_measurement
+  - five_hour_window_state_baseline
+  - ready_work_queues
+  - registry_groups
+  - wave_records
+outputs:
+  - wave_decision
+  - wave_guidance
+  - wave_records
+  - five_hour_window_state_baseline
+invariants:
+  - >-
+    a boundary is only ever claimed from first-party fields -- a crossed
+    resets_at, a changed resets_at past the declared 60000ms same-boundary
+    tolerance, or a used_percentage drop past the declared 15-point floor. There
+    is no observed_at + 5h arithmetic anywhere in this circle; a locally
+    computed boundary would be a fabrication wearing a timestamp
+  - >-
+    only state "started" is launch-eligible: unmeasured, no_baseline and
+    same_window each decline and each names itself, because they lead the
+    operator to different conclusions
+  - >-
+    headroom at or under the declared 20% reserve declines, so the operator is
+    never locked out of his own account by an autonomous wave
+  - >-
+    a refusal is recorded in the same append-only wave-record stream a launch is
+    -- opened/closed rows folded by wave_id, never rewritten in place, so a wave
+    that never closed is visible AS never closed
+  - >-
+    an empty ready-work queue is NOT a refusal (260909): on a real boundary with
+    real headroom the spoke is woken as launch_kind: maintenance, held to
+    MAINTENANCE_WAKE_MAX_SPOKES=1, and the emptiness is handed over in the
+    decision's own `guidance` block rather than hidden. Only waveReview.js's
+    repeat arm still refuses on it, and only because it opts in with
+    requireReadyWork: true
+  - >-
+    a wake never hides what it found: every launch decision carries a `guidance`
+    block naming the real ready-work state (`none_clears_the_bar` or
+    `available`), per spoke, and it travels verbatim into the dispatched
+    session's own prompt
+  - >-
+    a read-only caller passes persist:false, so merely LOOKING never consumes
+    the boundary a real decision would otherwise have seen
+  - >-
+    the repeat arm re-measures ready work rather than reusing the opening
+    decision's figure, and carries the already-detected boundary forward rather
+    than re-detecting one
+failure_routing: lug:windowstart-resets-at-epoch-seconds-parsed-as-date-string
+counter_metric: wave_decision_unmeasured_decline_rate
+enforcement: kernel_check
+depends_on:
+  - anthropic-rate-limit-five-hour-envelope
+consumers:
+  - conductor-heartbeat
+  - >-
+    external:otto (advisorAutopilot's in-session gate, and the operator's own
+    review of runtime/wave-records.jsonl)
+runs_on: on_demand
+conformance: conformance/fixtures/conductor-waves/conductor-waves.conformance.test.js
+concern: five-hour-window-launch-decision
+instructions_ref: reference/circles/conductor-wave-gate.md
+duplicate_of: conductor-wave-gate

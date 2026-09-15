@@ -1,0 +1,85 @@
+kind: circle
+name: pattern-language
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a pattern, spoke, group or the wheel is described in the common language --
+  declarePattern (src/otto/approachPatterns.js) running the
+  value/lift/variant/correction gates at the library's write;
+  describeSpoke/composeView (src/otto/patternLanguage.js) run by `node
+  scripts/pattern-language.js describe|describe-all|view`; and
+  `pattern-language.js vocabulary` tracing every glossary term to disk
+inputs:
+  - pattern
+  - attempt
+  - source_file
+  - lug_store
+  - chain_identity
+outputs:
+  - pattern
+  - artifact
+  - ledger_row
+  - edge_refusal
+invariants:
+  - >-
+    ONE VOCABULARY, IN THE GLOSSARY. The terms live as a section of
+    canon/glossary.md in its what/why/where shape, parsed mechanically; there is
+    no second glossary. Every term's *Where:* pointer must resolve on disk, and
+    a term that stops resolving is reported untraced, never rounded up
+  - >-
+    VALUE AND LIFT ARE SEPARATE. Value is purpose (what/why) and is never a
+    number. Lift is measured improvement over a REAL baseline. An unmeasurable
+    lift reads `unmeasured` -- never zero, never a guess
+  - >-
+    LIFT IS A SUCCESS_PREDICTION, NOT A NEW SHAPE. A declared lift registers
+    with subject_kind `pattern` through the same gates every advisor's
+    prediction passes: no reader, unfalsifiable, trivially safe, no baseline
+    without first_baseline -- each refuses the declaration and writes nothing
+  - >-
+    DECLARE AT CREATION; DERIVE WHEN MISSING. A pattern with no declared value
+    or lift gets both DERIVED from its own attempts on the record
+    (distinct-subject success rate against every other approach at its problem
+    class), marked `derived` with the attempt ids. A spoke's lift derives from
+    its own dispatch history, later half against earlier half, below ten rows
+    per half unmeasured
+  - >-
+    EVERY FIGURE CARRIES ITS ORIGIN: declared | derived | asserted | unmeasured,
+    with a provenance pointer. A self-description's fields are derived from
+    named repository files or asserted from local/design-assertions.json, and
+    the tally is printed first
+  - >-
+    THE EXISTING LEVEL ENUM, NO NEW AXIS. Descriptions carry `spoke`; views
+    carry `group` or `wheel`; the enum is read from schemas/common.schema.json,
+    and a level outside it is refused
+  - >-
+    A VARIANT STATES ITS VARIATION. derived_from with no variation and rationale
+    is refused as a retry wearing a new name; a dangling or self predecessor and
+    a lineage cycle are refused, on the same index lugs use
+  - >-
+    A CORRECTION CARRIES THIRD-PARTY EVIDENCE: a chain disposition on disk
+    reading `closed`, whose witness is independent of the declarer by
+    checkIndependence. Self-certification is refused; a missing, seek_refresh or
+    deprecated chain is refused
+  - >-
+    NO LUG IS FILED to convey a description, a pattern or a lift figure.
+    Artifacts land under generated/ and a ledger row reports them
+failure_routing: >-
+  lug:common-pattern-language-with-value-lift-and-self-description-at-every-level
+counter_metric: vocabulary_terms_untraced
+enforcement: kernel_check
+depends_on:
+  - approach-pattern-library
+  - success-prediction
+  - lug-edges
+  - chain-disposition
+consumers:
+  - external:approach-pattern-library
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/pattern-language/pattern-language.conformance.test.js
+concern: one language for value, lift and design across pattern, spoke, group and wheel
+instructions_ref: reference/circles/pattern-language.md
+duplicate_of: pattern-language

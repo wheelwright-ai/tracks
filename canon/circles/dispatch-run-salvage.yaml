@@ -1,0 +1,73 @@
+kind: circle
+name: dispatch-run-salvage
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+interface_version: v1
+trigger: >-
+  a real dispatched session runs -- the launch supervisor journals its child's
+  stream to disk for the child's whole life (src/basher/idleWatchdog.js main(),
+  from the first chunk, before any kill can happen), and executeDispatch
+  (src/lugTracking/dispatchMechanism.js) builds the run's work disposition when
+  the launcher returns, on every terminal outcome and not only on completions
+inputs:
+  - dispatch_row
+  - launch_envelope
+  - dispatch_journal
+  - ledger
+outputs:
+  - dispatch_journal
+  - work_disposition
+  - dispatch_row
+  - advisor_run_loss_section
+invariants:
+  - >-
+    the hard wall-clock backstop still fires -- this circle never extends,
+    softens or removes a kill, it only changes what survives one
+  - >-
+    a run killed mid-flight keeps a durable, on-disk record of what it really
+    emitted, written by the supervisor while the child was still alive, because
+    the supervisor is the only process awake alongside the child and the one
+    that fires the kill
+  - >-
+    what is unknown is recorded as unknown: a killed run's remainder is always
+    the literal state "unknown", never estimated, never interpolated from how
+    far the run got, and never reported as zero
+  - >-
+    "kept nothing durable", "extent unknown" and "finished on its own" are three
+    distinct verdicts and are never conflated -- in particular a bounded ledger
+    scan that could not reach back past a run's start reports complete:false and
+    yields extent-unknown, never a zero it did not earn
+  - >-
+    an advisor that finishes early is not penalised: it gets the
+    finished_on_its_own verdict, carries no unfinished section at all, and its
+    unused budget is never recorded as a fault
+  - >-
+    the journal carries its own byte and event bounds and DISCLOSES reaching
+    them in the file itself, so it can never become the next store flood and a
+    capped journal never reads as a short run
+  - >-
+    every field of a work disposition is a count or a verbatim value read off
+    disk -- there is no inferred field and no estimate anywhere in it
+  - >-
+    a budget recommendation is DERIVED from real completed runs each time it is
+    asked, is always stated as provisional, names its sample as right-censored,
+    and refuses to speak at all below three completed runs
+  - >-
+    killed runs reach the operator as one line per CAUSE (advisor/watchdog) with
+    a count -- never one lug, and never one row, per killed run
+failure_routing: lug:dispatch-run-salvage-failure
+counter_metric: killed_dispatch_work_kept_ratio
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - external:otto
+  - external:conductor
+  - external:operator
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/advisor-run-salvage/advisor-run-salvage.conformance.test.js
+concern: dispatch-run-durability
+instructions_ref: reference/circles/dispatch-run-salvage.md
+duplicate_of: dispatch-run-salvage

@@ -1,0 +1,79 @@
+kind: circle
+name: conductor-heartbeat
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  scripts/conductor-heartbeat.mjs is run from outside any Claude Code session --
+  the out-of-session supervisor tick, which is the one caller awake when a
+  five-hour window opens with nobody at the machine. As of 260908 this is no
+  longer a proposal: it is really installed in the operator's crontab as `*/10 *
+  * * * ... node scripts/conductor-heartbeat.mjs --hub-root .../wheel-hub --poll
+  --launch`, i.e. WITH the launch arm engaged, in the same minute as a second
+  `*/10` entry running a bare runWheelClockCatchup(wheel-hub) -- see the
+  conductor-window-boundary-claim circle for how those two are kept from acting
+  on one boundary together
+inputs:
+  - dispatch_registry
+  - five_hour_measurement
+  - seven_day_window
+  - operator_idle_signal
+outputs:
+  - heartbeat_decision
+  - wave_records
+  - ledger_rows
+invariants:
+  - >-
+    additive-conservative, and it is a rule: every gate here may only turn
+    decideWave's LAUNCH into a no, never a no into a launch -- the worst a bug
+    here can do is decline a wave that should have run
+  - >-
+    decideWave is called unmodified and its decision IS the decision; the only
+    thing imposed on it is the operator throttle, passed through its own
+    existing maxSpokesPerWave option, never a second decision engine
+  - >-
+    zero provider cost on every default path -- file reads and integer
+    arithmetic only. --poll adds one zero-token GET. --launch remains opt-in and
+    off by default IN THE SCRIPT, but the installed crontab entry really does
+    pass it, so the live tick can dispatch: what makes that safe is every gate
+    below plus the atomic window-boundary claim
+  - >-
+    a LAUNCH tick (--launch) may only proceed after atomically claiming the
+    window boundary (conductor-window-boundary-claim); a decide-only tick claims
+    nothing, so it can never strand a boundary nobody handles
+  - >-
+    reconciliation runs FIRST: a dispatch row still plausibly in flight inside
+    the declared staleness threshold declines, because starting a wave on top of
+    live dispatches is the stacking this circle exists to prevent
+  - >-
+    an unmeasured pace verdict declines -- limit-pacing is the whole reason this
+    may act unattended, and it will not launch on a rate it cannot measure. EASE
+    OFF declines regardless of the operator signal
+  - >-
+    an unknown operator signal throttles exactly as "active" does; only a
+    positively measured "idle" gets the full declared fan-out
+  - >-
+    a heartbeat that cannot write its record still returns its decision and says
+    so -- losing the record is bad, silently losing the decision because the
+    record failed would be worse
+failure_routing: lug:conductor-persistent-supervisor-loop
+counter_metric: heartbeat_unmeasured_decline_rate
+enforcement: kernel_check
+depends_on:
+  - conductor-wave-gate
+  - headless-usage-reading
+  - conductor-window-boundary-claim
+consumers:
+  - >-
+    external:operator (the cron entry's own stdout, and
+    runtime/wave-records.jsonl)
+  - >-
+    external:minder (the Conductor-waves dashboard view, which reads the one
+    shared record shape)
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/conductor-heartbeat/conductor-heartbeat.conformance.test.js
+concern: out-of-session-wave-supervision
+instructions_ref: reference/circles/conductor-heartbeat.md
+duplicate_of: conductor-heartbeat

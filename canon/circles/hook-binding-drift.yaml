@@ -1,0 +1,37 @@
+kind: circle
+name: hook-binding-drift
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a real session starts
+inputs:
+  - canon_circles
+  - settings_json
+outputs:
+  - self_heal_finding
+invariants:
+  - >-
+    detection only -- never rewrites settings.json (out_of_scope, same
+    discipline session-upkeep-manifest already established)
+  - named by circle and event, never just a count
+  - >-
+    reuses generateHookBinding (src/compiler/generate.js) for the expected shape
+    -- never a second, hand-rolled definition of what canon declares
+failure_routing: lug:harness-factory-config-drift-self-heal-gaps
+counter_metric: hook_binding_drift_finding_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (a stale settings.json is a loud finding at wakeup, not a
+    silent one discovered by a hook that just stopped firing)
+runs_on: hook_event
+hook_event_name: SessionStart
+hook_matcher: ''
+hook_script: src/hooks/hookBindingDriftHook.js
+conformance: >-
+  conformance/fixtures/circle-hook-binding-drift/hook-binding-drift.conformance.test.js
+concern: hook-self-heal-detection
+instructions_ref: reference/circles/hook-binding-drift.md
+duplicate_of: hook-binding-drift

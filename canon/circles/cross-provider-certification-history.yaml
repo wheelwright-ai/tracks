@@ -1,0 +1,79 @@
+kind: circle
+name: cross-provider-certification-history
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a cross-provider certification record is written or read -- every
+  writeCertificationRecord (src/advisor/crossProviderVerification.js) from the
+  chain (crossProviderCertify.js, every attempt), the requirement note, the
+  verb's supersession block; readCertificationHistory on demand (node
+  scripts/certification-history.js <lug> [--run=<n>] | --migrate | --summary);
+  and summarizeExternalChain at session start
+inputs:
+  - cross_provider_certification_record
+  - lug
+outputs:
+  - cross_provider_certification_record
+  - certification_run_history
+  - session_start_surface
+invariants:
+  - >-
+    every write APPENDS one entry to
+    runtime/cross-provider-certifications/<lug>.runs.jsonl, whole: provider,
+    model, verdict, citations at full length, citation_binding
+    (fabricated_detail included), reason, independence, evidence pins,
+    started_at/finished_at, recorded_at -- a rejected citation is recoverable
+    from its run, not only from checkFabrication's 120-char truncated reason
+  - >-
+    <lug>.json is a DERIVATION: the newest history entry, latest-wins, plus a
+    history block naming the runs file, the policy, entries, runs, latest_seq,
+    latest_run, pruned_entries and a per-run trail; every key existing readers
+    consume (gate, hook, drive, chain disposition, channel, prediction reader)
+    is unchanged
+  - >-
+    each attempt of a fallback chain is its own run (chain_complete: false until
+    the winner), so an intermediate provider's real citations survive the chain
+    that moved past it
+  - >-
+    a re-write of the same outcome (the verb's superseded_by_proofer_pass
+    spread: same provider, verdict, started_at, finished_at) annotates that run
+    (annotates_run) and is never counted as a new one
+  - >-
+    a single record written before this circle migrates forward as entry 1 (run
+    1 when it carries a verdict), flagged migrated_from_single_record, on the
+    next write or by --migrate; a view written straight to <lug>.json after
+    history exists is captured the same way before the next append; nothing on
+    disk is ever deleted by an append
+  - >-
+    retention is bounded and stated on the record: the newest
+    HISTORY_MAX_ENTRIES (60) entries per lug are kept, older pruned oldest-first
+    by an atomic rewrite; seq and run are monotonic and never reset, so
+    pruned_entries = first retained seq - 1
+  - >-
+    the fabrication check and the tiered citation match are not touched -- this
+    retains what a run said, never changes how it is judged
+  - >-
+    the operator channel counts attempts from the run history (deduplicated by
+    provider + started_at against attempts[]) and reports ONCE, with a count,
+    how many lugs had a FABRICATED verdict later followed by a real PASS; no lug
+    is filed for it
+failure_routing: lug:cross-provider-certification-runs-have-no-per-run-history
+counter_metric: certification_runs_retained_per_lug_last_7d
+enforcement: kernel_check
+depends_on:
+  - cross-provider-verification
+  - done-gate-two-store-certification
+consumers:
+  - done-gate-two-store-certification
+  - chain-disposition
+  - warmup-goals-review
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/cross-provider-certification-history/cross-provider-certification-history.conformance.test.js
+concern: certification-runs-accumulate-never-overwrite
+instructions_ref: reference/circles/cross-provider-certification-history.md
+duplicate_of: cross-provider-certification-history

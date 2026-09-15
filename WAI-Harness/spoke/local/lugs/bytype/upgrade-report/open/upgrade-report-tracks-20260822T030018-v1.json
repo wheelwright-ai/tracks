@@ -25,5 +25,10 @@
   "summary": "0 file(s) applied; bytes MISMATCHED; ABORTED before validation: NET SYMBOL LOSS detected before apply -- refusing (this pull would revert symbols) [tools/advisor_agent_dispatch.py: _dispatch_state_path, _input_fingerprint, _last_dispatch, _save_dispatch]. If this removal is deliberate, set WAI_ALLOW_SYMBOL_LOSS=1 and re-run.",
   "friction_points": [],
   "impact": 9,
-  "effort": 2
+  "effort": 2,
+  "disposition": "needs_you",
+  "disposition_reason": "missing both file_targets and acceptance_criteria -- needs human scoping",
+  "disposition_at": "2026-08-22T22:02:47.000169+00:00",
+  "_migrated_by": "disposition_migrate",
+  "_migrated_at": "2026-08-22T22:02:46.994910+00:00"
 }

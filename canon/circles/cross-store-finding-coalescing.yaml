@@ -1,0 +1,78 @@
+kind: circle
+name: cross-store-finding-coalescing
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a systemic finding is recorded into any of the wheel's three durable stores --
+  the wheel-clock cross_store_reconciliation job coalescing its disagreements by
+  cause (runCrossStoreReconciliation), every ledger append passing through
+  appendRow, every Stop rebuilding a track's decisions projection
+  (writeOrUpdateTrack), and every automatic P0 lug filing (openP0BugFixLug)
+inputs:
+  - ledger_row
+  - track
+  - lug
+  - event_log
+outputs:
+  - ledger_row
+  - track
+  - operator_section
+invariants:
+  - >-
+    ONE RECORD PER CAUSE, NEVER ONE PER OCCURRENCE. A grouping key names a
+    CAUSE, never a per-event coordinate (no timestamp, no lug name, no from/to
+    state)
+  - >-
+    DETECTION IS NEVER REDUCED TO ACHIEVE THIS -- every occurrence is still
+    found; only what gets RECORDED is coalesced. Narrowing a check is never the
+    remedy for its volume
+  - >-
+    COALESCING MUST MAKE THE CAUSE MORE VISIBLE, NOT LESS: a record carries real
+    count, distinct-subject count, time span, a sample, and what remains
+    undiagnosed. A bare count is not a finding
+  - >-
+    EACH STORE CARRIES ITS OWN INDEPENDENT, STATED BOUND
+    (src/store/storeBounds.js). Bounds are per-writer, NEVER global -- one
+    runaway writer must not silence every honest one
+  - >-
+    A BOUND REFUSES, IT NEVER TRIMS -- no bound rewrites, truncates or deletes
+    an existing record. The ledger declines a NEW append; the track bounds only
+    its rebuilt PROJECTION and discloses the omission in-band
+  - >-
+    A REFUSAL IS LOUD BUT NOT ITSELF A FLOOD: disclosed once per scope (ledger
+    row + stderr line), then counted quietly in runtime/store-bound-state.json
+  - >-
+    A CAUSE ALREADY RECORDED AT THE SAME COUNT IS NOT RE-STATED; a MOVED count
+    gets a new row citing the prior one. Forward only -- the earlier row is
+    never edited
+  - >-
+    A REFUSED WRITE IS NOT A RECORDED WRITE. Suppression state advances only on
+    a record that really landed; a bound-refused record is re-attempted, never
+    marked recorded
+  - >-
+    NO LUG IS FILED TO CONVEY A FINDING -- a finding is information, reported
+    once with counts via the operator channel (buildCrossStoreFindingSection).
+    The lug owing the diagnosis is named in every report
+  - >-
+    THE PER-FILE CAP IS NEVER RAISED TO SILENCE A SCANNER, and a bound is never
+    raised to fit a misbehaving writer -- both are derived from measured real
+    distributions
+failure_routing: lug:cross-store-check-floods-every-store-not-just-lugs
+counter_metric: store_records_per_distinct_cause
+enforcement: kernel_check
+depends_on:
+  - wheel-scheduler
+  - lug-kernel-verb
+  - circle-completeness-audit
+consumers:
+  - warmup-goals-review
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/cross-store-finding-coalescing/cross-store-finding-coalescing.conformance.test.js
+concern: cross-store-check-floods-every-store-not-just-lugs
+instructions_ref: reference/circles/cross-store-finding-coalescing.md
+duplicate_of: cross-store-finding-coalescing

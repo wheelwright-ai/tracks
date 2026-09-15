@@ -1,0 +1,28 @@
+kind: circle
+name: test-lug-traceability
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a new test file is written
+inputs:
+  - test_file
+outputs:
+  - traceability_result
+invariants:
+  - every test file names the lug it asserts on
+failure_routing: lug:test-lug-traceability-failure
+counter_metric: lug_traceability_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - external:lug-lifecycle-tracker
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Write
+hook_script: src/hooks/testFileLugMarkerHook.js
+conformance: >-
+  conformance/fixtures/circle-test-lug-traceability/test-lug-traceability.conformance.test.js
+concern: lug-test-authoring-gate
+instructions_ref: reference/circles/test-lug-traceability.md
+duplicate_of: test-lug-traceability

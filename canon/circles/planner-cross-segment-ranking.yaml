@@ -1,0 +1,72 @@
+kind: circle
+name: planner-cross-segment-ranking
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  every wheel_clock planner_cycle job -- runPlannerCycle -> buildPlannerCycle ->
+  rankCrossSegment (src/planner/planner.js), reading canon/initiatives/ live on
+  each cycle
+inputs:
+  - planner_allocation
+  - ready_work_queue
+  - initiative
+  - lug
+outputs:
+  - planner_cycle_artifact
+invariants:
+  - >-
+    ONE ranked queue, build and maintain alike: initiative membership is the
+    first-order key -- every row belonging to a live AP-ready initiative ranks
+    ahead of every row that belongs to none, and the initiative is named on the
+    row; operator-declared priority governs INSIDE each tier, never across them
+    (the operator's 260911 decision on the comparable impact unit, verbatim on
+    the artifact)
+  - >-
+    a maintain row is affiliated with an initiative when that initiative's
+    consumers names the advisor (initiative.consumers ->
+    initiativeAdvisorIndex); a build row when the initiative's lugs names the
+    lug (initiativeLugIndex); an IN-DESIGN or non-live initiative affiliates
+    nothing
+  - >-
+    sequencing is honoured inside the initiative tier: work for an initiative
+    sequenced_after an unlanded one ranks below the one it waits on, and the row
+    carries waiting_on and sequencingBlock's own reason; a prerequisite that is
+    not declared is reported, never treated as landed
+  - >-
+    a declared guaranteed_runtime_share floor is reserved off the top in
+    computeAdvisorAllocation BEFORE ranking, and rankCrossSegment never moves a
+    share -- a floored advisor ranked last still holds its floor
+  - >-
+    no price is invented for a build row: share stays null with the reason
+    stated; remaining capacity is measured as the maintain share not held by
+    initiative-tier rows plus a COUNT of build slots, never a fabricated
+    fraction
+  - >-
+    the existing refusal on an unparseable advisor file is neither dropped nor
+    reordered: the cycle then carries build rows only, still ranked, with zero
+    maintain runtime stated
+  - >-
+    cross_segment_ranking reads ranked with cross_segment_ranking_rule
+    initiative_membership_first; the planner-conductor-impact prediction
+    (planner_cross_segment_ranking_ranked, baseline 0) is the live proof and is
+    never edited to match
+failure_routing: lug:planner-ranks-initiative-work-first-then-allocates-remaining-capacity
+counter_metric: planner_cross_segment_ranking_ranked
+enforcement: kernel_check
+depends_on:
+  - plannerCycle
+  - initiative-focus
+consumers:
+  - conductor-wave-gate
+  - external:otto
+  - external:conductor
+interface_version: v1
+runs_on: schedule
+requires_wheel_clock_job: plannerCycle
+conformance: >-
+  conformance/fixtures/planner-cross-segment-ranking/planner-cross-segment-ranking.conformance.test.js
+concern: cross-segment-work-ranking
+instructions_ref: reference/circles/planner-cross-segment-ranking.md
+duplicate_of: planner-cross-segment-ranking

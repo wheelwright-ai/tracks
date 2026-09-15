@@ -1,0 +1,48 @@
+kind: circle
+name: anthropic-rate-limit-five-hour-envelope
+owner: otto
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a caller asks for the account's real five-hour rate-limit headroom --
+  detectWindowStart on every wave decision and every heartbeat tick
+  (measureAnthropicRateLimitUsage), or a caller running
+  enforceAnthropicRateLimitEnvelope to write the measured value back onto the
+  Envelope row
+inputs:
+  - anthropic_usage_observed_reading
+  - anthropic_rate_limit_five_hour_envelope_row
+outputs:
+  - five_hour_measurement
+  - envelope_current
+invariants:
+  - >-
+    never fabricates a reading: no poller output at either path, an unparseable
+    observed_at, a reading older than the declared MAX_READING_AGE_HOURS (5.0),
+    or a payload carrying no five_hour window each return measured:false /
+    current:null with the specific reason named -- the four cases are never
+    collapsed into one
+  - >-
+    reads only what a real poller already wrote -- it never polls, fetches or
+    computes a reading of its own
+  - >-
+    the instance's own runtime/ reading wins over the machine-global
+    $HOME/.claude/runtime mirror; the first readable file is used whole, never
+    merged with the other
+  - >-
+    writes nothing unless the caller passes writeBack, and even then only sets
+    `current` on an Envelope file that already exists -- it never creates one
+failure_routing: lug:five-hour-envelope-writeback-is-a-manual-call-not-a-job
+counter_metric: five_hour_reading_unmeasured_rate
+enforcement: kernel_check
+depends_on: []
+consumers:
+  - conductor-wave-gate
+  - external:operator (the statusline's own headroom render)
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/statusline-usage-envelope-wiring/statusline-usage-envelope-wiring.conformance.test.js
+concern: five-hour-rate-limit-capacity-reading
+instructions_ref: reference/circles/anthropic-rate-limit-five-hour-envelope.md
+duplicate_of: anthropic-rate-limit-five-hour-envelope
