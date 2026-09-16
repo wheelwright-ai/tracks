@@ -2,9 +2,9 @@
   "kind": "track",
   "session_id": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda",
   "started_at": "2026-09-14T23:46:30.759Z",
-  "closed_at": null,
-  "turn_ordinal": 12,
-  "last_stop_at": "2026-09-15T05:52:46.832Z",
+  "closed_at": "2026-09-15T06:05:02.332Z",
+  "turn_ordinal": 13,
+  "last_stop_at": "2026-09-15T06:05:02.338Z",
   "turn_focus": {
     "text": "Signing off. State at exit:",
     "turn": 12,
@@ -44,9 +44,9 @@
   ],
   "directions_captured": [],
   "cost_markers": {
-    "tokens": 20062230,
-    "wall_time_seconds": 7253.235000000001,
-    "count": 11,
+    "tokens": 20403854,
+    "wall_time_seconds": 7700.144,
+    "count": 12,
     "unmeasured": false
   },
   "decisions": [
@@ -369,5 +369,39 @@
       "prompt_ids_worked": []
     }
   ],
-  "handoff": null
+  "handoff": {
+    "session_id": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda",
+    "written_at": "2026-09-15T06:05:02.327Z",
+    "active_lug": {
+      "name": "p0-bugfix-circle-audit-conversation-track-ingestion",
+      "since": "2026-09-15T03:44:26.897Z"
+    },
+    "top_of_ready_queue": [],
+    "last_session_decisions": [
+      "guard-denial-reconciliation counter-metric: bash_lug_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "guard-denial-reconciliation counter-metric: bash_destructive_command_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "guard-denial-reconciliation counter-metric: agent_target_scope_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "guard-denial-reconciliation counter-metric: agent_tool_scope_guard_repeat_denial_rate = n/a (no denials with a session_id yet) (n=0)",
+      "wheel-clock-catchup: 20 tick(s) owed (ceiling 5) -- fired 5, 15 tick(s) worth of owed real time carried forward to the next catch-up (not dropped)"
+    ],
+    "last_session_directions": [],
+    "last_session_cost": {
+      "tokens": 20062230,
+      "wall_time_seconds": 7253.235000000001,
+      "count": 11,
+      "unmeasured": false
+    },
+    "open_prompt_ids": [],
+    "defined_outside_planner_queue": {
+      "cycle_state": "fresh",
+      "cycle_reason": "Planner's last cycle is 142 minute(s) old, inside its own declared 300-minute bound",
+      "computed_at": "2026-09-15T03:42:55.570Z",
+      "lugs": []
+    },
+    "live_worktrees": [],
+    "process_notes": [
+      "Landed a real mechanism this session? It is not done until it has a circle declaration (reference/circles/<name>.yaml + .md) and `node scripts/circle-audit.js .` reports it CLOSED -- an undeclared mechanism is invisible to the audit by construction."
+    ],
+    "text": "HANDOFF from session e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda (2026-09-15T06:05:02.327Z):\nActive lug: \"p0-bugfix-circle-audit-conversation-track-ingestion\" (since 2026-09-15T03:44:26.897Z).\nReady queue is empty.\nLast session's decisions: guard-denial-reconciliation counter-metric: agent_target_scope_guard_repeat_denial_rate = ... | guard-denial-reconciliation counter-metric: agent_tool_scope_guard_repeat_denial_rate = n/... | wheel-clock-catchup: 20 tick(s) owed (ceiling 5) -- fired 5, 15 tick(s) worth of owed real... | +2 older decisions not shown, 5 total\nPROCESS NOTE: Landed a real mechanism this session? It is not done until it has a circle declaration (reference/circles/<name>.yaml + .md) and `node scripts/circle-audit.js .` reports it CLOSED -- an undeclared mechanism is invisible to the audit by construction."
+  }
 }

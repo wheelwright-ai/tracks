@@ -660,3 +660,5 @@
 {"ts":"2026-09-15T05:52:47.631Z","hook":"stop-agent-waiting-notify","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":1748782}
 {"ts":"2026-09-15T05:53:58.967Z","hook":"notification-agent-waiting-notify","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":1778531}
 {"ts":"2026-09-15T06:05:02.034Z","hook":"session-end-notify","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":1852652}
+{"ts":"2026-09-15T06:05:02.714Z","hook":"session-end-handoff","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":1852650}
+{"ts":"2026-09-15T06:05:04.537Z","hook":"session-exit-commit","session_id":"e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda","source":null,"exit_code":0,"pid":1852654}

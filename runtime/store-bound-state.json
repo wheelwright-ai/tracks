@@ -99,7 +99,7 @@
       "disclosed_at": null
     },
     "ledger|2026-09-15|session-exit-commit": {
-      "admitted": 1,
+      "admitted": 2,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-09-15T03:42:58.306Z",
@@ -118,8 +118,22 @@
       "cap": 2000,
       "first_seen": "2026-09-15T03:44:33.746Z",
       "disclosed_at": null
+    },
+    "ledger|2026-09-15|system": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T06:05:02.499Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-09-15|session-upkeep": {
+      "admitted": 2,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-09-15T06:05:02.710Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-09-15T05:52:47.077Z"
+  "written_at": "2026-09-15T06:05:04.532Z"
 }
