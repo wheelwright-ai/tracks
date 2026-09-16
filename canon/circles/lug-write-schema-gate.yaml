@@ -1,0 +1,50 @@
+kind: circle
+name: lug-write-schema-gate
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a Write, Edit or NotebookEdit call is about to land on lugs/*.yaml, in any
+  session -- top-level or dispatched, at any lug state
+inputs:
+  - proposed_file_content
+  - target_file_path
+outputs:
+  - deny_decision
+  - ledger_row
+invariants:
+  - >-
+    validates with the compiler's own validator (buildAjv().lug,
+    schemas/lug.schema.json) -- imported, never a second schema -- so write-time
+    and rule 00 cannot disagree on what a lug is
+  - >-
+    scope is by path: a .yaml/.yml directly inside a lugs/ directory, wherever
+    the session is rooted; a lug at captured is still a lug and its type's
+    required set applies
+  - >-
+    refuses with the missing fields by name and the mistyped fields by path and
+    rule; never edits or truncates the content
+  - >-
+    silent on every path that is not a deny; an Edit whose old_string is absent
+    is the tool's own error, not judged here
+  - >-
+    Bash writes are not checked -- disclosed; compile and the gate's corpus
+    snapshot remain the backstop
+failure_routing: lug:lug-write-schema-gate-failure
+counter_metric: lug_write_schema_refusal_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:git-boundary-test-gate (a lug this gate refuses never reaches a
+    sibling's push gate as a NEW RED)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Edit|Write|NotebookEdit
+hook_script: src/hooks/lugSchemaGateHook.js
+conformance: >-
+  conformance/fixtures/gate-corpus-snapshot/gate-corpus-snapshot.conformance.test.js
+concern: lug-shape-at-write-time
+instructions_ref: reference/circles/lug-write-schema-gate.md
+duplicate_of: lug-write-schema-gate

@@ -39,6 +39,21 @@ inside the pool -- liveness-lease (C1, C3, C4, C5, C6), launch-idle-watchdog
   accepted intermediate attempts (`status: complete, chain_complete:
   false`, dashscope/kimi for 2-8 ms each idle, longer under load).
 
+## Under load (lug two-timing-suites-flake-under-box-load-and-refuse-real-pushes)
+
+Slack is three probes at suite start and says nothing about the next
+minute's contention: 260915 the two suites were green alone at load
+0.35/cpu and red at 0.63/cpu and 1.6/cpu with the window at its floor.
+So `boxTiming.js` reads the 1-minute load per cpu too: above 0.35/cpu (the
+highest green; a fourth red landed at 0.40) the derived window widens in
+proportion (x1.8 at 0.63, x4.57 at 1.6), above
+2.0/cpu no window is honest and every load-sensitive check is a
+`loadCheck` that SKIPs with the number printed. And `runSuites` re-runs a
+red serial-first timing suite (one that imports boxTiming.js) once,
+alone, after the pool closes: NEW RED only if both runs fail, the report
+and both refusals quoting both outcomes with the load at each. Proof:
+`conformance/fixtures/timing-suites-under-load/`.
+
 ## Proof
 
 `conformance/fixtures/gate-pool-serial-suites/` -- A marker + report

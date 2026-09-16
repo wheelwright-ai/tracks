@@ -20,7 +20,13 @@ inside the autonomy line -- all three, not a subset), runs it through
 Conductor's routing plan (`src/conductor/conductor.js`), and injects a
 **directive** summary: name the top few ready lugs and where Conductor
 would route them, and say to proceed with the highest-priority one unless
-there's a specific reason not to.
+there's a specific reason not to. Since lug
+session-start-injection-action-block-then-delta-digest (E2, 260914) that
+directive is injected whole and every other goals-review section follows
+as the STANDING DIGEST: one line per non-empty section with its count and
+signed delta against `runtime/session-start-snapshot.json` (written by
+this hook after injecting), zero-delta and board-carried sections hidden,
+a pointer to `scripts/goals-review.js --full` for every section whole.
 
 **The honest common case:** `readiness: "passed"` cannot happen without a
 real fresh-context check (increment 7, not built), so the ready-work queue

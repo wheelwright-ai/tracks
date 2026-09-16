@@ -23,14 +23,30 @@ invariants:
     never forces a git pull -- fast-forward only, refuses on a dirty tree rather
     than overwriting it
   - >-
+    after the interactive session returns, wcl prints exactly one `closed:` line
+    -- track ok|missing, handoff ok|missing, tree clean|N dirty, the exit hook's
+    verdict from runtime/exit-verdict.json or `no exit verdict written`, took Ns
+    -- from four reads and a git status, never a new spawn of claude (lug
+    exit-prints-one-verdict-line, 260916)
+  - >-
     after the cut, every bound `node <script>` hook must resolve on disk --
     absolute for an adopting spoke, relative only for the self-hosting one --
     and a hook that does not is refused by event, command and reason
     (checkHookBindingResolution), never discovered as an ENOENT at session end
+  - >-
+    an interactive launch (raw, ozi, resume) runs on the operator's global
+    ~/.claude: no CLAUDE_CONFIG_DIR in the child env, no per-spoke store
+    created, no credential copied or linked, no fleet token; the Sign-in row
+    reads ~/.claude and a ▲ row's fix is `claude auth login` (global), run
+    before the launch; custody is checked on the spoke's own
+    .claude/settings.json (+ settings.local.json), never by owning a config dir;
+    headless launchSpoke keeps its isolated store (lug
+    wcl-launches-on-the-global-sign-in-spokes-hold-only-local-settings, 260916)
 failure_routing: lug:wcl-verify-then-launch-failure
 counter_metric: wcl_launch_refusal_rate
 enforcement: kernel_check
-depends_on: []
+depends_on:
+  - session-exit-commit
 consumers:
   - external:operator
 runs_on: on_demand

@@ -30,9 +30,12 @@ invariants:
     resumes at that stage on the next bare invocation, completed stages skipped
     by name
   - >-
-    fold cherry-picks only dispatch/* branches whose worktree a hub dispatch row
-    names and whose lug is at review or done; a conflict refuses that branch by
-    name and leaves it untouched; main only ever fast-forwards
+    fold cherry-picks dispatch/* branches whose worktree a hub dispatch row
+    names and whose lug is at review or done, and wip/* branches from
+    session-exit-commit (no row, no lug: the branch alone; a chain folds by its
+    tip once); a conflict refuses that branch by name and leaves it untouched;
+    main only ever fast-forwards; clean deletes a branch only when every commit
+    is on main by patch id
   - >-
     push runs the repo's own pre-push gate with the bypass variable scrubbed
     from the environment; a red gate is quoted, never bypassed; a repo behind

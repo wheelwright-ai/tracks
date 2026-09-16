@@ -10,7 +10,12 @@ paid by exploration instead of operator restatement.
 
 ## What it does
 
-Bound to `SessionStart`. If a lug is active (`runtime/active-lug.json`
+Bound to `SessionStart`. Opens with the operator BOARD (lug
+session-start-injection-action-block-then-delta-digest, E2: net-net,
+CURRENT / IN FLIGHT / NEXT / YOURS, handoff, active lug, closeout
+findings, vetoable acts -- `src/conductor/statusBoard.js`, the same board
+`hf status` prints, under 1,200 chars, every row naming its store). Then,
+if a lug is active (`runtime/active-lug.json`
 exists), injects its **full** YAML content as `additionalContext` -- per
 ruling 2026-08-27 (task 3), the active lug loads in full, since it's the
 one thing actually being worked on and a stranger picking it back up needs
@@ -31,3 +36,26 @@ is the narrower thing B3 asks for: making sure in-flight state is *already
 loaded* by the time the first turn starts, so Part C's fuller wakeup has
 something to build on rather than starting from the same "the model has to
 go discover this" gap this circle closes.
+
+## Carried findings rechecked (X3, 260916)
+
+Lug closeout-findings-carried-forward-and-rechecked-at-wakeup. Before the
+board is composed, `recheckCarriedFindings` (`src/lugTracking/
+sessionCheckpoint.js`) runs every finding the last handoff carried
+(`findings[]`, plus the pending set) through its own X1 recheck line, each
+under `RECHECK_TIMEOUT_MS` (3000 ms), the set under `RECHECK_BUDGET_MS`
+(10 000 ms) -- a start is never held past that. Condition gone (per the
+finding's `gone` rule) -> RESOLVED: one ledger row (`row_kind: decision`,
+naming the finding and the session that deferred it), never printed.
+Still true -> printed in the ACTION block (after the board, or after the
+active-lug block when one is in flight; before the backlog) as
+`carried from <session8>: <text> -- recheck: <cmd>`, and carried again
+with `deferred_by` unchanged and `carried` +1 (one per session start that
+saw it open). Could not run (timed out, no shell) -> printed as `unknown`,
+carried unchanged, never dropped. Seen open `CARRY_ESCALATION_COUNT` = 3
+times -> escalated: first in the block as `ESCALATED carried Nx`, one
+ledger row at the crossing; never dropped. The open set is written back
+to `runtime/last-handoff.json` (`findings_recheck` records the pass) and
+to the pending set, so a sibling waking on the same checkout does not
+retire the same finding twice. A composition with no session id (rule
+12's measurement) runs nothing and writes nothing.

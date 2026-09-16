@@ -36,3 +36,20 @@ tradeoffs, not oversights: this is the proactive half of the fix.
 intent at all -- it just compares what's on disk against what the verb
 actually wrote, so whatever slips past this heuristic still gets caught,
 just one turn later instead of immediately.
+
+## Sibling check: another repo's canonical checkout (2026-09-14)
+
+A basher-rooted top-level session edited harness-factory's canonical
+`src/` in place through Bash, unseen by every guard. After the `lugs/`
+check finds nothing, the same hook classifies the command's real write
+targets (dispatchScope's heuristic plus a `node -e`/`python -c` that shows
+a write call, and a bare `git mv|rm`) through
+`personaBoundary.checkCrossRepoWrite`: a non-dispatched session whose
+target resolves into a registered repo (own known-repos.json plus the
+hub's spoke cards) other than the one it stands in is refused with the
+persona guard's cross-repo sentence -- the two sanctioned paths are a
+communication lug with `target_spoke`, or `queueDispatch` with
+`externalTargets` -- and the refusal lands on both repos' ledgers
+(`src/hooks/lib/crossRepoLedger.js`). A linked worktree, the scratchpad,
+declarative content and a dispatched session are outside the rule; a
+write in the session's own repo is as unseen here as before.

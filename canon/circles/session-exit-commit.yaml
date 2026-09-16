@@ -9,6 +9,8 @@ trigger: >-
   track closed
 inputs:
   - closed_track_artifact
+  - session_files_touched_record
+  - session_transcript
   - session_registry_row
   - last_test_run_record
   - spoke_profile_posture
@@ -16,13 +18,23 @@ outputs:
   - commit
   - push_result
   - ledger_row
+  - exit_verdict
 invariants:
+  - >-
+    the staged set is only this session's own files (its files-touched record
+    unioned with its transcript's tool_use blocks) plus the hook-written harness
+    state, by pathspec -- never `git add -A`; a file a live peer lane also
+    touched is contended and left with a row naming both ids; a file this
+    session never touched is left and named for its lane, or as unattributed; a
+    commit that cannot attribute stays scoped, never widens (lug
+    session-exit-commit-sweeps-a-peer-lanes-in-flight-files, 260914)
   - >-
     no commit ever contains credential material: rule 13's credential patterns
     run over the staged set first, and a finding blocks the commit and unstages
   - >-
-    a red aggregator never reaches the mainline: the work lands on a WIP branch,
-    unpushed, with a ledger row
+    a red aggregator never reaches the mainline: the work lands on a wip/*
+    branch, unpushed, with a ledger row and a stderr line that both name the
+    branch and the verb that consumes it (`hf deploy --stage fold`)
   - >-
     never --force and never --no-verify: a rejected push and a refusing hook are
     both reported, never overridden
@@ -38,29 +50,40 @@ invariants:
     row carries the verdict line intact -- never the first 500 characters of
     gate chatter
   - >-
-    the hook's timeout is derived from measurement (hook_timeout_seconds: 480 =
-    2.2x the 217s a real two-repo exit took through three gates per repo on
-    260911), never a round default
+    the hook's timeout is derived from measurement (hook_timeout_seconds: 60 =
+    Claude Code's observed cancel window, three real /exit's on 2026-09-14
+    cancelled at ~60s whatever was declared), never a round default
   - >-
-    every step spends against that declared budget: the pre-commit and pre-push
-    gates inherit what is left (WHEEL_TEST_GATE_BUDGET_MS) and refuse TIMED
-    OUT/UNKNOWN inside it, a push that cannot fit is DEFERRED with a row and the
-    commit kept, and a repo reached with no budget is reported not attempted --
-    the hook is never cancelled mid-suite
+    every run prints exactly one verdict line on stderr, last
+    (`session-exit-commit: <repo>: committed N file(s) as <sha8>, push deferred
+    (<why>) | clean | REFUSED -- <cause> | push failed -- <cause> | wip <branch>
+    <sha8> (tree was red)`) and writes the same verdict to
+    runtime/exit-verdict.json {session_id, repo, verdict, detail, at, wall_ms},
+    the file wcl's closed: line reads, never the ledger tail (lug
+    exit-prints-one-verdict-line, 260916)
+  - >-
+    SessionEnd never runs the full suite: the commit gate gets a fixed 12s
+    budget (EXIT_GATE_BUDGET_MS) and DEFERS the suites it cannot reach to the
+    push gate by name; the push is never attempted at exit (a deferral row,
+    announced next wakeup); a repo reached after the 45s wall cap is DEFERRED
+    with a row, never started -- the hook always returns inside Claude Code's
+    window with every row written
 failure_routing: lug:session-exit-commit-failure
 counter_metric: session_exit_pushed_rate
 enforcement: hook
 depends_on:
+  - session-files-touched
   - external:session-end-handoff
   - external:session-track-write
   - external:session-registry
 consumers:
   - external:warmup-goals-review
+  - wcl-verify-then-launch
 runs_on: hook_event
 hook_event_name: SessionEnd
 hook_matcher: ''
 hook_script: src/hooks/sessionExitCommitHook.js
-hook_timeout_seconds: 480
+hook_timeout_seconds: 60
 conformance: >-
   conformance/fixtures/session-exit-commit/session-exit-commit.conformance.test.js
 concern: session-exit-commit-and-push

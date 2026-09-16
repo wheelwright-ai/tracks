@@ -51,23 +51,29 @@ retunable by a future lug without touching hook logic:
   nothing at dispatch; that fork just hands its writes back to the parent.
 
 Tying a fork to its dispatch is a correlation, not an identity, and is
-measured: across 2058 real captured fork tool calls and 12 real dispatch
-calls, the dispatch carries `session_id` + `prompt_id` and no `agent_id`;
-the fork's calls carry the same two plus `agent_id`/`agent_type`; and
-`agent_id` never equals the dispatch's `tool_use_id`. Key: (`session_id`,
-`prompt_id`), falling back to `agent_type`. Two forks of one type in one
-turn, one restricted and one not, are indistinguishable, and the
-restrictive one binds both.
+measured (2058 captured fork calls, 12 dispatches): the dispatch carries
+`session_id` + `prompt_id` and no `agent_id`; the fork's calls carry the
+same two plus `agent_id`/`agent_type`; `agent_id` never equals the
+dispatch's `tool_use_id`. Key: (`session_id`, `prompt_id`), falling back
+to `agent_type`.
+
+## Path, action, or whole surface
+
+A typed `restricted_targets` element binds a `path` (writes there only)
+or an `action` (`git <verb>` only, never the write surface); `[]` is the
+whole-surface fail-safe. Refusals name the reading. A bare imperative
+("Check ...") declares only when the prompt has no positive write
+instruction. See `docs/scope-guard-action-restriction.md`.
 
 ## Known, accepted gaps
 
-Same class of gap every heuristic guard here accepts: indirect phrasing
-("keep changes minimal") can evade the pattern. It catches the direct,
-common claimed-restriction phrasing, not every way of asking an agent to
-behave narrowly in prose.
+Same class every heuristic guard here accepts: indirect phrasing ("keep
+changes minimal") evades the pattern; it catches the direct, common
+claimed-restriction phrasing only.
 
 Second check: the correlation limit above is real; the Bash write-shape
-test is `dispatchScope.writeTargetsForTool`'s heuristic, so a write hidden
-inside `node -e` or a called script is not caught; and a fork dispatched
-with no declaration is untouched by design -- the ruling's own definition
-of an honest Agent-tool use, where `agent-target-scope-guard` takes over.
+test is `dispatchScope.writeTargetsForTool`'s heuristic (a write hidden in
+`node -e` or a called script is missed, and an action restriction sees
+`git <verb>` / `hf <verb>` only); a fork dispatched with no declaration is
+untouched by design -- the ruling's honest Agent-tool use, where
+`agent-target-scope-guard` takes over.

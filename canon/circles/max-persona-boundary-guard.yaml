@@ -63,6 +63,13 @@ invariants:
     (isSelfHostingFramework, no canon/profile.yaml) runs in warn posture by
     default; a scaffolded spoke stays deny; an explicit canon posture always
     wins
+  - >-
+    a target inside ANOTHER registered repo's canonical checkout (own
+    known-repos.json plus the hub's spoke cards; a linked worktree or the
+    scratchpad is never one) is refused regardless of posture, names the two
+    sanctioned paths (a communication lug with target_spoke, or queueDispatch
+    with externalTargets), and lands a row on both repos' ledgers -- 2026-09-14,
+    a basher session edited harness-factory in place
 failure_routing: lug:max-persona-boundary-enforced-mechanically-not-by-memory
 counter_metric: top_level_application_code_authorship_refusal_rate
 enforcement: hook

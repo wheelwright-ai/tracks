@@ -40,7 +40,12 @@ one module (`src/messaging/inboxDelta.js`):
    every read; the only write the circle makes. A missing cursor writes one at the
    current length and injects nothing, so a fresh session is not
    replayed 2,600 rows; it hears from its first prompt on. A compaction
-   does not touch runtime/, so the cursor survives it.
+   does not touch runtime/, so the cursor survives it. The cursor also
+   carries the operator board's per-section signature (lug
+   session-start-injection-action-block-then-delta-digest): a section
+   that moved since the last prompt -- a dispatch landed, a push passed or
+   was refused, a cut applied -- adds ONE `BOARD DELTA:` line under the
+   block (`src/conductor/statusBoard.js` describeBoardDelta).
 
 ## Known, accepted gaps
 

@@ -1,0 +1,83 @@
+kind: circle
+name: closeout-report
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  the operator asks to end a session and the agent audits the closeout before
+  /exit -- `node scripts/closeout.js --session-id=<id> [--json] [--cwd=<dir>]
+  [--transcript=<path>] [--remote-timeout=<ms>]` in any spoke that received the
+  cut; buildCloseoutReport (src/lugTracking/closeoutReport.js) is the one
+  composer, and X2's closeout-request injection (out of scope here) is its
+  intended in-session caller
+inputs:
+  - git_worktree
+  - session_registry_row
+  - track
+  - files_touched_record
+  - ledger_row
+  - default_forward_decision
+  - lug
+outputs:
+  - closeout_report
+  - handoff_preview
+invariants:
+  - >-
+    READ-ONLY, PROVEN: no git mutation, no store append, no lug transition, ever
+    -- the fixture hashes the whole tree (HEAD, refs, index content, every
+    working-tree file's size and mtime) before and after a run against the real
+    wheel-hub and requires equality. What to do about a finding is the agent's
+    decision after reading it, never this circle's
+  - >-
+    NO PARALLEL IMPLEMENTATION: the handoff preview is buildHandoff's own
+    object; the upkeep rows are evaluateUpkeepManifest's own results; live peers
+    come from liveSessionsAt over the session registry (readRegistry +
+    evaluateLiveness); the repo set is registeredRepoRoots (known-repos.json +
+    the hub's spoke cards); vetoable acts are openDecisions. A reading this
+    circle needs and the hooks do not have is added to the hook's module, never
+    copied here
+  - >-
+    ONE CLASSIFICATION LIST: telemetry | work | unknown is handoff.js's exported
+    DIRTY_FILE_CLASSES, imported by the report and by buildHandoff, so the
+    report an agent acts on and the handoff the next session reads cannot
+    disagree; the fixture changes the list and sees both move
+  - >-
+    EVERY FINDING CARRIES A STABLE ID AND A ONE-LINE RECHECK: the id is
+    <kind>:<repo-name-or-lug-name>, never a path or a timestamp, so the same
+    finding is the same id on the next run and in X3's carried-forward list; the
+    recheck is one shell line that re-derives it without this script, and the
+    fixture runs the rechecks and requires them to agree
+  - >-
+    THE TWO SESSIONEND-WRITTEN UPKEEP ASSETS ARE NOT FINDINGS: handoff and
+    session_registry_row are written by sessionEndHandoffHook BEFORE it
+    evaluates them, so evaluated in-session they are MISSED by construction;
+    they are reported as rows marked settles_at_session_end and never counted --
+    a finding that fires on every run is noise, not a finding
+  - >-
+    A SESSION WITH NO FINDINGS PRINTS ONE LINE AND EXITS 0; a finding is
+    information, never a non-zero exit -- only a usage error (no session id)
+    exits 2
+  - >-
+    THE REMOTE PROBE IS BOUNDED: git ls-remote per repo, all repos at once,
+    killed at the timeout (default 1000 ms, --remote-timeout widens it); a
+    remote that did not answer is reported as such with the measured wait, never
+    as refused
+failure_routing: lug:closeout-report-script
+counter_metric: exit_findings_first_seen_at_session_end
+enforcement: kernel_check
+depends_on:
+  - session-end-handoff
+  - session-registry
+  - session-files-touched
+  - default-forward-veto-ledger
+  - circle-completeness-audit
+consumers:
+  - session-end-handoff
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: conformance/fixtures/closeout-report/closeout-report.conformance.test.js
+concern: closeout-report-script
+instructions_ref: reference/circles/closeout-report.md
+duplicate_of: closeout-report

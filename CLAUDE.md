@@ -16,7 +16,7 @@ and the preferred way to do a task where more than one tool exists.
 
 ## Live policies (0)
 
-## Live circles (84)
+## Live circles (88)
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
@@ -28,6 +28,8 @@ and the preferred way to do a task where more than one tool exists.
 - **cartographer-commit-trigger** (hook_event): a real git commit lands in harness-factory (PostToolUse, Bash matching git commit)
 - **chain-disposition** (on_demand): an operator or third-party session asks for a chain's verdict -- `node scripts/chain-disposition.js <chain-id> [--write --session-id=<id>]`
 - **circle-completeness-audit** (hook_event): a real session starts (SessionStart event)
+- **closeout-report** (on_demand): the operator asks to end a session and the agent audits the closeout before /exit -- `node scripts/closeout.js --session-id=<id> [--json] [--cwd=<dir>] [--transcript=<path>] [--remote-timeout=<ms>]` in any spoke that received the cut; buildCloseoutReport (src/lugTracking/closeoutReport.js) is the one composer, and X2's closeout-request injection (out of scope here) is its intended in-session caller
+- **closeout-request** (hook_event): a real prompt is submitted (UserPromptSubmit) and, read clause by clause, it asks to end the session -- a phrase from canon/closeout-request-phrases.yaml (end here, wrap up, close out, closeout, lets end) with no negation guard earlier in its clause and no code path, identifier or backticked span in that clause
 - **communication-inbox** (schedule): a session starts -- every SessionStart composes the goals review (buildGoalsReviewInjectionParts, src/conductor/goalsReview.js), which reads the inbox live and prints the one digest line, and the SessionStart wheel-clock catch-up fires the job when a tick is owed -- and the spoke's wheel_clock job communication_inbox (JOB_RUNNERS.communicationInbox) on its declared cadence, for the out-of-session loop: the spoke reads every sibling spoke's lugs/ for type: communication lugs whose target_spoke names it and whose status is still open (not fulfilled / declined / closed), ranks them through rankCommunicationInbox (src/conductor/readyWork.js, the ONE ordering the ready-work queue, the senior inbox and the advisor inbox all call), and writes only its own runtime/communication-inbox.json
 - **communication-inbox-delta** (hook_event): a real prompt is submitted (UserPromptSubmit), and the hub's messages/messages.jsonl or lugs/ holds a row addressed to this spoke that this session's cursor has not shown
 - **conductor-harness-factory-leverage-routing** (on_demand): buildReadyWorkQueue (src/conductor/readyWork.js) is called to rank the ready-work queue -- every real caller: goalsReview.js, warmup.js, conductor.js's planRouting, waveDecision.js's candidate-pool build, factory/positionMap.js, lugTracking/handoff.js
@@ -63,6 +65,7 @@ and the preferred way to do a task where more than one tool exists.
 - **lug-lifecycle-tracker** (hook_event): a lug's state field is edited to in_progress or done
 - **lug-ownership-claims** (on_demand): a lug's ownership is claimed, contested or diverged -- applyLugVerb (src/lugTracking/lugVerb.js) appends a claim at in_progress and a release at review/done, refusing a lug another LIVE session holds unless --drive=<reason> or --collaborate=<sub-scope>; `node scripts/lug-claim.js list|contend|release` reads the table on demand; the four lug-write guards (bash-lug-guard, definition-complete-gate, ready-gate-stub, lug-lifecycle-tracker) refuse a write to another live session's claimed lug through src/hooks/lib/claimGuard.js; the session-end handoff releases what the ending session held; lugIntegrity.classifyViolation, a dirty-file takeover or `node scripts/lug-divergence.js resolve` write or settle runtime/divergences/<id>.json
 - **lug-type-lifecycles** (on_demand): a lug's type-specific lifecycle is consulted -- every applyLugVerb transition reads statesForLug (src/lugTracking/lugType.js) at the one sanctioned mutation path; every schema validation of a lug applies the per-type state enum in schemas/lug.schema.json; and the lug-integrity-checksum heal reads resetStateForLug to pick the entry state of the lug's OWN lifecycle
+- **lug-write-schema-gate** (hook_event): a Write, Edit or NotebookEdit call is about to land on lugs/*.yaml, in any session -- top-level or dispatched, at any lug state
 - **max-persona-boundary-guard** (hook_event): a Write, Edit or NotebookEdit call is about to run from the top-level (non-dispatched) session
 - **notification-agent-waiting-notify** (hook_event): Claude Code sends a real permission_prompt or idle_prompt notification
 - **orphan-dispatch-disposition** (on_demand): an orphaned dispatch row is re-reconciled against the real evidence its child left on disk -- `node scripts/orphan-disposition.js <instanceRoot>` runs the sweep on demand, and every session start reports the standing result once through goalsReview.js's buildOrphanDispositionSection
@@ -84,12 +87,13 @@ and the preferred way to do a task where more than one tool exists.
 - **session-end-handoff** (hook_event): a real session ends (SessionEnd event)
 - **session-end-notify** (hook_event): a real session ends
 - **session-exit-commit** (hook_event): a real session ends (SessionEnd event), after the handoff is written and the track closed
+- **session-files-touched** (hook_event): a tool call that can write completes (PostToolUse on Edit, Write, NotebookEdit, Bash)
 - **session-registry** (hook_event): a session starts (SessionStart event)
 - **session-start-warmup** (hook_event): a session starts
 - **session-track-write** (hook_event): a turn ends (Stop event)
 - **stop-agent-waiting-notify** (hook_event): a real turn completes -- Claude stopped and is waiting
 - **stop-turn-marker** (hook_event): a turn ends (Stop event)
-- **success-prediction** (on_demand): a success prediction is registered, superseded or reviewed -- registerPrediction / supersedePrediction / reviewPrediction / reviewDuePredictions (src/conductor/successPrediction.js), via scripts/success-prediction.js on demand; and every session start, where buildSuccessPredictionSection reports verdict counts through goalsReview.js
+- **success-prediction** (on_demand): a prediction is registered, superseded or reviewed (src/conductor/successPrediction.js; scripts/success-prediction.js on demand); the wheel-clock job success_prediction_review grading what is due, the calling session as reviewer; every autopilot run's ROI extraction reading the registry (roiExtraction.js prediction-missed rule); and every session start, where buildSuccessPredictionSection reports counts
 - **tastegraph-injection** (hook_event): a real prompt is submitted (UserPromptSubmit), after the wakeup block handed the session the merged tastegraph and a master or overlay change has landed since
 - **temporary-limit-boost-awareness** (on_demand): a caller asks whether a temporary rate-limit boost is currently active on this account -- every conductor heartbeat tick (detectLimitBoost + boostExpiryAlert), every paceFromReading given a boost fact, and every headless usage poll's own operator-facing output
 - **test-lug-traceability** (hook_event): a new test file is written

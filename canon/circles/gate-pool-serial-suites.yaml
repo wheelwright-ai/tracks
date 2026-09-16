@@ -30,8 +30,14 @@ invariants:
     verdict prints
   - >-
     a timing window is never below its old literal (the floor) and never sized
-    by anything but the box's measured spawn latency, timer lateness and clock
-    step; the measurement is printed with the run
+    by anything but the box's measured spawn latency, timer lateness, clock step
+    and 1-minute load per cpu; the measurement is printed with the run, and past
+    the load ceiling the load-sensitive checks SKIP with the number, never FAIL
+    and never silently
+  - >-
+    a red serial-first timing suite is re-run once, alone, after the pool closes
+    -- NEW RED only if both runs fail, both outcomes quoted with the load at
+    each; never the corpus, never a pooled suite
   - >-
     a lease that ran out at the run's own budget deadline is ended by the
     supervisor's wall-clock arm at the budget's real end (>= timeoutMs) and

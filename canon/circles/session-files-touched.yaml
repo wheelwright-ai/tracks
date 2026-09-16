@@ -1,0 +1,47 @@
+kind: circle
+name: session-files-touched
+owner: basher
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a tool call that can write completes (PostToolUse on Edit, Write,
+  NotebookEdit, Bash)
+inputs:
+  - tool_call
+  - session_id
+outputs:
+  - session_files_touched_record
+invariants:
+  - >-
+    one row per path the finished call wrote to, keyed by the session (and the
+    fork's agent_id when present) that made it, in
+    runtime/files-touched/<session_id>.jsonl under the session's cwd
+  - >-
+    targets are the write-scope guard's own extraction (writeTargetsForTool,
+    src/lugTracking/dispatchScope.js) -- one extractor for 'what does this call
+    write', never a second
+  - 'a read-shaped call records nothing: no row, no file created'
+  - >-
+    recorded paths are absolute and alias-free (realpath of the deepest existing
+    ancestor), so a symlinked project root compares equal to its target
+  - >-
+    never blocks, never prints on allow, exits 0 even when the record cannot be
+    written -- the tool call it observed is not this hook's to fail; the
+    transcript is the exit commit's second source
+failure_routing: lug:session-exit-commit-sweeps-a-peer-lanes-in-flight-files
+counter_metric: session_exit_files_left_rate
+enforcement: hook
+depends_on:
+  - agent-target-scope-guard
+consumers:
+  - session-exit-commit
+runs_on: hook_event
+hook_event_name: PostToolUse
+hook_matcher: Edit|Write|NotebookEdit|Bash
+hook_script: src/hooks/filesTouchedRecorderHook.js
+conformance: >-
+  conformance/fixtures/session-exit-path-fails-five-ways-and-surfaces-none-of-them/session-exit-path.conformance.test.js
+concern: per-session-file-attribution
+instructions_ref: reference/circles/session-files-touched.md
+duplicate_of: session-files-touched

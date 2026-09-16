@@ -20,38 +20,24 @@ itself the same way `conformance:circles` does, a real compile of its
 own canon; an adopted spoke uses the real recompile-and-diff check,
 `checkSpokeDrift`), pending-cut application per the spoke's own declared
 posture (never a hard launch-blocker -- a held cut is reported, not
-refused), the custody check (composes the standing config dir, then
-diffs it against canon), secrets resolution and a real, zero-cost
-credential pre-flight, then launch -- with `--model` set from the
-spoke's own declared `model_lane`, falling back to the operator's own
-global default so an isolated config dir never silently drops it.
+refused), the custody check (the spoke's own local settings against
+canon -- see below), secrets resolution and a zero-cost credential
+pre-flight, then launch with `--model` from the spoke's `model_lane`.
 
-Real, verified finding before this was written (260901-FBL-056): no v1
-`wcl`/`claude()`/`_claude_clean_env` shell functions exist anywhere on
-this machine -- confirmed with a real interactive-shell `type` check.
-`~/.local/bin` was already on `PATH`, so installing `wcl` needed no
-`.bashrc` edit at all -- a lower-risk action than the shadow-and-rename
-plan FBL-056 described, not a shortcut around it.
+Verified before writing (260901-FBL-056): no v1 shell functions shadowed
+`wcl`/`claude` (a real `type` check); `~/.local/bin` was already on `PATH`.
 
-Shadow-aware delegation for minder: checked before any other step, read
-fresh from the real deploy lug's own `state` field on every single
-launch (never cached) -- `wcl minder` delegates to a plain, unwrapped
-`claude` launch (no composed environment at all) while
-`deploy-minder-minder-v2-tooling-*`'s own lug is anything but `done`,
-and switches to a full v2, composed launch the moment it reaches `done`
--- no further edit to this circle required.
+Shadow-aware delegation for minder: read fresh from the deploy lug's own
+`state` on every launch (never cached) -- `wcl minder` delegates to a
+plain `claude` launch while `deploy-minder-minder-v2-tooling-*` is
+anything but `done`, and composes the moment it is.
 
 ## Known, accepted gaps
 
-The stale-instance check is a real, sometimes-inconvenient gate: a spoke
-that IS genuinely behind current canon (an adopted spoke that hasn't
-absorbed a newer framework cut yet) is refused, on purpose -- remediation
-is a separate, explicit action (apply the pending cut), not something
-this circle silently does on the operator's behalf just to get a launch
-unblocked. Minder delegation is gated on the literal spoke name
-`"minder"`, not a general "any unpromoted deployment" mechanism -- real
-and sufficient for this build's one real shadow window, not yet
-generalized to a second one.
+The stale-instance check is a real gate: a spoke genuinely behind canon
+is refused on purpose -- applying the pending cut is a separate, explicit
+action. Minder delegation is gated on the literal name `"minder"`, not a
+general "any unpromoted deployment" mechanism.
 
 ## Hook resolution (260911)
 
@@ -61,3 +47,27 @@ no src/. Step 3b (`checkHookBindingResolution`, src/factory/hookBindingDrift.js)
 now runs after the cut in both `wcl <spoke>` and `launchSpoke`, and refuses a
 hook whose path does not exist -- named per hook. An adopting spoke regenerates
 only through scaffold/applyCut with frameworkRoot.
+
+## The closed: line (260916)
+
+After `spawnSync` returns, `composeClosedLine` (wclEntry.js) reads
+`runtime/last-handoff.json`, the session's track, `git status
+--porcelain` and `runtime/exit-verdict.json` (the exit hook's file, not
+the ledger tail) and prints one line: `closed: track ok, handoff ok, tree
+clean, exit <repo>: committed 3 file(s) as <sha8>, push deferred (...),
+took 812s`. A file is this session's by id (ozi/resume) or, on a raw
+launch, by being written after the launch; older reads as missing. 4 ms
+on a scratch spoke, 103 ms on a 221-file-dirty hub. Record: wheel-hub
+`docs/exit-prints-one-verdict-line.md`.
+
+## The global sign-in (260916)
+
+Operator ruling 2026-09-14 (lug wcl-launches-on-the-global-sign-in-
+spokes-hold-only-local-settings): every interactive entry runs on the
+operator's own `~/.claude` -- no `CLAUDE_CONFIG_DIR`, no per-spoke store,
+no credential copy, no fleet token. The spoke contributes its
+`.claude/settings.json` (+ `settings.local.json`): step 4 is
+`checkLocalSettingsCustody` on those; the Sign-in row is
+`globalAuthPreflight` on `~/.claude`, fixed by `claude auth login` before
+the launch. Headless `launchSpoke` keeps the isolated store. Record:
+`docs/config-custody-manifest.md`.

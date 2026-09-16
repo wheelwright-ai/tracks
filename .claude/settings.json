@@ -168,6 +168,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/lugSchemaGateHook.js",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
             "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/maxPersonaBoundaryGuardHook.js",
             "timeout": 30
           }
@@ -211,6 +221,16 @@
           {
             "type": "command",
             "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/captureDirectionHook.js",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/closeoutRequestHook.js",
             "timeout": 30
           }
         ]
@@ -283,6 +303,16 @@
           {
             "type": "command",
             "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/crossProviderVerificationHook.js",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/filesTouchedRecorderHook.js",
             "timeout": 30
           }
         ]
@@ -391,7 +421,7 @@
           {
             "type": "command",
             "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionExitCommitHook.js",
-            "timeout": 480
+            "timeout": 60
           }
         ]
       }

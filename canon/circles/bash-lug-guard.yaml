@@ -12,6 +12,11 @@ outputs:
 invariants:
   - never blocks the kernel verb script itself
   - heuristic, not a parser -- documented as such, not claimed as complete
+  - >-
+    sibling check: a write-shaped target (redirect, sed -i, tee, cp/mv/rm,
+    node/python write, git mv) resolving into another registered repo's
+    canonical checkout is refused for a top-level session with the persona
+    guard's cross-repo sentence, rows on both repos
 failure_routing: lug:bash-lug-guard-failure
 counter_metric: bash_lug_write_block_rate
 enforcement: hook

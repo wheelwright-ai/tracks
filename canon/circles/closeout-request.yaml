@@ -1,0 +1,64 @@
+kind: circle
+name: closeout-request
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a real prompt is submitted (UserPromptSubmit) and, read clause by clause, it
+  asks to end the session -- a phrase from canon/closeout-request-phrases.yaml
+  (end here, wrap up, close out, closeout, lets end) with no negation guard
+  earlier in its clause and no code path, identifier or backticked span in that
+  clause
+inputs:
+  - user_prompt
+  - closeout_request_phrases
+outputs:
+  - closeout_protocol_injection
+invariants:
+  - >-
+    THE PHRASE LIST IS CANON, NOT SOURCE: canon/closeout-request-phrases.yaml
+    (kind closeout_request_phrases) is the one list;
+    src/hooks/closeoutRequestHook.js and its loader carry no phrase literal and
+    no built-in fallback -- no readable canon in the instance or the framework
+    checkout means no match, never a guess; the fixture changes the canon file
+    and sees the match change
+  - >-
+    CONSERVATIVE: a miss costs the operator one prompt, a false match costs a
+    wrong protocol block, so a negation guard (don't, do not, not yet, before
+    we, instead of) earlier in the same clause suppresses the hit, and a clause
+    carrying a code path, an identifier or a backticked span never matches; the
+    injected block itself opens with 'ignore this block if the prompt is not a
+    closeout'
+  - >-
+    A NON-CLOSEOUT PROMPT IS UNTOUCHED: no match writes empty stdout and nothing
+    but the capture row every hook writes; the fixture composes the other
+    UserPromptSubmit hooks with and without this hook and proves byte equality
+  - >-
+    THE BLOCK IS THE PROTOCOL, NOT THE REPORT: it names scripts/closeout.js with
+    the real session id, the act-or-defer rule (scoped git commit by pathspec,
+    kernel-verb transitions, acknowledge own misses, repair upkeep; defer =
+    finding + recheck command in the reply), that push never happens in-session,
+    and the closing verdict line; it is measured by the fixture and its token
+    count stated in the circle doc, because it rides every matched prompt
+  - >-
+    NEVER BLOCKS THE PROMPT: exit 0 on every path, a missing session id or an
+    unusable canon file included
+failure_routing: lug:closeout-request-injects-the-protocol
+counter_metric: closeout_prompts_answered_without_the_protocol
+enforcement: hook
+depends_on:
+  - closeout-report
+  - capture-direction
+consumers:
+  - closeout-report
+  - external:operator
+interface_version: v1
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/closeoutRequestHook.js
+conformance: conformance/fixtures/closeout-request/closeout-request.conformance.test.js
+concern: closeout-request-injects-the-protocol
+instructions_ref: reference/circles/closeout-request.md
+duplicate_of: closeout-request

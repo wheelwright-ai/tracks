@@ -38,3 +38,17 @@ Planner's own reason (`isReadyForRouting`, `src/conductor/readyWork.js` --
 the build queue's own order), or `readPlannerCycle`'s verbatim reason when
 no usable cycle exists. Full list on disk in
 `defined_outside_planner_queue`; the injected text carries one bounded line.
+
+## Findings carried forward (X3, 260916)
+
+Lug closeout-findings-carried-forward-and-rechecked-at-wakeup: the handoff
+carries `findings[]` {id, text, recheck, gone, deferred_by, carried} --
+what this checkout deferred at closeout (`node scripts/closeout.js
+--defer=<finding-id>`, X2's DEFER step as one command: it copies X1's own
+finding, same id, same recheck line, same `gone` rule, into
+`runtime/handoff-findings.json`) plus what the last wakeup carried again.
+`buildHandoff` reads that pending set through `validateHandoffFinding`;
+an entry with no recheck is REFUSED, named with its reason in
+`findings_refused` and the text, never written as a finding. The pending
+set is not cleared at exit (a sibling session's handoff may land after
+ours); the next wakeup's recheck is the one place a finding leaves it.
