@@ -21,7 +21,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 17 harness bookkeeping commit(s) in tracks (harness-arrival-audit 12, hf deploy: cut 5).
+- 19 harness bookkeeping commit(s) in tracks (harness-arrival-audit 13, hf deploy: cut 6).
 
 ## 2026-09-16
 
@@ -1486,13 +1486,13 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 39 (commit 27, cut_received 11, lug_review 1).
+Entries: 41 (commit 29, cut_received 11, lug_review 1).
 
 ## 2026-09-17
 
 ### cuts
 
-- 21:18Z cut b81e2bc1 received by tracks (previous 4a839956) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 21:18Z cut b81e2bc1 received by tracks (previous 4a839956) landed c065e2ee, posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..c065e2ee -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: git show c065e2ee:.cut-status.json
 - 20:33Z cut 4a839956 received by tracks (previous ca0e4076) landed 7c2adcaa, posture absorb_and_report: +0/~0/-0 circles for tracks (git 14fd1be8..7c2adcaa -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T20:29:51.348Z -- source: tracks: git show 7c2adcaa:.cut-status.json
 - 17:39Z cut ca0e4076 received by tracks (previous 89051371) landed 14fd1be8, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3e684e52..14fd1be8 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T17:36:55.978Z -- source: tracks: git show 14fd1be8:.cut-status.json
 - 16:17Z cut 89051371 received by tracks (previous 6e237e8f) landed 3e684e52, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1df4cd62..3e684e52 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T16:13:44.078Z -- source: tracks: git show 3e684e52:.cut-status.json
@@ -1502,6 +1502,7 @@ Entries: 39 (commit 27, cut_received 11, lug_review 1).
 
 ### runtime
 
+- 21:18Z commit 7a618cda [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 7a618cda
 - 21:18Z commit 581cd582 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 581cd582
 - 20:33Z commit 26b718d2 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 26b718d2
 - 20:33Z commit 500d0bb6 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 500d0bb6
@@ -1528,6 +1529,10 @@ Entries: 39 (commit 27, cut_received 11, lug_review 1).
 - 09:50Z commit bb150bb4 [tracks] harness-arrival-audit: absorbed 2 file(s) on cut arrival -- 2 file(s), area ledger -- source: tracks: git log main bb150bb4
 - 00:02Z commit 72e10cc9 [tracks] harness-arrival-audit: absorbed 2 file(s) on cut arrival -- 2 file(s), area ledger -- source: tracks: git log main 72e10cc9
 - 00:02Z commit ad5064f9 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area ledger -- source: tracks: git log main ad5064f9
+
+### repo root
+
+- 21:18Z commit c065e2ee [tracks] hf deploy: cut b81e2bc1c9a6 applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 3 file(s), area repo root -- source: tracks: git log main c065e2ee
 
 ## 2026-09-16
 
@@ -1579,7 +1584,7 @@ Entries: 39 (commit 27, cut_received 11, lug_review 1).
 
 ## Cut b81e2bc1 -- received 2026-09-17 21:18Z (from 4a839956)
 
-21:18Z cut b81e2bc1 received by tracks (previous 4a839956) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+21:18Z cut b81e2bc1 received by tracks (previous 4a839956) landed c065e2ee, posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..c065e2ee -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: git show c065e2ee:.cut-status.json
 
 Entries: 2 (commit 1, lug_review 1).
 
@@ -3074,4 +3079,4 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:a7e745284274c35bba26f0918e801deec6b6273e4c163c1a901c06593f688a89 -->
+<!-- integrity sha256:f4b92537fba9e1683deb5733f2b5c62b9d8a6ec3bde07525ce0987fe4231a8ed -->
