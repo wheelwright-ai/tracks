@@ -17,7 +17,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 5 harness bookkeeping commit(s) in tracks (harness-arrival-audit 4, hf deploy: cut 1).
+- 7 harness bookkeeping commit(s) in tracks (harness-arrival-audit 5, hf deploy: cut 2).
 
 ## 2026-09-16
 
@@ -1365,7 +1365,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 22 (commit 15, cut_received 7).
+Entries: 24 (commit 17, cut_received 7).
 
 ## 2026-09-17
 
@@ -1377,14 +1377,19 @@ Entries: 22 (commit 15, cut_received 7).
 
 ### cuts
 
-- 09:49Z cut 6e237e8f received by tracks (previous 8e61551f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 09:49Z cut 6e237e8f received by tracks (previous 8e61551f) landed 1df4cd62, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..1df4cd62 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: git show 1df4cd62:.cut-status.json
 - 06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
 - 00:02Z cut c8ec1341 received by tracks (previous 21926af8) landed 7b156f5f, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed cross-provider-verification (git 56d36285..7b156f5f -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 0 lug(s) closed at 2026-09-16T23:49:56.148Z -- source: tracks: git show 7b156f5f:.cut-status.json
 
 ### ledger
 
+- 09:50Z commit bb150bb4 [tracks] harness-arrival-audit: absorbed 2 file(s) on cut arrival -- 2 file(s), area ledger -- source: tracks: git log main bb150bb4
 - 00:02Z commit 72e10cc9 [tracks] harness-arrival-audit: absorbed 2 file(s) on cut arrival -- 2 file(s), area ledger -- source: tracks: git log main 72e10cc9
 - 00:02Z commit ad5064f9 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area ledger -- source: tracks: git log main ad5064f9
+
+### docs
+
+- 09:49Z commit 1df4cd62 [tracks] hf deploy: cut 6e237e8f934a applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 2 file(s), area docs -- source: tracks: git log main 1df4cd62
 
 ## 2026-09-16
 
@@ -1432,7 +1437,7 @@ Entries: 22 (commit 15, cut_received 7).
 
 ## Cut 6e237e8f -- received 2026-09-17 09:49Z (from 8e61551f)
 
-09:49Z cut 6e237e8f received by tracks (previous 8e61551f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+09:49Z cut 6e237e8f received by tracks (previous 8e61551f) landed 1df4cd62, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..1df4cd62 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: git show 1df4cd62:.cut-status.json
 
 Entries: 4 (commit 4).
 
@@ -2836,4 +2841,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:52c4b031ba29ecb7bbfe88d101dd147ffedd914544b7d516cf72ee920ab5bce6 -->
+<!-- integrity sha256:a84bed7ddf2268c6afd36f7208acb78e3feac188f85b0b06e444f953fa988b0b -->
