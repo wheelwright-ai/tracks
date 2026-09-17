@@ -1,15 +1,31 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "6e237e8f934a3cc3fd0d5fa93b0fb9e0c49915bd",
+  "version": "8905137109da08e7995bd15e22ed4dcd518195b9",
   "liveApplied": false,
   "announcedSessions": [],
   "arrivalAudit": {
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-17T09:50:00.435Z",
+      "auditedAt": "2026-09-17T16:17:03.475Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "docs/CHANGELOG.md",
+          "statusCode": " M",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -26,8 +42,8 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 2,
+        "LEGITIMATE_CUT_ABSORPTION": 1,
+        "ORGANIC_RUNTIME_CHURN": 3,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       }
@@ -35,14 +51,16 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
+        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json"
       ],
-      "commit": "bb150bb42ca3cbf2a371b3df2ac3c493af259f3d",
+      "commit": "107f3c9e5d0b83469349fef73c563e169edcb113",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789638600493-9em4d1"
+        "ldg-arrival-audit-committed-1789661823623-nntv24"
       ]
     },
     "profileSeeding": {
@@ -74,7 +92,7 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-17T09:50:01.411Z",
+  "appliedAt": "2026-09-17T16:17:04.413Z",
   "previous_version": "6e237e8f934a3cc3fd0d5fa93b0fb9e0c49915bd",
   "cut_owned_files": [
     "canon/circles",

@@ -11,13 +11,14 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
+- Cut 89051371 received (from 6e237e8f), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 6e237e8f received (from 8e61551f), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 8e61551f received (from c8ec1341), posture absorb_and_report: 3 circle(s) gained (zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start); 14 changed (calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch); hooks bound: PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
 - Cut c8ec1341 received (from 21926af8), posture absorb_and_report: 1 changed (cross-provider-verification).
 
 ### harness bookkeeping
 
-- 7 harness bookkeeping commit(s) in tracks (harness-arrival-audit 5, hf deploy: cut 2).
+- 8 harness bookkeeping commit(s) in tracks (harness-arrival-audit 6, hf deploy: cut 2).
 
 ## 2026-09-16
 
@@ -50,6 +51,20 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 89051371 -- received 2026-09-17 16:17Z (from 6e237e8f)
+
+Cut 89051371 received (from 6e237e8f), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### 2026-09-17
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- Drive: a Stop whose NEXT is dispatchable with no YOURS blocker and nothing started that turn is a drive-miss injected on the next prompt; unattended 30 min, the session self-continues with the NEXT as its prompt (kill switch clear, envelope headroom, every resume a ledger row).
+
+#### wheel-agents-talk-up-down-and-across
+
+- A cut landing on a spoke makes the live session's next prompt a closeout: the UserPromptSubmit hook sees .cut-status.json newer than the session's registered cut, injects one block ("cut <sha> applied at <t>; this session is on <old>; finish the turn, then exit -- wcl <spoke> relaunches on the new rules") and the session-end handoff records cut_relaunch_required; wcl <spoke> after that runs the full sequential warmup (compile, drift, arrival audit, secrets, freshness, persona handoff) and refuses to launch a session on a stale cut.
 
 ## Cut 6e237e8f -- received 2026-09-17 09:49Z (from 8e61551f)
 
@@ -1365,21 +1380,22 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 24 (commit 17, cut_received 7).
+Entries: 26 (commit 18, cut_received 8).
 
 ## 2026-09-17
+
+### cuts
+
+- 16:17Z cut 89051371 received by tracks (previous 6e237e8f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 1df4cd62..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T16:13:44.078Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 09:49Z cut 6e237e8f received by tracks (previous 8e61551f) landed 1df4cd62, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..1df4cd62 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: git show 1df4cd62:.cut-status.json
+- 06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
+- 00:02Z cut c8ec1341 received by tracks (previous 21926af8) landed 7b156f5f, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed cross-provider-verification (git 56d36285..7b156f5f -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 0 lug(s) closed at 2026-09-16T23:49:56.148Z -- source: tracks: git show 7b156f5f:.cut-status.json
 
 ### canon
 
 - 09:49Z commit 1f8a6d8c [tracks] harness-arrival-audit: absorbed 28 file(s) on cut arrival -- 28 file(s), area canon -- source: tracks: git log main 1f8a6d8c
 - 06:59Z commit 2706435e [tracks] harness-arrival-audit: absorbed 4 file(s) on cut arrival -- 4 file(s), area canon -- source: tracks: git log main 2706435e
 - 00:02Z commit 7b156f5f [tracks] hf deploy: cut c8ec1341cbd4 applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 2 file(s), area canon -- source: tracks: git log main 7b156f5f
-
-### cuts
-
-- 09:49Z cut 6e237e8f received by tracks (previous 8e61551f) landed 1df4cd62, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..1df4cd62 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: git show 1df4cd62:.cut-status.json
-- 06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
-- 00:02Z cut c8ec1341 received by tracks (previous 21926af8) landed 7b156f5f, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed cross-provider-verification (git 56d36285..7b156f5f -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 0 lug(s) closed at 2026-09-16T23:49:56.148Z -- source: tracks: git show 7b156f5f:.cut-status.json
 
 ### ledger
 
@@ -1389,6 +1405,7 @@ Entries: 24 (commit 17, cut_received 7).
 
 ### docs
 
+- 16:17Z commit 107f3c9e [tracks] harness-arrival-audit: absorbed 4 file(s) on cut arrival -- 4 file(s), area docs -- source: tracks: git log main 107f3c9e
 - 09:49Z commit 1df4cd62 [tracks] hf deploy: cut 6e237e8f934a applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 2 file(s), area docs -- source: tracks: git log main 1df4cd62
 
 ## 2026-09-16
@@ -1434,6 +1451,22 @@ Entries: 24 (commit 17, cut_received 7).
 - 00:18Z commit 1339bab0 [tracks] tracks: retire the v1 WAI-Harness machinery to /home/mario/projects/.archived/tracks-v1-260914 (WAI-Harness/, .claude/hooks, wai-enter/exit, the v1 settings and CLAUDE.md, basher's v1 session-cost advisor and its test) -- fully on the v2 harness (cut 66e48e3a); WAI-Spoke/sessions stays (Track files, product data) -- 1711 file(s), area WAI-Harness -- source: tracks: git log main 1339bab0
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 89051371 -- received 2026-09-17 16:17Z (from 6e237e8f)
+
+16:17Z cut 89051371 received by tracks (previous 6e237e8f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 1df4cd62..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T16:13:44.078Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 2 (commit 2).
+
+### 2026-09-17
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- 15:23Z commit 89051371 [harness-factory] advisor-drives-to-the-natural-end-point-and-landings-reach-the-operator-out-of-band: land notifications and drive-miss self-continue -- lug advisor-drives-to-the-natural-end-point-and-landings-reach-the-operator-out-of-band -- 19 file(s), area src/hooks -- source: harness-factory: git log main 89051371
+
+#### wheel-agents-talk-up-down-and-across
+
+- 14:58Z commit 2cfce55a [harness-factory] a-cut-ends-the-live-session-and-wcl-relaunches-it-on-the-new-rules: a cut landing on a spoke ends the live session's next prompt as a closeout, instead of it running for hours on hooks and canon a cut already replaced -- lug a-cut-ends-the-live-session-and-wcl-relaunches-it-on-the-new-rules -- 12 file(s), area src/hooks -- source: harness-factory: git log main 2cfce55a
 
 ## Cut 6e237e8f -- received 2026-09-17 09:49Z (from 8e61551f)
 
@@ -2841,4 +2874,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:a84bed7ddf2268c6afd36f7208acb78e3feac188f85b0b06e444f953fa988b0b -->
+<!-- integrity sha256:fe3e51e27b44a92880147a38639e561596b777420a9b56452ef107b708d2481d -->
