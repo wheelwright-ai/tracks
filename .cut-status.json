@@ -1,15 +1,31 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "8905137109da08e7995bd15e22ed4dcd518195b9",
+  "version": "ca0e407684498bd021bd8759095b2f91ae592f55",
   "liveApplied": false,
   "announcedSessions": [],
   "arrivalAudit": {
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-17T16:17:14.906Z",
+      "auditedAt": "2026-09-17T17:39:32.876Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "docs/CHANGELOG.md",
+          "statusCode": " M",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -26,15 +42,15 @@
         },
         {
           "path": "runtime/while-you-were-away.jsonl",
-          "statusCode": "??",
+          "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"runtime/while-you-were-away.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 3,
+        "LEGITIMATE_CUT_ABSORPTION": 1,
+        "ORGANIC_RUNTIME_CHURN": 4,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       }
@@ -42,15 +58,17 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
+        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "549b259245faab44ef8a83c05c75e5f1e572e505",
+      "commit": "3abd1e51bbaa2b0b6634baaf81f65d0f65dc7ff3",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789661834961-2kjiqg"
+        "ldg-arrival-audit-committed-1789666772995-yztav4"
       ]
     },
     "profileSeeding": {
@@ -82,7 +100,7 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-17T16:17:15.812Z",
+  "appliedAt": "2026-09-17T17:39:34.042Z",
   "previous_version": "8905137109da08e7995bd15e22ed4dcd518195b9",
   "cut_owned_files": [
     "canon/circles",

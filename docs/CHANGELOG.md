@@ -11,6 +11,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
+- Cut ca0e4076 received (from 89051371), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 89051371 received (from 6e237e8f), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 6e237e8f received (from 8e61551f), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 8e61551f received (from c8ec1341), posture absorb_and_report: 3 circle(s) gained (zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start); 14 changed (calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch); hooks bound: PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
@@ -18,7 +19,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 10 harness bookkeeping commit(s) in tracks (harness-arrival-audit 7, hf deploy: cut 3).
+- 11 harness bookkeeping commit(s) in tracks (harness-arrival-audit 8, hf deploy: cut 3).
 
 ## 2026-09-16
 
@@ -51,6 +52,20 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut ca0e4076 -- received 2026-09-17 17:39Z (from 89051371)
+
+Cut ca0e4076 received (from 89051371), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### 2026-09-17
+
+#### conformance
+
+- circles-runner-final-verdict fixture: the unfixed-code proof skips by name once HEAD carries the fix
+
+#### wheel-agents-talk-up-down-and-across
+
+- The pool results record carries a verdict's finality: a serial/timing suite's first failure is written provisional and the re-run's result replaces it as final; the circles runner in consumer mode waits for the final verdict of every covered fixture and judges on that alone; a runner that consumed a provisional verdict is impossible by construction. [fixtures 17/17, 66/66, 44/44]
 
 ## Cut 89051371 -- received 2026-09-17 16:17Z (from 6e237e8f)
 
@@ -1380,12 +1395,13 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 28 (commit 20, cut_received 8).
+Entries: 30 (commit 21, cut_received 9).
 
 ## 2026-09-17
 
 ### cuts
 
+- 17:39Z cut ca0e4076 received by tracks (previous 89051371) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3e684e52..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T17:36:55.978Z -- source: tracks: .cut-status.json (working tree, not yet committed)
 - 16:17Z cut 89051371 received by tracks (previous 6e237e8f) landed 3e684e52, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1df4cd62..3e684e52 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T16:13:44.078Z -- source: tracks: git show 3e684e52:.cut-status.json
 - 09:49Z cut 6e237e8f received by tracks (previous 8e61551f) landed 1df4cd62, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..1df4cd62 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: git show 1df4cd62:.cut-status.json
 - 06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
@@ -1411,6 +1427,7 @@ Entries: 28 (commit 20, cut_received 8).
 
 ### runtime
 
+- 17:39Z commit 3abd1e51 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 3abd1e51
 - 16:17Z commit 549b2592 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 549b2592
 
 ## 2026-09-16
@@ -1456,6 +1473,22 @@ Entries: 28 (commit 20, cut_received 8).
 - 00:18Z commit 1339bab0 [tracks] tracks: retire the v1 WAI-Harness machinery to /home/mario/projects/.archived/tracks-v1-260914 (WAI-Harness/, .claude/hooks, wai-enter/exit, the v1 settings and CLAUDE.md, basher's v1 session-cost advisor and its test) -- fully on the v2 harness (cut 66e48e3a); WAI-Spoke/sessions stays (Track files, product data) -- 1711 file(s), area WAI-Harness -- source: tracks: git log main 1339bab0
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut ca0e4076 -- received 2026-09-17 17:39Z (from 89051371)
+
+17:39Z cut ca0e4076 received by tracks (previous 89051371) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3e684e52..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T17:36:55.978Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 2 (commit 2).
+
+### 2026-09-17
+
+#### conformance
+
+- 17:20Z commit ca0e4076 [harness-factory] circles-runner-final-verdict fixture: the unfixed-code proof skips by name once HEAD carries the fix -- fixtures 15 passed -- 1 file(s), area conformance -- source: harness-factory: git log main ca0e4076
+
+#### wheel-agents-talk-up-down-and-across
+
+- 16:58Z commit 0f90f8d5 [harness-factory] circles-runner-consumes-the-final-pool-verdict-not-the-first-timing-run: a timing suite's first pool verdict is provisional; the runner judges on the re-run's final verdict -- lug circles-runner-consumes-the-final-pool-verdict-not-the-first-timing-run -- fixtures 17/17, 66/66, 44/44 -- 6 file(s), area src/factory -- source: harness-factory: git log main 0f90f8d5
 
 ## Cut 89051371 -- received 2026-09-17 16:17Z (from 6e237e8f)
 
@@ -2879,4 +2912,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:17d403d226bde11721f7cf14a3a1b1ac45e7041d0c5f136418fb7bc894016446 -->
+<!-- integrity sha256:17814d4584eb9b1573a3641df4a2ab35467ae5c0b0a0000ed0f6c8464930fc08 -->
