@@ -59,3 +59,10 @@ to `runtime/last-handoff.json` (`findings_recheck` records the pass) and
 to the pending set, so a sibling waking on the same checkout does not
 retire the same finding twice. A composition with no session id (rule
 12's measurement) runs nothing and writes nothing.
+
+## Backlog summary cached (E4, 260916)
+
+The backlog walk (every lug file) composes through the goals review's
+`runtime/goals-review-cache.json` (entry `checkpoint/backlog-summary`,
+keyed on lugs/ and the active lug's name); the active-lug block, the board
+and the X3 rechecks stay live. One ledger read memo spans the composition.

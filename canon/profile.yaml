@@ -19,3 +19,7 @@ goals_review_top_n: 3
 
 # 2026-09-16: one permission mode wheel-wide (the hub's value); wcl refuses to launch without it declared.
 permission_mode: auto
+# 2026-09-17: seeded by cut 6e237e8f934a -- hub-declared, wheel-wide, never a silent default (lug cut-requirements-on-profile-are-seeded-on-arrival-never-refused-at-launch)
+builder_model_lane: sonnet
+# 2026-09-17: seeded by cut 6e237e8f934a -- hub-declared, wheel-wide, never a silent default (lug cut-requirements-on-profile-are-seeded-on-arrival-never-refused-at-launch)
+planner_model_lane: opus

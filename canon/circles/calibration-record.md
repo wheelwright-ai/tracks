@@ -67,3 +67,15 @@ require answering D8 first. Do not merge the two stores before it is.
 `conformance/fixtures/calibration-record/calibration-record.conformance.test.js`
 — computes real readings from the real wheel-hub streams, and proves the
 refusals (duplicated rows, invented stream, unmeasured-with-a-rate).
+
+## Taste heuristics (2026-09-16)
+
+lug taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-
+footer-does adds `ledger/ledger.jsonl` to `REAL_EVIDENCE_STREAMS` and the
+adapter `calibrateTasteHeuristic` (`src/tastegraph/tasteLoop.js`): a
+`taste-miss` row carrying `lines` was shown to its session; it is a false
+positive when a `taste-dispute` row for the key names that session.
+Subject `heuristic`, ref `external:tastegraph-heuristic:<key>`, plus
+`misses_shown` and `disputes` beside the rate. Written at every dispute
+and at every further miss of a disputed key. Over 30% on >= 3 shown misses
+mutes the heuristic (no rows, no injection) and names it at wakeup.

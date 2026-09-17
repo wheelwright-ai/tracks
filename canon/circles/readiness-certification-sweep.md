@@ -10,12 +10,10 @@ Code: `src/conductor/readinessSweep.js`, `src/conductor/donePromotion.js`,
 
 ## Why a circle, not another /tmp script
 
-Three sweeps of the review backlog (260908, 260909, 260911) were each
-written from scratch under `/tmp` and converged on the same shape: read
-the gate with the harness's own functions, re-run the lug's own fixture,
-ask the verb, record what happened, stop on budget. None of that survived
-its session. This circle is that shape on disk, so the next sweep is a
-command, and its record has one schema every reader already knows.
+Three sweeps (260908, 260909, 260911) were each written from scratch
+under `/tmp` and converged on one shape: read the gate with the harness's
+own functions, re-run the lug's fixture, ask the verb, record, stop on
+budget. None survived its session. This circle is that shape on disk.
 
 ## One lug, one row, always a reason
 
@@ -40,6 +38,16 @@ sweep never claims a certification it did not read.
 `runProofer` without `certifyOnly` is never called: `proofer.js` moves a
 PASSing lug review -> ready, which re-queues finished work.
 
+## Stale verdicts: `--recertify=stale` (implied by `run`)
+
+A blocked record is re-run only when citation-driven -- FABRICATED, or
+FAILED with rejected citations and no "acceptance criteria NOT met" --
+AND its `matcher_version` is not the current one (none = stale). A
+reviewer's FAILED is "reviewer judgement, not re-run"; a current-matcher
+verdict is never re-run. Requester is the sweep's `--session-id`, refused
+if author. The count prints BEFORE the first paid call; the summary
+counts found / re-run / flipped; `--dry-run` spends nothing.
+
 ## Who is a candidate, and in what order
 
 Every lug at `review`, and every lug at `ready` with `readiness: passed`
@@ -56,9 +64,9 @@ run summary echoes the list it used.
 ## The budget is a hard stop
 
 Checked before every lug. On stop: `stopped_reason: time_budget`,
-`not_reached` names every lug not reached, none of them counted, CLI exit
-3. The tally section is re-rendered after every lug, so a kill mid-sweep
-loses at most the lug in flight.
+`not_reached` names every unreached lug, none counted, CLI exit 3. The
+tally is re-rendered after every lug; a kill loses at most the lug in
+flight.
 
 ## What it writes
 

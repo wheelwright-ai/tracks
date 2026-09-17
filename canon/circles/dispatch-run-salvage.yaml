@@ -57,6 +57,12 @@ invariants:
   - >-
     killed runs reach the operator as one line per CAUSE (advisor/watchdog) with
     a count -- never one lug, and never one row, per killed run
+  - >-
+    lug builders-run-on-the-profile-builder-lane-never-the-planner-model
+    (260916) is an adjacent, separate gate on this same call: executeDispatch
+    now also refuses to launch when no builder_model_lane resolves, or overrides
+    only with a recorded reason -- this circle's salvage runs regardless of
+    which lane the child ran on
 failure_routing: lug:dispatch-run-salvage-failure
 counter_metric: killed_dispatch_work_kept_ratio
 enforcement: kernel_check

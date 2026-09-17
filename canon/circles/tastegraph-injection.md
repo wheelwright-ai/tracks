@@ -44,3 +44,16 @@ rate is the thing to measure next (taste
 are injected, never scored. The hub's own clock (`otto.advisor.yaml`)
 does not declare `tastegraph_refresh`; a hub session still learns a
 change on its next prompt through the hook, not the clock.
+
+## Closing the loop (2026-09-16)
+
+lug taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-
+footer-does: a miss is now shown to the session that missed, on its next
+prompt, with the judged lines (footer-correction-injection carries it;
+`src/tastegraph/tasteLoop.js`). A taste may declare `applies_when`
+(response_end | report_shaped | dispatch_reissue | late_night): it is
+injected at that moment and the wakeup block lists it by key only. The
+closing check reads the content above a trailing fenced footer, not the
+fence -- the cause of 42 of the filing session's 44 misses. A heuristic
+disputed past 30% false positives on >= 3 shown misses is muted and
+named at wakeup. Long form: `docs/taste-loop-closes.md`.

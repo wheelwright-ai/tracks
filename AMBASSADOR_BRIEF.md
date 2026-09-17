@@ -12,7 +12,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 
 ## 2. Its toolbox
 
-88 live circle(s):
+91 live circle(s):
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
@@ -101,6 +101,9 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **wcl-verify-then-launch** (on_demand): the operator runs `wcl <spoke>`
 - **wheel-clock-catchup** (hook_event): a real session starts (SessionStart event)
 - **worktree-registry** (on_demand): a git worktree is created, removed, judged or handed off by the harness -- addWorktree/removeWorktree (src/factory/worktreeRegistry.js) at every `git worktree add` in src/ (rollbackCut's pinned checkout, hf deploy's fold integrate tree, stageClean's removals); `node scripts/worktree.js add|list|remove|reap` by the orchestrating session in place of raw git; healthSignals.js's stale_worktree signal on every Planner cycle; and buildHandoff at every session end
+- **zellij-tab-identity-session-end** (hook_event): the session ends -- the tab goes back to idle unless it still needs a look
+- **zellij-tab-identity-tool-reset** (hook_event): the first tool call after a permission prompt the operator answered
+- **zellij-tab-identity-turn-start** (hook_event): the operator submits a prompt -- the session is working again
 
 0 advisor(s):
 - none declared
@@ -154,12 +157,15 @@ percent of lugs traceable to a test).
 ## 7. The footer
 
 Every turn ends with a merged footer, one line, `|`-joined:
-`coordinates | localTime | model | frameworkVersion | turnCost-or-"unmeasured" | open: N`
+`coordinates | localTime | persona@model | frameworkVersion | turnCost-or-"unmeasured" | open: N`
 (`formatMergedTurnFooter`, `src/ledger/promptId.js`) -- `coordinates` is
 the real id-v3 FROM (never fabricated -- the function throws without
-one), `turnCost` is `"unmeasured"` rather than a guessed number when no
+one), `persona` is the real recorded session-registry persona (ozi |
+max | builder | proofer; `"unknown"` only when none is recorded yet),
+`turnCost` is `"unmeasured"` rather than a guessed number when no
 real cost was captured, and `open: N` is the real open-item count. The
-footer-audit circle checks it fires every turn.
+footer-audit circle checks the id every turn and the agent segment
+against the session's own recorded persona.
 
 ## 8. Preferred approach (disposition)
 

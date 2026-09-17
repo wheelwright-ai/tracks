@@ -1,0 +1,41 @@
+kind: circle
+name: zellij-tab-identity-tool-reset
+owner: basher
+level: spoke
+status: live
+schema_version: 1
+trigger: the first tool call after a permission prompt the operator answered
+inputs:
+  - zellij_pane_list
+  - session_tab_sidecars
+outputs:
+  - zellij_tab_label
+  - zellij_pane_title
+invariants:
+  - >-
+    best-effort only -- outside zellij, with a dead server or an unresolved pane
+    it is a reported no-op; it never blocks the event it rides
+  - headless sub-sessions never rename a tab
+  - >-
+    the sidecar file names under /tmp/claude-sessions are a contract with basher
+    lens and never change
+  - a tab whose name carries a lens sentinel is never renamed
+  - SessionEnd never paints over an unacknowledged attention glyph
+failure_routing: lug:zellij-tab-identity-failure
+counter_metric: tab_state_apply_rate
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (the tab bar is the at-a-glance state of every live
+    session)
+  - external:basher lens (reads the same sidecars)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: ''
+hook_script: src/hooks/preToolTabResetHook.js
+conformance: >-
+  conformance/fixtures/circle-zellij-tab-identity/zellij-tab-identity.conformance.test.js
+concern: session-tab-identity-tool-reset
+instructions_ref: reference/circles/zellij-tab-identity-tool-reset.md
+duplicate_of: zellij-tab-identity-tool-reset

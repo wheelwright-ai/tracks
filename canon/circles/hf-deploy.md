@@ -30,7 +30,7 @@ run, its lock and the last five stage rows.
 |----------|-----------------------------------------------------------------------|-------------------------------------------------------|
 | fold     | cherry-pick review/done dispatch/* branches on an integrate worktree, ff main | conflict (branch named), main will not fast-forward |
 | push     | harness-factory then each spoke, own pre-push gate, keepalive ssh     | gate red (quoted), behind origin, timeout             |
-| cut      | applyCut per registered spoke, commit cut-owned paths, `wcl --dry-run` | applyCut failure, spoke pre-commit gate red          |
+| cut      | applyCut per registered spoke (regenerates CLAUDE.md, AMBASSADOR_BRIEF.md and docs/CHANGELOG.md from records), commit cut-owned paths, `wcl --dry-run` | applyCut failure, spoke pre-commit gate red |
 | relaunch | re-queue dispatches refused for "spoke is stale"                      | queueDispatch throws                                  |
 | clean    | remove worktree + branch of fully folded branches                     | git refuses the removal                               |
 
@@ -44,6 +44,9 @@ reason, not a failure, and the operator reads it in the record.
   terminal with `per_spoke` / `branches` / `dispatches`), `deploy_run_closed`.
 - `<hub>/ledger/ledger.jsonl`: one `decision` row per stage, `source_type: deploy`.
 - `<hub>/runtime/deploy.lock`: pid + run id while a deploy runs; a dead pid is stale.
+- `<spoke>/.cut-status.json`: the applied version, `cut_owned_files` and
+  `generated_docs` (what each generated doc did); `<spoke>/docs/CHANGELOG.md`:
+  the spoke's two-part change log the cut just rendered (wheel-change-log).
 
 ## The wheel-clock job
 

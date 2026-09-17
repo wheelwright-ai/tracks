@@ -16,7 +16,7 @@ and the preferred way to do a task where more than one tool exists.
 
 ## Live policies (0)
 
-## Live circles (88)
+## Live circles (91)
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
@@ -105,6 +105,9 @@ and the preferred way to do a task where more than one tool exists.
 - **wcl-verify-then-launch** (on_demand): the operator runs `wcl <spoke>`
 - **wheel-clock-catchup** (hook_event): a real session starts (SessionStart event)
 - **worktree-registry** (on_demand): a git worktree is created, removed, judged or handed off by the harness -- addWorktree/removeWorktree (src/factory/worktreeRegistry.js) at every `git worktree add` in src/ (rollbackCut's pinned checkout, hf deploy's fold integrate tree, stageClean's removals); `node scripts/worktree.js add|list|remove|reap` by the orchestrating session in place of raw git; healthSignals.js's stale_worktree signal on every Planner cycle; and buildHandoff at every session end
+- **zellij-tab-identity-session-end** (hook_event): the session ends -- the tab goes back to idle unless it still needs a look
+- **zellij-tab-identity-tool-reset** (hook_event): the first tool call after a permission prompt the operator answered
+- **zellij-tab-identity-turn-start** (hook_event): the operator submits a prompt -- the session is working again
 
 ## Tool dispositions (0)
 - none declared

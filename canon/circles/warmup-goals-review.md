@@ -61,3 +61,14 @@ stated," per-task-class table with overlays and outcome-driven
 promotion/demotion design doc section 7 describes as increment 9's
 deliverable -- that richer table is genuinely not built, and Conductor
 only ever reads the simpler one that already exists.
+
+## Composed through a section cache (E4, 260916)
+
+Lug session-start-composer-under-two-seconds. Each section declares its
+inputs on its registration; `composeGoalsReviewParts` serves it from
+`runtime/goals-review-cache.json` (`src/conductor/sectionCache.js`) while
+its files' mtime+size, the ledger's size/mtime/row count, the day and the
+composer's own code are unchanged -- a hit reads no input -- and recomputes
+only the section whose key moved, tracing the rebuild against its
+declaration (a read past it is not stored, and named). One ledger read
+memo spans the hook. An undeclared builder is composed live and named.

@@ -29,3 +29,14 @@ field exists in the real captured `SessionStart` stdin).
 
 Consumed by: `src/factory/cutUpdate.js`'s `applyCut` (the session liveness
 gate, 260828-FBL-024/025), and `wcl sessions <spoke>`.
+
+## Consumed by footer-audit too (2026-09-16)
+
+lug footer-identity-is-generated-from-spoke-registration-and-never-
+defaulted: `footer-audit` (Stop) reads this registry for the real
+callsign it needs to build a footer correction. A session with a real
+Track but no row here -- this circle's own registration genuinely never
+ran for it (a resumed session whose SessionStart never re-fired) -- is a
+real, honest gap: `footer-audit` names it explicitly in its correction
+(`"no session-registry row found for session <id>"`) rather than
+silently skipping, the way it used to.

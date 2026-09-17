@@ -1,15 +1,29 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "c8ec1341cbd4d523f2f14f425c14cfef67d2e00f",
+  "version": "8e61551f464d6b8214d05c13801c4a185f88da77",
   "liveApplied": false,
   "announcedSessions": [],
   "arrivalAudit": {
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-17T00:02:28.322Z",
+      "auditedAt": "2026-09-17T06:59:50.165Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "canon/profile.yaml",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"canon/profile.yaml\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -27,7 +41,7 @@
       ],
       "summary": {
         "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 2,
+        "ORGANIC_RUNTIME_CHURN": 4,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       }
@@ -35,14 +49,16 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
+        "canon/profile.yaml",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json"
       ],
-      "commit": "72e10cc9182bb81e3453e4566d95471a41a5afaf",
+      "commit": "2706435e75ac5bde8ae827539a16fa254be01b47",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789603348380-qiijpr"
+        "ldg-arrival-audit-committed-1789628390271-e42grt"
       ]
     },
     "droppedHooks": [],
@@ -69,6 +85,31 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-17T00:02:29.303Z",
-  "previous_version": "c8ec1341cbd4d523f2f14f425c14cfef67d2e00f"
+  "appliedAt": "2026-09-17T06:59:51.737Z",
+  "previous_version": "c8ec1341cbd4d523f2f14f425c14cfef67d2e00f",
+  "cut_owned_files": [
+    "canon/circles",
+    ".claude/settings.json",
+    "CLAUDE.md",
+    "AMBASSADOR_BRIEF.md",
+    "docs/CHANGELOG.md",
+    "canon/origin-codes.registry.yaml"
+  ],
+  "generated_docs": [
+    {
+      "file": "CLAUDE.md",
+      "changed": true,
+      "ok": true
+    },
+    {
+      "file": "AMBASSADOR_BRIEF.md",
+      "changed": true,
+      "ok": true
+    },
+    {
+      "file": "docs/CHANGELOG.md",
+      "changed": true,
+      "ok": true
+    }
+  ]
 }
