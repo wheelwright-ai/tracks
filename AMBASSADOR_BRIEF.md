@@ -184,12 +184,19 @@ registry, which this cwd can already read:
    pending`, `requested_at`, `escalation: {after, bump_to}`, and one of
    `payload` / `payload_doc`. Set `reply_requested: true` when you want
    a confirm-back, not just the target's silent action.
-3. **A critical request taps the target's live session** (P0 handling):
-   see the lug above for the mechanism -- as of this brief, only the
-   channel (this section) and the reply wire (below) are landed;
-   the tap itself is tracked separately and may not be live yet.
-   `node scripts/communication-inbox.js` and the SessionStart digest
-   line are the reliable read today.
+3. **A critical request taps the target's live session** (P0 handling,
+   `priority: critical` or an `escalation` that has bumped it there):
+   the kernel verb (src/lugTracking/p0Tap.js triggerP0Tap) writes
+   `runtime/tap/<session>.json` for every LIVE session on the target
+   spoke's own hub registry, plus a small ack lug in the target's own
+   `lugs/` it can acknowledge with one command that writes only inside
+   its own root. The target sees it mid-turn (a one-shot PostToolUse
+   injection) and on every prompt after that until it acknowledges.
+   SendMessage the tapped session id too -- the verb's own output
+   names it -- so it does not wait for its next tool call to notice.
+   No live session at all -> a bounded Sonnet dispatch is queued
+   directly on the target's own registry (kill switch + envelope
+   still gate it), and the request lug is stamped `dispatch_queued`.
 4. **Reply, and close both with one verb call**: the target files its
    OWN reply lug (`type: communication`, `target_spoke: <requester>`)
    and answers with `node scripts/lug-verb.js <reply-lug>
@@ -201,3 +208,7 @@ registry, which this cwd can already read:
    ranks it ahead of every other open request addressed to it, for as
    long as the reply itself stays open (once it reaches `fulfilled` it
    leaves the open inbox like any resolved request).
+5. **Fulfilment lands back on the requester**: a reply reaching
+   `--status=fulfilled` toasts the requester's machine (notifyLanding,
+   kind `request_fulfilled`) and its very next prompt's delta shows
+   "YOUR REQUEST <request> was fulfilled by <reply>" once.

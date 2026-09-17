@@ -11,6 +11,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
+- Cut 5c79e2c6 received (from b81e2bc1), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut b81e2bc1 received (from 4a839956), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 4a839956 received (from ca0e4076), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut ca0e4076 received (from 89051371), posture absorb_and_report: no circle or hook changed for this spoke.
@@ -21,7 +22,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 19 harness bookkeeping commit(s) in tracks (harness-arrival-audit 13, hf deploy: cut 6).
+- 20 harness bookkeeping commit(s) in tracks (harness-arrival-audit 14, hf deploy: cut 6).
 
 ## 2026-09-16
 
@@ -60,6 +61,20 @@ Record: certification pending
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 5c79e2c6 -- received 2026-09-17 22:42Z (from b81e2bc1)
+
+Cut 5c79e2c6 received (from b81e2bc1), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### 2026-09-17
+
+#### conformance
+
+- spokes-talk-directly fixture: the unfixed-code proof skips by name once HEAD carries the fix
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- AMBASSADOR_BRIEF carries a generated "Talking to another spoke" section (send, ask for a confirm-back, resolve the path from the hub registry with `hf spoke-path <name>`, reply with reply_to, close both with one verb call). [fixtures 51/51; landed b877b91f]
 
 ## Cut b81e2bc1 -- received 2026-09-17 21:18Z (from 4a839956)
 
@@ -1486,12 +1501,13 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 41 (commit 29, cut_received 11, lug_review 1).
+Entries: 43 (commit 30, cut_received 12, lug_review 1).
 
 ## 2026-09-17
 
 ### cuts
 
+- 22:42Z cut 5c79e2c6 received by tracks (previous b81e2bc1) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git c065e2ee..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T22:38:25.849Z -- source: tracks: .cut-status.json (working tree, not yet committed)
 - 21:18Z cut b81e2bc1 received by tracks (previous 4a839956) landed c065e2ee, posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..c065e2ee -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: git show c065e2ee:.cut-status.json
 - 20:33Z cut 4a839956 received by tracks (previous ca0e4076) landed 7c2adcaa, posture absorb_and_report: +0/~0/-0 circles for tracks (git 14fd1be8..7c2adcaa -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T20:29:51.348Z -- source: tracks: git show 7c2adcaa:.cut-status.json
 - 17:39Z cut ca0e4076 received by tracks (previous 89051371) landed 14fd1be8, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3e684e52..14fd1be8 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T17:36:55.978Z -- source: tracks: git show 14fd1be8:.cut-status.json
@@ -1502,6 +1518,7 @@ Entries: 41 (commit 29, cut_received 11, lug_review 1).
 
 ### runtime
 
+- 22:42Z commit 2f007057 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 2f007057
 - 21:18Z commit 7a618cda [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 7a618cda
 - 21:18Z commit 581cd582 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 581cd582
 - 20:33Z commit 26b718d2 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 26b718d2
@@ -1581,6 +1598,22 @@ Entries: 41 (commit 29, cut_received 11, lug_review 1).
 - 00:18Z commit 1339bab0 [tracks] tracks: retire the v1 WAI-Harness machinery to /home/mario/projects/.archived/tracks-v1-260914 (WAI-Harness/, .claude/hooks, wai-enter/exit, the v1 settings and CLAUDE.md, basher's v1 session-cost advisor and its test) -- fully on the v2 harness (cut 66e48e3a); WAI-Spoke/sessions stays (Track files, product data) -- 1711 file(s), area WAI-Harness -- source: tracks: git log main 1339bab0
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 5c79e2c6 -- received 2026-09-17 22:42Z (from b81e2bc1)
+
+22:42Z cut 5c79e2c6 received by tracks (previous b81e2bc1) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git c065e2ee..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T22:38:25.849Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 2 (commit 2).
+
+### 2026-09-17
+
+#### conformance
+
+- 22:22Z commit 5c79e2c6 [harness-factory] spokes-talk-directly fixture: the unfixed-code proof skips by name once HEAD carries the fix -- 1 file(s), area conformance -- source: harness-factory: git log main 5c79e2c6
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- 21:45Z commit b877b91f [harness-factory] spokes-talk-directly-via-lugs-with-a-confirm-back-and-a-p0-taps-the-live-session: the P0 tap -- a critical request taps the target's live session mid-turn, queues a dispatch when nobody is there, and fulfilment lands back on the requester -- lug spokes-talk-directly-via-lugs-with-a-confirm-back-and-a-p0-taps-the-live-session -- fixtures 51/51 -- 10 file(s), area src/lugTracking -- source: harness-factory: git log main b877b91f
 
 ## Cut b81e2bc1 -- received 2026-09-17 21:18Z (from 4a839956)
 
@@ -3079,4 +3112,4 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:f4b92537fba9e1683deb5733f2b5c62b9d8a6ec3bde07525ce0987fe4231a8ed -->
+<!-- integrity sha256:fca19d2c6de0d374b88ccee8f868156e7cac8da4fcc927e2973259f763c9b6a5 -->
