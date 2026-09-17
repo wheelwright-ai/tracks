@@ -3,12 +3,12 @@
 From wheel-hub's
 `lugs/cross-provider-verification-for-high-priority-proof-required-lugs.yaml`;
 long-form build record in that spoke's `docs/` page of the same name.
+Matcher tiers and the verdict policy: `docs/fabrication-matcher-tiers.md`.
 
-`callProvider` and the four-axis independence check were real and
-working, and nothing invoked them: work could reach `review` carrying
-`proof_required: true` and never get a second opinion. Why non-Claude
-providers exist at all, operator's words: a low-trust harness -- *"ensure
-we don't fall for sweet words"*.
+`callProvider` and the independence check were real and nothing invoked
+them: work reached `review` with `proof_required: true` and never got a
+second opinion. Why non-Claude providers exist: a low-trust harness --
+*"ensure we don't fall for sweet words"*.
 
 ## What fires, and when
 
@@ -18,75 +18,62 @@ we don't fall for sweet words"*.
 | enters `review` | PostToolUse hook | spawns `scripts/cross-provider-certify.js` detached |
 | promoted to `done` | `lug-kernel-verb` | reads this record AND the Proofer's own row -- see `done-gate-two-store-certification` |
 
-Transitions, not states: `review -> review` raises nothing; anything
-already `done` before this gate existed stays hand-editable.
+## Scope and certifier
 
-## Scope
+`priority: high|critical` **and** `proof_required: true` (operator ruling,
+~65% confidence). `selectIndependentCandidates` walks the Proofer advisor's
+`cross_provider_candidates` in declared order, returning every
+independent one; a candidate matching the author's provider is rejected.
 
-`priority: high|critical` **and** `proof_required: true`. Operator ruling,
-~65% confidence, real per-call cost named. Low-priority/haiku-tier work
-stays on the Claude subscription path.
+## Citations: the matcher's tiers
 
-## Choosing the certifier
+Every citation is a substring test against real bundle text; a tier only
+deletes or re-encodes layout on BOTH sides, so no tier matches text
+absent from the bundle. Weakest last, each named on the record with the
+bundle path:line it bound to (`citation_binding.matches[].location`):
+verbatim; normalized; structural; ellipsis; quote_normalised;
+**prefix** (a runner's `PASS|FAIL|SKIP|ok|INFO|check(` stripped);
+**bundler_line** (`=== ... ===` headers, `TEST OUTPUTS: []`, POINTERS NOT
+INCLUDED lines -- the bundler wrote them); **yaml_json** (`"k": "v"` <->
+`k: v`, `- item`, `k: >-` folded); **multi_line** (joined code = consecutive
+CODE lines of one section, whole-line comments left out, at most
+`MAX_MULTILINE_SPAN_LINES` = 24 code lines; a skipped code line is a
+splice and refuses); unpinned (a bundle gap, named).
 
-`selectIndependentCandidates` walks the Proofer advisor's
-`cross_provider_candidates` (gemini, dashscope, kimi, deepseek), returning
-every independent one in declared order. A candidate matching the
-author's own recorded provider is rejected first.
+## Verdict policy
 
-## Verdicts
-
-CONFIRMED (independent PASS, verbatim citations) and PLAUSIBLE (same PASS,
-author stated no provider) open the gate. FAILED, FABRICATED
-(`fabricationCheck.js`, citations not verbatim), REFUSED
-(self-attestation/no candidate passed), BLOCKED (network/401/timeout/
-incomplete evidence) all block, reason named; all but FAILED yield to a
-real Proofer PASS (`done-gate-two-store-certification`).
+A rejected citation carries its nearest bundle window (trigram
+similarity). FABRICATED iff any rejected citation has NO near match
+(similarity < 0.5) OR the rejected are >= one third of all citations.
+Otherwise the PASS stands as PLAUSIBLE -- never CONFIRMED -- with
+`unverifiable_citations: [{quote, nearest: {path, line}, similarity}]` on
+the record and in the reason line. CONFIRMED needs zero rejected and a
+carrying independence axis. FAILED, FABRICATED, REFUSED, BLOCKED block,
+reason named; all but FAILED yield to a real Proofer PASS. A near-miss
+PASS never flips readiness. `scripts/certification-replay.js <lug>
+[--run=<n>] [--summary]` replays any recorded attempt under today's rules.
 
 ## Exhausting the candidate list
 
-Used to refuse fallback outright ("one selection, one call"). Real
-counter-example, 2026-09-09: the first readiness-certification sweep saw
-`dashscope` (first in declared order) return 8 FABRICATED verdicts in a
-row and BLOCK a 9th -- nothing tried the rest, 0 of 87 qualifying lugs got
-certified, not because the work was bad but because the head of the list
-was.
+2026-09-09: `dashscope`, first in order, returned 8 FABRICATED verdicts and
+BLOCKED a 9th; nothing tried the rest, 0 of 87 lugs certified.
 
 | Outcome | Next |
 | --- | --- |
-| CONFIRMED/PLAUSIBLE | chain stops -- certified |
-| FAILED | chain stops -- a real negative is an answer, not something to shop past |
-| FABRICATED | next candidate (still rejected, always) |
-| BLOCKED, candidate-attributable | next candidate |
-| BLOCKED, instance-attributable (no call made) | chain stops -- identical for every candidate |
-| REFUSED | chain stops -- independence pre-check already settled it |
+| CONFIRMED/PLAUSIBLE, FAILED | chain stops (a real negative is an answer) |
+| FABRICATED, or BLOCKED candidate-attributable | next candidate |
+| BLOCKED instance-attributable, REFUSED | chain stops |
 
-Not a coin flip: never silent (each attempt gets its own `attempts[]`
-entry/ledger row/event); fabrication check untouched (fabricated PASSes
-never add to one real one); on exhaustion the headline is chosen not
-inherited (FABRICATED outranks BLOCKED, else first candidate stands).
-`callProvider` never silently falls back on its own -- the retry decision
-is one layer up, recorded. `--provider=<name>` is still one call.
-
-Proved by `conformance/fixtures/cross-provider-fallback/`. Re-ordering
-`cross_provider_candidates` is deliberately out of scope.
-
-## Detached, with a timestamp
-
-A real call runs to the Proofer's 120s timeout, too long to hold a tool
-call open on a review transition. The record is written `running`
-with `started_at` before the call; a `running` record older than 15
-minutes reads as a named block, never an absence.
-
-## What it does not touch
-
-`callProvider`'s contract, adapter shapes, axis-checking logic. A
-cross-provider PASS never flips `readiness`, which stays claude
-fresh-context per standing ledger rule 260829-FBL-026.
+Never silent: each attempt gets its own `attempts[]` entry, ledger row and
+event; on exhaustion FABRICATED outranks BLOCKED for the headline.
+`--provider=<name>` is one call. Proved by
+`conformance/fixtures/cross-provider-fallback/` and
+`fabrication-matcher-tiers/`.
 
 ## Running it
 
 `node scripts/cross-provider-certify.js <lug> [--provider=<name>]`, or
-`--status` for a no-call report. Records land in
-`runtime/cross-provider-certifications/<name>.json`; exit 0 only when the
-verdict really opens the done gate.
+`--status`. The record is written `running` with `started_at` before the
+call (older than 15 minutes: a named block); records land in
+`runtime/cross-provider-certifications/`; exit 0 only when the verdict
+opens the done gate. A cross-provider PASS never flips `readiness`.

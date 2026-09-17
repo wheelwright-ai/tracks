@@ -1,15 +1,22 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "21926af88442b7d2d4b2463382f4059adfc81922",
+  "version": "c8ec1341cbd4d523f2f14f425c14cfef67d2e00f",
   "liveApplied": false,
   "announcedSessions": [],
   "arrivalAudit": {
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-16T19:29:44.563Z",
+      "auditedAt": "2026-09-17T00:02:23.264Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -23,13 +30,6 @@
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"runtime/store-bound-state.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
-        },
-        {
-          "path": "runtime/external-chain-notice.json",
-          "statusCode": "??",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/external-chain-notice.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
         }
       ],
       "summary": {
@@ -42,15 +42,15 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
         "ledger/ledger.jsonl",
-        "runtime/store-bound-state.json",
-        "runtime/external-chain-notice.json"
+        "runtime/store-bound-state.json"
       ],
-      "commit": "7de5dafe45b00b807c4b4f09cbce22edaccd0d53",
+      "commit": "ad5064f9075985f812a62f19d890db45745227ec",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789586984627-n79jqd"
+        "ldg-arrival-audit-committed-1789603343352-x1e05u"
       ]
     },
     "droppedHooks": [],
@@ -77,6 +77,6 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-16T19:29:45.534Z",
+  "appliedAt": "2026-09-17T00:02:24.146Z",
   "previous_version": "21926af88442b7d2d4b2463382f4059adfc81922"
 }
