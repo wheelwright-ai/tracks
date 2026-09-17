@@ -11,12 +11,13 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
-- Cut 8e61551f received (from c8ec1341), posture absorb_and_report: 3 circle(s) gained (zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start); 14 changed (calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch); hooks bound: PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js; policies changed max-plans-planner-schedules.
+- Cut 6e237e8f received (from 8e61551f), posture absorb_and_report: no circle or hook changed for this spoke.
+- Cut 8e61551f received (from c8ec1341), posture absorb_and_report: 3 circle(s) gained (zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start); 14 changed (calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch); hooks bound: PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
 - Cut c8ec1341 received (from 21926af8), posture absorb_and_report: 1 changed (cross-provider-verification).
 
 ### harness bookkeeping
 
-- 4 harness bookkeeping commit(s) in tracks (harness-arrival-audit 3, hf deploy: cut 1).
+- 5 harness bookkeeping commit(s) in tracks (harness-arrival-audit 4, hf deploy: cut 1).
 
 ## 2026-09-16
 
@@ -50,9 +51,27 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 6e237e8f -- received 2026-09-17 09:49Z (from 8e61551f)
+
+Cut 6e237e8f received (from 8e61551f), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### 2026-09-17
+
+#### conformance
+
+- wcl-entry-welcome fixture accepts the keystroke remedy on the Rules row
+
+#### src/factory
+
+- When a cut adds a required profile key that has a hub-declared value, the arrival audit SEEDS that key into the spoke's canon/profile.yaml with the hub's value and a dated comment (reported in the absorb commit), so the next launch is ready. [fixtures 42/42]
+
+#### wheel-agents-talk-up-down-and-across
+
+- scaffoldInstance and every fixture scratch instance declare builder_model_lane / planner_model_lane and origin_code the way the real wheel does -- through the scaffold (one helper, no per-fixture hand copies) -- so the refusals fire only where a real instance is missing them; the governance line fixture asserts the current compiled text; push gate green on main with no baseline change.
+
 ## Cut 8e61551f -- received 2026-09-17 06:59Z (from c8ec1341)
 
-Cut 8e61551f received (from c8ec1341), posture absorb_and_report: 3 circle(s) gained (zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start); 14 changed (calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch); hooks bound: PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js; policies changed max-plans-planner-schedules.
+Cut 8e61551f received (from c8ec1341), posture absorb_and_report: 3 circle(s) gained (zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start); 14 changed (calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch); hooks bound: PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
 
 ### 2026-09-17
 
@@ -1346,18 +1365,20 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 20 (commit 14, cut_received 6).
+Entries: 22 (commit 15, cut_received 7).
 
 ## 2026-09-17
 
 ### canon
 
+- 09:49Z commit 1f8a6d8c [tracks] harness-arrival-audit: absorbed 28 file(s) on cut arrival -- 28 file(s), area canon -- source: tracks: git log main 1f8a6d8c
 - 06:59Z commit 2706435e [tracks] harness-arrival-audit: absorbed 4 file(s) on cut arrival -- 4 file(s), area canon -- source: tracks: git log main 2706435e
 - 00:02Z commit 7b156f5f [tracks] hf deploy: cut c8ec1341cbd4 applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 2 file(s), area canon -- source: tracks: git log main 7b156f5f
 
 ### cuts
 
-- 06:59Z cut 8e61551f received by tracks (previous c8ec1341) (working tree), posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..working tree -- canon/circles, .claude/settings.json) -- published +0/~4/-0 circles, 0 lug(s) closed at 2026-09-17T06:23:27.397Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 09:49Z cut 6e237e8f received by tracks (previous 8e61551f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
 - 00:02Z cut c8ec1341 received by tracks (previous 21926af8) landed 7b156f5f, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed cross-provider-verification (git 56d36285..7b156f5f -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 0 lug(s) closed at 2026-09-16T23:49:56.148Z -- source: tracks: git show 7b156f5f:.cut-status.json
 
 ### ledger
@@ -1409,9 +1430,33 @@ Entries: 20 (commit 14, cut_received 6).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 6e237e8f -- received 2026-09-17 09:49Z (from 8e61551f)
+
+09:49Z cut 6e237e8f received by tracks (previous 8e61551f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 4 (commit 4).
+
+### 2026-09-17
+
+#### conformance
+
+- 09:10Z commit 6e237e8f [harness-factory] wcl-entry-welcome fixture accepts the keystroke remedy on the Rules row -- 1 file(s), area conformance -- source: harness-factory: git log main 6e237e8f
+
+#### lugs
+
+- 07:01Z commit 2942ed72 [harness-factory] lug cut-requirements-on-profile-are-seeded-on-arrival-never-refused-at-launch: cut 8e61551f locked the operator out of every spoke over a key the cut could have seeded (permission_mode) -- lug cut-requirements-on-profile-are-seeded-on-arrival-never-refused-at-launch -- 1 file(s), area lugs -- source: harness-factory: git log main 2942ed72
+
+#### src/factory
+
+- 08:44Z commit 06de36c5 [harness-factory] cut-requirements-on-profile-are-seeded-on-arrival-never-refused-at-launch: the arrival audit seeds required, hub-declared profile keys into the spoke profile; a key with no hub value offers the keystroke fix -- lug cut-requirements-on-profile-are-seeded-on-arrival-never-refused-at-launch -- fixtures 42/42 -- 8 file(s), area src/factory -- source: harness-factory: git log main 06de36c5
+
+#### wheel-agents-talk-up-down-and-across
+
+- 07:59Z commit 02aaefbb [harness-factory] lane-and-origin-refusals-reach-every-scratch-instance-the-fixtures-build: done-gate-evidence-paths' synthetic dispatch rows now carry model_lane/builder_model_observed via the writeDispatch helper (defaulting to SCRATCH_BUILDER_MODEL_LANE), so a completed row reaching the kernel verb's builder-lane gate is no longer refused for predating the field. -- lug lane-and-origin-refusals-reach-every-scratch-instance-the-fixtures-build -- 8 file(s), area conformance -- source: harness-factory: git log main 02aaefbb
+
 ## Cut 8e61551f -- received 2026-09-17 06:59Z (from c8ec1341)
 
-06:59Z cut 8e61551f received by tracks (previous c8ec1341) (working tree), posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..working tree -- canon/circles, .claude/settings.json) -- published +0/~4/-0 circles, 0 lug(s) closed at 2026-09-17T06:23:27.397Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
 
 Entries: 25 (circle_added 4, commit 18, hook_bound 3).
 
@@ -2791,4 +2836,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:e3500d44ae587109b509d4b50935689ed23d746cf0b52148b161dfa076d38762 -->
+<!-- integrity sha256:52c4b031ba29ecb7bbfe88d101dd147ffedd914544b7d516cf72ee920ab5bce6 -->
