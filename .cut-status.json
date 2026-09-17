@@ -1,15 +1,31 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "ca0e407684498bd021bd8759095b2f91ae592f55",
+  "version": "4a839956b726873f32eefb91db5354253ce7099a",
   "liveApplied": false,
   "announcedSessions": [],
   "arrivalAudit": {
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-17T17:39:43.317Z",
+      "auditedAt": "2026-09-17T20:33:42.624Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "docs/CHANGELOG.md",
+          "statusCode": " M",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -33,8 +49,8 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 3,
+        "LEGITIMATE_CUT_ABSORPTION": 1,
+        "ORGANIC_RUNTIME_CHURN": 4,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       }
@@ -42,15 +58,17 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
+        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "e6779214e5feb487bcfe5341da40efa8c7ee0d10",
+      "commit": "500d0bb659ef97808cd1622cc6deee582ee94921",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789666783399-a07qdi"
+        "ldg-arrival-audit-committed-1789677222839-i3guw6"
       ]
     },
     "profileSeeding": {
@@ -82,7 +100,7 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-17T17:39:44.463Z",
+  "appliedAt": "2026-09-17T20:33:45.074Z",
   "previous_version": "ca0e407684498bd021bd8759095b2f91ae592f55",
   "cut_owned_files": [
     "canon/circles",
