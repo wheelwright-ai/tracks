@@ -8,48 +8,13 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-16T19:29:39.680Z",
+      "auditedAt": "2026-09-16T19:29:44.563Z",
       "findings": [
-        {
-          "path": "docs/live-hook-capture.index.jsonl",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"docs/live-hook-capture.index.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "docs/live-hook-capture.jsonl",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"docs/live-hook-capture.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"ledger/ledger.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "runtime/event-log.jsonl",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/event-log.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "runtime/hook-runlog.jsonl",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/hook-runlog.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "runtime/last-handoff.json",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/last-handoff.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         },
         {
@@ -60,16 +25,16 @@
           "evidence": {}
         },
         {
-          "path": "runtime/tracks/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.track.json",
-          "statusCode": " M",
+          "path": "runtime/external-chain-notice.json",
+          "statusCode": "??",
           "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/tracks/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.track.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "reason": "\"runtime/external-chain-notice.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         }
       ],
       "summary": {
         "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 8,
+        "ORGANIC_RUNTIME_CHURN": 3,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       }
@@ -77,20 +42,15 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        "docs/live-hook-capture.index.jsonl",
-        "docs/live-hook-capture.jsonl",
         "ledger/ledger.jsonl",
-        "runtime/event-log.jsonl",
-        "runtime/hook-runlog.jsonl",
-        "runtime/last-handoff.json",
         "runtime/store-bound-state.json",
-        "runtime/tracks/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.track.json"
+        "runtime/external-chain-notice.json"
       ],
-      "commit": "29f14768ef60087645133f77d3b37bde8b49024c",
+      "commit": "7de5dafe45b00b807c4b4f09cbce22edaccd0d53",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789586979856-cbydcw"
+        "ldg-arrival-audit-committed-1789586984627-n79jqd"
       ]
     },
     "droppedHooks": [],
@@ -117,6 +77,6 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-16T19:29:40.608Z",
-  "previous_version": "79c1648d485e599ff7ff05d12c2d33d31b4e95c4"
+  "appliedAt": "2026-09-16T19:29:45.534Z",
+  "previous_version": "21926af88442b7d2d4b2463382f4059adfc81922"
 }
