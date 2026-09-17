@@ -16,3 +16,6 @@ autonomy_table_defaults:
   external_contact: review
   upgrade_absorption: absorb_and_report
 goals_review_top_n: 3
+
+# 2026-09-16: one permission mode wheel-wide (the hub's value); wcl refuses to launch without it declared.
+permission_mode: auto
