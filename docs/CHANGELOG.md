@@ -11,6 +11,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
+- Cut b81e2bc1 received (from 4a839956), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 4a839956 received (from ca0e4076), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut ca0e4076 received (from 89051371), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 89051371 received (from 6e237e8f), posture absorb_and_report: no circle or hook changed for this spoke.
@@ -20,7 +21,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 16 harness bookkeeping commit(s) in tracks (harness-arrival-audit 11, hf deploy: cut 5).
+- 17 harness bookkeeping commit(s) in tracks (harness-arrival-audit 12, hf deploy: cut 5).
 
 ## 2026-09-16
 
@@ -59,6 +60,22 @@ Record: certification pending
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut b81e2bc1 -- received 2026-09-17 21:18Z (from 4a839956)
+
+Cut b81e2bc1 received (from 4a839956), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### 2026-09-17
+
+#### circle-schema-hook-event-name-lacks-stopfailure-and-worktreecreate  (at review -- certification pending)
+
+Challenge: MEASURED 2026-09-17 (basher session 238db105) while declaring basher's pre-cut bash hooks as spoke-local hook circles (docs/spoke-local-hook- circles.md): schemas/circle.schema.json enumerates hook_event_name as PreToolUse, PostToolUse, UserPromptSubmit, Stop, SessionStart, SessionEnd, Notification, PreCompact.
+Solution: The enum gains StopFailure and WorktreeCreate (and any other event the current Claude Code hooks reference lists); generateHookBinding emits them like the rest; the hook-binding-drift resolver and arrival audit treat them as ordinary events. basher can then declare canon/hooks/basher-hook-notify-stopfailure.circle.yaml (StopFailure, .*) and basher-hook-worktree-create.circle.yaml (WorktreeCreate, *) and both land in the generated settings.json.
+Record: certification pending
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- AMBASSADOR_BRIEF carries a generated "Talking to another spoke" section (send, ask for a confirm-back, resolve the path from the hub registry with `hf spoke-path <name>`, reply with reply_to, close both with one verb call). [landed b81e2bc1]
 
 ## Cut 4a839956 -- received 2026-09-17 20:33Z (from ca0e4076)
 
@@ -1469,18 +1486,28 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 37 (commit 26, cut_received 10, lug_review 1).
+Entries: 39 (commit 27, cut_received 11, lug_review 1).
 
 ## 2026-09-17
 
 ### cuts
 
+- 21:18Z cut b81e2bc1 received by tracks (previous 4a839956) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: .cut-status.json (working tree, not yet committed)
 - 20:33Z cut 4a839956 received by tracks (previous ca0e4076) landed 7c2adcaa, posture absorb_and_report: +0/~0/-0 circles for tracks (git 14fd1be8..7c2adcaa -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T20:29:51.348Z -- source: tracks: git show 7c2adcaa:.cut-status.json
 - 17:39Z cut ca0e4076 received by tracks (previous 89051371) landed 14fd1be8, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3e684e52..14fd1be8 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T17:36:55.978Z -- source: tracks: git show 14fd1be8:.cut-status.json
 - 16:17Z cut 89051371 received by tracks (previous 6e237e8f) landed 3e684e52, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1df4cd62..3e684e52 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T16:13:44.078Z -- source: tracks: git show 3e684e52:.cut-status.json
 - 09:49Z cut 6e237e8f received by tracks (previous 8e61551f) landed 1df4cd62, posture absorb_and_report: +0/~0/-0 circles for tracks (git 1f8a6d8c..1df4cd62 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T09:47:08.708Z -- source: tracks: git show 1df4cd62:.cut-status.json
 - 06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
 - 00:02Z cut c8ec1341 received by tracks (previous 21926af8) landed 7b156f5f, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed cross-provider-verification (git 56d36285..7b156f5f -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 0 lug(s) closed at 2026-09-16T23:49:56.148Z -- source: tracks: git show 7b156f5f:.cut-status.json
+
+### runtime
+
+- 21:18Z commit 581cd582 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 581cd582
+- 20:33Z commit 26b718d2 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 26b718d2
+- 20:33Z commit 500d0bb6 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 500d0bb6
+- 17:39Z commit e6779214 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main e6779214
+- 17:39Z commit 3abd1e51 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 3abd1e51
+- 16:17Z commit 549b2592 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 549b2592
 
 ### docs
 
@@ -1489,14 +1516,6 @@ Entries: 37 (commit 26, cut_received 10, lug_review 1).
 - 16:17Z commit 3e684e52 [tracks] hf deploy: cut 8905137109da applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 2 file(s), area docs -- source: tracks: git log main 3e684e52
 - 16:17Z commit 107f3c9e [tracks] harness-arrival-audit: absorbed 4 file(s) on cut arrival -- 4 file(s), area docs -- source: tracks: git log main 107f3c9e
 - 09:49Z commit 1df4cd62 [tracks] hf deploy: cut 6e237e8f934a applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 2 file(s), area docs -- source: tracks: git log main 1df4cd62
-
-### runtime
-
-- 20:33Z commit 26b718d2 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 26b718d2
-- 20:33Z commit 500d0bb6 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 500d0bb6
-- 17:39Z commit e6779214 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main e6779214
-- 17:39Z commit 3abd1e51 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 3abd1e51
-- 16:17Z commit 549b2592 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 549b2592
 
 ### canon
 
@@ -1557,6 +1576,22 @@ Entries: 37 (commit 26, cut_received 10, lug_review 1).
 - 00:18Z commit 1339bab0 [tracks] tracks: retire the v1 WAI-Harness machinery to /home/mario/projects/.archived/tracks-v1-260914 (WAI-Harness/, .claude/hooks, wai-enter/exit, the v1 settings and CLAUDE.md, basher's v1 session-cost advisor and its test) -- fully on the v2 harness (cut 66e48e3a); WAI-Spoke/sessions stays (Track files, product data) -- 1711 file(s), area WAI-Harness -- source: tracks: git log main 1339bab0
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut b81e2bc1 -- received 2026-09-17 21:18Z (from 4a839956)
+
+21:18Z cut b81e2bc1 received by tracks (previous 4a839956) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 2 (commit 1, lug_review 1).
+
+### 2026-09-17
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- 20:50Z commit b81e2bc1 [harness-factory] spokes-talk-directly-via-lugs-with-a-confirm-back-and-a-p0-taps-the-live-session: reply_to wires a reply back to its request, hf spoke-path resolves a sibling from the hub registry -- lug spokes-talk-directly-via-lugs-with-a-confirm-back-and-a-p0-taps-the-live-session -- 10 file(s), area src/conductor -- source: harness-factory: git log main b81e2bc1
+
+#### unaffiliated lugs
+
+- 19:33Z lug at review circle-schema-hook-event-name-lacks-stopfailure-and-worktreecreate [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/circle-schema-hook-event-name-lacks-stopfailure-and-worktreecreate.yaml (runtime/event-log.jsonl review transition)
 
 ## Cut 4a839956 -- received 2026-09-17 20:33Z (from ca0e4076)
 
@@ -3039,4 +3074,4 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:570bdc11341f07160135d4df30b392efdd04f1db065cb6a5585d2c2e03c0a9c2 -->
+<!-- integrity sha256:a7e745284274c35bba26f0918e801deec6b6273e4c163c1a901c06593f688a89 -->

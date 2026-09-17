@@ -170,3 +170,34 @@ against the session's own recorded persona.
 ## 8. Preferred approach (disposition)
 
 No tool dispositions declared yet in this spoke's canon.
+
+## 9. Talking to another spoke
+
+No spoke needs to know another's path by heart -- only the hub's
+registry, which this cwd can already read:
+
+1. **Find the target's path**: `hf spoke-path <name>` prints the
+   target's root, resolved the same way `siblingSpokeRoots` already
+   does (hub `canon/*.spoke.yaml`, then `.local/known-repos.json`).
+2. **Send a request**: write a lug in your OWN `lugs/`, never the
+   target's -- `type: communication`, `target_spoke: <name>`, `status:
+   pending`, `requested_at`, `escalation: {after, bump_to}`, and one of
+   `payload` / `payload_doc`. Set `reply_requested: true` when you want
+   a confirm-back, not just the target's silent action.
+3. **A critical request taps the target's live session** (P0 handling):
+   see the lug above for the mechanism -- as of this brief, only the
+   channel (this section) and the reply wire (below) are landed;
+   the tap itself is tracked separately and may not be live yet.
+   `node scripts/communication-inbox.js` and the SessionStart digest
+   line are the reliable read today.
+4. **Reply, and close both with one verb call**: the target files its
+   OWN reply lug (`type: communication`, `target_spoke: <requester>`)
+   and answers with `node scripts/lug-verb.js <reply-lug>
+   --status=<pending|acknowledged|in_progress|fulfilled|declined>
+   --reply=<request-lug-name>` -- this stamps `reply_to` on the reply
+   lug itself (the one file that call is already writing; a spoke never
+   writes into a sibling's `lugs/`). The requester's own inbox read
+   (`rankCommunicationInbox`) recognizes any row carrying `reply_to` and
+   ranks it ahead of every other open request addressed to it, for as
+   long as the reply itself stays open (once it reaches `fulfilled` it
+   leaves the open inbox like any resolved request).
