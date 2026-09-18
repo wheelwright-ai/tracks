@@ -8,24 +8,8 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-17T22:42:20.934Z",
+      "auditedAt": "2026-09-17T22:42:32.270Z",
       "findings": [
-        {
-          "path": ".cut-status.json",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "docs/CHANGELOG.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -49,8 +33,8 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 1,
-        "ORGANIC_RUNTIME_CHURN": 4,
+        "LEGITIMATE_CUT_ABSORPTION": 0,
+        "ORGANIC_RUNTIME_CHURN": 3,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       }
@@ -58,17 +42,15 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        ".cut-status.json",
-        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "2f007057fcc04405a3356a62338589f6201ae55e",
+      "commit": "15491b7b0e2c41b3241248a55382ee6ac5448eca",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789684941095-6p91dr"
+        "ldg-arrival-audit-committed-1789684952326-9pfwrt"
       ]
     },
     "profileSeeding": {
@@ -100,8 +82,8 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-17T22:42:21.926Z",
-  "previous_version": "b81e2bc1c9a6ac204896bd80c8a75b78ca7a2869",
+  "appliedAt": "2026-09-17T22:42:33.216Z",
+  "previous_version": "5c79e2c68aff3faa10b01c6c4d1f95c60b9de561",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
@@ -118,7 +100,7 @@
     },
     {
       "file": "AMBASSADOR_BRIEF.md",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     {
