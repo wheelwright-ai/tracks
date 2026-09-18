@@ -7,6 +7,16 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
+## 2026-09-18
+
+### cuts
+
+- Cut 87971bbe received (from 5c79e2c6), posture absorb_and_report: 3 changed (dispatch-run-salvage, git-boundary-test-gate, hf-deploy).
+
+### harness bookkeeping
+
+- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+
 ## 2026-09-17
 
 ### cuts
@@ -61,6 +71,35 @@ Record: certification pending
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 87971bbe -- received 2026-09-18 01:44Z (from 5c79e2c6)
+
+Cut 87971bbe received (from 5c79e2c6), posture absorb_and_report: 3 changed (dispatch-run-salvage, git-boundary-test-gate, hf-deploy).
+
+### 2026-09-18
+
+#### docs
+
+- git-boundary-test-gate circle doc under the rule-11 cap after two builders extended it (186 lease skip, 187 incremental gate + sweep yield): one lease section, tiers trimmed for meaning
+
+#### wheel-agents-talk-up-down-and-across
+
+- The push gate judges the pushed tree by the suites that cover the files changed since the last PROVEN tree (the proof record it already writes) plus the serial-first timing suites and the circles runner, and reuses the prior proof for everything else -- one push, ~4 min at today's sizes. [fixtures 40/40, 31/31, 66/66, 15/15; landed 9cafbd1c]
+
+### 2026-09-17
+
+#### commits
+
+- P0 round trip fulfilled by basher's reply (reply_to linked)
+- P0 round-trip request to basher (real run for MAX-184): no live basher session, rung C refused on the missing spoke envelope -- follow-up lug filed on the hub
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- The tap's headroom check resolves the envelope from the hub (the wheel's account) and only then the target spoke's own, naming which it used in the ledger row; with headroom and the kill switch clear a Sonnet dispatch is queued on the target spoke for the request and the request lug reads dispatch_queued. [landed b5f24c4f]
+
+#### wheel-agents-talk-up-down-and-across
+
+- launchSpoke's headless envOverrides set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 so a builder's background task is bounded by the dispatch's own idle/timeout watchdog only; the dispatch prompt's standing rules tell builders to run gates in the foreground; and dispatch-run-salvage reads the child's stderr for the print-mode termination line and records verdict killed_by: print_mode_bg_ceiling with the uncommitted files named, never finished_on_its_own. [landed 89a22492]
 
 ## Cut 5c79e2c6 -- received 2026-09-17 22:42Z (from b81e2bc1)
 
@@ -1501,7 +1540,17 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 45 (commit 32, cut_received 12, lug_review 1).
+Entries: 47 (commit 33, cut_received 13, lug_review 1).
+
+## 2026-09-18
+
+### cuts
+
+- 01:44Z cut 87971bbe received by tracks (previous 5c79e2c6) (working tree), posture absorb_and_report: +0/~3/-0 circles for tracks -- changed dispatch-run-salvage, git-boundary-test-gate, hf-deploy (git fbb4ff64..working tree -- canon/circles, .claude/settings.json) -- published +0/~3/-0 circles, 0 lug(s) closed at 2026-09-18T01:40:52.511Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+### runtime
+
+- 01:44Z commit f4ebdc34 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main f4ebdc34
 
 ## 2026-09-17
 
@@ -1600,6 +1649,37 @@ Entries: 45 (commit 32, cut_received 12, lug_review 1).
 - 00:18Z commit 1339bab0 [tracks] tracks: retire the v1 WAI-Harness machinery to /home/mario/projects/.archived/tracks-v1-260914 (WAI-Harness/, .claude/hooks, wai-enter/exit, the v1 settings and CLAUDE.md, basher's v1 session-cost advisor and its test) -- fully on the v2 harness (cut 66e48e3a); WAI-Spoke/sessions stays (Track files, product data) -- 1711 file(s), area WAI-Harness -- source: tracks: git log main 1339bab0
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 87971bbe -- received 2026-09-18 01:44Z (from 5c79e2c6)
+
+01:44Z cut 87971bbe received by tracks (previous 5c79e2c6) (working tree), posture absorb_and_report: +0/~3/-0 circles for tracks -- changed dispatch-run-salvage, git-boundary-test-gate, hf-deploy (git fbb4ff64..working tree -- canon/circles, .claude/settings.json) -- published +0/~3/-0 circles, 0 lug(s) closed at 2026-09-18T01:40:52.511Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 6 (commit 6).
+
+### 2026-09-18
+
+#### docs
+
+- 01:19Z commit 87971bbe [harness-factory] git-boundary-test-gate circle doc under the rule-11 cap after two builders extended it (186 lease skip, 187 incremental gate + sweep yield): one lease section, tiers trimmed for meaning -- 2 file(s), area docs -- source: harness-factory: git log main 87971bbe
+
+#### wheel-agents-talk-up-down-and-across
+
+- 00:07Z commit 9cafbd1c [harness-factory] push-gate-runs-what-changed-since-the-last-proven-tree-and-the-sweep-yields-to-gates: the push gate runs the suites covering what changed since the last proven tree, reuses the proof for the rest; the full functional review runs once per cut; the sweep yields the corpus lease to a waiting gate -- lug push-gate-runs-what-changed-since-the-last-proven-tree-and-the-sweep-yields-to-gates -- fixtures 40/40, 31/31, 66/66, 15/15 -- 11 file(s), area src/factory -- source: harness-factory: git log main 9cafbd1c
+
+### 2026-09-17
+
+#### commits
+
+- 23:22Z commit acfb6c13 [harness-factory] P0 round trip fulfilled by basher's reply (reply_to linked) -- 1 file(s), area lugs -- source: harness-factory: git log main acfb6c13
+- 22:45Z commit 81fa1bbf [harness-factory] P0 round-trip request to basher (real run for MAX-184): no live basher session, rung C refused on the missing spoke envelope -- follow-up lug filed on the hub -- 1 file(s), area lugs -- source: harness-factory: git log main 81fa1bbf
+
+#### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
+
+- 23:18Z commit b5f24c4f [harness-factory] p0-tap-reads-the-wheel-envelope-from-the-hub-when-the-spoke-declares-none: rung C's headroom check resolves the hub's envelope first, the spoke's own second -- lug p0-tap-reads-the-wheel-envelope-from-the-hub-when-the-spoke-declares-none -- 3 file(s), area src/lugTracking -- source: harness-factory: git log main b5f24c4f
+
+#### wheel-agents-talk-up-down-and-across
+
+- 23:30Z commit 89a22492 [harness-factory] dispatch-launch-lifts-the-print-mode-background-ceiling-and-salvage-names-the-kill: lift Claude Code's 600s print-mode background ceiling on headless launches, name a print-mode kill and an uncommitted worktree in the work disposition, and let a registered dispatch worktree's commit gate skip the shared suite-corpus lease -- lug dispatch-launch-lifts-the-print-mode-background-ceiling-and-salvage-names-the-kill -- 10 file(s), area src/lugTracking -- source: harness-factory: git log main 89a22492
 
 ## Cut 5c79e2c6 -- received 2026-09-17 22:42Z (from b81e2bc1)
 
@@ -3114,4 +3194,4 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:46c2b0cd57269797d834e091e53573c0c431b4a7400d25b9bab83b6703a2e446 -->
+<!-- integrity sha256:1fd6078e1d834ec4569059a78fd12a9a428109e03a63a89abbb2fdf1edd984f1 -->

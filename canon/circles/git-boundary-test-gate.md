@@ -16,20 +16,22 @@ mechanical anywhere in the path.
 ## The three tiers
 
 **Commit — changed scope.** The covering suites for the staged set only.
-The full sweep is 1107s measured; paying that per commit teaches
-`--no-verify`, and a gate people routinely bypass protects nothing. Scope
-is computed from the real import graph (reverse-reachability from a changed
+A full sweep per commit teaches `--no-verify`. Scope is computed from the real import graph (reverse-reachability from a changed
 file to the suites that reach it), plus a text match for non-JS inputs such
 as canon YAML and lug files. Suites run most-specific-first inside a 90s
 wall budget; suites the budget does not reach are named and **deferred to
 the push gate**, never reported as passed.
 
-**Push — the full suite plus a failure ratchet.** Every suite, no
-fail-fast: the ratchet needs the whole failure set, because a single-failure
-view lets a new failure hide behind a baselined one. A failure already in
-`runtime/test-ratchet.json` is printed and does not block; one that is not
-is NEW and blocks. The baseline may only shrink. This is what makes a gate
-possible on a tree that is honestly red — and this one is.
+**Push — the changed scope since the last proven tree, plus a failure
+ratchet.** Once a full-suite proof exists for tree T0, the next push T1
+only re-verifies `cover(diff T0..T1)` plus every `// serial`, `// timing`
+and corpus-reading suite (`enumerateLugCorpus` -- a same-repo diff cannot
+see a sibling's committed change) and `run-reference-circles.js`.
+Everything else is REUSED from T0's record (red stays red, never re-run;
+a NEW RED can only come from a suite that ran). No anchor, or
+`--full-suite`, runs everything. The receipt records
+`ran`/`reused`/`reused_from`. The once-per-cut full review (`hf deploy`'s
+cut stage) always runs `--full-suite`.
 
 **Receipt — an unchanged suite does not run again.**
 `runtime/test-proofs.json` holds, per suite set, the content hash of the
@@ -38,8 +40,23 @@ index, because staged files are dirty relative to HEAD by definition and a
 HEAD-keyed commit receipt could never fire. Either way the tests run on the
 working tree, so a receipt is neither read nor written while the covered
 scope is dirty. **Absence is not a pass**: no receipt, an unreadable store
-or an unobtainable hash all run the suite. A skip is noisy on purpose — it
-names the suite set, the tree and when the proof was taken.
+or an unobtainable hash all run the suite; a skip names the suite set, the
+tree and when the proof was taken.
+
+## Corpus lease
+
+The commit and push gates share ONE corpus lease
+(`src/factory/suiteCorpusLease.js`) with the wheel clock's regression-oracle
+sweep, so the corpus is never run twice on one box at once. A gate waiting
+on another GATE refuses past its bound. A gate waiting on the SWEEP writes
+`<lease>.request` and waits ~60s: the sweep polls for it after every
+capability, checkpoints to `runtime/regression-oracle-checkpoint.json` and
+releases; its next firing resumes from the checkpoint. A commit gate inside
+a **registered dispatch worktree** (its own `runtime/worktrees.jsonl` row,
+purpose other than `"push-gate"`) skips the lease: it judges its own scoped
+corpus snapshot and records the receipt `worktree_scoped: true` (lug
+dispatch-launch-lifts-the-print-mode-background-ceiling-and-salvage-names-
+the-kill, 260917). The main checkout still waits.
 
 ## Bypass
 

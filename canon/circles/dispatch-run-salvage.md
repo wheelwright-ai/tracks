@@ -62,13 +62,16 @@ record of it was volatile.
   samples*. The observed maximum is a **lower bound**; the censoring rate
   is stated; every recommendation is provisional.
 
+## Print-mode ceiling (260917)
+
+Lug `dispatch-launch-lifts-the-print-mode-background-ceiling-and-salvage-
+names-the-kill`. `launchSpoke` lifts Claude Code's 600s background
+ceiling on the headless path; `killed_by: print_mode_bg_ceiling` and
+`uncommitted_work` (outranks every other verdict) are new.
+
 ## What it is not
 
-Not a budget increase -- that moves the cliff without removing it, and a
-longer run that still records nothing costs strictly more.
-
-It also cannot make a model write incrementally. The advisor prompt has
-always *asked* for that, and an instruction cannot carry that guarantee.
-What is enforceable from outside the child is: never lose what it did
-emit, always know whether incremental landing happened, and never
-overstate. This circle does those three.
+Not a budget increase -- moves the cliff without removing it. Cannot make
+a model write incrementally either: enforceable from outside the child is
+only never lose what it emits, know whether landing happened, never
+overstate.

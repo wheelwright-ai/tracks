@@ -30,13 +30,21 @@ run, its lock and the last five stage rows.
 |----------|-----------------------------------------------------------------------|-------------------------------------------------------|
 | fold     | cherry-pick review/done dispatch/* branches on an integrate worktree, ff main | conflict (branch named), main will not fast-forward |
 | push     | harness-factory then each spoke, own pre-push gate, keepalive ssh     | gate red (quoted), behind origin, timeout             |
-| cut      | applyCut per registered spoke (regenerates CLAUDE.md, AMBASSADOR_BRIEF.md and docs/CHANGELOG.md from records), commit cut-owned paths, `wcl --dry-run` | applyCut failure, spoke pre-commit gate red |
+| cut      | full corpus review (`--full-suite`), then applyCut per registered spoke (regenerates CLAUDE.md, AMBASSADOR_BRIEF.md and docs/CHANGELOG.md from records), commit cut-owned paths, `wcl --dry-run` | review NEW RED (no spoke touched), applyCut failure, spoke pre-commit gate red |
 | relaunch | re-queue dispatches refused for "spoke is stale"                      | queueDispatch throws                                  |
 | clean    | remove worktree + branch of fully folded branches                     | git refuses the removal                               |
 
 A hold (upgrade posture, active session without live-apply, unclassifiable
 arrival) is recorded per spoke and the stage still completes: it is a real
 reason, not a failure, and the operator reads it in the record.
+
+## The cut's own full review
+
+A push now only re-verifies what changed since the last proven tree
+(`git-boundary-test-gate.md`), so the cut stage spawns `prepush
+--full-suite` once, before touching any spoke, and refuses the whole cut
+on a NEW RED, naming the suites. Rides on the stage record and
+`registry/latest-cut.json` as `reviewed: "N/M"`.
 
 ## Records
 
