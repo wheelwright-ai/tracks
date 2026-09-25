@@ -15,7 +15,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+- 3 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2, hf deploy: cut 1).
 
 ## 2026-09-17
 
@@ -1540,17 +1540,22 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 47 (commit 33, cut_received 13, lug_review 1).
+Entries: 49 (commit 35, cut_received 13, lug_review 1).
 
 ## 2026-09-18
 
-### cuts
-
-- 01:44Z cut 87971bbe received by tracks (previous 5c79e2c6) (working tree), posture absorb_and_report: +0/~3/-0 circles for tracks -- changed dispatch-run-salvage, git-boundary-test-gate, hf-deploy (git fbb4ff64..working tree -- canon/circles, .claude/settings.json) -- published +0/~3/-0 circles, 0 lug(s) closed at 2026-09-18T01:40:52.511Z -- source: tracks: .cut-status.json (working tree, not yet committed)
-
 ### runtime
 
+- 01:44Z commit a604b009 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main a604b009
 - 01:44Z commit f4ebdc34 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main f4ebdc34
+
+### canon
+
+- 01:44Z commit d0ce4e76 [tracks] hf deploy: cut 87971bbedc5d applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 5 file(s), area canon -- source: tracks: git log main d0ce4e76
+
+### cuts
+
+- 01:44Z cut 87971bbe received by tracks (previous 5c79e2c6) landed d0ce4e76, posture absorb_and_report: +0/~3/-0 circles for tracks -- changed dispatch-run-salvage, git-boundary-test-gate, hf-deploy (git fbb4ff64..d0ce4e76 -- canon/circles, .claude/settings.json) -- published +0/~3/-0 circles, 0 lug(s) closed at 2026-09-18T01:40:52.511Z -- source: tracks: git show d0ce4e76:.cut-status.json
 
 ## 2026-09-17
 
@@ -1652,7 +1657,7 @@ Entries: 47 (commit 33, cut_received 13, lug_review 1).
 
 ## Cut 87971bbe -- received 2026-09-18 01:44Z (from 5c79e2c6)
 
-01:44Z cut 87971bbe received by tracks (previous 5c79e2c6) (working tree), posture absorb_and_report: +0/~3/-0 circles for tracks -- changed dispatch-run-salvage, git-boundary-test-gate, hf-deploy (git fbb4ff64..working tree -- canon/circles, .claude/settings.json) -- published +0/~3/-0 circles, 0 lug(s) closed at 2026-09-18T01:40:52.511Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+01:44Z cut 87971bbe received by tracks (previous 5c79e2c6) landed d0ce4e76, posture absorb_and_report: +0/~3/-0 circles for tracks -- changed dispatch-run-salvage, git-boundary-test-gate, hf-deploy (git fbb4ff64..d0ce4e76 -- canon/circles, .claude/settings.json) -- published +0/~3/-0 circles, 0 lug(s) closed at 2026-09-18T01:40:52.511Z -- source: tracks: git show d0ce4e76:.cut-status.json
 
 Entries: 6 (commit 6).
 
@@ -3194,4 +3199,4 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:1fd6078e1d834ec4569059a78fd12a9a428109e03a63a89abbb2fdf1edd984f1 -->
+<!-- integrity sha256:bc14662af5128f90c484059499348639ac835a01a492ec05a50adbfabe1481cf -->

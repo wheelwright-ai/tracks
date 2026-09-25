@@ -8,24 +8,8 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-18T01:44:31.314Z",
+      "auditedAt": "2026-09-18T01:44:43.923Z",
       "findings": [
-        {
-          "path": ".cut-status.json",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "docs/CHANGELOG.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -49,8 +33,8 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 1,
-        "ORGANIC_RUNTIME_CHURN": 4,
+        "LEGITIMATE_CUT_ABSORPTION": 0,
+        "ORGANIC_RUNTIME_CHURN": 3,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       }
@@ -58,17 +42,15 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        ".cut-status.json",
-        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "f4ebdc342d2e19f83fea2ed453ed825b849c2a11",
+      "commit": "a604b009db47c88f743e102df77e679cd5478dc4",
       "blocked": [],
       "credentialBlocked": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1789695871472-hdkek3"
+        "ldg-arrival-audit-committed-1789695884040-fuahyd"
       ]
     },
     "profileSeeding": {
@@ -100,8 +82,8 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-18T01:44:32.335Z",
-  "previous_version": "5c79e2c68aff3faa10b01c6c4d1f95c60b9de561",
+  "appliedAt": "2026-09-18T01:44:45.532Z",
+  "previous_version": "87971bbedc5d893a46700c66614546db4a72c799",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
