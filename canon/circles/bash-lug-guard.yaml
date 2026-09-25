@@ -17,6 +17,15 @@ invariants:
     node/python write, git mv) resolving into another registered repo's
     canonical checkout is refused for a top-level session with the persona
     guard's cross-repo sentence, rows on both repos
+  - >-
+    second sibling check (260919, lug
+    max-persona-boundary-guard-covers-bash-writes-to-source-from-the-top-level-session):
+    after the two checks above find nothing, a write-shaped target under src/,
+    conformance/, reference/, canon/ or scripts/ is refused for a top-level
+    session with max-persona-boundary-guard's own refusalReason() sentence and
+    posture knob (personaBoundary.checkBashAuthorship); a dispatched fork or
+    session is unaffected, and every refusal appends both a ledger row and a
+    calibration reading -- docs/max-persona-boundary-bash-authorship.md
 failure_routing: lug:bash-lug-guard-failure
 counter_metric: bash_lug_write_block_rate
 enforcement: hook

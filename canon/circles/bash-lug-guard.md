@@ -53,3 +53,12 @@ communication lug with `target_spoke`, or `queueDispatch` with
 (`src/hooks/lib/crossRepoLedger.js`). A linked worktree, the scratchpad,
 declarative content and a dispatched session are outside the rule; a
 write in the session's own repo is as unseen here as before.
+
+## Second sibling check: top-level authorship (260919)
+
+That last sentence stopped being true 260919: a write in the session's
+OWN repo, under `src/`, `conformance/`, `reference/`, `canon/` or
+`scripts/`, is now refused for a top-level session too, by a third check
+in this hook (`personaBoundary.checkBashAuthorship`), gated by
+max-persona-boundary-guard's own posture knob and refusal sentence. Full
+account: `docs/max-persona-boundary-bash-authorship.md`.

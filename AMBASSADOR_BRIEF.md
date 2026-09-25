@@ -12,7 +12,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 
 ## 2. Its toolbox
 
-91 live circle(s):
+92 live circle(s):
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
@@ -100,6 +100,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **wcl-entry-directive** (hook_event): a session starts
 - **wcl-verify-then-launch** (on_demand): the operator runs `wcl <spoke>`
 - **wheel-clock-catchup** (hook_event): a real session starts (SessionStart event)
+- **wheel-feedback-emit** (hook_event): a real session ends (SessionEnd event) and the spoke's wheel_clock job wheelFeedbackEmit (JOB_RUNNERS.wheelFeedbackEmit) on its declared cadence -- the spoke reads its own ledger and runtime rows since its last emit cursor (runtime/feedback-emit-cursor.json) and posts one message_kind: feedback message per cause key to the hub
 - **worktree-registry** (on_demand): a git worktree is created, removed, judged or handed off by the harness -- addWorktree/removeWorktree (src/factory/worktreeRegistry.js) at every `git worktree add` in src/ (rollbackCut's pinned checkout, hf deploy's fold integrate tree, stageClean's removals); `node scripts/worktree.js add|list|remove|reap` by the orchestrating session in place of raw git; healthSignals.js's stale_worktree signal on every Planner cycle; and buildHandoff at every session end
 - **zellij-tab-identity-session-end** (hook_event): the session ends -- the tab goes back to idle unless it still needs a look
 - **zellij-tab-identity-tool-reset** (hook_event): the first tool call after a permission prompt the operator answered

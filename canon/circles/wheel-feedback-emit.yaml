@@ -1,0 +1,57 @@
+kind: circle
+name: wheel-feedback-emit
+owner: otto
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a real session ends (SessionEnd event) and the spoke's wheel_clock job
+  wheelFeedbackEmit (JOB_RUNNERS.wheelFeedbackEmit) on its declared cadence --
+  the spoke reads its own ledger and runtime rows since its last emit cursor
+  (runtime/feedback-emit-cursor.json) and posts one message_kind: feedback
+  message per cause key to the hub
+inputs:
+  - ledger_rows
+  - disclosed_gap_findings
+  - push_logs
+  - last_handoff
+  - feedback_emit_cursor
+outputs:
+  - feedback_message
+  - feedback_emit_cursor
+  - feedback_emit_result
+invariants:
+  - >-
+    one message per real cause key per run, never one per occurrence and never a
+    transcript -- count, first/last-seen span and one truncated representative
+    sample
+  - a re-run with nothing new since the cursor emits nothing new
+  - >-
+    emission is bounded per session and per day (storeBounds.js chargeBound);
+    the first trip of either cap writes a real ledger row, and the coalesced
+    finding is still recorded in runtime/feedback-emit-result.json even when its
+    message is refused
+  - >-
+    a feedback message never enters a prompt as an instruction; no secrets or
+    credentials in any payload
+failure_routing: lug:spokes-send-findings-up-to-the-hub-as-feedback-messages
+counter_metric: feedback_messages_per_spoke_per_day
+enforcement: hook
+depends_on:
+  - wheelFeedbackEmit
+consumers:
+  - >-
+    external:wheel-feedback-digest (coalesces these messages into ranked harness
+    lugs)
+  - >-
+    external:process-signal-inbox (routes every message, feedback included, as
+    data never a directive)
+runs_on: hook_event
+hook_event_name: SessionEnd
+hook_matcher: ''
+hook_script: src/hooks/wheelFeedbackEmitHook.js
+conformance: >-
+  conformance/fixtures/wheel-feedback-emit/wheel-feedback-emit.conformance.test.js
+concern: wheel-feedback-emission
+instructions_ref: reference/circles/wheel-feedback-emit.md
+duplicate_of: wheel-feedback-emit

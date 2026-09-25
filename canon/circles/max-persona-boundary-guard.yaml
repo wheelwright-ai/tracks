@@ -16,60 +16,46 @@ outputs:
   - framework_warn_posture_row
 invariants:
   - >-
-    fires only when this call is NOT from a dispatched fork AND not from a
-    dispatched session -- the inverse of agent-tool-scope-guard and
-    agent-target-scope-guard, whose own first line exempts exactly this case
+    fires only when NOT dispatched -- the inverse of
+    agent-tool-scope-guard/agent-target-scope-guard's own exemption
   - >-
-    "dispatched" is decided on the two signals that already exist: agent_id on
-    the hook stdin (an Agent-tool fork), or a live dispatch-scope grant written
-    for this session's own root before the session existed (a headless
-    dispatched session) -- no new detection mechanism
+    "dispatched" = agent_id on the hook stdin, or a live dispatch-scope grant
+    whose root contains this session's cwd -- no new detection mechanism
   - >-
-    a grant proves this session is dispatched only when the grant's own root
-    contains this session's cwd -- a live grant written for some other worktree
-    never makes the orchestrating session look dispatched
+    declarative content never blocked: lugs/, canon/, docs/, registry/,
+    runtime/, ledger/
   - >-
-    declarative content is never blocked: lugs/, canon/, docs/, registry/, and
-    the runtime/ and ledger/ trees every session is required to write
+    review/merge never blocked structurally -- matcher excludes Bash (git
+    merge/commit/cherry-pick/checkout --ours/--theirs unreachable)
   - >-
-    review and merge operations are never blocked, structurally: the matcher
-    excludes Bash, so git merge, git commit, git cherry-pick and git checkout
-    --ours/--theirs are unreachable from this guard
+    hand-reconciling a merge conflict in application code is original
+    authorship, refused; taking one side wholesale is a derivation, allowed
   - >-
-    resolving a merge conflict by hand-writing a reconciled hunk in application
-    code is original authorship and is refused -- taking one side wholesale is a
-    derivation and is not
+    application code = real extension, or a spoke's own code directory,
+    generalized across spokes -- never one spoke's hardcoded layout
   - >-
-    application code is matched by real extension or by a spoke's own code
-    directory, generalized across spokes -- never by one spoke's hardcoded
-    layout
+    refusal names the real path, why it's code, why top-level, and the real
+    dispatch call to make instead -- never a bare denial
   - >-
-    the refusal names the real path, why it classified as code, why this session
-    counts as top-level, and the real dispatch call to make instead -- never a
-    bare denial
+    a refusal is a permanent ledger row, never cleared by a later
+    self-justification
   - >-
-    a refusal is a permanent, appended ledger row -- never cleared by the
-    session later deciding it was justified
+    posture is profile-configurable (deny | warn); warn still writes the row --
+    a relaxation is disclosed, never silent
   - >-
-    posture is profile-configurable (deny | warn); warn never blocks but still
-    writes the row, so a relaxation is disclosed rather than silent
+    260913 ruling (operator, session 2776bea2): a target outside every repo, not
+    deployed provider config, is orchestration scaffold -- allowed, disclosed by
+    an ALLOWED ledger row
   - >-
-    260913 ruling (the operator, session 2776bea2): a target outside every repo
-    that is not deployed provider config ($HOME/.claude, $CLAUDE_CONFIG_DIR, any
-    provider-claude-config segment) is orchestration scaffold -- allowed, and
-    disclosed by an ALLOWED ledger row naming the path
+    260913 ruling: the framework's own self-hosting checkout defaults to warn; a
+    scaffolded spoke stays deny; explicit canon posture always wins
   - >-
-    260913 ruling: the framework's own self-hosting checkout
-    (isSelfHostingFramework, no canon/profile.yaml) runs in warn posture by
-    default; a scaffolded spoke stays deny; an explicit canon posture always
-    wins
+    a target inside ANOTHER registered repo's checkout is refused regardless of
+    posture, names the two sanctioned paths (communication lug, or queueDispatch
+    externalTargets), lands rows on both ledgers
   - >-
-    a target inside ANOTHER registered repo's canonical checkout (own
-    known-repos.json plus the hub's spoke cards; a linked worktree or the
-    scratchpad is never one) is refused regardless of posture, names the two
-    sanctioned paths (a communication lug with target_spoke, or queueDispatch
-    with externalTargets), and lands a row on both repos' ledgers -- 2026-09-14,
-    a basher session edited harness-factory in place
+    matcher stays Edit|Write|NotebookEdit; a top-level Bash write to source is
+    refused by bash-lug-guard's own sibling check instead
 failure_routing: lug:max-persona-boundary-enforced-mechanically-not-by-memory
 counter_metric: top_level_application_code_authorship_refusal_rate
 enforcement: hook

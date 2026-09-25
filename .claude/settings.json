@@ -450,6 +450,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/wheelFeedbackEmitHook.js",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
             "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionEndTabClearHook.js",
             "timeout": 30
           }

@@ -77,6 +77,7 @@ still writes the ledger row.
 
 ## Known, accepted gaps
 
-Enumerated in `docs/max-persona-boundary.md`. The largest, deliberate:
-this guard never matches Bash, so `cat > src/foo.js <<EOF` gets through;
-closing that puts it one heuristic away from refusing `git merge`.
+Enumerated in `docs/max-persona-boundary.md`. The former largest gap
+("never matches Bash") closed 260919 via a sibling check in
+bash-lug-guard's own hook, not by widening this matcher. Full account:
+`docs/max-persona-boundary-bash-authorship.md`.
