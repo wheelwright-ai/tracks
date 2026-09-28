@@ -28,3 +28,6 @@ WAI-Spoke/advisors/*/context/snapshot-*
 
 # harness-factory v2: per-spoke config dir and resolved secrets
 .local/
+
+# hook capture logs: local debug data, redacted-but-noisy, and a leak vector (basher 2026-09-28)
+**/docs/live-hook-capture*.jsonl*
