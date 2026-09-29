@@ -1,0 +1,21 @@
+{
+ "kind": "segmented_stream_manifest",
+ "schema_version": 1,
+ "stream": "ledger.jsonl",
+ "segments": [
+  {
+   "segment": "000001_2026-09-15_2026-09-29.jsonl.gz",
+   "seq": 1,
+   "rows": 117,
+   "overlay_rows": 0,
+   "first_at": "2026-09-15T00:10:18.919Z",
+   "last_at": "2026-09-29T08:36:37.927Z",
+   "bytes": 98194,
+   "compressed_bytes": 11110,
+   "sha256": "649ed81dc59872a65075a2d5711c4131efaa300ab41bf0d1a754eaeba3c0cf79",
+   "sealed_at": "2026-09-29T15:30:35.905Z",
+   "reason": "age: first row 2026-09-15T00:10:18.919Z is older than the declared seal_age_days 14 (/home/mario/projects/wheelwright/harness-factory-release-next/canon/policies/segmented-streams.policy.yaml (streams: ledger/ledger.jsonl))",
+   "batch": 1
+  }
+ ]
+}

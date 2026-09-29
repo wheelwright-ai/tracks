@@ -11,11 +11,12 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
-- Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js; policies added hook-dispatch, release; changed config-custody-manifest; 1 lug(s) closed on the wheel.
+- Cut e6eda1f8 received (from 44c2ff6b), posture absorb_and_report: no circle or hook changed for this spoke; policies added file-size-budgets, segmented-streams; changed ledger-retention.
+- Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
 
 ### harness bookkeeping
 
-- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+- 2 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2).
 
 ## 2026-09-28
 
@@ -98,9 +99,31 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut e6eda1f8 -- received 2026-09-29 15:30Z (from 44c2ff6b)
+
+Cut e6eda1f8 received (from 44c2ff6b), posture absorb_and_report: no circle or hook changed for this spoke; policies added file-size-budgets, segmented-streams; changed ledger-retention.
+
+### 2026-09-29
+
+#### commits
+
+- Backlog triage applied: 127 lugs closed through the kernel verb (delivered 38, merged 26, obsolete 32, low value 31)
+
+#### src/basher
+
+- wcl --offline / WCL_OFFLINE=1; hermetic suites get no network to GitHub
+
+#### src/conductor
+
+- Append-only streams seal into gzip'd segments; size budgets refuse at commit, push and warn at session start
+
+#### src/factory
+
+- The secrets template source is never retired by a cut; every retirement and keep is named
+
 ## Cut 44c2ff6b -- received 2026-09-29 08:36Z (from 2ffc5402)
 
-Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js; policies added hook-dispatch, release; changed config-custody-manifest; 1 lug(s) closed on the wheel.
+Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
 
 ### 2026-09-29
 
@@ -183,12 +206,6 @@ Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) ga
 
 ### 2026-09-26
 
-#### generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md  (at review -- certification pending)
-
-Challenge: basher's reply to the v2 onboarding review (2026-09-18, payload_doc docs/reply-v2-onboarding-review-260918.md answer 2): basher KEEPS a hand-maintained CLAUDE.md -- operator-ratified behavioral canon, with a 3-line "Harness v2 pointer" section naming AMBASSADOR_BRIEF.md, .cut-status.json, wcl compile and lug-verb. generatedDocs.js already refuses to overwrite a file without the generated marker, but on EVERY cut it rewrites `CLAUDE.md.v2-proposed` beside it (src/factory/generatedDocs.js, the `!isGeneratedDocShape(before)` branch, fs.writeFileSync(proposedPath) unconditionally). basher asks: treat a hand-maintained CLAUDE.md that references AMBASSADOR_BRIEF.md as satisfied and stop rewriting the proposal on every cut -- write once, or only when the generated content changes; basher deletes its copy once the rewrite stops.
-Solution: applyCut on a spoke whose hand-maintained CLAUDE.md references AMBASSADOR_BRIEF.md writes CLAUDE.md.v2-proposed only when the generated content differs from the proposal already on disk (or none exists), and reports `proposed: unchanged` otherwise; a spoke with no such pointer keeps today's behaviour; the cut report line names which case applied.
-Record: certification pending · fixtures 2 fixture(s) · shas 3dba9827
-
 #### zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier  (done)
 
 Challenge: Follow-up from communication lug basher-give-a-v2-spoke-a-distinct-short-tab-name (fulfilled 2026-09-24). basher's bash tab writer (dotfiles/.config/basher/tools/ zellij-tabindex.sh, _basher_spoke_name) resolves a short tab label through THREE tiers: v1 basher.json -> basher's own local override map (~/.config/basher/tab-labels.tsv, keyed by folder basename) -> folder basename.
@@ -199,17 +216,15 @@ Record: CONFIRMED via claude (reviewer da93b3fb) · fixtures 1 fixture(s) · 4.3
 
 - None of the 6 named files states type: work, and whatever wrote them is confirmed not to emit the field going forward. [landed ca1810a8]
 
+#### src/factory
+
+- applyCut on a spoke whose hand-maintained CLAUDE.md references AMBASSADOR_BRIEF.md writes CLAUDE.md.v2-proposed only when the generated content differs from the proposal already on disk (or none exists), and reports `proposed: unchanged` otherwise; a spoke with no such pointer keeps today's behaviour; the cut report line names which case applied. [landed 3dba9827]
+
 #### harness bookkeeping
 
 - 3 harness bookkeeping commit(s) in harness-factory (Session work 3).
 
 ### 2026-09-25
-
-#### bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture  (at review -- certification pending)
-
-Challenge: One explicit `type: work` in bubo's corpus reds a fleet-wide fixture; the writer that emitted it is the real fix.
-Solution: The file no longer states type: work, and bubo's lug filer never emits the field. lug-type-conditional-requirements is green fleet-wide.
-Record: certification pending · shas 54afd46d
 
 #### commits
 
@@ -220,6 +235,10 @@ Record: certification pending · shas 54afd46d
 #### docs
 
 - basher-applies-the-operator-verb-allowlist: record real blocker
+
+#### lugs
+
+- The file no longer states type: work, and bubo's lug filer never emits the field. lug-type-conditional-requirements is green fleet-wide. [landed 54afd46d]
 
 ## Cut 2ffc5402 -- received 2026-09-25 07:59Z (from 87971bbe)
 
@@ -238,24 +257,6 @@ Record: certification pending · fixtures 1 fixture(s) · shas a283ce92, ba4f9c7
 Challenge: Max's own miss, 2026-09-24: I filed canon/initiatives/minder-conductor- dashboard with a success_prediction on a metric that had no entry in METRIC_READERS (src/conductor/successPrediction.js), and never ran register-from-canon.
 Solution: An initiative cannot enter canon with a prediction nothing can observe. Either a compiler rule (the same shape as rule 11 / the consumer audit) refuses an initiative whose success_prediction.metric has no reader and names the metric, or the one sanctioned filing path registers the prediction as a side effect and fails loudly when registration is refused -- whichever matches how initiatives really get filed today.
 Record: PLAUSIBLE via dashscope (reviewer 96ced3fc) · fixtures 3 fixture(s) · 11.5M tokens over 13.2 min · shas 65971153, 91f3f86c
-
-#### minder-dashboard-records-verified-real-has-a-reader-in-metric-readers  (at review -- certification pending)
-
-Challenge: The minder-conductor-dashboard initiative (wheel-hub canon, filed 2026-09-24) has one open question and zero lugs: the dashboard's own health metric, minder_dashboard_records_verified_real, has no entry in METRIC_READERS (src/conductor/successPrediction.js), so the initiative's prediction had to be registered on initiative_open_questions_count instead and nothing observes whether wheel-ops still renders real records.
-Solution: METRIC_READERS carries minder_dashboard_records_verified_real: it reads minder's wheel-ops API (the configured dev-server origin, default http://127.0.0.1:3051/api/wheel-ops?type=all) with a short timeout and returns the count of records with sample:false, or measured:false with the reason when the server is down or the payload is not the expected shape -- never a fabricated number. The initiative's open question closes and a prediction on the metric registers against a real baseline.
-Record: certification pending · fixtures 1 fixture(s) · shas fd99d0a0, 5c89c119
-
-#### planner-reads-the-hubs-initiatives-so-build-rows-carry-their-initiative  (at review -- certification pending)
-
-Challenge: Measured 2026-09-24 11:30 PM PDT in harness-factory's runtime/planner- cycle.json: 42 ap_queue rows, every one tier non_initiative, initiative field empty on all 42.
-Solution: The Planner resolves initiatives from the hub's canon/initiatives/ (the registry-declared hub root, the same resolution the goals review's hub sections use) merged with any instance-local ones, matches lugs by external:lug:<name> and by bare name, and every ap_queue row for a lug an initiative names carries tier initiative, its initiative name and rank. The next planner_cycle on harness-factory shows a non-zero initiative tier; planner-class-floors' initiative_build slot fills when such a lug is ready.
-Record: certification pending · fixtures 1 fixture(s)
-
-#### suite-pool-parallel-fixture-is-serial-so-the-gate-runs-it-alone  (at review -- certification pending)
-
-Challenge: Push of main at 86ec7c7 on 2026-09-24 10:47 PM PDT was REFUSED with one NEW RED: conformance/fixtures/suite-pool-parallel, check (A) "wall time is well under the serial sum (10 x >=400ms = 4000ms)" measured wall 4535ms.
-Solution: suite-pool-parallel declares `// serial` with its reason in its head comment; the gate's first report line names it among the serial suites; a push at a tree where the other 331 suites pass is not refused by this suite's wall clock under load.
-Record: certification pending · shas 23da3776, efb618e6
 
 #### commits
 
@@ -285,6 +286,14 @@ Record: certification pending · shas 23da3776, efb618e6
 - Give minder_dashboard_records_verified_real a real METRIC_READERS entry
 - Planner reads the hub's canon/initiatives/ so build rows carry their initiative
 
+#### enablement-through-audited-verbs
+
+- suite-pool-parallel declares `// serial` with its reason in its head comment; the gate's first report line names it among the serial suites; a push at a tree where the other 331 suites pass is not refused by this suite's wall clock under load. [landed 23da3776, efb618e6]
+
+#### minder-conductor-dashboard
+
+- METRIC_READERS carries minder_dashboard_records_verified_real: it reads minder's wheel-ops API (the configured dev-server origin, default http://127.0.0.1:3051/api/wheel-ops?type=all) with a short timeout and returns the count of records with sample:false, or measured:false with the reason when the server is down or the payload is not the expected shape -- never a fabricated number. [landed fd99d0a0, 5c89c119]
+
 #### src/hooks
 
 - Agent-target-scope-guard: tokenize Bash write targets instead of matching the greater-than character anywhere in the text
@@ -300,18 +309,6 @@ Record: certification pending · shas 23da3776, efb618e6
 Challenge: Reproduced twice live 2026-09-24, same dispatch task, two different dispatch prompts, both real BUILD prompts with no restrictive intent at all. src/hooks/lib/scopeDeclarationPhrases.js's DEFAULT_DECLARATION_PHRASES includes `do not (create|change|touch|delete|commit|push|merge|deploy| launch)` and the don't-variant.
 Solution: A build prompt containing an ordinary negative-imperative sentence about leaving existing code alone no longer locks the whole dispatch to zero write scope. Real options, decided by whoever implements: widen RESTRICTED_ACTION_VERBS-style handling so touch/change/create/delete/ modify/edit found with no path also resolve to a scoped, harmless no-op class distinct from whole-surface (since "leave X alone" names nothing to restrict, not a path); or apply the existing hasPositiveWriteInstruction/BARE_IMPERATIVE_MATCH_RE carve-out (already built for the bare "Check/Investigate/Look at" case) to this phrase family too, since the same false-positive class applies for the same reason -- a real positive-write instruction elsewhere in the prompt should be enough evidence this was never a real restriction.
 Record: CONFIRMED via dashscope (reviewer 52f11efc) · fixtures 1 fixture(s) · 2M tokens over 3.4 min
-
-#### basher-add-a-permission-rule-for-dispatcher-side-scope-grant-writes  (at review -- certification pending)
-
-Challenge: Close a real, repeatable friction point: the one sanctioned recovery path from a stale dispatch-scope grant is itself blocked by the harness's own auto-mode classifier, forcing a manual `!` run every time it happens.
-Solution: A Bash permission rule exists (wherever basher decides -- global or per-spoke settings) that lets a top-level session write a dispatch scope grant via the sanctioned dispatchScope.js API without tripping Auto-Mode-Bypass or Self-Modification classification, scoped narrowly enough that it does not open a broader self-modification hole.
-Record: certification pending
-
-#### basher-give-a-v2-spoke-a-distinct-short-tab-name  (at review -- certification pending)
-
-Challenge: The operator's own short name for this project should be what the tab shows, not a truncated/derived folder name -- a real, named gap in the v2 naming contract, not a one-off cosmetic tweak.
-Solution: harness-factory's zellij tab shows "w-hf" (or basher's equivalent chosen mechanism) after the next real session start in this repo, and the fix is general enough that any v2 spoke can set its own short tab name the same way.
-Record: certification pending
 
 #### liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window  (done)
 
@@ -361,29 +358,11 @@ Record: CONFIRMED via dashscope (reviewer dceb5b13) · fixtures 2 fixture(s) · 
 
 ### 2026-09-23
 
-#### reply-node-python-allow-scoped-and-landed  (at review -- certification pending)
-
-Challenge: Close the loop with basher: the fix its forwarded operator ruling asked for is real, landed, and tested -- not left open on their side.
-Solution: basher's own lug reply-and-forward-broad-node-python-allow-to-harness-factory can be marked fulfilled; the fix is on branch reply-forward-node-python-allow, not yet folded to harness-factory main.
-Record: certification pending
-
 #### review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug  (done)
 
 Challenge: Measured 2026-09-19 (session 1c7730a9): the first independent certification run of two landed builds FAILED both on ABSENT EVIDENCE, not on the code. spokes-send-findings-up-to-the-hub-as-feedback-messages reached review from its dispatch (child f3312e79) with no `tests:` and pointers still naming the design-time files (sessionEndHandoffHook.js, p0AutoBugLug.js); hub-digests-wheel-feedback-into-ranked-harness-lugs-and-measures-the-loop reached review with pointers naming canon/otto.advisor.yaml (the clock had moved to otto.wheel-clock.yaml) and no tests.
 Solution: applyLugVerb refuses `review` on a proof_required lug unless (a) tests names at least one existing file and (b) pointers resolve to at least one file changed by the lug's own commits (the dispatch journal's files, or the diff of the session's commits since the lug entered in_progress); the refusal names the missing piece and the flag that supplies it (--test). A lug already at review with an empty bundle is surfaced by the readiness sweep as "not certifiable: bundle empty" before any provider is called.
 Record: CONFIRMED via dashscope (reviewer 51e01309) · fixtures 1 fixture(s) · 120.1M tokens over 7.6 min · shas 67447858
-
-#### wcl-by-name-entry-skipped-classify-and-offer  (at review -- certification pending)
-
-Challenge: Live-reproduced 2026-09-22 on sound-sails-website (real v1 spoke, mid scaffold from an earlier session, not yet registered): `wcl sound-sails-website`, run from inside that exact directory, exited 1 with a bare "does not resolve to a real, present spoke on this machine" -- even though the operator was standing right in it.
-Solution: When a given spoke name does not resolve via the registry AND it equals the cwd's own basename, wclCli.js takes the same classify-and-offer path as bare `wcl`. A name that does NOT match cwd still hard-refuses -- never silently reinterpreted as "classify my current directory instead".
-Record: certification pending
-
-#### wheel-feedback-digest-bounds-its-lugs-under-the-token-cap-not-at-25-names  (at review -- certification pending)
-
-Challenge: Measured 2026-09-21 (session Raccoon): `hf compile .` on harness-factory is REFUSED by rule 11 -- lugs/wheel-feedback-footer-miss.yaml is 1016 tokens and lugs/wheel-feedback-handoff-process-note-landed-a-real- mechanism-this-session-it-is-not-done-until-it.yaml is 1464, both written by the hub's wheel_feedback_digest job (runWheelFeedbackDigest, src/otto/wheelFeedbackDigest.js).
-Solution: The digest bounds each lug it writes by the compiler's own token count (rule 11's counter, o200k_base), not by a name count: it keeps the most recent names that fit under the cap with a declared margin, writes message_names_bound as "bounded to the last N of M by token cap", and the full list stays where it already lives, messages/messages.jsonl. Both refused files are rewritten by the job on its next run and the compile is green.
-Record: certification pending
 
 #### commits
 
@@ -424,23 +403,11 @@ Record: certification pending
 
 ### 2026-09-22
 
-#### max-persona-boundary-guard-covers-bash-writes-to-source-from-the-top-level-session  (at review -- certification pending)
-
-Challenge: Operator 2026-09-19 10:36 PM PDT: "you implemented without reviewing and telling me your adjustment or consultation on it? that shouldn't be possible." It was possible: max-persona-boundary-guard fires on Write, Edit and NotebookEdit from the top-level session, and this session made every source change of the night -- readyWork.js, readyWorkDrive.js, advisorAutopilot.js, dispatchMechanism.js, ledgerStore.js, wheelCauseKey.js, nine fixtures -- through Bash: python3 heredocs, sed -i, cp. bash-lug-guard closes exactly this hole for lugs/; nothing closes it for src/, conformance/, reference/ or canon/.
-Solution: From the top-level (non-dispatched) session, a Bash command whose WRITE TARGET is under src/, conformance/, reference/, canon/ or scripts/ -- redirect target, sed -i / tee / cp / mv destination, a python or node invocation whose script text or arguments name such a path for writing -- is refused with the same message the Write/Edit guard gives: file the lug, dispatch the build. Reads, greps, git, node scripts that only read, and writes under runtime/, docs/ or the scratchpad pass.
-Record: certification pending · shas b5e470b7
-
 #### push-gate-drift-check-treats-a-new-circle-as-pending-cut-not-drift  (done)
 
 Challenge: Hit twice on 2026-09-18 (session 1c7730a9): a commit that ADDS a circle to reference/circles/ cannot pass the push gate, because conformance/runner/run-spoke-drift.js (checkSpokeDrift, src/factory/ spokeDrift.js) reports every registered spoke "drifted from current canon" with the new files under diff.missing -- and the only thing that delivers those files to a spoke is a cut, which `hf deploy` runs AFTER push (DEPLOY_STAGES fold, push, cut).
 Solution: The drift check distinguishes PENDING CUT from DRIFT with the test apply-cut already runs: a spoke whose canon/circles is byte-identical to its recorded cut, and whose only differences against current canon are files the current tree adds or changes, is "pending cut (N missing, M changed)" -- reported, never red -- while a spoke whose files differ from ITS OWN recorded cut (hand edits, a stale scaffold) stays red as real drift. The push gate line names which case each spoke is in.
 Record: CONFIRMED via dashscope (reviewer 19050ae2) · fixtures 1 fixture(s) · 6M tokens over 11 min · shas 5d53acfb
-
-#### scaffolded-spoke-wheel-clock-fixture-accepts-host-excluded-circles  (at review -- certification pending)
-
-Challenge: Measured 2026-09-21 22:12 PDT: main is 9801b6c (the dispatched build for p0-bugfix-circle-audit-conversation-track-ingestion, now at review) and the commit gate refuses EVERY commit on harness-factory -- scaffolded-spoke-wheel-clock 38 passed / 1 failed: "the excluded circles are reported, counted, and each names its missing job and the clock file".
-Solution: The fixture distinguishes the two exclusion classes: clock-excluded circles must name the missing job and the clock file; host-excluded circles must name the hosting instance and this instance. Both are counted in summary.excluded; the assertion passes on the real root with conversation-track-ingestion host-excluded.
-Record: certification pending
 
 #### commits
 
@@ -526,6 +493,12 @@ Record: certification pending
 - schemas/advisor.schema.json and the wheel-clock job schema gain a required `consumer` (who reads the output -- a goals-review section, a gate, a scheduled job, the Planner) plus `verification_gate` and `signal_level` ported from mywheel's scout-job.schema.json. [landed aab3b039, 857f1a8e, 71868df1, 45f466da]
 - The advisor contract carries all six steps. [landed 9d51f3f0]
 
+#### lugs
+
+- The merged turn footer names the tastes in force this turn ("tastes: late_night, report_shaped"), read from the same injection the audit uses; the turn marker carries turn_kind (operator_prompt | background_landing | closeout | wakeup | dispatch_result), derived from the prompt's source (UserPromptSubmit vs task notification vs closeout-request vs wcl entry), and applies_when may name a turn kind; the taste audit reports misses per turn kind so a late-night miss on a background landing and one on an operator question are counted apart. [landed 6cfb8bfa]
+- From the top-level (non-dispatched) session, a Bash command whose WRITE TARGET is under src/, conformance/, reference/, canon/ or scripts/ -- redirect target, sed -i / tee / cp / mv destination, a python or node invocation whose script text or arguments name such a path for writing -- is refused with the same message the Write/Edit guard gives: file the lug, dispatch the build. [landed b5e470b7]
+- One incoming line per spoke, rung on write: filing a reply (reply_to set, or --status=fulfilled|declined through the kernel verb) also posts one message_kind communication row to the hub addressed to the requesting spoke; the requesting session's switchboard -- a zero-token Monitor armed automatically when it files or dispatches a request -- tails only rows addressed to ITS OWN spoke past its cursor and emits one line per arrival ("REPLY from <spoke>: <lug> <status> <payload_doc>"), so the session wakes on the event and reacts. [landed 9d86fbc4]
+
 #### conformance
 
 - reference-aging-collapse: search generations for one that can actually prove the collapse
@@ -535,11 +508,6 @@ Record: certification pending
 
 - lug apply-the-independent-review-changes: outcome notes + fixture counts
 - Max: what the Planner runs next and why the build class is empty -- design + implementation plan for the dispatch bar (ready+stubbed routes; passed stays the done bar) and hf route, plus recommended rulings on the 9 open questions holding two initiatives in_design
-
-#### lugs
-
-- The merged turn footer names the tastes in force this turn ("tastes: late_night, report_shaped"), read from the same injection the audit uses; the turn marker carries turn_kind (operator_prompt | background_landing | closeout | wakeup | dispatch_result), derived from the prompt's source (UserPromptSubmit vs task notification vs closeout-request vs wcl entry), and applies_when may name a turn kind; the taste audit reports misses per turn kind so a late-night miss on a background landing and one on an operator question are counted apart. [landed 6cfb8bfa]
-- One incoming line per spoke, rung on write: filing a reply (reply_to set, or --status=fulfilled|declined through the kernel verb) also posts one message_kind communication row to the hub addressed to the requesting spoke; the requesting session's switchboard -- a zero-token Monitor armed automatically when it files or dispatches a request -- tails only rows addressed to ITS OWN spoke past its cursor and emits one line per arrival ("REPLY from <spoke>: <lug> <status> <payload_doc>"), so the session wakes on the event and reacts. [landed 9d86fbc4]
 
 #### src/conductor
 
@@ -556,12 +524,6 @@ Record: certification pending
 Challenge: Push gate 2026-09-18 on harness-factory 442e9ab refused with 5 NEW red suites; two share one cause: the operator-run rotation (hub ledger row ldg-ledger-archive-rotation-1789708404584, 05:13Z) moved every hub row before 09-13 into ledger/archive/ledger-archived-through-2026-09-13.jsonl.
 Solution: Neither fixture depends on which rows the hub's live ledger happens to hold today: each plants the rows it asserts on (or reads the archive generation by name through the retention module's own reader), and buildReferenceAgingSection returns a real string -- "no aged references" -- never null, for a ledger with no aged rows. Push gate green on these two without a baseline exception.
 Record: CONFIRMED via dashscope (reviewer a69c77d1) · fixtures 16/0, 7/0, 36/0, 6/0, 19/0, 42/0 · shas 34cb7d23, f3807dfa, 09fdcbfe, e97a9d3a
-
-#### wheel-feedback-cause-key-carries-per-session-coordinates  (at review -- certification pending)
-
-Challenge: First live turn of the wheel-feedback loop, measured 2026-09-19 17:19Z: 40 feedback messages reached the hub and the digest filed 21 harness lugs -- 9 of them for ONE cause, cross-store-reconciliation's event_log_vs_track / track_vs_event_log check disagreeing, one lug per SESSION that hit it (wheel-feedback-p0-data-integrity-cross-store-reconciliation-check-event- log-vs-track-se-<hash> x7, ...track-vs-event-log-se-<hash> x2, each wheel_impact.occurrences: 1).
-Solution: One wheel-level cause key per thing-that-is-wrong: wheelCauseKey() (src/lugTracking/wheelCauseKey.js) strips session ids, lug names, dispatch ids, timestamps, pids and home paths and nothing else; the emitter coalesces on it before writing, the digest normalizes on read (causeKeyOf), so messages already in the hub and spokes on older cuts coalesce too. The 9 lugs become 1 with occurrences 9; the 8 stale ones are composted pointing at the survivor.
-Record: certification pending · fixtures 21/0, 43/0, 29/0 · shas 8dc99c0f
 
 #### commits
 
@@ -584,6 +546,10 @@ Record: certification pending · fixtures 21/0, 43/0, 29/0 · shas 8dc99c0f
 #### src/compiler
 
 - Revert "compile: unrecognized kind + apiVersion is informational, not blocking"
+
+#### src/lugTracking
+
+- One wheel-level cause key per thing-that-is-wrong: wheelCauseKey() (src/lugTracking/wheelCauseKey.js) strips session ids, lug names, dispatch ids, timestamps, pids and home paths and nothing else; the emitter coalesces on it before writing, the digest normalizes on read (causeKeyOf), so messages already in the hub and spokes on older cuts coalesce too. [fixtures 21/0, 43/0, 29/0; landed 8dc99c0f]
 
 ### 2026-09-18
 
@@ -671,12 +637,6 @@ Cut b81e2bc1 received (from 4a839956), posture absorb_and_report: no circle or h
 
 ### 2026-09-17
 
-#### circle-schema-hook-event-name-lacks-stopfailure-and-worktreecreate  (at review -- certification pending)
-
-Challenge: MEASURED 2026-09-17 (basher session 238db105) while declaring basher's pre-cut bash hooks as spoke-local hook circles (docs/spoke-local-hook- circles.md): schemas/circle.schema.json enumerates hook_event_name as PreToolUse, PostToolUse, UserPromptSubmit, Stop, SessionStart, SessionEnd, Notification, PreCompact.
-Solution: The enum gains StopFailure and WorktreeCreate (and any other event the current Claude Code hooks reference lists); generateHookBinding emits them like the rest; the hook-binding-drift resolver and arrival audit treat them as ordinary events. basher can then declare canon/hooks/basher-hook-notify-stopfailure.circle.yaml (StopFailure, .*) and basher-hook-worktree-create.circle.yaml (WorktreeCreate, *) and both land in the generated settings.json.
-Record: certification pending
-
 #### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
 
 - AMBASSADOR_BRIEF carries a generated "Talking to another spoke" section (send, ask for a confirm-back, resolve the path from the hub registry with `hf spoke-path <name>`, reply with reply_to, close both with one verb call). [landed b81e2bc1]
@@ -756,24 +716,6 @@ Cut 8e61551f received (from c8ec1341), posture absorb_and_report: 3 circle(s) ga
 
 ### 2026-09-17
 
-#### toast-is-one-short-line-per-turn  (at review -- certification pending)
-
-Challenge: Operator, 2026-09-16, after the fleet toast landed: "the toast notifications still seem off -- make sure they are clear and simple." MEASURED on basher (session otter, hook-runlog 02:36-03:47Z): every turn produces TWO toasts -- the Stop toast, then ~60 s later Claude Code's idle_prompt Notification fires notificationNotifyHook, which toasts again with sound Alarm2 (ms-winsoundevent Looping.Alarm2, loops until dismissed) for a turn that merely finished.
-Solution: One toast per turn at most, one short line. idle_prompt never toasts on its own (Stop already said "done"; the tab glyph still updates) -- it toasts only when a pending question or permission prompt exists. Body by reason: stop -> "Done -- waiting for you"; permission_prompt -> "Needs permission: <Claude Code's message, 120 chars>"; pending_question -> "Question: <text, 120 chars>"; failure -> "Turn failed -- check the session".
-Record: certification pending · fixtures 47/47 · shas 95198938
-
-#### wcl-freshness-refusal-offers-the-remedy-and-scaffold-rule-drift-is-not-local-drift  (at review -- certification pending)
-
-Challenge: Operator, 2026-09-16, at `wcl` in minder: "this is not a helpful end -- dont fail and exit, give options or take action to remediate." The row read `Rules canon edited since its cut -> revert the local edits` and wcl exited 1.
-Solution: (1) pendingCutVerdict classifies an edited/added/deleted file as LOCAL only when it differs from the recorded cut's own source for that circle: a yaml that loads structurally equal (ignoring duplicate_of) to the recorded source, or an .md byte-equal to it, is cut-produced and the verdict is pending -- step 3 applies it. (2) In compact TTY mode a freshness refusal renders the rows, then a chip menu: `a` revert canon/circles to the recorded cut and apply the current cut (behind confirmChip naming every file that will be discarded), `d` show the per-file diff, `q` exit 1.
-Record: certification pending · fixtures 48/48 · shas cc8ef71c
-
-#### zellij-tab-identity-and-gated-toast-are-a-fleet-circle  (at review -- certification pending)
-
-Challenge: MEASURED 2026-09-16: every wcl session runs with CLAUDE_CONFIG_DIR at the spoke's .local/provider-claude-config, a cut-generated mirror of .claude/settings.json (41 harness-factory hooks, zero spoke hooks). basher's v1 zellij tab writer (glyph + spoke name + folder ordinal on the tab, pane title, pane<->transcript map, toast gating, sound by reason) is registered only in ~/.claude/settings.json, which a wcl session never reads (globalSettingsPreview.js:163).
-Solution: Tab identity and the gated toast are one fleet mechanism every spoke gets with the cut. zellijTabIdentity.js (node only) sets `<glyph> <name><-n>` on the tab and the pane title: working on UserPromptSubmit and on the first tool call after a permission prompt, done on Stop / idle, blocked on permission_prompt, failed on StopFailure, idle on SessionEnd (never over an unacknowledged attention glyph); keeps the v1 sidecar paths under /tmp/claude-sessions so basher lens still reads them; skips lens-sentinel tabs; no-ops outside zellij. agentWaitingNotify gains the v1 gate (300 s quick-turn, 60 s presence; permission / failure / pending question always fire), reason -> sound, a tab-matching title, and a static toast.ps1 launched -File and detached so Stop never waits on PowerShell.
-Record: certification pending · fixtures 75/75, 34/34, 9/9, 31/31, 22/22, 28/28, 11/11, 48/48, 155/158 · shas 64bbef64
-
 #### circles
 
 - Circle wheel-change-log declared: the wheel's Change Log is rendered -- `hf changelog [--since=<date|sha>] [--until=<date|sha>] [--spoke=<name>|--wheel] [--view=operator|technical] [--write]` (src/cli.js -> src/factory/changeLog.js runChangelogCommand, or scripts/changelog.js on a spoke) on demand, and the hub wheel-clock job wheel_change_log (JOB_RUNNERS.regenerateChangeLog, runChangeLogJob) on the deploy_fleet cadence, so a fresh cut is followed by a fresh docs/CHANGELOG.md
@@ -795,6 +737,11 @@ Record: certification pending · fixtures 75/75, 34/34, 9/9, 31/31, 22/22, 28/28
 - statusline fixture: the custodian's copy without the v2 path is basher's port, not this tree's red
 - zellij tab identity: the three hook circles bound on the canonical checkout (compile-self --standing after the fold of 64bbef6); basher's two lugs (zellij tab identity, wcl freshness remedy) committed here at review
 
+#### src/basher
+
+- One toast per turn at most, one short line. idle_prompt never toasts on its own (Stop already said "done"; the tab glyph still updates) -- it toasts only when a pending question or permission prompt exists. [fixtures 47/47; landed 95198938]
+- (1) pendingCutVerdict classifies an edited/added/deleted file as LOCAL only when it differs from the recorded cut's own source for that circle: a yaml that loads structurally equal (ignoring duplicate_of) to the recorded source, or an .md byte-equal to it, is cut-produced and the verdict is pending -- step 3 applies it. [fixtures 48/48; landed cc8ef71c]
+
 #### wilbur-d-custodian-timeline-otto-steering
 
 - Every registered spoke carries docs/CHANGELOG.md as a cut-owned generated artifact (the cut regenerates it, the arrival audit absorbs it, hand edits are refused like CLAUDE.md), with two parts: the spoke's own history (its lugs done, its cuts received with version and what each cut changed for it -- circles gained/bound, policies, hooks -- its dispatches, its own commits) and the wheel's history that reached it (framework functionality landed per cut, in operator words). [fixtures 39/39, 34/34, 48/48, 33/33, 20/20, 11/11, 13/13, 51/51, 32/32, 25/25; landed 40a4f53d]
@@ -815,6 +762,10 @@ Record: certification pending · fixtures 75/75, 34/34, 9/9, 31/31, 22/22, 28/28
 #### src/factory
 
 - push 30's two reds: closeout-report E2 judges live-peer telemetry movement as live state (the hub is a live instance; 8 of 8 attempts moved only telemetry beside an Otto session); a `// timing` head marker makes session-exit-path a timing suite for the gate's alone re-run (fixed-second budgets race the box; red at load 6.6, 102/102 alone)
+
+#### src/hooks
+
+- Tab identity and the gated toast are one fleet mechanism every spoke gets with the cut. zellijTabIdentity.js (node only) sets `<glyph> <name><-n>` on the tab and the pane title: working on UserPromptSubmit and on the first tool call after a permission prompt, done on Stop / idle, blocked on permission_prompt, failed on StopFailure, idle on SessionEnd (never over an unacknowledged attention glyph); keeps the v1 sidecar paths under /tmp/claude-sessions so basher lens still reads them; skips lens-sentinel tabs; no-ops outside zellij. agentWaitingNotify gains the v1 gate (300 s quick-turn, 60 s presence; permission / failure / pending question always fire), reason -> sound, a tab-matching title, and a static toast.ps1 launched -File and detached so Stop never waits on PowerShell. [fixtures 75/75, 34/34, 9/9, 31/31, 22/22, 28/28, 11/11, 48/48, 155/158; landed 64bbef64]
 
 #### src/lugTracking
 
@@ -912,24 +863,6 @@ Challenge: From basher session 12d1aba4 (2026-09-15 00:30-01:15). main is 34 com
 Solution: Decide, then land one of: (a) the digest is the contract -> the taste-injection check asserts the digest line and states what a first injection says; (b) a first injection carries the full block -> the digest falls back to the block when no prior refresh is recorded. Default if nobody rules: (b), because "unchanged" is false on a first injection.
 Record: CONFIRMED via claude (reviewer c2e8739d) · fixtures 1 fixture(s) · shas b2fae708, 5c99d268
 
-#### session-exit-commit-sweeps-a-peer-lanes-in-flight-files  (at review -- certification pending)
-
-Challenge: 2026-09-14 20:15-20:18 on the shared harness-factory main checkout: a peer session's SessionEnd exit-commit (src/hooks/sessionExitCommitHook.js) committed ANOTHER lane's uncommitted work -- basher s128's in-flight src/basher/wclEntry.js and the wcl-entry-welcome fixture (the chip-menu /dev/tty fix, mid-verification) -- as "Session work: 3 files, no lug transitions recorded" (5bd3432, and 385a6cb before it).
-Solution: The exit-commit hook commits only files this session touched: it reads the session's own runlog / turn markers (files_touched) and stages that set; files modified on disk but never touched by this session are left in the working tree and named in the commit trailer as "left for lane <other>". When a file is contended (touched by two live sessions) it is left uncommitted and ledgered, never guessed.
-Record: certification pending · fixtures 102/102, 64/64, 40/40 · shas 9a2b46e7, f7155a6a
-
-#### wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup  (at review -- certification pending)
-
-Challenge: Operator, 2026-09-15: "how can I enter a spoke (or new spoke) like pathfinder which is running an old version of the harness -- wcl should give me the proper entry and warmup.." Measured: pathfinder is v1 (wai-enter.sh, inline-bash hooks, no canon/) and registered nowhere (known-repos.json, hub spoke entities, wheel.group.yaml).
-Solution: `wcl` in a folder not in the wheel classifies it (v2 | v1 | unscaffolded | not-a-repo) and offers one keypress to INITIATE: git-level consolidation first (clear the noise), then upgrade ALL THE WAY to v2 (scaffold, register, apply the current cut, retire the v1 hooks), then the normal entry -- never a silent exit 1. Operator ruling 2026-09-15.
-Record: certification pending · fixtures 44/44 · shas 6f6504bc, 5f0aad13
-
-#### wcl-signs-in-with-a-long-lived-fleet-token  (at review -- certification pending)
-
-Challenge: Operator, 2026-09-14 (basher s128): "I cant successfully exit or reenter ... if you can automate the action i prefer that over directions.." Every spoke's isolated store (.local/provider-claude-config) needs its own OAuth sign-in, and copying ~/.claude's tokens diverges on refresh (FBL-046).
-Solution: One sign-in for the fleet. `claude setup-token` yields a long-lived subscription token; wcl stores it once (1Password op://Dev/Basher/ claude_code_oauth_token when `op` is available, else <frameworkRoot>/.local/secrets.json, mode 0600, value never printed) and injects it as CLAUDE_CODE_OAUTH_TOKEN into every launch (raw, ozi -p and -c).
-Record: certification pending · shas 2ef4a2a9
-
 #### src/basher
 
 - wcl: one global sign-in -- the fleet token resolves from and is stored in the framework checkout's .local/secrets.json (WCL_FLEET_ROOT overrides; spoke-level store kept as fallback), new verb wcl signin runs claude setup-token from any folder; operator 2026-09-15: login was per spoke
@@ -944,6 +877,7 @@ Record: certification pending · shas 2ef4a2a9
 - A timing suite never turns a real push red on load alone: the two suites derive their windows from measured load as well as slack (or state the load they refuse to judge under and SKIP with the number, never FAIL), and the gate re-runs a red timing suite once, alone, before calling it NEW RED -- reporting both runs and the load at each, so a real regression still refuses and a flake is named as one. [fixtures 39/39, 66/66; landed 93e4c1a7, 6af0f848]
 - A gate and an oracle sweep never run the corpus together: whichever starts second sees the other's lease and either waits (gate: bounded, with the holder named) or yields (oracle: skips this tick with a ledger row naming the gate it deferred to). [fixtures 272/272, 44/44, 31/31, 66/66, 50/50; landed 0117742b, ab87b73f]
 - A wip/ branch is a foldable branch: hf deploy --stage fold (and the by-hand recipe) classifies wip/* beside dispatch/*, the same cherry-pick-onto-integrate path folds it, clean removes it once every commit is on main by patch id, and the session-exit-commit ledger row names the fold command that will consume the branch instead of leaving it as an orphan the operator has to discover with `git branch --list 'wip/*'`. [fixtures 26/0, 67/0, 71/0, 102/0, 8 passed; landed e1f9b302, 565cfe4f]
+- The exit-commit hook commits only files this session touched: it reads the session's own runlog / turn markers (files_touched) and stages that set; files modified on disk but never touched by this session are left in the working tree and named in the commit trailer as "left for lane <other>". [fixtures 102/102, 64/64, 40/40; landed 9a2b46e7, f7155a6a]
 - push gate: the ratchet baseline and suite timings (gitignored runtime/) are copied into the clean push-gate worktree -- the first real ref-gate run (dbfff96) judged 18 baselined reds as 'failing and this repo has no ratchet baseline'; integrator fix on main by session 4f1a0301, fixture 70/70
 - The real data-integrity failure recorded in ledger row ldg-p0-circle-audit-conversation-track-ingestion-1789111866697-5no2 (source_ref: circle-audit, 2026-09-11) is fixed at its real cause -- the same check that produced this P0 row no longer reports it on a clean re-run, and no other code path can reproduce it silently. [landed 04737711]
 
@@ -952,6 +886,12 @@ Record: certification pending · shas 2ef4a2a9
 - communication lug to basher: wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- 13 v1 spokes and 3 unregistered v2 spokes under the project roots that wcl cannot enter today (pathfinder measured)
 - retire the origin copy: promoted to wheel-hub and done there (506433a5)
 - basher's blocker lug overtaken (defined -> ready -> review: f2477c8 landed its option b, pushed 271/271); peer lug's review edit committed; lug filed: harness-factory has no Proofer, so a non-proof_required lug can never reach done
+
+#### lugs
+
+- A push is refused only for what the pushed tree changed or what the wheel has already committed: the gate snapshots the corpus it will judge (every known repo's COMMITTED lugs/, the hub registry rows) once at gate start, the corpus fixtures read that snapshot, an uncommitted sibling file can never turn this repo's push red, and a corpus red names the repo and commit it came from so the owner is obvious. [landed 9633b378]
+- wcl launches interactive sessions on the operator's global config (~/.claude, basher-managed: credentials, global settings, model default) and applies spoke-local settings through the repo's own .claude/settings.json (hooks, permissions, statusline) -- no per-spoke CLAUDE_CONFIG_DIR, no credential copy, no per-spoke sign-in. [landed 862d5c33]
+- One sign-in for the fleet. [landed 2ef4a2a9]
 
 #### .claude
 
@@ -967,11 +907,6 @@ Record: certification pending · shas 2ef4a2a9
 
 - Circle session-files-touched declared: a tool call that can write completes (PostToolUse on Edit, Write, NotebookEdit, Bash)
 - Hook bound on PostToolUse: session-files-touched.
-
-#### lugs
-
-- A push is refused only for what the pushed tree changed or what the wheel has already committed: the gate snapshots the corpus it will judge (every known repo's COMMITTED lugs/, the hub registry rows) once at gate start, the corpus fixtures read that snapshot, an uncommitted sibling file can never turn this repo's push red, and a corpus red names the repo and commit it came from so the owner is obvious. [landed 9633b378]
-- wcl launches interactive sessions on the operator's global config (~/.claude, basher-managed: credentials, global settings, model default) and applies spoke-local settings through the repo's own .claude/settings.json (hooks, permissions, statusline) -- no per-spoke CLAUDE_CONFIG_DIR, no credential copy, no per-spoke sign-in. [landed 862d5c33]
 
 #### review-transition-certifies-before-the-session-commits-so-the-bundle-never-sees-the-work
 
@@ -990,6 +925,10 @@ Record: certification pending · shas 2ef4a2a9
 #### conformance
 
 - two source-shape checks on stageFold updated for the wip/* fold (e1f9b30): worktree-registry B5 reads the whole function, not a 6000-char window; receipt F8 accepts folded.filter(has lug).map
+
+#### harness-adoption-warmup
+
+- `wcl` in a folder not in the wheel classifies it (v2 | v1 | unscaffolded | not-a-repo) and offers one keypress to INITIATE: git-level consolidation first (clear the noise), then upgrade ALL THE WAY to v2 (scaffold, register, apply the current cut, retire the v1 hooks), then the normal entry -- never a silent exit 1. [fixtures 44/44; landed 6f6504bc, 5f0aad13]
 
 #### scaffolded-spoke-ships-schedule-circles-with-no-wheel-clock
 
@@ -1017,17 +956,11 @@ Cut 79c1648d received (from f40bc3fe), posture absorb_and_report: 1 circle(s) ga
 
 ### 2026-09-15
 
-#### wcl-entry-is-a-welcome-raw-or-ozi-wakeup  (at review -- certification pending)
+#### lugs
 
-Challenge: Operator, 2026-09-14 (basher s128): "improve the entry via wcl so it is more delightful and user can choose a raw session or to allow Ozi to wakeup and advise options. This is too rough - i want joy and delight." wcl printed an eleven-line status dump and launched Claude Code cold: nothing speaks until the operator types, even though SessionStart already injects the continuity checkpoint and goals review -- Ozi's wake material is loaded and silent.
-Solution: On a TTY, wcl greets (time of day, spoke, cut, dir), folds every ok step into one ready line (re-folding between attention lines) and prints only non-ok steps in full with their fix; then a single-keystroke chip menu -- 1/r Raw session or 2/o Ozi wakeup (recommended, Enter). Ozi runs one headless `claude -p` wakeup turn (briefing + options stream to the terminal), then `claude -c` opens the session with it already inside.
-Record: certification pending · shas 67676f94
-
-#### wcl-rows-are-assured-capabilities-and-entry-matched-injection  (at review -- certification pending)
-
-Challenge: Operator, 2026-09-14 (basher s128), on the first welcome cut (9c2007a): "each row should be a feature/capability that is assured. Codebase is ready or not ready (remediating action). I dont care if hooks are 37 but id like to know that the workspace is ready to be used (if not remediating action).... and on entering the session the prompt injected that matches either raw or wakeup to make best use of users time.." The compact view still folded MECHANISM names (git · rules · hooks (37) · custody) and the launched session had no idea which entry the operator chose.
-Solution: Compact rows are capabilities, one each, in this order -- Codebase (git sync), Rules (canon freshness + cut + generated docs), Workspace (hook resolution + config custody + secrets), Sign-in (credential preflight) -- rendered `✓ <Capability> <assurance>` when ready or `▲ <Capability> <what is not ready> → <remediating action>` when not; a wcl-applied cut reads as ready ("current, cut <sha>"), a held cut and stale docs read as ▲ with the action. Full step text stays under --verbose / --dry-run (unchanged strings).
-Record: certification pending · shas bbc6c01c
+- The exit-commit hook commits only files this session touched: it reads the session's own runlog / turn markers (files_touched) and stages that set; files modified on disk but never touched by this session are left in the working tree and named in the commit trailer as "left for lane <other>". [landed 79c1648d]
+- Compact rows are capabilities, one each, in this order -- Codebase (git sync), Rules (canon freshness + cut + generated docs), Workspace (hook resolution + config custody + secrets), Sign-in (credential preflight) -- rendered `✓ <Capability> <assurance>` when ready or `▲ <Capability> <what is not ready> → <remediating action>` when not; a wcl-applied cut reads as ready ("current, cut <sha>"), a held cut and stale docs read as ▲ with the action. [landed bbc6c01c]
+- On a TTY, wcl greets (time of day, spoke, cut, dir), folds every ok step into one ready line (re-folding between attention lines) and prints only non-ok steps in full with their fix; then a single-keystroke chip menu -- 1/r Raw session or 2/o Ozi wakeup (recommended, Enter). [landed 67676f94]
 
 #### circles
 
@@ -1042,10 +975,6 @@ Record: certification pending · shas bbc6c01c
 #### .claude
 
 - compile-self --standing after the wcl-entry-directive fold: SessionStart binding for src/hooks/wclEntryDirectiveHook.js (UserPromptSubmit order is the compiler's canonical order)
-
-#### lugs
-
-- The exit-commit hook commits only files this session touched: it reads the session's own runlog / turn markers (files_touched) and stages that set; files modified on disk but never touched by this session are left in the working tree and named in the commit trailer as "left for lane <other>". [landed 79c1648d]
 
 #### repo root
 
@@ -1074,12 +1003,6 @@ Cut f40bc3fe received (from 66e48e3a), posture absorb_and_report: no circle or h
 Cut 66e48e3a received (first cut), posture absorb_and_report: no circle or hook changed for this spoke; policies changed planner-class-floors.
 
 ### 2026-09-14
-
-#### wcl-cold-start-store-is-a-condition-not-a-lockout  (at review -- certification pending)
-
-Challenge: wcl refused every launch of basher for nine days (5 preflight_refusal rows, 2026-09-05..14) with "no real claudeAiOauth accessToken/refreshToken".
-Solution: An interactive wcl launch on a missing/unauthenticated/refresh-expired store says NEEDS LOGIN, states the condition (sign in when prompted; the login lands in this spoke's own store once, never copied from ~/.claude again) and launches. REFUSED is reserved for what a sign-in cannot fix (corrupt file) and for headless dispatch (nobody there to answer).
-Record: certification pending · shas 8e4f1ff4
 
 #### circles
 
@@ -1150,6 +1073,10 @@ Record: certification pending · shas 8e4f1ff4
 #### low-trust-multi-provider-verification
 
 - checkFabrication binds a citation through a quote-normalised tier (backtick, single and double quotes equal), reports a truncated pointer as a citation boundary to the certifier and never scores text past it as fabricated, and classes a citation found in the repo but outside the pinned pointers as unpinned (a bundle gap, not a fabrication); the 6 records re-run through the replay tool bind clean and the 14 real ones stay FABRICATED. [landed b855319b]
+
+#### lugs
+
+- An interactive wcl launch on a missing/unauthenticated/refresh-expired store says NEEDS LOGIN, states the condition (sign in when prompted; the login lands in this spoke's own store once, never copied from ~/.claude again) and launches. [landed 8e4f1ff4]
 
 #### reference
 
@@ -2093,13 +2020,18 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 56 (commit 40, cut_received 15, lug_review 1).
+Entries: 58 (commit 41, cut_received 16, lug_review 1).
 
 ## 2026-09-29
 
 ### cuts
 
-- 08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) (working tree), posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..working tree -- canon/circles, .claude/settings.json) -- published +2/~0/-0 circles, 1 lug(s) closed at 2026-09-29T08:33:25.218Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 15:30Z cut e6eda1f8 received by tracks (previous 44c2ff6b) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 9111f4f8..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T15:28:31.051Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) landed 9111f4f8, posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..9111f4f8 -- canon/circles, .claude/settings.json) -- source: tracks: git show 9111f4f8:.cut-status.json
+
+### canon
+
+- 15:30Z commit 9111f4f8 [tracks] harness-arrival-audit: absorbed 14 file(s) on cut arrival -- 14 file(s), area canon -- source: tracks: git log main 9111f4f8
 
 ### runtime
 
@@ -2239,11 +2171,35 @@ Entries: 56 (commit 40, cut_received 15, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut e6eda1f8 -- received 2026-09-29 15:30Z (from 44c2ff6b)
+
+15:30Z cut e6eda1f8 received by tracks (previous 44c2ff6b) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 9111f4f8..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T15:28:31.051Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 4 (commit 4).
+
+### 2026-09-29
+
+#### commits
+
+- 08:38Z commit 90d7e3ee [harness-factory] Backlog triage applied: 127 lugs closed through the kernel verb (delivered 38, merged 26, obsolete 32, low value 31) -- 128 file(s), area lugs -- source: harness-factory: git log main 90d7e3ee
+
+#### src/basher
+
+- 15:10Z commit e6eda1f8 [harness-factory] wcl --offline / WCL_OFFLINE=1; hermetic suites get no network to GitHub -- 5 file(s), area src/basher -- source: harness-factory: git log main e6eda1f8
+
+#### src/conductor
+
+- 14:17Z commit 418ec47b [harness-factory] Append-only streams seal into gzip'd segments; size budgets refuse at commit, push and warn at session start -- 23 file(s), area src/conductor -- source: harness-factory: git log main 418ec47b
+
+#### src/factory
+
+- 13:21Z commit de48b6c7 [harness-factory] The secrets template source is never retired by a cut; every retirement and keep is named -- 7 file(s), area src/factory -- source: harness-factory: git log main de48b6c7
+
 ## Cut 44c2ff6b -- received 2026-09-29 08:36Z (from 2ffc5402)
 
-08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) (working tree), posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..working tree -- canon/circles, .claude/settings.json) -- published +2/~0/-0 circles, 1 lug(s) closed at 2026-09-29T08:33:25.218Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) landed 9111f4f8, posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..9111f4f8 -- canon/circles, .claude/settings.json) -- source: tracks: git show 9111f4f8:.cut-status.json
 
-Entries: 45 (circle_added 2, commit 32, hook_bound 8, lug_done 1, lug_review 2).
+Entries: 43 (circle_added 2, commit 32, hook_bound 8, lug_done 1).
 
 ### 2026-09-29
 
@@ -2332,11 +2288,6 @@ Entries: 45 (circle_added 2, commit 32, hook_bound 8, lug_done 1, lug_review 2).
 - 12:18Z commit 58b6cf16 [harness-factory] Session work: 1 file, no lug transitions recorded -- 1 file(s), area lugs -- source: harness-factory: git log main 58b6cf16
 - 07:18Z commit 5c15325a [harness-factory] Session work: 1 file, no lug transitions recorded -- 1 file(s), area lugs -- source: harness-factory: git log main 5c15325a
 
-#### unaffiliated lugs
-
-- 12:19Z lug done zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier [harness-factory] priority medium -- verdict CONFIRMED via claude/claude-opus-5 -- date from certified_by.at -- reviewer session da93b3fb-e021-49e4-96fd-f1a0025ecfbd -- record runtime/cross-provider-certifications/zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier.json (external) -- tests conformance/fixtures/circle-zellij-tab-identity/zellij-tab-identity.conformance.test.js -- cost 4339535 tokens, 568.133s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier.yaml (certified_by.at)
-- 07:18Z lug at review generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- derived_from external:basher/lugs/reply-v2-onboarding-review-four-answers-and-three-updates.yaml -- tests conformance/fixtures/generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md/generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md.conformance.test.js, conformance/fixtures/self-hosting-generated-docs-regeneration/self-hosting-generated-docs-regeneration.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md.yaml (runtime/event-log.jsonl review transition)
-
 #### docs
 
 - 02:20Z commit ca1810a8 [harness-factory] basher-captured-six-committed-lugs-carry-explicit-type-work-and-red-the-corpus-fixture: record real blocker -- lug basher-captured-six-committed-lugs-carry-explicit-type-work-and-red-the-corpus-fixture -- 2 file(s), area docs -- source: harness-factory: git log main ca1810a8
@@ -2348,6 +2299,10 @@ Entries: 45 (circle_added 2, commit 32, hook_bound 8, lug_done 1, lug_review 2).
 #### src/factory
 
 - 07:16Z commit 3dba9827 [harness-factory] generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md: write CLAUDE.md.v2-proposed once, not on every cut -- lug generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md -- 5 file(s), area src/factory -- source: harness-factory: git log main 3dba9827
+
+#### unaffiliated lugs
+
+- 12:19Z lug done zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier [harness-factory] priority medium -- verdict CONFIRMED via claude/claude-opus-5 -- date from certified_by.at -- reviewer session da93b3fb-e021-49e4-96fd-f1a0025ecfbd -- record runtime/cross-provider-certifications/zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier.json (external) -- tests conformance/fixtures/circle-zellij-tab-identity/zellij-tab-identity.conformance.test.js -- cost 4339535 tokens, 568.133s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier.yaml (certified_by.at)
 
 ### 2026-09-25
 
@@ -2362,15 +2317,11 @@ Entries: 45 (circle_added 2, commit 32, hook_bound 8, lug_done 1, lug_review 2).
 
 - 16:14Z commit 8f6e0879 [harness-factory] basher-applies-the-operator-verb-allowlist: record real blocker -- 2 file(s), area docs -- source: harness-factory: git log main 8f6e0879
 
-#### unaffiliated lugs
-
-- 21:12Z lug at review bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture.yaml (runtime/event-log.jsonl review transition)
-
 ## Cut 2ffc5402 -- received 2026-09-25 07:59Z (from 87971bbe)
 
 07:59Z cut 2ffc5402 received by tracks (previous 87971bbe) landed 65fee8c2, posture absorb_and_report: +1/~2/-0 circles for tracks -- gained wheel-feedback-emit -- changed bash-lug-guard, max-persona-boundary-guard -- hooks bound SessionEnd wheelFeedbackEmitHook.js (git d0ce4e76..65fee8c2 -- canon/circles, .claude/settings.json) -- source: tracks: git show 65fee8c2:.cut-status.json
 
-Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 13).
+Entries: 143 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 2).
 
 ### 2026-09-25
 
@@ -2398,9 +2349,7 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 - 07:20Z commit a283ce92 [harness-factory] lug agent-target-scope-guard-parses-a-bash-line-instead-of-matching-greater-than: review -- lug agent-target-scope-guard-parses-a-bash-line-instead-of-matching-greater-than -- 1 file(s), area lugs -- source: harness-factory: git log main a283ce92
 - 07:20Z lug at review agent-target-scope-guard-parses-a-bash-line-instead-of-matching-greater-than [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative lugs list: enablement-through-audited-verbs -- tests conformance/fixtures/agent-target-scope-guard-parses-bash/agent-target-scope-guard-parses-bash.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/agent-target-scope-guard-parses-a-bash-line-instead-of-matching-greater-than.yaml (last commit touching the file)
 - 07:18Z commit ba4f9c74 [harness-factory] lug agent-target-scope-guard-parses-a-bash-line-instead-of-matching-greater-than: add pointers for the tokenizer module and the replay fixture -- lug agent-target-scope-guard-parses-a-bash-line-instead-of-matching-greater-than -- 2 file(s), area src/lugTracking -- source: harness-factory: git log main ba4f9c74
-- 07:08Z lug at review planner-reads-the-hubs-initiatives-so-build-rows-carry-their-initiative [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative lugs list: enablement-through-audited-verbs -- tests conformance/fixtures/planner-hub-initiatives/planner-hub-initiatives.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/planner-reads-the-hubs-initiatives-so-build-rows-carry-their-initiative.yaml (last commit touching the file)
 - 06:45Z commit 23da3776 [harness-factory] lug suite-pool-parallel-fixture-is-serial-so-the-gate-runs-it-alone: review -- lug suite-pool-parallel-fixture-is-serial-so-the-gate-runs-it-alone -- 1 file(s), area lugs -- source: harness-factory: git log main 23da3776
-- 06:45Z lug at review suite-pool-parallel-fixture-is-serial-so-the-gate-runs-it-alone [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative lugs list: enablement-through-audited-verbs -- readiness stubbed -- source: harness-factory: lugs/suite-pool-parallel-fixture-is-serial-so-the-gate-runs-it-alone.yaml (last commit touching the file)
 - 06:42Z commit efb618e6 [harness-factory] lug suite-pool-parallel-fixture-is-serial-so-the-gate-runs-it-alone: two timing suites declare // serial -- lug suite-pool-parallel-fixture-is-serial-so-the-gate-runs-it-alone -- 4 file(s), area conformance -- source: harness-factory: git log main efb618e6
 
 #### conformance
@@ -2412,7 +2361,6 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 #### minder-conductor-dashboard
 
 - 07:16Z commit fd99d0a0 [harness-factory] lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers: review -- lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers -- 1 file(s), area lugs -- source: harness-factory: git log main fd99d0a0
-- 07:16Z lug at review minder-dashboard-records-verified-real-has-a-reader-in-metric-readers [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative lugs list: minder-conductor-dashboard -- tests conformance/fixtures/minder-dashboard-metric-reader/minder-dashboard-metric-reader.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/minder-dashboard-records-verified-real-has-a-reader-in-metric-readers.yaml (last commit touching the file)
 - 07:14Z commit 5c89c119 [harness-factory] lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers: note the proving fixture in the reader's own comment -- lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers -- 1 file(s), area src/conductor -- source: harness-factory: git log main 5c89c119
 
 #### src/conductor
@@ -2438,17 +2386,6 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 
 ### 2026-09-24
 
-#### unaffiliated lugs
-
-- 23:47Z lug done agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 52f11efc-1840-4050-8d17-57ff2f500213 -- record runtime/cross-provider-certifications/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt.json (external) -- tests conformance/fixtures/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt.conformance.test.js -- cost 2047235 tokens, 201.538s wall -- readiness stubbed -- source: harness-factory: lugs/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt.yaml (certified_by.at)
-- 22:16Z lug done roi-rollup-lifetime-average-hides-recent-efficiency-and-nothing-flags-a-jump [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 043a6052-282c-44b4-a5fc-12e31023c2c1 -- record runtime/cross-provider-certifications/roi-rollup-lifetime-average-hides-recent-efficiency-and-nothing-flags-a-jump.json (external) -- tests conformance/fixtures/roi-rollup-rolling-average/roi-rollup-rolling-average.conformance.test.js -- cost 0 tokens, 8.3s wall -- readiness stubbed -- source: harness-factory: lugs/roi-rollup-lifetime-average-hides-recent-efficiency-and-nothing-flags-a-jump.yaml (certified_by.at)
-- 18:43Z lug at review basher-give-a-v2-spoke-a-distinct-short-tab-name [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/basher-give-a-v2-spoke-a-distinct-short-tab-name.yaml (runtime/event-log.jsonl review transition)
-- 13:46Z lug at review basher-add-a-permission-rule-for-dispatcher-side-scope-grant-writes [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/basher-add-a-permission-rule-for-dispatcher-side-scope-grant-writes.yaml (runtime/event-log.jsonl review transition)
-- 07:06Z lug done session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session dceb5b13-783c-4067-b974-55a7611eae28 -- record runtime/cross-provider-certifications/session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures.json (external) -- tests conformance/fixtures/session-start-composer-cache/session-start-composer-cache.conformance.test.js, conformance/fixtures/session-start-board-then-digest/session-start-board-then-digest.conformance.test.js -- cost 203147823 tokens, 72097.303s wall -- readiness stubbed -- source: harness-factory: lugs/session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures.yaml (certified_by.at)
-- 06:57Z lug done liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window [harness-factory] priority critical -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96b93d69-e0c5-4eae-9fb3-ba0130c90588 -- record runtime/cross-provider-certifications/liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window.json (external) -- tests conformance/fixtures/liveness-lease/liveness-lease.conformance.test.js, conformance/fixtures/session-start-board-then-digest/session-start-board-then-digest.conformance.test.js -- cost 30098118 tokens, 7656.343s wall -- readiness stubbed -- source: harness-factory: lugs/liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window.yaml (certified_by.at)
-- 06:57Z lug done readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96b93d69-e0c5-4eae-9fb3-ba0130c90588 -- record runtime/cross-provider-certifications/readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer.json (external) -- tests conformance/fixtures/readiness-certification-sweep-wheel-clock/readiness-certification-sweep-wheel-clock.conformance.test.js -- cost 26916471 tokens, 6064.614s wall -- readiness stubbed -- Operator: "the idea that something is there is not useful we need it integrated and in play." -- source: harness-factory: lugs/readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer.yaml (certified_by.at)
-- 06:56Z lug done ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96b93d69-e0c5-4eae-9fb3-ba0130c90588 -- record runtime/cross-provider-certifications/ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit.json (external) -- tests conformance/fixtures/ozi-wheel-clock-consumer-audit/ozi-wheel-clock-consumer-audit.conformance.test.js -- cost 15795850 tokens, 3464.1059999999998s wall -- readiness stubbed -- Operator, this session: "I say build it in now - it will find lots of work to cleanup once in place - im tired of checking on you let it fly." -- source: harness-factory: lugs/ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit.yaml (certified_by.at)
-
 #### commits
 
 - 23:46Z commit ab146fef [harness-factory] Lug: agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt -> review -- 1 file(s), area lugs -- source: harness-factory: git log main ab146fef
@@ -2457,6 +2394,15 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 - 18:44Z commit 63a95dcb [harness-factory] Close basher-give-a-v2-spoke-a-distinct-short-tab-name via basher's reply -- 2 file(s), area lugs -- source: harness-factory: git log main 63a95dcb
 - 13:47Z commit fa3d206f [harness-factory] Lug basher-add-a-permission-rule-for-dispatcher-side-scope-grant-writes: in_progress -> review -- 1 file(s), area lugs -- source: harness-factory: git log main fa3d206f
 - 07:03Z commit d940dc25 [harness-factory] session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures: record real verification results the first cert attempt found missing -- lug session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures -- 1 file(s), area lugs -- source: harness-factory: git log main d940dc25
+
+#### unaffiliated lugs
+
+- 23:47Z lug done agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 52f11efc-1840-4050-8d17-57ff2f500213 -- record runtime/cross-provider-certifications/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt.json (external) -- tests conformance/fixtures/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt.conformance.test.js -- cost 2047235 tokens, 201.538s wall -- readiness stubbed -- source: harness-factory: lugs/agent-tool-scope-guard-false-positive-on-do-not-verb-inside-a-build-prompt.yaml (certified_by.at)
+- 22:16Z lug done roi-rollup-lifetime-average-hides-recent-efficiency-and-nothing-flags-a-jump [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 043a6052-282c-44b4-a5fc-12e31023c2c1 -- record runtime/cross-provider-certifications/roi-rollup-lifetime-average-hides-recent-efficiency-and-nothing-flags-a-jump.json (external) -- tests conformance/fixtures/roi-rollup-rolling-average/roi-rollup-rolling-average.conformance.test.js -- cost 0 tokens, 8.3s wall -- readiness stubbed -- source: harness-factory: lugs/roi-rollup-lifetime-average-hides-recent-efficiency-and-nothing-flags-a-jump.yaml (certified_by.at)
+- 07:06Z lug done session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session dceb5b13-783c-4067-b974-55a7611eae28 -- record runtime/cross-provider-certifications/session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures.json (external) -- tests conformance/fixtures/session-start-composer-cache/session-start-composer-cache.conformance.test.js, conformance/fixtures/session-start-board-then-digest/session-start-board-then-digest.conformance.test.js -- cost 203147823 tokens, 72097.303s wall -- readiness stubbed -- source: harness-factory: lugs/session-grant-miss-ledger-write-breaks-two-stale-session-start-fixtures.yaml (certified_by.at)
+- 06:57Z lug done liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window [harness-factory] priority critical -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96b93d69-e0c5-4eae-9fb3-ba0130c90588 -- record runtime/cross-provider-certifications/liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window.json (external) -- tests conformance/fixtures/liveness-lease/liveness-lease.conformance.test.js, conformance/fixtures/session-start-board-then-digest/session-start-board-then-digest.conformance.test.js -- cost 30098118 tokens, 7656.343s wall -- readiness stubbed -- source: harness-factory: lugs/liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window.yaml (certified_by.at)
+- 06:57Z lug done readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96b93d69-e0c5-4eae-9fb3-ba0130c90588 -- record runtime/cross-provider-certifications/readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer.json (external) -- tests conformance/fixtures/readiness-certification-sweep-wheel-clock/readiness-certification-sweep-wheel-clock.conformance.test.js -- cost 26916471 tokens, 6064.614s wall -- readiness stubbed -- Operator: "the idea that something is there is not useful we need it integrated and in play." -- source: harness-factory: lugs/readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer.yaml (certified_by.at)
+- 06:56Z lug done ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96b93d69-e0c5-4eae-9fb3-ba0130c90588 -- record runtime/cross-provider-certifications/ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit.json (external) -- tests conformance/fixtures/ozi-wheel-clock-consumer-audit/ozi-wheel-clock-consumer-audit.conformance.test.js -- cost 15795850 tokens, 3464.1059999999998s wall -- readiness stubbed -- Operator, this session: "I say build it in now - it will find lots of work to cleanup once in place - im tired of checking on you let it fly." -- source: harness-factory: lugs/ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit.yaml (certified_by.at)
 
 #### src/basher
 
@@ -2489,12 +2435,6 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 - 08:42Z commit 160f07fe [harness-factory] Lugs: reply to basher on the node/python-allow fix; track the wcl by-name bugfix -- 6 file(s), area lugs -- source: harness-factory: git log main 160f07fe
 - 07:17Z commit 5524b86f [harness-factory] Session work: 5 files, no lug transitions recorded -- 1 file(s), area lugs -- source: harness-factory: git log main 5524b86f
 
-#### unaffiliated lugs
-
-- 12:15Z lug done review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 51e01309-f9d6-4e16-b873-86f143944c5d -- record runtime/cross-provider-certifications/review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug.json (external) -- tests conformance/fixtures/review-verb-requires-tests-and-delivered-pointers/review-verb-requires-tests-and-delivered-pointers.conformance.test.js -- cost 120079108 tokens, 455.372s wall -- readiness stubbed -- source: harness-factory: lugs/review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug.yaml (certified_by.at)
-- 08:40Z lug at review reply-node-python-allow-scoped-and-landed [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- derived_from external:basher/lugs/reply-and-forward-broad-node-python-allow-to-harness-factory.yaml -- readiness stubbed -- source: harness-factory: lugs/reply-node-python-allow-scoped-and-landed.yaml (runtime/event-log.jsonl review transition)
-- 01:49Z lug at review wheel-feedback-digest-bounds-its-lugs-under-the-token-cap-not-at-25-names [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/wheel-feedback-digest-bounds-its-lugs-under-the-token-cap-not-at-25-names.yaml (runtime/event-log.jsonl review transition)
-
 #### src/basher
 
 - 23:13Z commit 36042a64 [harness-factory] dispatched-session-reads-its-own-id-not-the-checkout-holders: hand every headless launch its own session id directly -- lug dispatched-session-reads-its-own-id-not-the-checkout-holders -- 10 file(s), area src/basher -- source: harness-factory: git log main 36042a64
@@ -2507,10 +2447,6 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 #### docs
 
 - 23:18Z commit 261084ed [harness-factory] dispatched-session-reads-its-own-id-not-the-checkout-holders: quote the live certification proof for acceptance line 3 -- lug dispatched-session-reads-its-own-id-not-the-checkout-holders -- 1 file(s), area docs -- source: harness-factory: git log main 261084ed
-
-#### harness-adoption-warmup
-
-- 08:42Z lug at review wcl-by-name-entry-skipped-classify-and-offer [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- initiative of derived_from root wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup: harness-adoption-warmup -- derived_from wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- readiness stubbed -- source: harness-factory: lugs/wcl-by-name-entry-skipped-classify-and-offer.yaml (runtime/event-log.jsonl review transition)
 
 #### scripts
 
@@ -2536,6 +2472,10 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 
 - 08:09Z commit 2b1792ee [harness-factory] jev-shadow-pilot: Jev as a shadow classifier beside the regex communication detectors -- 11 file(s), area src/tastegraph -- source: harness-factory: git log main 2b1792ee
 
+#### unaffiliated lugs
+
+- 12:15Z lug done review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 51e01309-f9d6-4e16-b873-86f143944c5d -- record runtime/cross-provider-certifications/review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug.json (external) -- tests conformance/fixtures/review-verb-requires-tests-and-delivered-pointers/review-verb-requires-tests-and-delivered-pointers.conformance.test.js -- cost 120079108 tokens, 455.372s wall -- readiness stubbed -- source: harness-factory: lugs/review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug.yaml (certified_by.at)
+
 ### 2026-09-22
 
 #### commits
@@ -2559,11 +2499,6 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 - 05:24Z commit 03ba71ca [harness-factory] push gate: distinguish a pending cut from real drift -- 4 file(s), area src/factory -- source: harness-factory: git log main 03ba71ca
 - 04:55Z commit 9801b6c8 [harness-factory] circleAudit: host_instance narrows hosted_by: instance to its real host -- 6 file(s), area src/factory -- source: harness-factory: git log main 9801b6c8
 
-#### unaffiliated lugs
-
-- 09:09Z lug at review max-persona-boundary-guard-covers-bash-writes-to-source-from-the-top-level-session [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/max-persona-boundary-guard-covers-bash-writes-to-source-from-the-top-level-session.yaml (runtime/event-log.jsonl review transition)
-- 05:26Z lug done push-gate-drift-check-treats-a-new-circle-as-pending-cut-not-drift [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 19050ae2-908f-42bf-a718-60d3563365d6 -- record runtime/cross-provider-certifications/push-gate-drift-check-treats-a-new-circle-as-pending-cut-not-drift.json (external) -- tests conformance/fixtures/push-gate-pending-cut-vs-drift/push-gate-pending-cut-vs-drift.conformance.test.js -- cost 5992878 tokens, 662.471s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/push-gate-drift-check-treats-a-new-circle-as-pending-cut-not-drift.yaml (certified_by.at)
-
 #### certification-verdicts-record-the-matcher-version-and-the-sweep-recertifies-when-it-changes
 
 - 22:15Z commit 3c423e7d [harness-factory] readiness-sweep-reruns-blocked-and-unowned-verdicts-when-their-cause-is-gone: a BLOCKED cross-provider verdict whose stated cause the sweep can re-check on disk (a missing Proofer canon entity) and finds cleared is re-run under --recertify=stale, one paid call, counted apart from citation staleness and named by cause in the tally and ledger row. A verdict this session already requested is never re-run again (no loop). The pre-existing requesterless-verdict re-request path is now labelled and counted separately as "unowned re-requested" too. -- lug readiness-sweep-reruns-blocked-and-unowned-verdicts-when-their-cause-is-gone -- 4 file(s), area src/conductor -- source: harness-factory: git log main 3c423e7d
@@ -2576,13 +2511,13 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 
 - 06:00Z commit 62d33d89 [harness-factory] foundation answers recorded (main focus, non-commercial, internal facing); digest-cap lug to critical -- it now blocks every push from this spoke -- 2 file(s), area docs -- source: harness-factory: git log main 62d33d89
 
-#### p0-bugfix-circle-audit-conversation-track-ingestion
-
-- 06:01Z lug at review scaffolded-spoke-wheel-clock-fixture-accepts-host-excluded-circles [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- derived_from root: p0-bugfix-circle-audit-conversation-track-ingestion -- derived_from p0-bugfix-circle-audit-conversation-track-ingestion -- readiness stubbed -- source: harness-factory: lugs/scaffolded-spoke-wheel-clock-fixture-accepts-host-excluded-circles.yaml (runtime/event-log.jsonl review transition)
-
 #### src/hooks
 
 - 09:09Z commit ec1d65b6 [harness-factory] max-persona-boundary-guard: refuse top-level Bash writes to source, not just Edit/Write -- 12 file(s), area src/hooks -- source: harness-factory: git log main ec1d65b6
+
+#### unaffiliated lugs
+
+- 05:26Z lug done push-gate-drift-check-treats-a-new-circle-as-pending-cut-not-drift [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 19050ae2-908f-42bf-a718-60d3563365d6 -- record runtime/cross-provider-certifications/push-gate-drift-check-treats-a-new-circle-as-pending-cut-not-drift.json (external) -- tests conformance/fixtures/push-gate-pending-cut-vs-drift/push-gate-pending-cut-vs-drift.conformance.test.js -- cost 5992878 tokens, 662.471s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/push-gate-drift-check-treats-a-new-circle-as-pending-cut-not-drift.yaml (certified_by.at)
 
 ### 2026-09-21
 
@@ -2634,7 +2569,7 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 
 #### dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub
 
-- 06:12Z lug at review apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- derived_from root: dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub -- derived_from dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub, autopilot-drives-the-planners-build-class-not-just-initiatives, external:wheel-hub/lugs/independent-review-dispatch-bar-and-ready-work-drive-changes.yaml -- readiness stubbed -- source: harness-factory: lugs/apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback.yaml (runtime/event-log.jsonl review transition)
+- 06:14Z lug at review apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- derived_from root: dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub -- derived_from dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub, autopilot-drives-the-planners-build-class-not-just-initiatives, external:wheel-hub/lugs/independent-review-dispatch-bar-and-ready-work-drive-changes.yaml -- readiness stubbed -- source: harness-factory: lugs/apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback.yaml (last commit touching the file)
 - 04:30Z commit 277f7cdf [harness-factory] autopilot-drives-the-planners-build-class-not-just-initiatives: the Planner's build class gets its consumer -- on a launched wave, driveReadyWork dispatches the top ready lug per spoke in Conductor's order (one per pass by default) through the same dispatch path as the initiative drive; counterparties resolve at the hub when a spoke declares none -- lug autopilot-drives-the-planners-build-class-not-just-initiatives -- fixtures 12/0, 91/0, 39/0, 21/0 -- 5 file(s), area src/conductor -- source: harness-factory: git log main 277f7cdf
 
 #### docs
@@ -2669,11 +2604,6 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 - 04:11Z commit 1a95bc3c [harness-factory] lug push-gate-runs-before-git-opens-the-connection-so-a-long-gate-cannot-sigpipe-the-push: 5/5 pushes whose gate ran suites (519-916s) exited 141 with nothing sent; git opens the ssh transport before the hook and the server drops it idle -- run the gate before git, re-exec once on a late PASS -- lug push-gate-runs-before-git-opens-the-connection-so-a-long-gate-cannot-sigpipe-the-push -- fixtures 5/5 -- 1 file(s), area lugs -- source: harness-factory: git log main 1a95bc3c
 - 03:02Z commit 34cb7d23 [harness-factory] lug two-fixtures-read-aged-hub-ledger-rows-that-retention-archived: acceptance 1 amended after the run-1 certification objection -- loud failure on a hub with no aged row in any generation is the invariant, not a miss; intent trimmed under the rule-11 cap -- lug two-fixtures-read-aged-hub-ledger-rows-that-retention-archived -- 1 file(s), area lugs -- source: harness-factory: git log main 34cb7d23
 
-#### unaffiliated lugs
-
-- 17:38Z lug at review wheel-feedback-cause-key-carries-per-session-coordinates [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- derived_from external:wheel-hub/lugs/spokes-send-findings-up-to-the-hub-as-feedback-messages.yaml, external:wheel-hub/lugs/hub-digests-wheel-feedback-into-ranked-harness-lugs-and-measures-the-loop.yaml -- tests conformance/fixtures/wheel-cause-key/wheel-cause-key.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/wheel-feedback-cause-key-carries-per-session-coordinates.yaml (runtime/event-log.jsonl review transition)
-- 04:39Z lug done two-fixtures-read-aged-hub-ledger-rows-that-retention-archived [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session a69c77d1-899f-4dea-811e-1817b83f0bf2 -- record runtime/cross-provider-certifications/two-fixtures-read-aged-hub-ledger-rows-that-retention-archived.json (external) -- tests conformance/fixtures/influence-contracts/influence-contracts.conformance.test.js, conformance/fixtures/review-rule-12-cap-growth/review-rule-12-cap-growth.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/two-fixtures-read-aged-hub-ledger-rows-that-retention-archived.yaml (certified_by.at)
-
 #### docs
 
 - 18:37Z commit 182dcfb4 [harness-factory] Max: bubo hosts the conversation unifier -- communication lug to bubo with the design (collect / learn / activate on the hub's adapter contract) and three lessons from the Jev post applied -- 2 file(s), area docs -- source: harness-factory: git log main 182dcfb4
@@ -2685,6 +2615,10 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 #### src/lugTracking
 
 - 17:39Z commit 8dc99c0f [harness-factory] wheel-feedback-cause-key-carries-per-session-coordinates: one wheel-level cause key per thing-that-is-wrong -- wheelCauseKey() strips session/lug/dispatch/timestamp/pid/path coordinates, applied at the emitter's write and the digest's read; the loop's first live turn had made 9 lugs of one cross-store cause -- lug wheel-feedback-cause-key-carries-per-session-coordinates -- fixtures 21/0, 43/0, 29/0 -- 28 file(s), area src/lugTracking -- source: harness-factory: git log main 8dc99c0f
+
+#### unaffiliated lugs
+
+- 04:39Z lug done two-fixtures-read-aged-hub-ledger-rows-that-retention-archived [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session a69c77d1-899f-4dea-811e-1817b83f0bf2 -- record runtime/cross-provider-certifications/two-fixtures-read-aged-hub-ledger-rows-that-retention-archived.json (external) -- tests conformance/fixtures/influence-contracts/influence-contracts.conformance.test.js, conformance/fixtures/review-rule-12-cap-growth/review-rule-12-cap-growth.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/two-fixtures-read-aged-hub-ledger-rows-that-retention-archived.yaml (certified_by.at)
 
 ### 2026-09-18
 
@@ -2784,17 +2718,13 @@ Entries: 2 (commit 2).
 
 21:18Z cut b81e2bc1 received by tracks (previous 4a839956) landed c065e2ee, posture absorb_and_report: +0/~0/-0 circles for tracks (git 7c2adcaa..c065e2ee -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-17T21:14:46.508Z -- source: tracks: git show c065e2ee:.cut-status.json
 
-Entries: 2 (commit 1, lug_review 1).
+Entries: 1 (commit 1).
 
 ### 2026-09-17
 
 #### taste-and-pattern-misses-close-the-loop-on-the-next-turn-like-the-footer-does
 
 - 20:50Z commit b81e2bc1 [harness-factory] spokes-talk-directly-via-lugs-with-a-confirm-back-and-a-p0-taps-the-live-session: reply_to wires a reply back to its request, hf spoke-path resolves a sibling from the hub registry -- lug spokes-talk-directly-via-lugs-with-a-confirm-back-and-a-p0-taps-the-live-session -- 10 file(s), area src/conductor -- source: harness-factory: git log main b81e2bc1
-
-#### unaffiliated lugs
-
-- 19:33Z lug at review circle-schema-hook-event-name-lacks-stopfailure-and-worktreecreate [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/circle-schema-hook-event-name-lacks-stopfailure-and-worktreecreate.yaml (runtime/event-log.jsonl review transition)
 
 ## Cut 4a839956 -- received 2026-09-17 20:33Z (from ca0e4076)
 
@@ -2881,7 +2811,7 @@ Entries: 4 (commit 4).
 
 06:59Z cut 8e61551f received by tracks (previous c8ec1341) landed 1f8a6d8c, posture absorb_and_report: +3/~14/-0 circles for tracks -- gained zellij-tab-identity-session-end, zellij-tab-identity-tool-reset, zellij-tab-identity-turn-start -- changed calibration-record, cross-provider-verification, dispatch-run-salvage, footer-audit, footer-correction-injection, hf-deploy, notification-agent-waiting-notify, readiness-certification-sweep, session-continuity-checkpoint, session-registry, stop-agent-waiting-notify, tastegraph-injection, warmup-goals-review, wcl-verify-then-launch -- hooks bound PreToolUse preToolTabResetHook.js, SessionEnd sessionEndTabClearHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 7b156f5f..1f8a6d8c -- canon/circles, .claude/settings.json) -- source: tracks: git show 1f8a6d8c:.cut-status.json
 
-Entries: 28 (circle_added 4, commit 18, hook_bound 3, lug_review 3).
+Entries: 25 (circle_added 4, commit 18, hook_bound 3).
 
 ### 2026-09-17
 
@@ -2900,12 +2830,6 @@ Entries: 28 (circle_added 4, commit 18, hook_bound 3, lug_review 3).
 - 04:30Z commit 9e12bc6f [harness-factory] statusline fixture: the custodian's copy without the v2 path is basher's port, not this tree's red -- 3 file(s), area lugs -- source: harness-factory: git log main 9e12bc6f
 - 01:07Z commit ee6ff1a8 [harness-factory] zellij tab identity: the three hook circles bound on the canonical checkout (compile-self --standing after the fold of 64bbef6); basher's two lugs (zellij tab identity, wcl freshness remedy) committed here at review -- fixtures 48/48, 33/33, 49/49 -- 3 file(s), area lugs -- source: harness-factory: git log main ee6ff1a8
 - 01:05Z commit 66156307 [harness-factory] lug certification-verdicts-record-the-matcher-version-and-the-sweep-recertifies-when-it-changes: sweep 2 after the matcher change made 0 provider calls and moved 1 lug; the by-hand re-certification of 16 FABRICATED records flipped 11 -- lug certification-verdicts-record-the-matcher-version-and-the-sweep-recertifies-when-it-changes -- 1 file(s), area lugs -- source: harness-factory: git log main 66156307
-
-#### unaffiliated lugs
-
-- 04:02Z lug at review toast-is-one-short-line-per-turn [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- Operator, 2026-09-16, after the fleet toast landed: "the toast notifications still seem off -- make sure they are clear and simple" -- source: harness-factory: lugs/toast-is-one-short-line-per-turn.yaml (runtime/event-log.jsonl review transition)
-- 00:52Z lug at review wcl-freshness-refusal-offers-the-remedy-and-scaffold-rule-drift-is-not-local-drift [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- Operator, 2026-09-16, at `wcl` in minder: "this is not a helpful end -- dont fail and exit, give options or take action to remediate" -- source: harness-factory: lugs/wcl-freshness-refusal-offers-the-remedy-and-scaffold-rule-drift-is-not-local-drift.yaml (runtime/event-log.jsonl review transition)
-- 00:21Z lug at review zellij-tab-identity-and-gated-toast-are-a-fleet-circle [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/zellij-tab-identity-and-gated-toast-are-a-fleet-circle.yaml (runtime/event-log.jsonl review transition)
 
 #### wheel-agents-talk-up-down-and-across
 
@@ -2979,7 +2903,7 @@ Entries: 3 (commit 3).
 
 19:29Z cut 21926af8 received by tracks (previous 79c1648d) landed 56d36285, posture absorb_and_report: +4/~12/-0 circles for tracks -- gained closeout-report, closeout-request, lug-write-schema-gate, session-files-touched -- changed agent-tool-scope-guard, bash-lug-guard, communication-inbox-delta, gate-pool-serial-suites, hf-deploy, max-persona-boundary-guard, session-continuity-checkpoint, session-end-handoff, session-exit-commit, success-prediction, warmup-goals-review, wcl-verify-then-launch -- hooks bound PostToolUse filesTouchedRecorderHook.js, PreToolUse lugSchemaGateHook.js, UserPromptSubmit closeoutRequestHook.js (git 7e85f546..56d36285 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-16T19:27:59.865Z -- source: tracks: git show 56d36285:.cut-status.json
 
-Entries: 78 (circle_added 4, commit 67, hook_bound 3, lug_done 1, lug_review 3).
+Entries: 75 (circle_added 4, commit 67, hook_bound 3, lug_done 1).
 
 ### 2026-09-16
 
@@ -3088,18 +3012,6 @@ Entries: 78 (circle_added 4, commit 67, hook_bound 3, lug_done 1, lug_review 3).
 - 03:45Z commit df2e4aa4 [harness-factory] independent-review-receipt-and-notice-on-every-done: the readiness sweep through the REAL verb -- a low-priority lug with a non-author record reaches done stamped, one with no verdict is left at review naming the policy (MAX-150, continuation of MAX-143's 43938e8) -- lug independent-review-receipt-and-notice-on-every-done -- 1 file(s), area conformance -- source: harness-factory: git log main df2e4aa4
 - 03:18Z commit ab29eb02 [harness-factory] independent-review-receipt-and-notice-on-every-done: every done carries certified_by, every lug gets an independent reviewer, the operator is told -- lug independent-review-receipt-and-notice-on-every-done -- 46 file(s), area src/advisor -- source: harness-factory: git log main ab29eb02
 
-#### harness-adoption-warmup
-
-- 22:03Z commit 6f6504bc [harness-factory] lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup: scope folded from operator rulings 2026-09-15 (git-level consolidation, upgrade all the way, inferred interview); defined -> ready -> in_progress -> review with fixture wcl-enter-any-spoke (44/44) -- lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- fixtures 44/44 -- 1 file(s), area lugs -- source: harness-factory: git log main 6f6504bc
-- 22:02Z lug at review wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- initiative lugs list: harness-adoption-warmup -- readiness stubbed -- Operator, 2026-09-15: "how can I enter a spoke (or new spoke) like pathfinder which is running an old version of the harness -- wcl should give me the proper entry and warmup." -- source: harness-factory: lugs/wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup.yaml (runtime/event-log.jsonl review transition)
-- 22:00Z commit 5f0aad13 [harness-factory] wcl enters any folder: classify (v2|v1|unscaffolded|not-a-repo), offer initiate/register, consolidate (git-level, confirm per action, never -A/reset/clean), upgrade all the way (backup v1 settings, scaffold, promote v2 hooks, register known-repos + hub entity + wheel group, apply cut, retire-v1 lug, scoped commit); inferred-defaults interview for wcl init -- lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- 9 file(s), area src/basher -- source: harness-factory: git log main 5f0aad13
-
-#### unaffiliated lugs
-
-- 18:30Z lug done push-main-blocked-on-taste-injection-digest-contract [harness-factory] priority high -- verdict CONFIRMED via claude/claude-sonnet-5 -- date from certified_by.at -- reviewer session c2e8739d-ca64-4fbd-b8ab-5fb7f686c52b -- record runtime/cross-provider-certifications/push-main-blocked-on-taste-injection-digest-contract.json (external) -- tests conformance/fixtures/proofer-hub-fallback/proofer-hub-fallback.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/push-main-blocked-on-taste-injection-digest-contract.yaml (certified_by.at)
-- 07:17Z lug at review session-exit-commit-sweeps-a-peer-lanes-in-flight-files [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/session-exit-commit-sweeps-a-peer-lanes-in-flight-files.yaml (runtime/event-log.jsonl review transition)
-- 04:46Z lug at review wcl-signs-in-with-a-long-lived-fleet-token [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- Operator, 2026-09-14 (basher s128): "I cant successfully exit or reenter ... if you can automate the action i prefer that over directions." -- source: harness-factory: lugs/wcl-signs-in-with-a-long-lived-fleet-token.yaml (runtime/event-log.jsonl review transition)
-
 #### .claude
 
 - 06:30Z commit 16b0a91e [harness-factory] session-exit-commit: bounded to Claude Code's real ~60s window -- 12s commit-gate budget, never push at exit, 45s wall cap; the prior "Session work: 10 files" commit (5d6266c) carries the code -- fixtures 87/87, 64/64, 18/18, 21/21, 210/210 -- 2 file(s), area .claude -- source: harness-factory: git log main 16b0a91e
@@ -3114,6 +3026,11 @@ Entries: 78 (circle_added 4, commit 67, hook_bound 3, lug_done 1, lug_review 3).
 
 - 21:54Z commit 58d88c73 [harness-factory] two source-shape checks on stageFold updated for the wip/* fold (e1f9b30): worktree-registry B5 reads the whole function, not a 6000-char window; receipt F8 accepts folded.filter(has lug).map -- fixtures 55/55, 39/39, 95/95 -- 2 file(s), area conformance -- source: harness-factory: git log main 58d88c73
 - 02:16Z commit e7fb61bb [harness-factory] Session work: 0 files, no lug transitions recorded -- 1 file(s), area conformance -- source: harness-factory: git log main e7fb61bb
+
+#### harness-adoption-warmup
+
+- 22:03Z commit 6f6504bc [harness-factory] lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup: scope folded from operator rulings 2026-09-15 (git-level consolidation, upgrade all the way, inferred interview); defined -> ready -> in_progress -> review with fixture wcl-enter-any-spoke (44/44) -- lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- fixtures 44/44 -- 1 file(s), area lugs -- source: harness-factory: git log main 6f6504bc
+- 22:00Z commit 5f0aad13 [harness-factory] wcl enters any folder: classify (v2|v1|unscaffolded|not-a-repo), offer initiate/register, consolidate (git-level, confirm per action, never -A/reset/clean), upgrade all the way (backup v1 settings, scaffold, promote v2 hooks, register known-repos + hub entity + wheel group, apply cut, retire-v1 lug, scoped commit); inferred-defaults interview for wcl init -- lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- lug wcl-enters-any-spoke-old-harness-or-unregistered-with-a-real-entry-and-warmup -- 9 file(s), area src/basher -- source: harness-factory: git log main 5f0aad13
 
 #### src/advisor
 
@@ -3144,11 +3061,15 @@ Entries: 78 (circle_added 4, commit 67, hook_bound 3, lug_done 1, lug_review 3).
 
 - 03:26Z commit 759ff3ea [harness-factory] fixtures-never-pin-a-real-spokes-state: fixture lint in the commit gate (a real spoke root + a literal expectation is refused with the line quoted; consistency with the spoke's own recorded state is the named alternative) and the generated-docs drift check runs on every commit regardless of the staged set -- measured 19% false positives over 263 fixtures at first cut; the gate's first live run refused THIS commit on main's own stale CLAUDE.md/AMBASSADOR_BRIEF.md (79bbcc1 never regenerated after wcl-entry-directive), regenerated here byte-identical to 0ccc12f -- lug fixtures-never-pin-a-real-spokes-state -- 5 file(s), area src/factory -- source: harness-factory: git log main 759ff3ea
 
+#### unaffiliated lugs
+
+- 18:30Z lug done push-main-blocked-on-taste-injection-digest-contract [harness-factory] priority high -- verdict CONFIRMED via claude/claude-sonnet-5 -- date from certified_by.at -- reviewer session c2e8739d-ca64-4fbd-b8ab-5fb7f686c52b -- record runtime/cross-provider-certifications/push-main-blocked-on-taste-injection-digest-contract.json (external) -- tests conformance/fixtures/proofer-hub-fallback/proofer-hub-fallback.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/push-main-blocked-on-taste-injection-digest-contract.yaml (certified_by.at)
+
 ## Cut 79c1648d -- received 2026-09-15 03:42Z (from f40bc3fe)
 
 03:42Z cut 79c1648d received by tracks (previous f40bc3fe) landed 7e85f546, posture absorb_and_report: +1/~0/-1 circles for tracks -- gained wcl-entry-directive -- removed conversation-track-ingestion -- hooks bound SessionStart wclEntryDirectiveHook.js (git d306639d..7e85f546 -- canon/circles, .claude/settings.json) -- source: tracks: git show 7e85f546:.cut-status.json
 
-Entries: 16 (circle_added 1, commit 12, hook_bound 1, lug_review 2).
+Entries: 14 (circle_added 1, commit 12, hook_bound 1).
 
 ### 2026-09-15
 
@@ -3169,11 +3090,6 @@ Entries: 16 (circle_added 1, commit 12, hook_bound 1, lug_review 2).
 
 - 02:46Z hook SessionStart -> node src/hooks/wclEntryDirectiveHook.js (circle wcl-entry-directive) at 86af6d29 -- source: harness-factory: .claude/settings.json at 79c1648d vs f40bc3fe
 - 01:44Z circle wcl-entry-directive added at 6f531ab7 -- source: harness-factory: git log --diff-filter=A 6f531ab7 -- reference/circles/wcl-entry-directive.yaml
-
-#### unaffiliated lugs
-
-- 01:44Z lug at review wcl-rows-are-assured-capabilities-and-entry-matched-injection [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- Operator, 2026-09-14 (basher s128), on the first welcome cut (9c2007a): "each row should be a feature/capability that is assured. Codebase is ready or not ready (remediating action). I dont care if hooks are 37 but id like to know that the workspace is ready to be used (if not remediating action).... and on entering the session the prompt injected that matches either raw or wakeup to make best use of users time." -- source: harness-factory: lugs/wcl-rows-are-assured-capabilities-and-entry-matched-injection.yaml (runtime/event-log.jsonl review transition)
-- 00:36Z lug at review wcl-entry-is-a-welcome-raw-or-ozi-wakeup [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- Operator, 2026-09-14 (basher s128): "improve the entry via wcl so it is more delightful and user can choose a raw session or to allow Ozi to wakeup and advise options. This is too rough - i want joy and delight" -- source: harness-factory: lugs/wcl-entry-is-a-welcome-raw-or-ozi-wakeup.yaml (runtime/event-log.jsonl review transition)
 
 #### .claude
 
@@ -3211,7 +3127,7 @@ Entries: 1 (commit 1).
 
 00:11Z cut 66e48e3a received by tracks (first cut) landed 9a6d6cb2, posture absorb_and_report: +0/~0/-0 circles for tracks (git 9a6d6cb2..9a6d6cb2 -- canon/circles, .claude/settings.json) -- published +3/~0/-0 circles, 0 lug(s) closed at 2026-09-14T23:27:44.981Z -- source: tracks: git show 9a6d6cb2:.cut-status.json
 
-Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
+Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 ### 2026-09-14
 
@@ -3328,10 +3244,6 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 #### src/otto
 
 - 17:40Z commit 15715745 [harness-factory] wheel-clock-tick-exceeds-sessionstart-hook-timeout-and-replays: the SessionStart hook runs the catch-up in hook mode -- state before work, the jobs a hook cannot afford deferred to the cron driver with a ledger row each, and the lease reclaimed on the next start instead of stranded for the push gate -- lug wheel-clock-tick-exceeds-sessionstart-hook-timeout-and-replays -- 8 file(s), area src/otto -- source: harness-factory: git log main 15715745
-
-#### unaffiliated lugs
-
-- 23:03Z lug at review wcl-cold-start-store-is-a-condition-not-a-lockout [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/wcl-cold-start-store-is-a-condition-not-a-lockout.yaml (runtime/event-log.jsonl review transition)
 
 ### 2026-09-13
 
@@ -4283,4 +4195,4 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:3adcf05653d292258f7fa78aed04555b7277c14a1ff44f7d51181a01b729c0e8 -->
+<!-- integrity sha256:4826be1883da415a95f276b34b472658f98a5a1302c5684b4b9bbc67f3c30b57 -->
