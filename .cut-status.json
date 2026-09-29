@@ -1,14 +1,16 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "e6eda1f83fe20e74a689fd38bf19d4583ae6d700",
-  "digest": "sha256:f14585b497fa631c0e23181bd7bc02db2bea637dbbf4e3e679ba3d00e2bac321",
+  "version": "eafa5c39b88a29db3ae280340c97cd463a552324",
+  "digest": "sha256:64444351a35ceb0bf7b2392b53a80b58431d92319b4de8fc56176712c336b2ef",
   "unchanged": true,
   "harness": {
-    "version": "e6eda1f83fe20e74a689fd38bf19d4583ae6d700",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/e6eda1f83fe20e74a689fd38bf19d4583ae6d700",
+    "version": "eafa5c39b88a29db3ae280340c97cd463a552324",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/eafa5c39b88a29db3ae280340c97cd463a552324",
     "reused": false,
-    "pruned": []
+    "pruned": [
+      "44c2ff6b44e8d47e3109b01f8750c83b01dfaf46"
+    ]
   },
   "liveApplied": false,
   "announcedSessions": [],
@@ -16,41 +18,14 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-29T15:30:35.733Z",
+      "auditedAt": "2026-09-29T17:09:46.878Z",
       "findings": [
-        {
-          "path": ".claude/settings.json",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\".claude/settings.json\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
         {
           "path": ".cut-status.json",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
-        },
-        {
-          "path": "AMBASSADOR_BRIEF.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"AMBASSADOR_BRIEF.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "CLAUDE.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"CLAUDE.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
         },
         {
           "path": "docs/CHANGELOG.md",
@@ -69,13 +44,6 @@
           "evidence": {}
         },
         {
-          "path": "runtime/hook-runlog.jsonl",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/hook-runlog.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
           "path": "runtime/store-bound-state.json",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
@@ -90,51 +58,22 @@
           "evidence": {}
         },
         {
-          "path": "canon/circles/raw-worktree-add-redirect.md",
-          "statusCode": "??",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/raw-worktree-add-redirect.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "canon/circles/raw-worktree-add-redirect.yaml",
-          "statusCode": "??",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/raw-worktree-add-redirect.yaml\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "canon/circles/release-policy.md",
-          "statusCode": "??",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/release-policy.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "canon/circles/release-policy.yaml",
-          "statusCode": "??",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/release-policy.yaml\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "runtime/hook-dispatch-table.json",
+          "path": "ledger/ledger.jsonl.segments/000001_2026-09-15_2026-09-29.jsonl.gz",
           "statusCode": "??",
           "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/hook-dispatch-table.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "reason": "\"ledger/ledger.jsonl.segments/000001_2026-09-15_2026-09-29.jsonl.gz\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/manifest.json",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/manifest.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 8,
+        "LEGITIMATE_CUT_ABSORPTION": 1,
         "ORGANIC_RUNTIME_CHURN": 6,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
@@ -144,27 +83,20 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        ".claude/settings.json",
         ".cut-status.json",
-        "AMBASSADOR_BRIEF.md",
-        "CLAUDE.md",
         "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
-        "runtime/hook-runlog.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl",
-        "canon/circles/raw-worktree-add-redirect.md",
-        "canon/circles/raw-worktree-add-redirect.yaml",
-        "canon/circles/release-policy.md",
-        "canon/circles/release-policy.yaml",
-        "runtime/hook-dispatch-table.json"
+        "ledger/ledger.jsonl.segments/000001_2026-09-15_2026-09-29.jsonl.gz",
+        "ledger/ledger.jsonl.segments/manifest.json"
       ],
-      "commit": "9111f4f889184bcf7d0c669dff8bf2480ac279d7",
+      "commit": "47fc1e00d7cb7643243612cdcec53695633c4553",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1790695835853-3o7vqp"
+        "ldg-arrival-audit-committed-1790701786973-rdl2bg"
       ]
     },
     "profileSeeding": {
@@ -199,8 +131,8 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-29T15:30:37.641Z",
-  "previous_version": "44c2ff6b44e8d47e3109b01f8750c83b01dfaf46",
+  "appliedAt": "2026-09-29T17:09:48.920Z",
+  "previous_version": "e6eda1f83fe20e74a689fd38bf19d4583ae6d700",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
