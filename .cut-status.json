@@ -1,15 +1,39 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "2ffc54025979373477860fae497879cc811882db",
+  "version": "44c2ff6b44e8d47e3109b01f8750c83b01dfaf46",
+  "digest": "sha256:16a8cc0a9db197b5595091f247867bded24c8ef130d91414a788a6387fc0ed35",
+  "unchanged": false,
+  "harness": {
+    "version": "44c2ff6b44e8d47e3109b01f8750c83b01dfaf46",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/44c2ff6b44e8d47e3109b01f8750c83b01dfaf46",
+    "reused": false,
+    "pruned": []
+  },
   "liveApplied": false,
   "announcedSessions": [],
   "arrivalAudit": {
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-25T07:59:23.409Z",
+      "auditedAt": "2026-09-29T08:36:37.773Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "docs/CHANGELOG.md",
+          "statusCode": " M",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -33,24 +57,28 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 3,
+        "LEGITIMATE_CUT_ABSORPTION": 1,
+        "ORGANIC_RUNTIME_CHURN": 4,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
-      }
+      },
+      "skippedNestedCheckouts": []
     },
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
+        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "4e9e73d5b70fcebc8ec5144d1d09b9e76af17d06",
+      "commit": "27bb5f75128042e72caf10f7a662ee3c380b05e5",
       "blocked": [],
       "credentialBlocked": [],
+      "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1790323163475-4firsg"
+        "ldg-arrival-audit-committed-1790670997877-8crgia"
       ]
     },
     "profileSeeding": {
@@ -82,7 +110,7 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-25T07:59:24.460Z",
+  "appliedAt": "2026-09-29T08:36:39.379Z",
   "previous_version": "2ffc54025979373477860fae497879cc811882db",
   "cut_owned_files": [
     "canon/circles",
@@ -95,12 +123,12 @@
   "generated_docs": [
     {
       "file": "CLAUDE.md",
-      "changed": false,
+      "changed": true,
       "ok": true
     },
     {
       "file": "AMBASSADOR_BRIEF.md",
-      "changed": false,
+      "changed": true,
       "ok": true
     },
     {

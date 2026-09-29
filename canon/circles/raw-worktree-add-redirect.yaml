@@ -1,0 +1,38 @@
+kind: circle
+name: raw-worktree-add-redirect
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: a Bash command is about to run
+inputs:
+  - bash_command
+outputs:
+  - deny_decision
+invariants:
+  - >-
+    heuristic, not a parser -- a `git [-C dir] [-c k=v] worktree add` at a
+    command position; a quoted mention or a grep for the phrase is not a match
+  - >-
+    the refusal names the registrar verb (node scripts/worktree.js add ...)
+    built from the refused command's own path, branch and ref
+  - >-
+    the registrar itself runs git through spawnSync, never through a session's
+    Bash tool, so it is never refused
+failure_routing: lug:worktrees-clean-themselves-at-fold-and-exit
+counter_metric: raw_worktree_add_refusal_count
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (every harness worktree carries an owner, purpose and
+    expiry, so the worktree gc can tell a live tree from an abandoned one)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Bash
+hook_script: src/hooks/rawWorktreeAddRedirectHook.js
+conformance: >-
+  conformance/fixtures/worktree-gc-at-fold-and-exit/worktree-gc-at-fold-and-exit.conformance.test.js
+concern: worktree-registry-bypass-prevention
+instructions_ref: reference/circles/raw-worktree-add-redirect.md
+duplicate_of: raw-worktree-add-redirect

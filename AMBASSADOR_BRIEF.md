@@ -12,7 +12,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 
 ## 2. Its toolbox
 
-92 live circle(s):
+94 live circle(s):
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
@@ -72,9 +72,11 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **planner-cycle-allocation** (schedule): wheel_clock job planner_cycle (canon/otto.advisor.yaml), declared FIRST so it fires before every other scheduled job
 - **precompact-checkpoint** (hook_event): a real context compaction is about to happen (PreCompact event, manual or auto)
 - **provider-usage-and-retry** (on_demand): any provider call is made through src/advisor/providerContract.js's callProvider -- every caller: proofer.js (the cross-provider certification path), machineProbe.js, and any script or fixture that calls it directly
+- **raw-worktree-add-redirect** (hook_event): a Bash command is about to run
 - **readiness-certification-sweep** (on_demand): the review-state backlog is swept for real check results -- `node scripts/readiness-sweep.js [instanceRoot] --session-id=<id> [--certify=none|request|run]` walks every review lug and every ready+passed lug in scope (critical first, then the lugs that unblock the most others; --priorities widens), re-runs each lug's own conformance fixture, reads the done gate through the harness's own functions, and asks the kernel verb for done
 - **ready-gate-stub** (hook_event): a lug's state field is edited to ready
 - **reconcile-ledger** (schedule): wheel_clock job ledger_reconciliation (canon/otto.advisor.yaml)
+- **release-policy** (on_demand): the operator chooses a release -- `node scripts/release.js <spokeRoot> --level=smoke|full|not-now [--session-id=<id>]` (runRelease, src/factory/releasePolicy.js), offered by the closeout RELEASE line (buildCloseoutReport) whenever the home spoke is ahead of origin/main; and at SessionEnd, after an exit commit lands in a spoke whose canon/policies/release.policy.yaml says push_every_exit, launched DETACHED at level exit-push (sessionExitCommit.js exitRelease -> launchExitRelease)
 - **rule-12-live-state-report** (on_demand): a compile runs against a spoke with lugs (run + warn in src/compiler/rules/12-no-oversized-session-start.js, measured once per compile via ctx.sessionStartMeasurement) -- `hf compile`, `wcl compile`, the commit and push gates, wcl's stale-instance step, applyCut's scratch and real recompiles; and on demand when an operator or session runs `node scripts/acknowledge-live-state.js` to shrink the live-state backlog the warning names
 - **run-roi-extraction** (on_demand): every autopilot run ENDS here -- finishAutopilotRun (src/conductor/roiExtraction.js) is reached from runAdvisorAutopilot's close path (launch, decline, and its abnormal-end guard alike), from src/conductor/heartbeat.js finish() on an out-of-session no-launch, and from scripts/conductor-heartbeat.mjs's launch arm in its own `finally`; and as the reconciliation sweep over waves opened and never closed -- the wheel-clock open_wave_reconciliation job on its cadence, or scripts/reconcile-open-waves.js on demand
 - **scheduler-failure-operator-channel** (on_demand): a wheel_clock job fails on consecutive ticks (evaluated at the end of every real tickWheelScheduler run), and again when a session start composes the goals review

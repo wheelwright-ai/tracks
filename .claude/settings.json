@@ -6,220 +6,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionCheckpointHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionRegistryHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/circleAuditHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/globalSettingsDriftHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/hookBindingDriftHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionStartWarmupHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/updateDiscoveryHook.js",
-            "timeout": 180
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/warmupGoalsReviewHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/wclEntryDirectiveHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/wheelClockCatchupHook.js",
-            "timeout": 30
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionStart",
+            "timeout": 450
           }
         ]
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Edit|Write|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/agentTargetScopeGuardHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Agent|Write|Edit|NotebookEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/agentToolScopeGuardHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/bashDestructiveGuardHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/bashLugGuardHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/definitionCompleteGateHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/lugLifecycleHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write|NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/lugSchemaGateHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write|NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/maxPersonaBoundaryGuardHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/oversizedCanonWriteGuardHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/readyGateStubHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/testFileLugMarkerHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/preToolTabResetHook.js",
-            "timeout": 30
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
+            "timeout": 390
           }
         ]
       }
@@ -230,110 +30,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/captureDirectionHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/closeoutRequestHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/communicationInboxDeltaHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/footerCorrectionInjectionHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/liveApplyAnnounceHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/tasteUpdateInjectionHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/turnStartAttributionHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/userPromptSubmitTabHook.js",
-            "timeout": 30
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
+            "timeout": 240
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Edit|Write|NotebookEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/cartographerCommitTriggerHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/crossProviderVerificationHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write|NotebookEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/filesTouchedRecorderHook.js",
-            "timeout": 30
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PostToolUse",
+            "timeout": 90
           }
         ]
       }
@@ -344,48 +54,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/footerAuditHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/lugIntegrityHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/trackWriteHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/stopNotifyHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/stopTurnMarkerHook.js",
-            "timeout": 30
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
+            "timeout": 150
           }
         ]
       }
@@ -396,7 +66,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/notificationNotifyHook.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Notification",
             "timeout": 30
           }
         ]
@@ -408,7 +78,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/preCompactCheckpointHook.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreCompact",
             "timeout": 30
           }
         ]
@@ -420,48 +90,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionEndHandoffHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionEndNotifyHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionExitCommitHook.js",
-            "timeout": 60
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/wheelFeedbackEmitHook.js",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /home/mario/projects/wheelwright/harness-factory/src/hooks/sessionEndTabClearHook.js",
-            "timeout": 30
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
+            "timeout": 180
           }
         ]
       }

@@ -1,0 +1,72 @@
+kind: circle
+name: release-policy
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  the operator chooses a release -- `node scripts/release.js <spokeRoot>
+  --level=smoke|full|not-now [--session-id=<id>]` (runRelease,
+  src/factory/releasePolicy.js), offered by the closeout RELEASE line
+  (buildCloseoutReport) whenever the home spoke is ahead of origin/main; and at
+  SessionEnd, after an exit commit lands in a spoke whose
+  canon/policies/release.policy.yaml says push_every_exit, launched DETACHED at
+  level exit-push (sessionExitCommit.js exitRelease -> launchExitRelease)
+inputs:
+  - release_policy
+  - smoke_suites
+  - git_worktree
+  - operator_choice
+outputs:
+  - release_ledger_row
+  - origin_push
+  - closeout_release_line
+invariants:
+  - >-
+    NEVER A PUSH NOBODY CHOSE: under ask nothing is pushed until the operator
+    picks smoke or full; exit-push is refused unless the policy is
+    push_every_exit; a spoke with no policy file is ask with an empty smoke list
+  - >-
+    AN EMPTY SMOKE LIST IS A GAP, NEVER A GREEN: smoke with no smoke_suites is
+    refused naming the gap; smoke runs exactly the declared suites through the
+    gate's own runSuites, and any red, timed-out or unreached suite means
+    nothing is folded and nothing pushed
+  - >-
+    THE FULL SUITE IS NEVER RUN UNASKED AT EXIT: exit-push runs no suite; it
+    folds and pushes with WHEEL_SKIP_TEST_GATE naming the policy and records the
+    session's last test run
+  - >-
+    ONE BYPASS PATH: smoke and exit-push push through the gate's existing,
+    ledgered WHEEL_SKIP_TEST_GATE with a reason naming policy, level, smoke
+    counts and sha; full is a plain push so the pre-push full gate runs
+  - >-
+    FAST-FORWARD ONLY: the session branch is folded into main with git fetch .
+    <branch>:main only when main is its ancestor; a non-fast-forward is refused
+    and named, never merged or forced
+  - >-
+    EVERY OUTCOME IS ONE `release` LEDGER ROW naming policy, level, suite
+    result, and the sha pushed or the reason nothing was
+  - >-
+    A SMOKE RELEASE PUSHES TO ORIGIN ONLY; a framework cut to the fleet still
+    needs a full green run (hf deploy's cut stage, unchanged)
+  - >-
+    COMPILE REFUSES AN INVALID POLICY: rule 23 applies the command's own
+    releasePolicyProblems -- an unknown release_policy or a smoke entry naming
+    no real file
+failure_routing: lug:exit-asks-the-operator-to-release-under-a-per-spoke-release-policy
+counter_metric: pushes_to_origin_without_a_release_row
+enforcement: kernel_check
+depends_on:
+  - session-exit-commit
+  - closeout-report
+  - git-boundary-test-gate
+consumers:
+  - closeout-report
+  - external:operator
+interface_version: v1
+runs_on: on_demand
+conformance: >-
+  conformance/fixtures/release-policy-at-exit/release-policy-at-exit.conformance.test.js
+concern: release-policy
+instructions_ref: reference/circles/release-policy.md
+duplicate_of: release-policy

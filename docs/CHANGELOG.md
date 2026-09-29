@@ -7,6 +7,22 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
+## 2026-09-29
+
+### cuts
+
+- Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js; policies added hook-dispatch, release; changed config-custody-manifest; 1 lug(s) closed on the wheel.
+
+### harness bookkeeping
+
+- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+
+## 2026-09-28
+
+### docs
+
+- chore: stop tracking hook capture logs (2 files), ignore them
+
 ## 2026-09-25
 
 ### cuts
@@ -81,6 +97,129 @@ Record: certification pending
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 44c2ff6b -- received 2026-09-29 08:36Z (from 2ffc5402)
+
+Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js; policies added hook-dispatch, release; changed config-custody-manifest; 1 lug(s) closed on the wheel.
+
+### 2026-09-29
+
+#### circles
+
+- Hook bound on Notification: dispatch.js.
+- Hook bound on PostToolUse: dispatch.js.
+- Hook bound on PreCompact: dispatch.js.
+- Hook bound on PreToolUse: dispatch.js.
+- Hook bound on SessionEnd: dispatch.js.
+- Hook bound on SessionStart: dispatch.js.
+- Hook bound on Stop: dispatch.js.
+- Hook bound on UserPromptSubmit: dispatch.js.
+- Circle raw-worktree-add-redirect declared: a Bash command is about to run
+
+#### src/factory
+
+- Suites run hermetic and load-aware; SKIP is its own verdict; Bash write parser ignores quoted >
+- Only a released cut can be applied to a spoke
+- Exit commit and arrival audit stage only tier-1 runtime/ in a repo with a tracking manifest
+- Worktrees clean themselves at fold and exit; the compiler never scans a nested checkout
+
+#### conformance
+
+- Guard fixtures are location-independent: push gate runs them from a checkout under /tmp
+- Gate reds: wcl pending-cut fixtures apply a released stand-in; P0-tap fixtures stage their own usage reading
+- provider-key-resolution-and-alert: hermetic under the suite pool
+
+#### commits
+
+- Eight lugs for tonight's harness completion wave (released cuts, dispatcher, worktree gc, guards, hermetic suites, session start, lug close, hub tiers)
+- Four lugs from the 2026-09-26/28 sessions: done-cost late markers, release-at-exit, load-tolerant timing suites, provider keys + readiness
+
+#### src/hooks
+
+- Hooks run through one dispatcher per event, from the spoke's installed released cut
+- Session start leads with one NEXT line, one STATUS line, and injects each block once
+
+#### src/advisor
+
+- Provider keys resolve from every store; key/login failures make the session NOT READY
+
+#### src/basher
+
+- guards-and-gate-count-only-what-really-ran (F06, F18, F23): guards resolve paths, parser has a table, every rule has a fixture pair
+
+#### src/compiler
+
+- Closure is verb-owned under rule 11; initiatives land past closed lugs
+
+#### src/conductor
+
+- Work lugs can close with a reason; the wheel-feedback digest stops filing lugs
+
+#### src/lugTracking
+
+- Done-cost gate costs an already-done lug only up to its done transition
+
+### 2026-09-28
+
+#### circles
+
+- Circle release-policy declared: the operator chooses a release -- `node scripts/release.js <spokeRoot> --level=smoke|full|not-now [--session-id=<id>]` (runRelease, src/factory/releasePolicy.js), offered by the closeout RELEASE line (buildCloseoutReport) whenever the home spoke is ahead of origin/main; and at SessionEnd, after an exit commit lands in a spoke whose canon/policies/release.policy.yaml says push_every_exit, launched DETACHED at level exit-push (sessionExitCommit.js exitRelease -> launchExitRelease)
+
+#### src/compiler
+
+- Release policy at exit: operator chooses smoke / full / not now per spoke
+
+### 2026-09-27
+
+#### src/basher
+
+- Secrets manifest defaults to the majority vault when a template names two
+- zellij tab identity: tab-labels.tsv outranks profile.yaml name for the short tab name
+- wcl resume picker: dated rows, cleaned descriptions, Ozi directive recognised, last-ask line
+
+#### src/compiler
+
+- Hook capture redacts credential-shaped values; secrets templates judged by content
+
+### 2026-09-26
+
+#### generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md  (at review -- certification pending)
+
+Challenge: basher's reply to the v2 onboarding review (2026-09-18, payload_doc docs/reply-v2-onboarding-review-260918.md answer 2): basher KEEPS a hand-maintained CLAUDE.md -- operator-ratified behavioral canon, with a 3-line "Harness v2 pointer" section naming AMBASSADOR_BRIEF.md, .cut-status.json, wcl compile and lug-verb. generatedDocs.js already refuses to overwrite a file without the generated marker, but on EVERY cut it rewrites `CLAUDE.md.v2-proposed` beside it (src/factory/generatedDocs.js, the `!isGeneratedDocShape(before)` branch, fs.writeFileSync(proposedPath) unconditionally). basher asks: treat a hand-maintained CLAUDE.md that references AMBASSADOR_BRIEF.md as satisfied and stop rewriting the proposal on every cut -- write once, or only when the generated content changes; basher deletes its copy once the rewrite stops.
+Solution: applyCut on a spoke whose hand-maintained CLAUDE.md references AMBASSADOR_BRIEF.md writes CLAUDE.md.v2-proposed only when the generated content differs from the proposal already on disk (or none exists), and reports `proposed: unchanged` otherwise; a spoke with no such pointer keeps today's behaviour; the cut report line names which case applied.
+Record: certification pending · fixtures 2 fixture(s) · shas 3dba9827
+
+#### zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier  (done)
+
+Challenge: Follow-up from communication lug basher-give-a-v2-spoke-a-distinct-short-tab-name (fulfilled 2026-09-24). basher's bash tab writer (dotfiles/.config/basher/tools/ zellij-tabindex.sh, _basher_spoke_name) resolves a short tab label through THREE tiers: v1 basher.json -> basher's own local override map (~/.config/basher/tab-labels.tsv, keyed by folder basename) -> folder basename.
+Solution: spokeNames() grows a third fallback tier between v1 basher.json and the folder-basename default: read the tab-labels.tsv file basher's bash tool reads (BASHER_TAB_LABELS env override, else $HOME/.config/basher/tab-labels.tsv), same lookup key (folder basename, tab-separated, `#`-comments and blank lines skipped, first match wins), same fallback position (only consulted when the spoke declares nothing itself -- a present v1 basher.json still wins). No new canon/profile.yaml field -- basher's reply ruled that out as forking the naming contract. harness-factory's own tab shows "w-hc" after the fix lands and a restart.
+Record: CONFIRMED via claude (reviewer da93b3fb) · fixtures 1 fixture(s) · 4.3M tokens over 9.5 min · shas 98d78a5f
+
+#### docs
+
+- None of the 6 named files states type: work, and whatever wrote them is confirmed not to emit the field going forward. [landed ca1810a8]
+
+#### harness bookkeeping
+
+- 3 harness bookkeeping commit(s) in harness-factory (Session work 3).
+
+### 2026-09-25
+
+#### bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture  (at review -- certification pending)
+
+Challenge: One explicit `type: work` in bubo's corpus reds a fleet-wide fixture; the writer that emitted it is the real fix.
+Solution: The file no longer states type: work, and bubo's lug filer never emits the field. lug-type-conditional-requirements is green fleet-wide.
+Record: certification pending · shas 54afd46d
+
+#### commits
+
+- lug: ask basher to drop type: work from 6 committed lugs
+- wheel-feedback digest: 22 lugs regenerated by the digest job (occurrence counts, spokes), all under the rule-11 cap
+- Lug: compiler ignores nested worktree checkouts when scanning a spoke's canon (basher refused cut 89456b17 on 190 rule-04 pairs from its own .worktrees)
+
+#### docs
+
+- basher-applies-the-operator-verb-allowlist: record real blocker
 
 ## Cut 2ffc5402 -- received 2026-09-25 07:59Z (from 87971bbe)
 
@@ -1954,7 +2093,23 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 53 (commit 38, cut_received 14, lug_review 1).
+Entries: 56 (commit 40, cut_received 15, lug_review 1).
+
+## 2026-09-29
+
+### cuts
+
+- 08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) (working tree), posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..working tree -- canon/circles, .claude/settings.json) -- published +2/~0/-0 circles, 1 lug(s) closed at 2026-09-29T08:33:25.218Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+### runtime
+
+- 08:36Z commit 27bb5f75 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 27bb5f75
+
+## 2026-09-28
+
+### docs
+
+- 23:19Z commit aa27b611 [tracks] chore: stop tracking hook capture logs (2 files), ignore them -- 3 file(s), area docs -- source: tracks: git log main aa27b611
 
 ## 2026-09-25
 
@@ -2084,6 +2239,133 @@ Entries: 53 (commit 38, cut_received 14, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 44c2ff6b -- received 2026-09-29 08:36Z (from 2ffc5402)
+
+08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) (working tree), posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..working tree -- canon/circles, .claude/settings.json) -- published +2/~0/-0 circles, 1 lug(s) closed at 2026-09-29T08:33:25.218Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 45 (circle_added 2, commit 32, hook_bound 8, lug_done 1, lug_review 2).
+
+### 2026-09-29
+
+#### circles
+
+- 05:53Z hook Notification -> node src/hooks/dispatch.js Notification at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 05:53Z hook PostToolUse -> node src/hooks/dispatch.js PostToolUse at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 05:53Z hook PreCompact -> node src/hooks/dispatch.js PreCompact at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 05:53Z hook PreToolUse -> node src/hooks/dispatch.js PreToolUse at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 05:53Z hook SessionEnd -> node src/hooks/dispatch.js SessionEnd at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 05:53Z hook SessionStart -> node src/hooks/dispatch.js SessionStart at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 05:53Z hook Stop -> node src/hooks/dispatch.js Stop at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 05:53Z hook UserPromptSubmit -> node src/hooks/dispatch.js UserPromptSubmit at 62a9c6e0 -- source: harness-factory: .claude/settings.json at 44c2ff6b vs 2ffc5402
+- 04:41Z circle raw-worktree-add-redirect added at 3a0a9264 -- source: harness-factory: git log --diff-filter=A 3a0a9264 -- reference/circles/raw-worktree-add-redirect.yaml
+
+#### src/factory
+
+- 05:20Z commit f72704d7 [harness-factory] Suites run hermetic and load-aware; SKIP is its own verdict; Bash write parser ignores quoted > -- 26 file(s), area src/factory -- source: harness-factory: git log main f72704d7
+- 05:07Z commit aa438c25 [harness-factory] Only a released cut can be applied to a spoke -- 31 file(s), area src/factory -- source: harness-factory: git log main aa438c25
+- 04:52Z commit 6d70b231 [harness-factory] Exit commit and arrival audit stage only tier-1 runtime/ in a repo with a tracking manifest -- fixtures 12 passed -- 4 file(s), area src/factory -- source: harness-factory: git log main 6d70b231
+- 04:41Z commit 3a0a9264 [harness-factory] Worktrees clean themselves at fold and exit; the compiler never scans a nested checkout -- 20 file(s), area src/factory -- source: harness-factory: git log main 3a0a9264
+
+#### conformance
+
+- 07:34Z commit 44c2ff6b [harness-factory] Guard fixtures are location-independent: push gate runs them from a checkout under /tmp -- 2 file(s), area conformance -- source: harness-factory: git log main 44c2ff6b
+- 06:35Z commit 233abbe5 [harness-factory] Gate reds: wcl pending-cut fixtures apply a released stand-in; P0-tap fixtures stage their own usage reading -- 5 file(s), area conformance -- source: harness-factory: git log main 233abbe5
+- 04:16Z commit d536be83 [harness-factory] provider-key-resolution-and-alert: hermetic under the suite pool -- 1 file(s), area conformance -- source: harness-factory: git log main d536be83
+
+#### commits
+
+- 04:54Z commit 0b1b99e6 [harness-factory] Eight lugs for tonight's harness completion wave (released cuts, dispatcher, worktree gc, guards, hermetic suites, session start, lug close, hub tiers) -- 8 file(s), area lugs -- source: harness-factory: git log main 0b1b99e6
+- 00:31Z commit 7337e2eb [harness-factory] Four lugs from the 2026-09-26/28 sessions: done-cost late markers, release-at-exit, load-tolerant timing suites, provider keys + readiness -- fixtures 26/28 -- 4 file(s), area lugs -- source: harness-factory: git log main 7337e2eb
+
+#### src/hooks
+
+- 05:53Z commit 62a9c6e0 [harness-factory] Hooks run through one dispatcher per event, from the spoke's installed released cut -- 72 file(s), area src/hooks -- source: harness-factory: git log main 62a9c6e0
+- 04:54Z commit 7df2eaa2 [harness-factory] Session start leads with one NEXT line, one STATUS line, and injects each block once -- 19 file(s), area src/hooks -- source: harness-factory: git log main 7df2eaa2
+
+#### src/advisor
+
+- 00:37Z commit ec8fdab3 [harness-factory] Provider keys resolve from every store; key/login failures make the session NOT READY -- 21 file(s), area src/advisor -- source: harness-factory: git log main ec8fdab3
+
+#### src/basher
+
+- 04:48Z commit 88c29b22 [harness-factory] guards-and-gate-count-only-what-really-ran (F06, F18, F23): guards resolve paths, parser has a table, every rule has a fixture pair -- 27 file(s), area src/basher -- source: harness-factory: git log main 88c29b22
+
+#### src/compiler
+
+- 05:02Z commit 02dace5e [harness-factory] Closure is verb-owned under rule 11; initiatives land past closed lugs -- 5 file(s), area src/compiler -- source: harness-factory: git log main 02dace5e
+
+#### src/conductor
+
+- 04:50Z commit 69f8e2e7 [harness-factory] Work lugs can close with a reason; the wheel-feedback digest stops filing lugs -- 21 file(s), area src/conductor -- source: harness-factory: git log main 69f8e2e7
+
+#### src/lugTracking
+
+- 00:27Z commit fdc99962 [harness-factory] Done-cost gate costs an already-done lug only up to its done transition -- fixtures 19/0, 8/11 -- 6 file(s), area src/lugTracking -- source: harness-factory: git log main fdc99962
+
+### 2026-09-28
+
+#### circles
+
+- 20:00Z circle release-policy added at a75c2961 -- source: harness-factory: git log --diff-filter=A a75c2961 -- reference/circles/release-policy.yaml
+
+#### src/compiler
+
+- 20:00Z commit a75c2961 [harness-factory] Release policy at exit: operator chooses smoke / full / not now per spoke -- fixtures 50/0, 42/8, 42/0, 36/0, 68/0 -- 18 file(s), area src/compiler -- source: harness-factory: git log main a75c2961
+
+### 2026-09-27
+
+#### src/basher
+
+- 00:58Z commit 91c8a5ab [harness-factory] Secrets manifest defaults to the majority vault when a template names two -- fixtures 65/0, 19/0 -- 2 file(s), area src/basher -- source: harness-factory: git log main 91c8a5ab
+- 00:11Z commit 2de4c685 [harness-factory] zellij tab identity: tab-labels.tsv outranks profile.yaml name for the short tab name -- fixtures 83/83 -- 2 file(s), area src/basher -- source: harness-factory: git log main 2de4c685
+- 00:09Z commit 98a31088 [harness-factory] wcl resume picker: dated rows, cleaned descriptions, Ozi directive recognised, last-ask line -- fixtures 223 passed -- 2 file(s), area src/basher -- source: harness-factory: git log main 98a31088
+
+#### src/compiler
+
+- 00:22Z commit 46b6fef2 [harness-factory] Hook capture redacts credential-shaped values; secrets templates judged by content -- fixtures 42/0, 32/0, 68/0 -- 4 file(s), area src/compiler -- source: harness-factory: git log main 46b6fef2
+
+### 2026-09-26
+
+#### commits
+
+- 23:36Z commit ba842fd0 [harness-factory] Session work: 13 lugs (ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit, readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer, liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window, ...) -- 23 file(s), area lugs -- source: harness-factory: git log main ba842fd0
+- 12:18Z commit 58b6cf16 [harness-factory] Session work: 1 file, no lug transitions recorded -- 1 file(s), area lugs -- source: harness-factory: git log main 58b6cf16
+- 07:18Z commit 5c15325a [harness-factory] Session work: 1 file, no lug transitions recorded -- 1 file(s), area lugs -- source: harness-factory: git log main 5c15325a
+
+#### unaffiliated lugs
+
+- 12:19Z lug done zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier [harness-factory] priority medium -- verdict CONFIRMED via claude/claude-opus-5 -- date from certified_by.at -- reviewer session da93b3fb-e021-49e4-96fd-f1a0025ecfbd -- record runtime/cross-provider-certifications/zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier.json (external) -- tests conformance/fixtures/circle-zellij-tab-identity/zellij-tab-identity.conformance.test.js -- cost 4339535 tokens, 568.133s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier.yaml (certified_by.at)
+- 07:18Z lug at review generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- derived_from external:basher/lugs/reply-v2-onboarding-review-four-answers-and-three-updates.yaml -- tests conformance/fixtures/generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md/generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md.conformance.test.js, conformance/fixtures/self-hosting-generated-docs-regeneration/self-hosting-generated-docs-regeneration.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md.yaml (runtime/event-log.jsonl review transition)
+
+#### docs
+
+- 02:20Z commit ca1810a8 [harness-factory] basher-captured-six-committed-lugs-carry-explicit-type-work-and-red-the-corpus-fixture: record real blocker -- lug basher-captured-six-committed-lugs-carry-explicit-type-work-and-red-the-corpus-fixture -- 2 file(s), area docs -- source: harness-factory: git log main ca1810a8
+
+#### src/basher
+
+- 12:16Z commit 98d78a5f [harness-factory] zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier: spokeNames() reads basher's tab-labels.tsv override -- lug zellij-tab-identity-learns-the-tab-labels-tsv-fallback-tier -- 3 file(s), area src/basher -- source: harness-factory: git log main 98d78a5f
+
+#### src/factory
+
+- 07:16Z commit 3dba9827 [harness-factory] generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md: write CLAUDE.md.v2-proposed once, not on every cut -- lug generated-docs-write-v2-proposed-once-for-a-hand-maintained-claude-md -- 5 file(s), area src/factory -- source: harness-factory: git log main 3dba9827
+
+### 2026-09-25
+
+#### commits
+
+- 21:15Z commit e4e24c57 [harness-factory] lug: ask basher to drop type: work from 6 committed lugs -- 1 file(s), area lugs -- source: harness-factory: git log main e4e24c57
+- 21:13Z commit 54afd46d [harness-factory] lug bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture: review -- lug bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture -- 1 file(s), area lugs -- source: harness-factory: git log main 54afd46d
+- 19:18Z commit ad9cb8a3 [harness-factory] wheel-feedback digest: 22 lugs regenerated by the digest job (occurrence counts, spokes), all under the rule-11 cap -- 22 file(s), area lugs -- source: harness-factory: git log main ad9cb8a3
+- 08:00Z commit 2f87c558 [harness-factory] Lug: compiler ignores nested worktree checkouts when scanning a spoke's canon (basher refused cut 89456b17 on 190 rule-04 pairs from its own .worktrees) -- 1 file(s), area lugs -- source: harness-factory: git log main 2f87c558
+
+#### docs
+
+- 16:14Z commit 8f6e0879 [harness-factory] basher-applies-the-operator-verb-allowlist: record real blocker -- 2 file(s), area docs -- source: harness-factory: git log main 8f6e0879
+
+#### unaffiliated lugs
+
+- 21:12Z lug at review bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- readiness stubbed -- source: harness-factory: lugs/bubo-captured-lug-carries-explicit-type-work-and-reds-the-corpus-fixture.yaml (runtime/event-log.jsonl review transition)
+
 ## Cut 2ffc5402 -- received 2026-09-25 07:59Z (from 87971bbe)
 
 07:59Z cut 2ffc5402 received by tracks (previous 87971bbe) landed 65fee8c2, posture absorb_and_report: +1/~2/-0 circles for tracks -- gained wheel-feedback-emit -- changed bash-lug-guard, max-persona-boundary-guard -- hooks bound SessionEnd wheelFeedbackEmitHook.js (git d0ce4e76..65fee8c2 -- canon/circles, .claude/settings.json) -- source: tracks: git show 65fee8c2:.cut-status.json
@@ -2096,7 +2378,6 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 
 - 07:56Z commit 2ffc5402 [harness-factory] Lug: fold stage integrates lug branches made by the worktree script, and push pushes main not the current branch -- 1 file(s), area lugs -- source: harness-factory: git log main 2ffc5402
 - 07:28Z commit 89456b17 [harness-factory] Two lugs reach done through the readiness sweep with certification: initiative-filing-refuses-a-prediction-metric-with-no-reader, review-verb-requires-tests-and-delivered-pointers-on-a-proof-required-lug -- 2 file(s), area lugs -- source: harness-factory: git log main 89456b17
-- 07:16Z commit fd99d0a0 [harness-factory] lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers: review -- lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers -- 1 file(s), area lugs -- source: harness-factory: git log main fd99d0a0
 - 07:08Z commit c9691341 [harness-factory] lug: planner-reads-the-hubs-initiatives-so-build-rows-carry-their-initiative -> review -- 1 file(s), area lugs -- source: harness-factory: git log main c9691341
 - 06:52Z commit 29b9c4ba [harness-factory] Lug: elapsed time measured with a monotonic clock everywhere -- second negative-elapsed sighting tonight (wheel-clock-job-durations 2e, elapsed=-1858) -- 1 file(s), area lugs -- source: harness-factory: git log main 29b9c4ba
 - 06:49Z commit bfa8f450 [harness-factory] Circle walk-through 2026-09-24: two completion lugs -- detector findings need a consumer or retention; review lugs with no fixture return to in_progress -- 2 file(s), area lugs -- source: harness-factory: git log main bfa8f450
@@ -2128,16 +2409,16 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 - 04:41Z commit 67602586 [harness-factory] wheel-feedback-digest fixture: section 6 asserts the two real files are under cap at HEAD, not still refused -- fixtures 974/957, 44/0 -- 1 file(s), area conformance -- source: harness-factory: git log main 67602586
 - 00:43Z commit 61664df2 [harness-factory] consumer-audit fixture: the 7 scoped jobs must resolve; an eighth from a sibling lug is not a failure -- fixtures 40/40 -- 1 file(s), area conformance -- source: harness-factory: git log main 61664df2
 
+#### minder-conductor-dashboard
+
+- 07:16Z commit fd99d0a0 [harness-factory] lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers: review -- lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers -- 1 file(s), area lugs -- source: harness-factory: git log main fd99d0a0
+- 07:16Z lug at review minder-dashboard-records-verified-real-has-a-reader-in-metric-readers [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative lugs list: minder-conductor-dashboard -- tests conformance/fixtures/minder-dashboard-metric-reader/minder-dashboard-metric-reader.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/minder-dashboard-records-verified-real-has-a-reader-in-metric-readers.yaml (last commit touching the file)
+- 07:14Z commit 5c89c119 [harness-factory] lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers: note the proving fixture in the reader's own comment -- lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers -- 1 file(s), area src/conductor -- source: harness-factory: git log main 5c89c119
+
 #### src/conductor
 
-- 07:14Z commit 5c89c119 [harness-factory] lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers: note the proving fixture in the reader's own comment -- lug minder-dashboard-records-verified-real-has-a-reader-in-metric-readers -- 1 file(s), area src/conductor -- source: harness-factory: git log main 5c89c119
 - 07:08Z commit 110a4cf9 [harness-factory] Give minder_dashboard_records_verified_real a real METRIC_READERS entry -- 5 file(s), area src/conductor -- source: harness-factory: git log main 110a4cf9
 - 07:03Z commit 06a7c52a [harness-factory] Planner reads the hub's canon/initiatives/ so build rows carry their initiative -- 4 file(s), area src/conductor -- source: harness-factory: git log main 06a7c52a
-
-#### unaffiliated lugs
-
-- 07:16Z lug at review minder-dashboard-records-verified-real-has-a-reader-in-metric-readers [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/minder-dashboard-metric-reader/minder-dashboard-metric-reader.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/minder-dashboard-records-verified-real-has-a-reader-in-metric-readers.yaml (last commit touching the file)
-- 04:49Z lug done initiative-filing-refuses-a-prediction-metric-with-no-reader [harness-factory] priority high -- verdict PLAUSIBLE via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96ced3fc-1f05-42f7-947c-c43a0ebab0a4 -- record runtime/cross-provider-certifications/initiative-filing-refuses-a-prediction-metric-with-no-reader.json (external) -- tests conformance/fixtures/rule-22-no-unreadable-prediction-metric/rule-22-no-unreadable-prediction-metric.conformance.test.js, conformance/fixtures/initiative-focus/initiative-focus.conformance.test.js, conformance/fixtures/success-prediction/success-prediction.conformance.test.js -- cost 11506492 tokens, 789.323s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/initiative-filing-refuses-a-prediction-metric-with-no-reader.yaml (certified_by.at)
 
 #### src/compiler
 
@@ -2150,6 +2431,10 @@ Entries: 154 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 #### src/planner
 
 - 07:06Z commit 9e5f8164 [harness-factory] lug: planner-reads-the-hubs-initiatives-so-build-rows-carry-their-initiative -- 1 file(s), area src/planner -- source: harness-factory: git log main 9e5f8164
+
+#### unaffiliated lugs
+
+- 04:49Z lug done initiative-filing-refuses-a-prediction-metric-with-no-reader [harness-factory] priority high -- verdict PLAUSIBLE via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session 96ced3fc-1f05-42f7-947c-c43a0ebab0a4 -- record runtime/cross-provider-certifications/initiative-filing-refuses-a-prediction-metric-with-no-reader.json (external) -- tests conformance/fixtures/rule-22-no-unreadable-prediction-metric/rule-22-no-unreadable-prediction-metric.conformance.test.js, conformance/fixtures/initiative-focus/initiative-focus.conformance.test.js, conformance/fixtures/success-prediction/success-prediction.conformance.test.js -- cost 11506492 tokens, 789.323s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/initiative-filing-refuses-a-prediction-metric-with-no-reader.yaml (certified_by.at)
 
 ### 2026-09-24
 
@@ -3998,4 +4283,4 @@ Entries: 485 (circle_added 94, commit 353, hook_bound 37, lug_review 1).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:2f958c05e8a4c31e5dbc4e0f2413476313f22d005a0b1b37b1bcb4e4d07ee8c7 -->
+<!-- integrity sha256:3adcf05653d292258f7fa78aed04555b7277c14a1ff44f7d51181a01b729c0e8 -->
