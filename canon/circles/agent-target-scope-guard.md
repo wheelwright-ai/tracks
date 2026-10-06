@@ -74,3 +74,6 @@ declaration-then-block rule would have.
   `subagent_type` narrows this.
 - Paths are `realpath`-resolved before the boundary check, so a symlink
   into a granted directory is judged by its real target.
+- A fork cannot grant itself (`src/lugTracking/forkSelfGrant.js`): the
+  resume verb, an inline `node -e` naming a grant writer, and a write to
+  the grant store are refused. A script it writes then runs is not caught.

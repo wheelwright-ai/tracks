@@ -17,6 +17,10 @@ append-only, last row per `id` wins. Fields: `repo, path, branch,
 head_at_create, session_id, prompt_id, purpose, created_at, ttl_ms,
 expires_at, closed_at`. A removal appends the same row with `closed_at`,
 `closed_by`, `removal` (what was done) and `forced` (the reason, or null).
+`lug` and `initiative` are stored when `add` names them (`--lug=`,
+`--initiative=`); `list` prints them by the purpose, `lug: unrecorded`
+when absent, and one `unregistered: <path>` line per tree git knows
+that the registry lacks.
 `purpose` is required. `session_id` comes from `WHEEL_SESSION_ID` /
 `CLAUDE_CODE_SESSION_ID` or is written **null** -- never guessed. The
 script refuses `add` without `--ttl`: an expiry nobody declared is not a

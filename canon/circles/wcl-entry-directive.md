@@ -14,8 +14,14 @@ matching opening contract as `additionalContext`:
 - `ozi` -- the wakeup contract, one source (`src/basher/wclEntry.js`
   `oziWakeupDirective`): run the spoke's own wakeup protocol, brief
   scannably, then 2-4 options with the recommendation first, then wait for
-  the pick. It rides on the headless wake turn and on the `-c` continuation,
-  so the interactive session keeps the contract the briefing was built under.
+  the pick. Since the operator decision of 2026-09-29 ("Ozi wakeup needs to
+  be a writable session") the operator's Ozi wakeup is ONE interactive,
+  writable session under the spoke's pinned `--permission-mode`: the
+  directive is its first prompt, nothing narrows its tools, and after the
+  pick triage, planning, lug edits (kernel verb) and dispatches are in
+  scope. Only `wcl <spoke> --ozi-headless` (CI / cron, no approver) still
+  runs the capped read-only `-p` wake turn and then `--resume`s it; that
+  variant alone carries the read-only sentence.
 - `raw` -- the operator speaks first; answer the ask, no briefing, no options
   menu unless asked; keep the resume contract in mind silently.
 

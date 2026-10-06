@@ -1,0 +1,50 @@
+kind: circle
+name: agent-dispatch-record
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: an Agent-tool call is about to run
+inputs:
+  - agent_tool_prompt
+  - worktree_registry
+  - live_scope_grants
+outputs:
+  - agent_dispatch_record
+  - redacted_brief_file
+invariants:
+  - >-
+    one appended row per Agent call in runtime/agent-dispatches.jsonl (through
+    segmentedStream.appendLine): id, session, prompt id, description, subagent
+    type, the registered worktrees and the lugs the prompt names, the live grant
+    ids for those worktrees, time
+  - >-
+    the brief is saved to runtime/agent-briefs/<id>.md after credential
+    redaction (redactCredentialShapedSpans)
+  - >-
+    never decides: no deny, no context, exit 0 whatever fails inside -- not in
+    the dispatch policy's fail_closed list
+  - reads no git at dispatch, so it stays under 300 ms
+  - >-
+    a call the scope guard's redirect tier refuses creates no fork and gets no
+    record
+  - >-
+    a completion or a resume is its own appended row naming the record -- no row
+    is rewritten
+failure_routing: lug:interrupted-agent-builds-are-recorded-surfaced-and-resumable
+counter_metric: agent_dispatch_record_count
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (session start names every interrupted build with its
+    resume command; scripts/dispatch-resume.js re-issues its grants)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Agent
+hook_script: src/hooks/agentDispatchRecordHook.js
+conformance: >-
+  conformance/fixtures/interrupted-agent-builds/interrupted-agent-builds.conformance.test.js
+concern: interrupted-build-recovery
+instructions_ref: reference/circles/agent-dispatch-record.md
+duplicate_of: agent-dispatch-record

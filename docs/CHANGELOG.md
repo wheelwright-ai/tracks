@@ -7,11 +7,21 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
+## 2026-10-06
+
+### cuts
+
+- Cut de1cbfa6 received (from 6175c8fe), posture absorb_and_report: 5 circle(s) gained (agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record); 4 changed (agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry); hooks bound: StopFailure dispatch.js" StopFailure; policies added runtime-tracking-tiers, test-depth; changed file-size-budgets, parallel-dispatch-by-default, release, segmented-streams; 1 lug(s) closed on the wheel.
+
+### harness bookkeeping
+
+- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+
 ## 2026-09-29
 
 ### cuts
 
-- Cut 6175c8fe received (from eafa5c39), posture absorb_and_report: no circle or hook changed for this spoke; policies changed hook-dispatch.
+- Cut 6175c8fe received (from eafa5c39), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut eafa5c39 received (from e6eda1f8), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut e6eda1f8 received (from 44c2ff6b), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
@@ -101,9 +111,166 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut de1cbfa6 -- received 2026-10-06 09:53Z (from 6175c8fe)
+
+Cut de1cbfa6 received (from 6175c8fe), posture absorb_and_report: 5 circle(s) gained (agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record); 4 changed (agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry); hooks bound: StopFailure dispatch.js" StopFailure; policies added runtime-tracking-tiers, test-depth; changed file-size-budgets, parallel-dispatch-by-default, release, segmented-streams; 1 lug(s) closed on the wheel.
+
+### 2026-10-06
+
+#### commits
+
+- Lugs: readiness-review follow-ups, minder runtime ignore, and the env-local lug left untracked since 10-02
+- Lug: release 2026-10-07 -- best cut built, verified, released and live in the spokes
+- Lug: safeguard stops are detected, recorded, and the task resumes by a safer route
+- Two lugs so the next steps live in the queue, not in the operator's memory
+- Lug: session record passes an independent readiness review before release
+- Lugs: six builds promoted captured -> ready (from the interrupted 2026-10-02 session)
+
+#### src/conductor
+
+- Interrupted builds: the text no longer depends on the clock, and a nested root never reads the enclosing repo's records
+- Machine dispatch ceiling: the kernel signal is a recent count with an operator ack, not since boot
+- Machine dispatch ceiling: held rows resume whatever the window; kernel-log cache leaves the checkout
+- Interrupted agent builds: dispatch record, INTERRUPTED BUILDS at session start, resume verb
+- Machine dispatch ceiling: one measured function, enforced at harness launches and the Agent tool
+
+#### src/lugTracking
+
+- Readiness-review fixes A: printed commands run where printed; dispositions named; interrupted builds one line per worktree; rebuild reads turn failures and dispatches
+- Machine dispatch ceiling: the launch gate fails open and costs nothing when it does not apply
+- Rebuild: a subagent hand-back is never shown as the operator's ask; exit commit carries the stream
+- turn-failure-record: the session-start line adds the stop rate per 100 operator turns
+- turn-failure-record: accept the hook reference's field names; classify from the session log when the payload has no text
+
+#### circles
+
+- Hook bound on StopFailure: dispatch.js" StopFailure.
+- Circle agent-dispatch-record declared: an Agent-tool call is about to run
+- Circle machine-dispatch-ceiling declared: an Agent-tool call is about to run
+- Circle turn-failure-record declared: a turn ends in an API error (StopFailure event) -- a safeguard stop, a network failure, a rate limit or any other error that ends the turn in place of Stop
+
+#### src/factory
+
+- Publishing a cut no longer refuses on a live session's own tracked record
+- Cut-carried clock jobs: a 20-token reserve under the cap, a bare form, and no re-serializing to fit
+- A cut carries the raw-log catch-up job to spokes that have a clock; worktree rows carry lug and initiative
+
+#### src/hooks
+
+- warmup-goals-review: the resume block follows the head -- SESSION NOT READY and NEXT keep the top
+- A dispatched fork cannot grant itself or run the resume verb
+- Lug: safeguard stops -- a failed turn is recorded, resumed by the record, measured
+
+#### conformance
+
+- LAST SESSION fixture: the real SessionStart hook injects the section and exits 0
+- tier-pending: drop planner-shortfall-waterfalls-proportionally, tagged in ba5de1b
+
+#### .claude
+
+- Standing settings regenerated for the combined release tree
+
+#### canon
+
+- Secrets manifest: basher's 14 wheel-shared keys, in the compact form (652 tokens)
+
+#### src/sessionRecord
+
+- Turn records tracked with the spoke; rebuild command; LAST SESSION at session start
+
+#### harness bookkeeping
+
+- 2 harness bookkeeping commit(s) in harness-factory (Session work 2).
+
+### 2026-10-05
+
+#### commits
+
+- Lug: planner-shortfall D1 must not depend on the live queue shape
+- Lug: drop the explicit type: work line (absence means work)
+- Lug: turn-record stream is tracked with the spoke
+- Session record: tracks stay versioned with the spoke; basher transition note; settings piece lug
+- Lug: verified, conflict-free builds merge automatically after independent verification
+- Two communication lugs to basher: zj self-healing and the current layout
+- Eight lugs: session record is native, lossless and rebuildable
+- Five lugs from the 2026-10-02 interruption and the 3-session audit
+
+#### circles
+
+- Circle raw-session-snapshot-end declared: a real session ends (SessionEnd event): the closing snapshot of the raw log after the last Stop
+- Circle raw-session-snapshot-stop declared: a turn ends (Stop event); the same body also runs at SessionEnd (raw-session-snapshot-end) and as the wheel-clock job rawSnapshotCatchup
+
+#### conformance
+
+- Lug: planner-shortfall D1 reads seeded scratch queues, not the live roots
+- Tag the three fixtures that merged without a tier line
+
+#### src/factory
+
+- lug: push-floor-runs-only-live-data-suites-and-commit-gate-judges-covering-first
+- Every suite declares its tier; smoke list is the smoke tier; verification_review job
+
+#### src/basher
+
+- secrets: compact manifest render + hermetic env-local override + wheel-clock rationale fix
+
+#### src/hooks
+
+- Harness snapshots Claude's raw session logs natively into the spoke's own repo
+
+#### src/lugTracking
+
+- Turn record: operator words and disposition written at UserPromptSubmit; agent text becomes agent events
+
+### 2026-10-02
+
+#### scripts
+
+- scripts/op-stub-common-items.mjs: stub Common-vault 1Password items a template references
+
+#### src/advisor
+
+- .env.local wins over stale key-store copies; stale copies named at session start
+
+#### src/factory
+
+- Release trusts origin, not git's exit code; gc spares a leased worktree
+
+#### src/hooks
+
+- Fix five small defects from the 2026-09-29 release, each at its cause
+
+#### src/lugTracking
+
+- messages.jsonl and dispatch-registry.jsonl go through the segmented stream
+
+### 2026-09-29
+
+#### src/basher
+
+- Fleet token 1Password field is wai_claude_code_oauth_token
+- Fleet token lives at op://Common/Anthropic/claude_code_oauth_token
+- wcl: Ozi wakeup opens a writable interactive session (operator decision 2026-09-29)
+
+#### commits
+
+- Six follow-up lugs from the 2026-09-29 release, incl. test tiers + scheduled verification review
+
+#### src/advisor
+
+- Every spoke reads verification keys from one machine-wide store
+
+#### src/factory
+
+- Test depth matches the change: shared proof store, declared test plans, full-suite triggers
+
+#### harness bookkeeping
+
+- 1 harness bookkeeping commit(s) in harness-factory (Session work 1).
+
 ## Cut 6175c8fe -- received 2026-09-29 18:12Z (from eafa5c39)
 
-Cut 6175c8fe received (from eafa5c39), posture absorb_and_report: no circle or hook changed for this spoke; policies changed hook-dispatch.
+Cut 6175c8fe received (from eafa5c39), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### 2026-09-29
 
@@ -136,11 +303,11 @@ Cut eafa5c39 received (from e6eda1f8), posture absorb_and_report: no circle or h
 
 ### 2026-09-29
 
-#### the-secrets-template-source-spoke-is-never-retired-by-a-cut  (at review -- certification pending)
+#### the-secrets-template-source-spoke-is-never-retired-by-a-cut  (done)
 
 Challenge: 2026-09-29: applying cut 44c2ff6b to basher ran the secrets-template retirement (src/factory/cutUpdate.js -> secretsManifest.js retireTemplateIfEligible) and renamed basher's .env.template to .env.template.migrated-44c2ff6b44e8. basher is the fleet's secrets authority: its template is the source that seeds wheel-shared keys into every spoke's template.
 Solution: A spoke that declares itself the secrets template source (a field on its canon/secrets.manifest.yaml or canon/profile.yaml, set in basher) is never retired by applyCut; the apply reports "template kept: template source". A retirement anywhere is announced in the apply output and ledger, never silent.
-Record: certification pending · fixtures 1 fixture(s)
+Record: CONFIRMED via dashscope (reviewer b465675a) · fixtures 4 fixture(s) · 415k tokens over 3.1 min
 
 #### conformance
 
@@ -2073,13 +2240,23 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 62 (commit 43, cut_received 18, lug_review 1).
+Entries: 64 (commit 44, cut_received 19, lug_review 1).
+
+## 2026-10-06
+
+### cuts
+
+- 09:53Z cut de1cbfa6 received by tracks (previous 6175c8fe) (working tree), posture absorb_and_report: +5/~4/-0 circles for tracks -- gained agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record -- changed agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry -- hooks bound StopFailure dispatch.js" StopFailure (git 81970730..working tree -- canon/circles, .claude/settings.json) -- published +5/~5/-0 circles, 1 lug(s) closed at 2026-10-06T09:48:09.961Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+### runtime
+
+- 09:53Z commit 81970730 [tracks] harness-arrival-audit: absorbed 6 file(s) on cut arrival -- 6 file(s), area runtime -- source: tracks: git log main 81970730
 
 ## 2026-09-29
 
 ### cuts
 
-- 18:12Z cut 6175c8fe received by tracks (previous eafa5c39) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 8f5c4bb9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T18:09:36.115Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 18:12Z cut 6175c8fe received by tracks (previous eafa5c39) landed 81970730, posture absorb_and_report: +0/~0/-0 circles for tracks (git 8f5c4bb9..81970730 -- canon/circles, .claude/settings.json) -- source: tracks: git show 81970730:.cut-status.json
 - 17:09Z cut eafa5c39 received by tracks (previous e6eda1f8) landed 8f5c4bb9, posture absorb_and_report: +0/~0/-0 circles for tracks (git 47fc1e00..8f5c4bb9 -- canon/circles, .claude/settings.json) -- source: tracks: git show 8f5c4bb9:.cut-status.json
 - 15:30Z cut e6eda1f8 received by tracks (previous 44c2ff6b) landed 47fc1e00, posture absorb_and_report: +0/~0/-0 circles for tracks (git 9111f4f8..47fc1e00 -- canon/circles, .claude/settings.json) -- source: tracks: git show 47fc1e00:.cut-status.json
 - 08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) landed 9111f4f8, posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..9111f4f8 -- canon/circles, .claude/settings.json) -- source: tracks: git show 9111f4f8:.cut-status.json
@@ -2231,9 +2408,166 @@ Entries: 62 (commit 43, cut_received 18, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut de1cbfa6 -- received 2026-10-06 09:53Z (from 6175c8fe)
+
+09:53Z cut de1cbfa6 received by tracks (previous 6175c8fe) (working tree), posture absorb_and_report: +5/~4/-0 circles for tracks -- gained agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record -- changed agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry -- hooks bound StopFailure dispatch.js" StopFailure (git 81970730..working tree -- canon/circles, .claude/settings.json) -- published +5/~5/-0 circles, 1 lug(s) closed at 2026-10-06T09:48:09.961Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 62 (circle_added 5, commit 56, hook_bound 1).
+
+### 2026-10-06
+
+#### commits
+
+- 09:27Z commit a6496128 [harness-factory] Lugs: readiness-review follow-ups, minder runtime ignore, and the env-local lug left untracked since 10-02 -- 3 file(s), area lugs -- source: harness-factory: git log main a6496128
+- 06:38Z commit 77e60ecc [harness-factory] Lug: release 2026-10-07 -- best cut built, verified, released and live in the spokes -- 1 file(s), area lugs -- source: harness-factory: git log main 77e60ecc
+- 06:03Z commit 51b7581c [harness-factory] Lug: safeguard stops are detected, recorded, and the task resumes by a safer route -- 1 file(s), area lugs -- source: harness-factory: git log main 51b7581c
+- 05:59Z commit d5a219e5 [harness-factory] Two lugs so the next steps live in the queue, not in the operator's memory -- 2 file(s), area lugs -- source: harness-factory: git log main d5a219e5
+- 04:12Z commit 09a517ca [harness-factory] Lug: session record passes an independent readiness review before release -- 1 file(s), area lugs -- source: harness-factory: git log main 09a517ca
+- 04:03Z commit 319dbe0a [harness-factory] Lugs: six builds promoted captured -> ready (from the interrupted 2026-10-02 session) -- 6 file(s), area lugs -- source: harness-factory: git log main 319dbe0a
+
+#### src/conductor
+
+- 08:42Z commit 723e40bd [harness-factory] Interrupted builds: the text no longer depends on the clock, and a nested root never reads the enclosing repo's records -- fixtures 65 passed -- 5 file(s), area src/conductor -- source: harness-factory: git log main 723e40bd
+- 07:32Z commit 91bda604 [harness-factory] Machine dispatch ceiling: the kernel signal is a recent count with an operator ack, not since boot -- 7 file(s), area src/conductor -- source: harness-factory: git log main 91bda604
+- 07:13Z commit 77ae10aa [harness-factory] Machine dispatch ceiling: held rows resume whatever the window; kernel-log cache leaves the checkout -- 6 file(s), area src/conductor -- source: harness-factory: git log main 77ae10aa
+- 07:05Z commit a4158d2b [harness-factory] Interrupted agent builds: dispatch record, INTERRUPTED BUILDS at session start, resume verb -- 11 file(s), area src/conductor -- source: harness-factory: git log main a4158d2b
+- 07:05Z commit 4dc0e361 [harness-factory] Machine dispatch ceiling: one measured function, enforced at harness launches and the Agent tool -- 18 file(s), area src/conductor -- source: harness-factory: git log main 4dc0e361
+
+#### src/lugTracking
+
+- 08:33Z commit 86011594 [harness-factory] Readiness-review fixes A: printed commands run where printed; dispositions named; interrupted builds one line per worktree; rebuild reads turn failures and dispatches -- 12 file(s), area src/lugTracking -- source: harness-factory: git log main 86011594
+- 07:18Z commit d5ced437 [harness-factory] Machine dispatch ceiling: the launch gate fails open and costs nothing when it does not apply -- 1 file(s), area src/lugTracking -- source: harness-factory: git log main d5ced437
+- 07:11Z commit 673faaf5 [harness-factory] Rebuild: a subagent hand-back is never shown as the operator's ask; exit commit carries the stream -- 6 file(s), area src/lugTracking -- source: harness-factory: git log main 673faaf5
+- 07:11Z commit 5e910dc5 [harness-factory] turn-failure-record: the session-start line adds the stop rate per 100 operator turns -- 3 file(s), area src/lugTracking -- source: harness-factory: git log main 5e910dc5
+- 07:03Z commit 8cf0d76a [harness-factory] turn-failure-record: accept the hook reference's field names; classify from the session log when the payload has no text -- 3 file(s), area src/lugTracking -- source: harness-factory: git log main 8cf0d76a
+
+#### circles
+
+- 09:29Z hook StopFailure -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" StopFailure at de1cbfa6 -- source: harness-factory: .claude/settings.json at de1cbfa6 vs 6175c8fe
+- 07:05Z circle agent-dispatch-record added at a4158d2b -- source: harness-factory: git log --diff-filter=A a4158d2b -- reference/circles/agent-dispatch-record.yaml
+- 07:05Z circle machine-dispatch-ceiling added at 4dc0e361 -- source: harness-factory: git log --diff-filter=A 4dc0e361 -- reference/circles/machine-dispatch-ceiling.yaml
+- 06:58Z circle turn-failure-record added at 2e5cbef1 -- source: harness-factory: git log --diff-filter=A 2e5cbef1 -- reference/circles/turn-failure-record.yaml
+
+#### src/factory
+
+- 09:29Z commit de1cbfa6 [harness-factory] Publishing a cut no longer refuses on a live session's own tracked record -- 4 file(s), area src/factory -- source: harness-factory: git log main de1cbfa6
+- 08:39Z commit 911f70bd [harness-factory] Cut-carried clock jobs: a 20-token reserve under the cap, a bare form, and no re-serializing to fit -- 2 file(s), area src/factory -- source: harness-factory: git log main 911f70bd
+- 08:30Z commit 21bcab26 [harness-factory] A cut carries the raw-log catch-up job to spokes that have a clock; worktree rows carry lug and initiative -- 15 file(s), area src/factory -- source: harness-factory: git log main 21bcab26
+
+#### src/hooks
+
+- 07:36Z commit dcec044e [harness-factory] warmup-goals-review: the resume block follows the head -- SESSION NOT READY and NEXT keep the top -- fixtures 55/0, 54/1 -- 2 file(s), area src/hooks -- source: harness-factory: git log main dcec044e
+- 07:13Z commit 540a7520 [harness-factory] A dispatched fork cannot grant itself or run the resume verb -- 4 file(s), area src/hooks -- source: harness-factory: git log main 540a7520
+- 06:58Z commit 2e5cbef1 [harness-factory] Lug: safeguard stops -- a failed turn is recorded, resumed by the record, measured -- 16 file(s), area src/hooks -- source: harness-factory: git log main 2e5cbef1
+
+#### conformance
+
+- 07:13Z commit 4442cf93 [harness-factory] LAST SESSION fixture: the real SessionStart hook injects the section and exits 0 -- 1 file(s), area conformance -- source: harness-factory: git log main 4442cf93
+- 07:03Z commit 66c743d0 [harness-factory] tier-pending: drop planner-shortfall-waterfalls-proportionally, tagged in ba5de1b -- 1 file(s), area conformance -- source: harness-factory: git log main 66c743d0
+
+#### runtime
+
+- 06:38Z commit 04f3e2fc [harness-factory] Session work: 31 files, no lug transitions recorded -- 31 file(s), area runtime -- source: harness-factory: git log main 04f3e2fc
+- 03:42Z commit 3e24db65 [harness-factory] Session work: 124 files, no lug transitions recorded -- 124 file(s), area runtime -- source: harness-factory: git log main 3e24db65
+
+#### .claude
+
+- 07:43Z commit 4b2db43b [harness-factory] Standing settings regenerated for the combined release tree -- 1 file(s), area .claude -- source: harness-factory: git log main 4b2db43b
+
+#### canon
+
+- 09:25Z commit e57cf274 [harness-factory] Secrets manifest: basher's 14 wheel-shared keys, in the compact form (652 tokens) -- 1 file(s), area canon -- source: harness-factory: git log main e57cf274
+
+#### src/sessionRecord
+
+- 07:03Z commit efaf47d0 [harness-factory] Turn records tracked with the spoke; rebuild command; LAST SESSION at session start -- 11 file(s), area src/sessionRecord -- source: harness-factory: git log main efaf47d0
+
+### 2026-10-05
+
+#### commits
+
+- 09:16Z commit 1188fee8 [harness-factory] Lug: planner-shortfall D1 must not depend on the live queue shape -- 1 file(s), area lugs -- source: harness-factory: git log main 1188fee8
+- 09:15Z commit 0387a2e9 [harness-factory] Lug: drop the explicit type: work line (absence means work) -- 1 file(s), area lugs -- source: harness-factory: git log main 0387a2e9
+- 08:34Z commit 979d4d85 [harness-factory] Lug: turn-record stream is tracked with the spoke -- 1 file(s), area lugs -- source: harness-factory: git log main 979d4d85
+- 07:49Z commit 21313fda [harness-factory] Session record: tracks stay versioned with the spoke; basher transition note; settings piece lug -- fixtures 8/24 -- 6 file(s), area lugs -- source: harness-factory: git log main 21313fda
+- 07:41Z commit b7fd32c6 [harness-factory] Lug: verified, conflict-free builds merge automatically after independent verification -- 1 file(s), area lugs -- source: harness-factory: git log main b7fd32c6
+- 07:40Z commit 28b2a023 [harness-factory] Two communication lugs to basher: zj self-healing and the current layout -- 2 file(s), area lugs -- source: harness-factory: git log main 28b2a023
+- 07:39Z commit e66ab92e [harness-factory] Eight lugs: session record is native, lossless and rebuildable -- 8 file(s), area lugs -- source: harness-factory: git log main e66ab92e
+- 06:32Z commit b6b70f65 [harness-factory] Five lugs from the 2026-10-02 interruption and the 3-session audit -- 5 file(s), area lugs -- source: harness-factory: git log main b6b70f65
+
+#### circles
+
+- 08:04Z circle raw-session-snapshot-end added at f0584432 -- source: harness-factory: git log --diff-filter=A f0584432 -- reference/circles/raw-session-snapshot-end.yaml
+- 08:04Z circle raw-session-snapshot-stop added at f0584432 -- source: harness-factory: git log --diff-filter=A f0584432 -- reference/circles/raw-session-snapshot-stop.yaml
+
+#### conformance
+
+- 09:18Z commit c4469aea [harness-factory] Lug: planner-shortfall D1 reads seeded scratch queues, not the live roots -- fixtures 33 passed, 68 passed -- 1 file(s), area conformance -- source: harness-factory: git log main c4469aea
+- 08:24Z commit d89021fe [harness-factory] Tag the three fixtures that merged without a tier line -- 3 file(s), area conformance -- source: harness-factory: git log main d89021fe
+
+#### src/factory
+
+- 06:50Z commit ee0dcdba [harness-factory] lug: push-floor-runs-only-live-data-suites-and-commit-gate-judges-covering-first -- fixtures 25/0, 40/0, 72/0, 44/0, 36/0, 31/0 -- 7 file(s), area src/factory -- source: harness-factory: git log main ee0dcdba
+- 06:06Z commit 332d859f [harness-factory] Every suite declares its tier; smoke list is the smoke tier; verification_review job -- 359 file(s), area src/factory -- source: harness-factory: git log main 332d859f
+
+#### src/basher
+
+- 09:15Z commit 7332ccaf [harness-factory] secrets: compact manifest render + hermetic env-local override + wheel-clock rationale fix -- fixtures 69/0, 33/0, 40/0, 65/0, 57/0, 70/1, 86/0, 9/0, 60/0, 55/0, 27/0, 19/0, 82/0, 37/0, 44/0, 72/0, 36/0, 20/0, 48/0, 74/0 -- 11 file(s), area src/basher -- source: harness-factory: git log main 7332ccaf
+
+#### src/hooks
+
+- 08:04Z commit f0584432 [harness-factory] Harness snapshots Claude's raw session logs natively into the spoke's own repo -- 15 file(s), area src/hooks -- source: harness-factory: git log main f0584432
+
+#### src/lugTracking
+
+- 08:03Z commit 8c038655 [harness-factory] Turn record: operator words and disposition written at UserPromptSubmit; agent text becomes agent events -- fixtures 102/102 -- 6 file(s), area src/lugTracking -- source: harness-factory: git log main 8c038655
+
+### 2026-10-02
+
+#### scripts
+
+- 21:59Z commit fd02f7d4 [harness-factory] scripts/op-stub-common-items.mjs: stub Common-vault 1Password items a template references -- 1 file(s), area scripts -- source: harness-factory: git log main fd02f7d4
+
+#### src/advisor
+
+- 22:31Z commit 7ac7d661 [harness-factory] .env.local wins over stale key-store copies; stale copies named at session start -- fixtures 55/0, 27/0, 19/0, 82/0, 42/0, 72/0, 36/0, 67/0 -- 7 file(s), area src/advisor -- source: harness-factory: git log main 7ac7d661
+
+#### src/factory
+
+- 22:19Z commit f6c030f1 [harness-factory] Release trusts origin, not git's exit code; gc spares a leased worktree -- fixtures 19/19, 50/50, 48/48, 32/32, 39/39, 72/72 -- 6 file(s), area src/factory -- source: harness-factory: git log main f6c030f1
+
+#### src/hooks
+
+- 22:29Z commit 8c8eea66 [harness-factory] Fix five small defects from the 2026-09-29 release, each at its cause -- fixtures 328/358, 19/19, 44/44, 173/173, 41/41, 64/64, 15/15, 26/26, 45/45, 43/43, 17/17, 51/51, 21/21, 55/55, 42/42, 84/84, 52/52, 32/32 -- 15 file(s), area src/hooks -- source: harness-factory: git log main 8c8eea66
+
+#### src/lugTracking
+
+- 22:29Z commit dd3588a5 [harness-factory] messages.jsonl and dispatch-registry.jsonl go through the segmented stream -- fixtures 317/358 -- 15 file(s), area src/lugTracking -- source: harness-factory: git log main dd3588a5
+
+### 2026-09-29
+
+#### src/basher
+
+- 18:47Z commit dd4290a6 [harness-factory] Fleet token 1Password field is wai_claude_code_oauth_token -- fixtures 223/0, 41/0 -- 3 file(s), area src/basher -- source: harness-factory: git log main dd4290a6
+- 18:44Z commit d88588be [harness-factory] Fleet token lives at op://Common/Anthropic/claude_code_oauth_token -- fixtures 223/0, 41/0 -- 3 file(s), area src/basher -- source: harness-factory: git log main d88588be
+- 13:46Z commit 85e1e9ef [harness-factory] wcl: Ozi wakeup opens a writable interactive session (operator decision 2026-09-29) -- fixtures 235/235, 24/24, 32/32 -- 5 file(s), area src/basher -- source: harness-factory: git log main 85e1e9ef
+
+#### commits
+
+- 18:37Z commit d3a60203 [harness-factory] Six follow-up lugs from the 2026-09-29 release, incl. test tiers + scheduled verification review -- 6 file(s), area lugs -- source: harness-factory: git log main d3a60203
+- 18:29Z commit 9da81ad8 [harness-factory] Session work: 1 file, no lug transitions recorded -- 1 file(s), area lugs -- source: harness-factory: git log main 9da81ad8
+
+#### src/advisor
+
+- 13:54Z commit 6a7ad209 [harness-factory] Every spoke reads verification keys from one machine-wide store -- 12 file(s), area src/advisor -- source: harness-factory: git log main 6a7ad209
+
+#### src/factory
+
+- 18:28Z commit 91c2caf5 [harness-factory] Test depth matches the change: shared proof store, declared test plans, full-suite triggers -- fixtures 14/14 -- 13 file(s), area src/factory -- source: harness-factory: git log main 91c2caf5
+
 ## Cut 6175c8fe -- received 2026-09-29 18:12Z (from eafa5c39)
 
-18:12Z cut 6175c8fe received by tracks (previous eafa5c39) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 8f5c4bb9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T18:09:36.115Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+18:12Z cut 6175c8fe received by tracks (previous eafa5c39) landed 81970730, posture absorb_and_report: +0/~0/-0 circles for tracks (git 8f5c4bb9..81970730 -- canon/circles, .claude/settings.json) -- source: tracks: git show 81970730:.cut-status.json
 
 Entries: 12 (commit 4, hook_bound 8).
 
@@ -2267,7 +2601,7 @@ Entries: 12 (commit 4, hook_bound 8).
 
 17:09Z cut eafa5c39 received by tracks (previous e6eda1f8) landed 8f5c4bb9, posture absorb_and_report: +0/~0/-0 circles for tracks (git 47fc1e00..8f5c4bb9 -- canon/circles, .claude/settings.json) -- source: tracks: git show 8f5c4bb9:.cut-status.json
 
-Entries: 5 (commit 4, lug_review 1).
+Entries: 5 (commit 4, lug_done 1).
 
 ### 2026-09-29
 
@@ -2283,7 +2617,7 @@ Entries: 5 (commit 4, lug_review 1).
 
 #### unaffiliated lugs
 
-- 15:43Z lug at review the-secrets-template-source-spoke-is-never-retired-by-a-cut [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/secrets-template-source-never-retired/secrets-template-source-never-retired.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/the-secrets-template-source-spoke-is-never-retired-by-a-cut.yaml (last commit touching the file)
+- 15:43Z lug done the-secrets-template-source-spoke-is-never-retired-by-a-cut [harness-factory] priority high -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session b465675a-a876-4cb3-828c-9f48c05b82f4 -- record runtime/cross-provider-certifications/the-secrets-template-source-spoke-is-never-retired-by-a-cut.json (external) -- tests .local/worktrees/feat-ozi-wakeup-writable/conformance/fixtures/secrets-template-source-never-retired/secrets-template-source-never-retired.conformance.test.js, .local/worktrees/fix-machine-wide-secrets-store/conformance/fixtures/secrets-template-source-never-retired/secrets-template-source-never-retired.conformance.test.js, .local/worktrees/verify-main-welcome/conformance/fixtures/secrets-template-source-never-retired/secrets-template-source-never-retired.conformance.test.js, conformance/fixtures/secrets-template-source-never-retired/secrets-template-source-never-retired.conformance.test.js -- cost 414979 tokens, 188.97s wall (dispatch-measured) -- readiness stubbed -- source: harness-factory: lugs/the-secrets-template-source-spoke-is-never-retired-by-a-cut.yaml (certified_by.at)
 
 ## Cut e6eda1f8 -- received 2026-09-29 15:30Z (from 44c2ff6b)
 
@@ -2683,7 +3017,7 @@ Entries: 143 (circle_added 2, commit 126, hook_bound 1, lug_done 12, lug_review 
 
 #### dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub
 
-- 06:14Z lug at review apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- derived_from root: dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub -- derived_from dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub, autopilot-drives-the-planners-build-class-not-just-initiatives, external:wheel-hub/lugs/independent-review-dispatch-bar-and-ready-work-drive-changes.yaml -- readiness stubbed -- source: harness-factory: lugs/apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback.yaml (last commit touching the file)
+- 06:12Z lug at review apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- derived_from root: dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub -- derived_from dispatch-bar-admits-ready-stubbed-and-hf-route-sends-harness-lugs-through-the-hub, autopilot-drives-the-planners-build-class-not-just-initiatives, external:wheel-hub/lugs/independent-review-dispatch-bar-and-ready-work-drive-changes.yaml -- readiness stubbed -- source: harness-factory: lugs/apply-the-independent-review-changes-to-the-dispatch-bar-drive-and-counterparty-fallback.yaml (runtime/event-log.jsonl review transition)
 - 04:30Z commit 277f7cdf [harness-factory] autopilot-drives-the-planners-build-class-not-just-initiatives: the Planner's build class gets its consumer -- on a launched wave, driveReadyWork dispatches the top ready lug per spoke in Conductor's order (one per pass by default) through the same dispatch path as the initiative drive; counterparties resolve at the hub when a spoke declares none -- lug autopilot-drives-the-planners-build-class-not-just-initiatives -- fixtures 12/0, 91/0, 39/0, 21/0 -- 5 file(s), area src/conductor -- source: harness-factory: git log main 277f7cdf
 
 #### docs
@@ -4309,4 +4643,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:b0023d8a5b4415b5e076a1cf5d5996939d3b4ae89c6951823d67e1669435d0f0 -->
+<!-- integrity sha256:b25a27f94ce7c88f26e4ed4dc5b164856323a7b4ad7beac630f1ffe15c7b7d0a -->

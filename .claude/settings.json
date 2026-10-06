@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
-            "timeout": 390
+            "timeout": 450
           }
         ]
       }
@@ -55,7 +55,7 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
-            "timeout": 150
+            "timeout": 180
           }
         ]
       }
@@ -91,7 +91,19 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
-            "timeout": 180
+            "timeout": 210
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" StopFailure",
+            "timeout": 30
           }
         ]
       }

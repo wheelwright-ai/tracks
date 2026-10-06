@@ -1,0 +1,55 @@
+kind: circle
+name: machine-dispatch-ceiling
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: an Agent-tool call is about to run
+inputs:
+  - agent_tool_call
+  - machine_entity_dispatch_pause_when
+  - proc_loadavg_meminfo_buddyinfo
+  - kernel_log_this_boot
+outputs:
+  - deny_decision
+  - advisory_line
+invariants:
+  - >-
+    refuses only on a hard signal of a machine whose entity declares
+    dispatch_pause_when: kernel page allocation failures in the last
+    kernel_alloc_failures_window_minutes, or MemAvailable under the floor
+  - >-
+    the kernel refusal clears by itself that many minutes after the last
+    failure, or at once when runtime/dispatch-ceiling.ack in the main checkout
+    is newer than the newest counted failure
+  - >-
+    every refusal names the measured numbers and the ways out: wait, touch the
+    ack file, the relief line (sudo sysctl vm.compact_memory=1), the off switch
+    (WHEEL_DISPATCH_CEILING=off)
+  - >-
+    a soft signal (load per cpu, few large free blocks) and the since-boot
+    failure count add one advisory line and allow the call
+  - >-
+    a value that cannot be read is unmeasured: it never trips a threshold and is
+    never replaced by a default
+  - >-
+    fails open: any failure inside the body allows the call and exits 0; not
+    listed under fail_closed
+  - a running fork or dispatch is never touched; only a new launch is judged
+failure_routing: lug:machine-dispatch-ceiling-is-enforced-memory-aware-and-covers-agent-forks
+counter_metric: machine_dispatch_ceiling_agent_refusal_count
+enforcement: hook
+depends_on: []
+consumers:
+  - >-
+    external:operator (seven parallel builders on 2026-10-02 fragmented kernel
+    memory until WSL's DNS tunnel died and the session with it)
+runs_on: hook_event
+hook_event_name: PreToolUse
+hook_matcher: Agent
+hook_script: src/hooks/machineDispatchCeilingHook.js
+conformance: >-
+  conformance/fixtures/machine-dispatch-ceiling/machine-dispatch-ceiling.conformance.test.js
+concern: machine-dispatch-capacity
+instructions_ref: reference/circles/machine-dispatch-ceiling.md
+duplicate_of: machine-dispatch-ceiling

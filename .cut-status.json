@@ -1,15 +1,15 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "6175c8fe63f6fb8c368a3f93fa17138339f64138",
-  "digest": "sha256:c3e39154c47c971380564a9b165026b64e2f7d14fb59514bd1011cce857f959a",
-  "unchanged": true,
+  "version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
+  "digest": "sha256:e3f65cccd496bd7015584562afa90c18e9fea13143c0ead4f91b56e1c458efa0",
+  "unchanged": false,
   "harness": {
-    "version": "6175c8fe63f6fb8c368a3f93fa17138339f64138",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/6175c8fe63f6fb8c368a3f93fa17138339f64138",
+    "version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
     "reused": false,
     "pruned": [
-      "e6eda1f83fe20e74a689fd38bf19d4583ae6d700"
+      "eafa5c39b88a29db3ae280340c97cd463a552324"
     ]
   },
   "liveApplied": false,
@@ -18,13 +18,20 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-29T18:11:58.532Z",
+      "auditedAt": "2026-10-06T09:53:18.143Z",
       "findings": [
         {
           "path": ".cut-status.json",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "canon/spoke.wheel-clock.yaml",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"canon/spoke.wheel-clock.yaml\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         },
         {
@@ -60,7 +67,7 @@
       ],
       "summary": {
         "LEGITIMATE_CUT_ABSORPTION": 1,
-        "ORGANIC_RUNTIME_CHURN": 4,
+        "ORGANIC_RUNTIME_CHURN": 5,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       },
@@ -70,17 +77,18 @@
       "reverted": [],
       "committed": [
         ".cut-status.json",
+        "canon/spoke.wheel-clock.yaml",
         "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "8f5c4bb987b514ed4339727fe4d241d96ebf66c9",
+      "commit": "81970730ac8b50be174dee41ca1d23c5af39a0fe",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1790705518740-l78ew2"
+        "ldg-arrival-audit-committed-1791280398241-m5be9d"
       ]
     },
     "profileSeeding": {
@@ -100,6 +108,29 @@
     "reason": "spoke declares its own clock in canon/spoke.wheel-clock.yaml -- kept untouched, no default written",
     "written": false
   },
+  "cutCarriedJobs": {
+    "clock": "canon/spoke.wheel-clock.yaml",
+    "carried": [
+      "rawSnapshotCatchup"
+    ],
+    "present": [],
+    "added": [
+      {
+        "key": "raw_snapshot_catchup",
+        "job": "rawSnapshotCatchup",
+        "form": "full",
+        "method": "spliced"
+      }
+    ],
+    "findings": [],
+    "reason": "canon/spoke.wheel-clock.yaml lacks rawSnapshotCatchup -- the cut adds raw_snapshot_catchup (full)",
+    "tokens": {
+      "before": 562,
+      "after": 665,
+      "cap": 1000,
+      "reserve": 20
+    }
+  },
   "secretsTemplateRetirement": {
     "retired": false,
     "kept": false,
@@ -109,14 +140,20 @@
     "sha256": null
   },
   "secretsTemplateLine": null,
+  "verificationKeysSeed": {
+    "outcome": "no_template",
+    "added": [],
+    "owed": [],
+    "reason": "no .env.template -- nothing to seed"
+  },
   "reported": [],
   "lug_owed": false,
   "droppedHooks": [],
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-29T18:12:01.489Z",
-  "previous_version": "eafa5c39b88a29db3ae280340c97cd463a552324",
+  "appliedAt": "2026-10-06T09:53:20.212Z",
+  "previous_version": "6175c8fe63f6fb8c368a3f93fa17138339f64138",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
@@ -128,12 +165,12 @@
   "generated_docs": [
     {
       "file": "CLAUDE.md",
-      "changed": false,
+      "changed": true,
       "ok": true
     },
     {
       "file": "AMBASSADOR_BRIEF.md",
-      "changed": false,
+      "changed": true,
       "ok": true
     },
     {

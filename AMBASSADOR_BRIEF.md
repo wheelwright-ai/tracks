@@ -12,7 +12,8 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 
 ## 2. Its toolbox
 
-94 live circle(s):
+99 live circle(s):
+- **agent-dispatch-record** (hook_event): an Agent-tool call is about to run
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
@@ -44,7 +45,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **farming** (on_demand): a solution recurring across spokes is detected, abstracted, promoted or demoted -- detectRecurrence / proposePromotion / proposeDemotion / certifyHarvest / applyHarvest / auditPromotions (src/otto/farming.js), run by `node scripts/farming.js detect|propose|demote|certify|apply|audit`; and every session start, where buildFarmSection reports through goalsReview.js
 - **footer-audit** (hook_event): a turn ends (Stop event)
 - **footer-correction-injection** (hook_event): a real prompt is submitted, following a turn footer-audit flagged as missed
-- **gate-pool-serial-suites** (on_demand): the commit or push gate runs its suites through the pool (src/factory/testBoundaryGate.js runSuites -> src/factory/suitePool.js runSuitePool): every suite whose head carries `// serial` runs alone before the pool opens and the gate's first report line names them and the pool size; and when the two timing suites (liveness-lease, launch-idle-watchdog) start, they measure the box (src/factory/boxTiming.js) and derive their windows from it before the first supervised child
+- **gate-pool-serial-suites** (on_demand): the commit or push gate runs its suites through the pool (src/factory/testBoundaryGate.js runSuites -> src/factory/suitePool.js runSuitePool): every suite whose head carries `// serial` runs alone -- before the pool opens at the push gate, after the pooled suites at the commit gate (serial-last, so its budget still judges the covering non-serial suites) -- and the gate's first report line names them and the pool size; and when the two timing suites (liveness-lease, launch-idle-watchdog) start, they measure the box (src/factory/boxTiming.js) and derive their windows from it before the first supervised child
 - **git-boundary-test-gate** (on_demand): a real `git commit` or `git push` runs in harness-factory or wheel-hub
 - **global-settings-drift-check** (hook_event): a real session starts
 - **guard-denial-reconciliation** (schedule): wheel_clock job guard_denial_reconciliation (canon/otto.advisor.yaml)
@@ -62,6 +63,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **lug-ownership-claims** (on_demand): a lug's ownership is claimed, contested or diverged -- applyLugVerb (src/lugTracking/lugVerb.js) appends a claim at in_progress and a release at review/done, refusing a lug another LIVE session holds unless --drive=<reason> or --collaborate=<sub-scope>; `node scripts/lug-claim.js list|contend|release` reads the table on demand; the four lug-write guards (bash-lug-guard, definition-complete-gate, ready-gate-stub, lug-lifecycle-tracker) refuse a write to another live session's claimed lug through src/hooks/lib/claimGuard.js; the session-end handoff releases what the ending session held; lugIntegrity.classifyViolation, a dirty-file takeover or `node scripts/lug-divergence.js resolve` write or settle runtime/divergences/<id>.json
 - **lug-type-lifecycles** (on_demand): a lug's type-specific lifecycle is consulted -- every applyLugVerb transition reads statesForLug (src/lugTracking/lugType.js) at the one sanctioned mutation path; every schema validation of a lug applies the per-type state enum in schemas/lug.schema.json; and the lug-integrity-checksum heal reads resetStateForLug to pick the entry state of the lug's OWN lifecycle
 - **lug-write-schema-gate** (hook_event): a Write, Edit or NotebookEdit call is about to land on lugs/*.yaml, in any session -- top-level or dispatched, at any lug state
+- **machine-dispatch-ceiling** (hook_event): an Agent-tool call is about to run
 - **max-persona-boundary-guard** (hook_event): a Write, Edit or NotebookEdit call is about to run from the top-level (non-dispatched) session
 - **notification-agent-waiting-notify** (hook_event): Claude Code sends a real permission_prompt or idle_prompt notification
 - **orphan-dispatch-disposition** (on_demand): an orphaned dispatch row is re-reconciled against the real evidence its child left on disk -- `node scripts/orphan-disposition.js <instanceRoot>` runs the sweep on demand, and every session start reports the standing result once through goalsReview.js's buildOrphanDispositionSection
@@ -72,6 +74,8 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **planner-cycle-allocation** (schedule): wheel_clock job planner_cycle (canon/otto.advisor.yaml), declared FIRST so it fires before every other scheduled job
 - **precompact-checkpoint** (hook_event): a real context compaction is about to happen (PreCompact event, manual or auto)
 - **provider-usage-and-retry** (on_demand): any provider call is made through src/advisor/providerContract.js's callProvider -- every caller: proofer.js (the cross-provider certification path), machineProbe.js, and any script or fixture that calls it directly
+- **raw-session-snapshot-end** (hook_event): a real session ends (SessionEnd event): the closing snapshot of the raw log after the last Stop
+- **raw-session-snapshot-stop** (hook_event): a turn ends (Stop event); the same body also runs at SessionEnd (raw-session-snapshot-end) and as the wheel-clock job rawSnapshotCatchup
 - **raw-worktree-add-redirect** (hook_event): a Bash command is about to run
 - **readiness-certification-sweep** (on_demand): the review-state backlog is swept for real check results -- `node scripts/readiness-sweep.js [instanceRoot] --session-id=<id> [--certify=none|request|run]` walks every review lug and every ready+passed lug in scope (critical first, then the lugs that unblock the most others; --priorities widens), re-runs each lug's own conformance fixture, reads the done gate through the harness's own functions, and asks the kernel verb for done
 - **ready-gate-stub** (hook_event): a lug's state field is edited to ready
@@ -95,6 +99,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **tastegraph-injection** (hook_event): a real prompt is submitted (UserPromptSubmit), after the wakeup block handed the session the merged tastegraph and a master or overlay change has landed since
 - **temporary-limit-boost-awareness** (on_demand): a caller asks whether a temporary rate-limit boost is currently active on this account -- every conductor heartbeat tick (detectLimitBoost + boostExpiryAlert), every paceFromReading given a boost fact, and every headless usage poll's own operator-facing output
 - **test-lug-traceability** (hook_event): a new test file is written
+- **turn-failure-record** (hook_event): a turn ends in an API error (StopFailure event) -- a safeguard stop, a network failure, a rate limit or any other error that ends the turn in place of Stop
 - **turn-start-attribution** (hook_event): a real prompt is submitted
 - **unattended-run-kill-switch** (on_demand): any caller is about to spend, or is already spending, the operator's subscription with nobody at the machine -- checked at every launch gate (executeDispatch, runHeartbeat Gate 0, runAdvisorAutopilot Gate 0) and POLLED by every launch supervisor for the whole life of its child. Raised with `hf stop` or, with no node required, `touch <instance-root>/runtime/stop.flag`.
 - **update-discovery** (hook_event): a real session starts (SessionStart event) in any spoke that receives cuts, and the spoke's wheel_clock job update_discovery (JOB_RUNNERS.updateDiscovery) on its declared cadence -- the spoke compares its .cut-status.json to the hub's registry/latest-cut.json, published by hf deploy's cut stage (src/factory/cutPublish.js, from stageCut); Otto's autopilot records who is behind (src/otto/cutLaggards.js) and the hub goals review prints it

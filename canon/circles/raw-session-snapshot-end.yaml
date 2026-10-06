@@ -1,0 +1,55 @@
+kind: circle
+name: raw-session-snapshot-end
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a real session ends (SessionEnd event): the closing snapshot of the raw log
+  after the last Stop
+inputs:
+  - claude_raw_session_log
+  - snapshot_manifest
+  - credential_scanner
+  - remote_visibility
+outputs:
+  - raw_segments
+  - snapshot_manifest
+  - snapshot_findings
+invariants:
+  - >-
+    only the NEW bytes of the raw log are copied; the stored segments
+    concatenate to the source prefix and history is never re-stored
+  - >-
+    a segment the credential gate refuses is held back locally and recorded with
+    its range and hash; the next segment still lands
+  - >-
+    a spoke whose remote is public or unreadable keeps segments local
+    (runtime/sessions-local) with a recorded finding
+  - >-
+    growth is bounded by the per-spoke session_record budget in
+    file-size-budgets, warned before it is reached
+  - >-
+    raw content never reaches a model provider; only counts, ranges and hashes
+    are reported
+failure_routing: lug:harness-natively-snapshots-claude-raw-session-logs-and-backfills-existing
+counter_metric: sessions_with_a_raw_snapshot_rate
+enforcement: hook
+depends_on:
+  - rawSnapshotCatchup
+consumers:
+  - >-
+    external:track-generation (the said and considered track is built from these
+    segments)
+  - >-
+    external:session-exit-commit (runtime/sessions is a tier-1 runtime path,
+    committed with the spoke)
+runs_on: hook_event
+hook_event_name: SessionEnd
+hook_matcher: ''
+hook_script: src/hooks/rawSnapshotHook.js
+conformance: >-
+  conformance/fixtures/raw-session-snapshot/raw-session-snapshot.conformance.test.js
+concern: session-record-raw-log-end
+instructions_ref: reference/circles/raw-session-snapshot.md
+duplicate_of: raw-session-snapshot-end

@@ -1,0 +1,68 @@
+kind: circle
+name: turn-failure-record
+owner: ozi
+level: spoke
+status: live
+schema_version: 1
+trigger: >-
+  a turn ends in an API error (StopFailure event) -- a safeguard stop, a network
+  failure, a rate limit or any other error that ends the turn in place of Stop
+inputs:
+  - stop_failure_payload
+  - hook_runlog
+  - session_files_touched_record
+  - turn_record
+  - active_lug_pointer
+outputs:
+  - turn_failure_row
+  - turn_failure_resume_block
+  - turn_failure_session_start_line
+invariants:
+  - >-
+    ONE ROW PER FAILED TURN in runtime/turn-failures.jsonl, written through the
+    one stream writer (segmentedStream appendLine): session id, time, class
+    (safeguard_stop, network, rate_limit, other), error type, turn id, active
+    lug, and the CLASS of the last tool call (bash, read, write:lugs, agent); a
+    second delivery of the same failure inside 10 seconds collapses
+  - >-
+    NO MESSAGE CONTENT ANYWHERE: the payload's message fields are read in memory
+    to classify and dropped; the row holds no prompt, reply, command text or
+    file path, and the live capture is handed the payload with those fields
+    withheld
+  - >-
+    THE TASK RESUMES, THE CONTENT DOES NOT: the next UserPromptSubmit
+    (turn-start-attribution) or SessionStart (warmup-goals-review) of that
+    session injects one block -- class and time, active lug, the files written
+    in the stopped turn with their present state, the last operator ask from the
+    turn record, the sanctioned scripts -- and acknowledges the row with an
+    appended row, so it is injected once; nothing rewords or resends a stopped
+    message
+  - >-
+    MEASURED: the session start prints TURN FAILURES with the 7-day count by
+    class, silent at zero
+  - >-
+    NEVER BLOCKS AND NEVER FAILS A TURN: exit 0 on every path, no stdout, a
+    failure inside the body is swallowed; the resume block and the session-start
+    line return null instead of throwing
+failure_routing: >-
+  lug:safeguard-stops-are-detected-recorded-and-the-task-resumes-by-a-safer-route
+counter_metric: turn_failures_per_7_days_by_class
+enforcement: hook
+depends_on:
+  - capture-direction
+  - session-files-touched
+  - hook-invocation-runlog
+consumers:
+  - turn-start-attribution
+  - warmup-goals-review
+  - external:operator
+interface_version: v1
+runs_on: hook_event
+hook_event_name: StopFailure
+hook_matcher: ''
+hook_script: src/hooks/turnFailureRecordHook.js
+conformance: >-
+  conformance/fixtures/turn-failure-record/turn-failure-record.conformance.test.js
+concern: turn-failure-record-and-resume
+instructions_ref: reference/circles/turn-failure-record.md
+duplicate_of: turn-failure-record
