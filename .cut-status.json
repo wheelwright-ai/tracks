@@ -1,15 +1,15 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "eafa5c39b88a29db3ae280340c97cd463a552324",
-  "digest": "sha256:64444351a35ceb0bf7b2392b53a80b58431d92319b4de8fc56176712c336b2ef",
+  "version": "6175c8fe63f6fb8c368a3f93fa17138339f64138",
+  "digest": "sha256:c3e39154c47c971380564a9b165026b64e2f7d14fb59514bd1011cce857f959a",
   "unchanged": true,
   "harness": {
-    "version": "eafa5c39b88a29db3ae280340c97cd463a552324",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/eafa5c39b88a29db3ae280340c97cd463a552324",
+    "version": "6175c8fe63f6fb8c368a3f93fa17138339f64138",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/6175c8fe63f6fb8c368a3f93fa17138339f64138",
     "reused": false,
     "pruned": [
-      "44c2ff6b44e8d47e3109b01f8750c83b01dfaf46"
+      "e6eda1f83fe20e74a689fd38bf19d4583ae6d700"
     ]
   },
   "liveApplied": false,
@@ -18,7 +18,7 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-09-29T17:09:46.878Z",
+      "auditedAt": "2026-09-29T18:11:58.532Z",
       "findings": [
         {
           "path": ".cut-status.json",
@@ -56,25 +56,11 @@
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"runtime/while-you-were-away.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
-        },
-        {
-          "path": "ledger/ledger.jsonl.segments/000001_2026-09-15_2026-09-29.jsonl.gz",
-          "statusCode": "??",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"ledger/ledger.jsonl.segments/000001_2026-09-15_2026-09-29.jsonl.gz\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "ledger/ledger.jsonl.segments/manifest.json",
-          "statusCode": "??",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"ledger/ledger.jsonl.segments/manifest.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
         }
       ],
       "summary": {
         "LEGITIMATE_CUT_ABSORPTION": 1,
-        "ORGANIC_RUNTIME_CHURN": 6,
+        "ORGANIC_RUNTIME_CHURN": 4,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       },
@@ -87,16 +73,14 @@
         "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
-        "runtime/while-you-were-away.jsonl",
-        "ledger/ledger.jsonl.segments/000001_2026-09-15_2026-09-29.jsonl.gz",
-        "ledger/ledger.jsonl.segments/manifest.json"
+        "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "47fc1e00d7cb7643243612cdcec53695633c4553",
+      "commit": "8f5c4bb987b514ed4339727fe4d241d96ebf66c9",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1790701786973-rdl2bg"
+        "ldg-arrival-audit-committed-1790705518740-l78ew2"
       ]
     },
     "profileSeeding": {
@@ -131,8 +115,8 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-09-29T17:09:48.920Z",
-  "previous_version": "e6eda1f83fe20e74a689fd38bf19d4583ae6d700",
+  "appliedAt": "2026-09-29T18:12:01.489Z",
+  "previous_version": "eafa5c39b88a29db3ae280340c97cd463a552324",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",

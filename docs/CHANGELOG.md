@@ -11,13 +11,14 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
+- Cut 6175c8fe received (from eafa5c39), posture absorb_and_report: no circle or hook changed for this spoke; policies changed hook-dispatch.
 - Cut eafa5c39 received (from e6eda1f8), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut e6eda1f8 received (from 44c2ff6b), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 44c2ff6b received (from 2ffc5402), posture absorb_and_report: 2 circle(s) gained (raw-worktree-add-redirect, release-policy); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js.
 
 ### harness bookkeeping
 
-- 3 harness bookkeeping commit(s) in tracks (harness-arrival-audit 3).
+- 4 harness bookkeeping commit(s) in tracks (harness-arrival-audit 4).
 
 ## 2026-09-28
 
@@ -100,11 +101,46 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 6175c8fe -- received 2026-09-29 18:12Z (from eafa5c39)
+
+Cut 6175c8fe received (from eafa5c39), posture absorb_and_report: no circle or hook changed for this spoke; policies changed hook-dispatch.
+
+### 2026-09-29
+
+#### circles
+
+- Hook bound on Notification: dispatch.js" Notification.
+- Hook bound on PostToolUse: dispatch.js" PostToolUse.
+- Hook bound on PreCompact: dispatch.js" PreCompact.
+- Hook bound on PreToolUse: dispatch.js" PreToolUse || exit 2.
+- Hook bound on SessionEnd: dispatch.js" SessionEnd.
+- Hook bound on SessionStart: dispatch.js" SessionStart.
+- Hook bound on Stop: dispatch.js" Stop.
+- Hook bound on UserPromptSubmit: dispatch.js" UserPromptSubmit.
+
+#### commits
+
+- Lug the-secrets-template-source-spoke-is-never-retired-by-a-cut to review
+
+#### src/compiler
+
+- Self-hosting hook bindings anchor at $CLAUDE_PROJECT_DIR and guard events fail closed
+
+#### harness bookkeeping
+
+- 2 harness bookkeeping commit(s) in harness-factory (Session work 2).
+
 ## Cut eafa5c39 -- received 2026-09-29 17:09Z (from e6eda1f8)
 
 Cut eafa5c39 received (from e6eda1f8), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### 2026-09-29
+
+#### the-secrets-template-source-spoke-is-never-retired-by-a-cut  (at review -- certification pending)
+
+Challenge: 2026-09-29: applying cut 44c2ff6b to basher ran the secrets-template retirement (src/factory/cutUpdate.js -> secretsManifest.js retireTemplateIfEligible) and renamed basher's .env.template to .env.template.migrated-44c2ff6b44e8. basher is the fleet's secrets authority: its template is the source that seeds wheel-shared keys into every spoke's template.
+Solution: A spoke that declares itself the secrets template source (a field on its canon/secrets.manifest.yaml or canon/profile.yaml, set in basher) is never retired by applyCut; the apply reports "template kept: template source". A retirement anywhere is announced in the apply output and ledger, never silent.
+Record: certification pending · fixtures 1 fixture(s)
 
 #### conformance
 
@@ -2037,15 +2073,21 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 60 (commit 42, cut_received 17, lug_review 1).
+Entries: 62 (commit 43, cut_received 18, lug_review 1).
 
 ## 2026-09-29
 
 ### cuts
 
-- 17:09Z cut eafa5c39 received by tracks (previous e6eda1f8) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 47fc1e00..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T17:07:53.350Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 18:12Z cut 6175c8fe received by tracks (previous eafa5c39) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 8f5c4bb9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T18:09:36.115Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 17:09Z cut eafa5c39 received by tracks (previous e6eda1f8) landed 8f5c4bb9, posture absorb_and_report: +0/~0/-0 circles for tracks (git 47fc1e00..8f5c4bb9 -- canon/circles, .claude/settings.json) -- source: tracks: git show 8f5c4bb9:.cut-status.json
 - 15:30Z cut e6eda1f8 received by tracks (previous 44c2ff6b) landed 47fc1e00, posture absorb_and_report: +0/~0/-0 circles for tracks (git 9111f4f8..47fc1e00 -- canon/circles, .claude/settings.json) -- source: tracks: git show 47fc1e00:.cut-status.json
 - 08:36Z cut 44c2ff6b received by tracks (previous 2ffc5402) landed 9111f4f8, posture absorb_and_report: +2/~0/-0 circles for tracks -- gained raw-worktree-add-redirect, release-policy -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification notificationNotifyHook.js, PostToolUse cartographerCommitTriggerHook.js, PostToolUse crossProviderVerificationHook.js, PostToolUse filesTouchedRecorderHook.js, PreCompact preCompactCheckpointHook.js, PreToolUse agentTargetScopeGuardHook.js, PreToolUse agentToolScopeGuardHook.js, PreToolUse bashDestructiveGuardHook.js, PreToolUse bashLugGuardHook.js, PreToolUse definitionCompleteGateHook.js, PreToolUse lugLifecycleHook.js, PreToolUse lugSchemaGateHook.js, PreToolUse maxPersonaBoundaryGuardHook.js, PreToolUse oversizedCanonWriteGuardHook.js, PreToolUse preToolTabResetHook.js, PreToolUse readyGateStubHook.js, PreToolUse testFileLugMarkerHook.js, SessionEnd sessionEndHandoffHook.js, SessionEnd sessionEndNotifyHook.js, SessionEnd sessionEndTabClearHook.js, SessionEnd sessionExitCommitHook.js, SessionEnd wheelFeedbackEmitHook.js, SessionStart circleAuditHook.js, SessionStart globalSettingsDriftHook.js, SessionStart hookBindingDriftHook.js, SessionStart sessionCheckpointHook.js, SessionStart sessionRegistryHook.js, SessionStart sessionStartWarmupHook.js, SessionStart updateDiscoveryHook.js, SessionStart warmupGoalsReviewHook.js, SessionStart wclEntryDirectiveHook.js, SessionStart wheelClockCatchupHook.js, Stop footerAuditHook.js, Stop lugIntegrityHook.js, Stop stopNotifyHook.js, Stop stopTurnMarkerHook.js, Stop trackWriteHook.js, UserPromptSubmit captureDirectionHook.js, UserPromptSubmit closeoutRequestHook.js, UserPromptSubmit communicationInboxDeltaHook.js, UserPromptSubmit footerCorrectionInjectionHook.js, UserPromptSubmit liveApplyAnnounceHook.js, UserPromptSubmit tasteUpdateInjectionHook.js, UserPromptSubmit turnStartAttributionHook.js, UserPromptSubmit userPromptSubmitTabHook.js (git 65fee8c2..9111f4f8 -- canon/circles, .claude/settings.json) -- source: tracks: git show 9111f4f8:.cut-status.json
+
+### runtime
+
+- 18:11Z commit 8f5c4bb9 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 8f5c4bb9
+- 08:36Z commit 27bb5f75 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 27bb5f75
 
 ### canon
 
@@ -2054,10 +2096,6 @@ Entries: 60 (commit 42, cut_received 17, lug_review 1).
 ### ledger
 
 - 17:09Z commit 47fc1e00 [tracks] harness-arrival-audit: absorbed 7 file(s) on cut arrival -- 7 file(s), area ledger -- source: tracks: git log main 47fc1e00
-
-### runtime
-
-- 08:36Z commit 27bb5f75 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main 27bb5f75
 
 ## 2026-09-28
 
@@ -2193,11 +2231,43 @@ Entries: 60 (commit 42, cut_received 17, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 6175c8fe -- received 2026-09-29 18:12Z (from eafa5c39)
+
+18:12Z cut 6175c8fe received by tracks (previous eafa5c39) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 8f5c4bb9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T18:09:36.115Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 12 (commit 4, hook_bound 8).
+
+### 2026-09-29
+
+#### circles
+
+- 17:47Z hook Notification -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" Notification at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+- 17:47Z hook PostToolUse -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" PostToolUse at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+- 17:47Z hook PreCompact -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" PreCompact at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+- 17:47Z hook PreToolUse -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" PreToolUse || exit 2 at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+- 17:47Z hook SessionEnd -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" SessionEnd at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+- 17:47Z hook SessionStart -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" SessionStart at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+- 17:47Z hook Stop -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" Stop at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+- 17:47Z hook UserPromptSubmit -> node "$CLAUDE_PROJECT_DIR/src/hooks/dispatch.js" UserPromptSubmit at 6175c8fe -- source: harness-factory: .claude/settings.json at 6175c8fe vs eafa5c39
+
+#### commits
+
+- 17:29Z commit b610c5d2 [harness-factory] Session work: 146 lugs (ozi-wheel-clock-jobs-declare-a-real-consumer-closing-the-no-consumer-audit, readiness-certification-sweep-runs-on-the-wheel-clock-with-a-real-consumer, liveness-lease-c1-real-silence-check-fails-under-its-own-scaled-window, ...) -- 2 file(s), area lugs -- source: harness-factory: git log main b610c5d2
+- 15:43Z commit 1280fc7f [harness-factory] Lug the-secrets-template-source-spoke-is-never-retired-by-a-cut to review -- 1 file(s), area lugs -- source: harness-factory: git log main 1280fc7f
+
+#### ledger
+
+- 15:41Z commit b512c84b [harness-factory] Session work: 4 files, no lug transitions recorded -- 4 file(s), area ledger -- source: harness-factory: git log main b512c84b
+
+#### src/compiler
+
+- 17:45Z commit a2862c52 [harness-factory] Self-hosting hook bindings anchor at $CLAUDE_PROJECT_DIR and guard events fail closed -- 9 file(s), area src/compiler -- source: harness-factory: git log main a2862c52
+
 ## Cut eafa5c39 -- received 2026-09-29 17:09Z (from e6eda1f8)
 
-17:09Z cut eafa5c39 received by tracks (previous e6eda1f8) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 47fc1e00..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-09-29T17:07:53.350Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+17:09Z cut eafa5c39 received by tracks (previous e6eda1f8) landed 8f5c4bb9, posture absorb_and_report: +0/~0/-0 circles for tracks (git 47fc1e00..8f5c4bb9 -- canon/circles, .claude/settings.json) -- source: tracks: git show 8f5c4bb9:.cut-status.json
 
-Entries: 4 (commit 4).
+Entries: 5 (commit 4, lug_review 1).
 
 ### 2026-09-29
 
@@ -2210,6 +2280,10 @@ Entries: 4 (commit 4).
 #### src/hooks
 
 - 15:39Z commit cad9e1b3 [harness-factory] resolveBoundHooks: one reader for effective per-hook bindings, through the dispatcher -- 2 file(s), area src/hooks -- source: harness-factory: git log main cad9e1b3
+
+#### unaffiliated lugs
+
+- 15:43Z lug at review the-secrets-template-source-spoke-is-never-retired-by-a-cut [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/secrets-template-source-never-retired/secrets-template-source-never-retired.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/the-secrets-template-source-spoke-is-never-retired-by-a-cut.yaml (last commit touching the file)
 
 ## Cut e6eda1f8 -- received 2026-09-29 15:30Z (from 44c2ff6b)
 
@@ -4235,4 +4309,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:b303785014790f6e5ab92ac67caded9313d018ddac122fb5258214665204c328 -->
+<!-- integrity sha256:b0023d8a5b4415b5e076a1cf5d5996939d3b4ae89c6951823d67e1669435d0f0 -->

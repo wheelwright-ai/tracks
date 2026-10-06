@@ -50,3 +50,9 @@ jobs:
       lug communication-inbox-circle-and-fair-ranking: every spoke gains
       an inbox -- sibling spokes' open communication lugs targeting this
       one, read on the clock, written to its own runtime only.
+  raw_snapshot_catchup:
+    job: rawSnapshotCatchup
+    cadence_ticks: 1
+    cut_carried: true
+    consumer: {reader_path: src/sessionRecord/rawSnapshot.js, reads: readSessionRaw}
+    rationale: every spoke snapshots its own raw Claude logs into its own runtime/sessions, oldest first, 64 MB of source per tick -- the backlog a cut finds and the Stop a crash missed. A cut adds this job to a spoke clock that lacks it.
