@@ -174,8 +174,15 @@
       "cap": 2000,
       "first_seen": "2026-10-06T09:53:18.242Z",
       "disclosed_at": null
+    },
+    "ledger|2026-10-07|harness-arrival-audit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-10-07T02:57:15.354Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-10-06T09:53:31.543Z"
+  "written_at": "2026-10-07T02:57:15.354Z"
 }
