@@ -31,3 +31,18 @@ WAI-Spoke/advisors/*/context/snapshot-*
 
 # hook capture logs: local debug data, redacted-but-noisy, and a leak vector (basher 2026-09-28)
 **/docs/live-hook-capture*.jsonl*
+
+# Wheel baseline (hub, 2026-10-07): per-machine and credential files are never committed.
+.env.local
+.env.*.local
+.env.template.*.json
+.env.template.*.sha256
+.env.template.*.tmp
+.env.template.migrated-*
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Wheel standard (operator 2026-10-07): no .env* file is committed except .env.template.
+.env
+.env.*
+!.env.template
