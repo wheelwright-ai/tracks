@@ -7,6 +7,16 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
+## 2026-10-07
+
+### cuts
+
+- Cut ff0c5320 received (from de1cbfa6), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### harness bookkeeping
+
+- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+
 ## 2026-10-06
 
 ### cuts
@@ -110,6 +120,122 @@ Record: certification pending
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut ff0c5320 -- received 2026-10-07 02:57Z (from de1cbfa6)
+
+Cut ff0c5320 received (from de1cbfa6), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### 2026-10-07
+
+#### conformance
+
+- Board-then-digest reads the resolved --full pointer and sets the live-box MACHINE section aside
+- Two push-gate tests judge what they can prove about live state
+- raw-snapshot.js status with no session id prints usage and exits 2
+
+#### src/conductor
+
+- A subagent hand-back marks its dispatch record reported, unfolded -- never interrupted
+- Standing digest's details pointer names the goals-review script where it really is
+
+#### src/lugTracking
+
+- The continuity checkpoint drops a stale active-lug pointer when LAST SESSION can speak
+- dispatch-resume --done takes a worktree path and clears every open dispatch for it
+
+#### commits
+
+- Lug: machine-dispatch-ceiling-is-enforced-memory-aware-and-covers-agent-forks records the 2026-10-06 5:40 PM measurement (admitted forks and suite pools are uncounted)
+
+#### src/advisor
+
+- Readiness judges the launch lane on the profile the launcher really uses
+
+#### src/hooks
+
+- LAST SESSION skips headless certifier and dispatched sessions
+
+### 2026-10-06
+
+#### env-local-from-1password-wins-over-stale-key-store-copies  (at review -- certification pending)
+
+Challenge: Measured 2026-10-02 after the operator filled .env.local from 1Password (Common/<Provider>/wai_* fields): every key there differs from the copies in .local/secrets.json and .local/provider-claude-config/secrets.json, and src/basher/secrets.js secretStoreChain resolves config-dir -> framework-store -> env-local, so the operator's new keys are never used (Gemini kept failing on its old revoked key while the new one works).
+Solution: The spoke's .env.local -- what `basher secrets` renders from 1Password, the operator's source of truth -- is consulted first; the config-dir and framework stores are fallbacks for keys .env.local does not define (an empty .env.local value counts as undefined). The hit still names its source.
+Record: certification pending · fixtures 1 fixture(s)
+
+#### every-growing-tracked-file-is-bounded-messages-and-dispatch-registry  (at review -- certification pending)
+
+Challenge: After sealed segments (cut e6eda1f8) two growing hub files are still unbounded: messages/messages.jsonl (10 MB, SIZE WARN) and runtime/dispatch-registry.jsonl (5.7 MB; status updates rewrite the whole file, so it is not a plain append).
+Solution: messages.jsonl goes through the segmented-stream writer and reader; dispatch-registry keeps its status semantics with bounded growth (append-only status rows or segments with an overlay); the new ephemeral entries are declared tier 2 in the hub manifest and ignored.
+Record: certification pending · fixtures 1 fixture(s)
+
+#### every-test-declares-its-tier-and-verification-is-reviewed-on-a-schedule  (at review -- certification pending)
+
+Challenge: Operator 2026-09-29: "I approve your new logic on tests -- both identifying its minimum test, whether it should be incorporated into smoke tests or feature/e2e suites. Verification is as important as the build out and must be maintained and periodically reviewed.." Today there are 356 suites with no declared tier: the release smoke list is hand-picked (12), nothing says which suites are feature or end-to-end, and nothing reviews whether the suite set still earns its cost or still covers what shipped.
+Solution: Every suite declares one tier in its head -- smoke (fast, broad, runs on every release), feature (covers one module or lug), or e2e (drives real processes across modules) -- and the test-plan tool (scripts/test-plan.js) recommends, for every change, the minimum suites AND whether the new or changed test belongs in smoke, feature or e2e, with one line of why. The release smoke list is derived from the smoke tier, not hand-kept.
+Record: certification pending · fixtures 1 fixture(s)
+
+#### push-floor-runs-only-live-data-suites-and-commit-gate-judges-covering-first  (at review -- certification pending)
+
+Challenge: After test-depth (91c2caf) a one-fixture push still runs 21 always-run suites (serial, timing, corpus-reading, reference circles): 647 s under load, the floor of every scoped push.
+Solution: Only suites that read live corpus data (they can go red on data drift whatever the diff) and the reference-circles check run on every push; timing and serial suites run when the diff covers them or on a full run. The commit gate judges the fast covering suites first and serial ones last.
+Record: certification pending · fixtures 1 fixture(s)
+
+#### release-trusts-origin-not-git-exit-code-and-gc-spares-a-running-release  (at review -- certification pending)
+
+Challenge: Measured 2026-09-29 on four releases: the pre-push gate's long run dropped git's first connection, the gate's own retry pushed ("retry LANDED"), and scripts/release.js reported "REFUSED/FAILED: nothing pushed" and skipped publishing -- each time a second run had to publish.
+Solution: release.js decides pushed/not by reading origin/main after the push (fetch and compare), never by git's exit code, and publishes when the target sha is on origin. gc never removes a worktree that an active release, builder or session holds (a registry lease or a running process in it), even when its branch is fully folded.
+Record: certification pending · fixtures 1 fixture(s)
+
+#### small-defects-found-during-the-2026-09-29-release  (at review -- certification pending)
+
+Challenge: Four small real defects surfaced by builders on 2026-09-29, each measured, none fixed yet: (1) src/otto/reconcileAdvisorRoster.js sumDispatchRunsInWindow (~line 254) counts advisorAutopilot's "skipped" dispatch rows (~lines 565-576) as completed activations, so an advisor that only ever skips is never flagged for retirement, contradicting its own docstring.
+Solution: Each is fixed at its cause with a fixture that reproduces it red first: skipped rows are not activations; a scope declaration binds only the fork that declared it; runtime writes never hang on a procfs cwd (bounded or refused); fixtures leave the real checkout untouched.
+Record: certification pending · fixtures 1 fixture(s)
+
+#### turn-record-stream-is-tracked-with-the-spoke  (at review -- certification pending)
+
+Challenge: Found 2026-10-05 verifying the turn-record build (commit e8e676b).
+Solution: runtime/turn-records/ is tier one in the spoke's runtime tracking (tracked in git with the spoke), added to the .gitignore exceptions and to canon/policies/runtime-tracking-tiers.policy.yaml next to tracks, track-segments, sessions and the snapshot findings, once the raw-snapshot build lands those files. The credential gate applies to every commit of it; the stream is bounded through the segmented stream writer.
+Record: certification pending · fixtures 1 fixture(s)
+
+#### commits
+
+- Lug: small-defects-found-by-the-readiness-review-of-the-2026-10-06-release gains defect 11 (gate suites judged by live state)
+- Lug: held-back-session-segments-can-never-be-staged-in-any-spoke outcome matches what was built (sessions-local only; the rest is the .gitignore migration)
+- Lugs: held-back-session-segments-can-never-be-staged-in-any-spoke (found 2026-10-06); the .gitignore migration lug cites what is on disk
+- Lug: provider-preflight-checks-the-value-that-will-win-not-just-a-value gains the unauthenticated dispatch profile case
+- Lug: wcl-entry-tells-the-truth-on-a-spoke-that-is-on-the-published-cut (operator report 2026-10-06)
+- Lugs: preflight finding dated exactly; the landed-commits lug steps back from ready so the autopilot does not rebuild finished work
+- Lugs: cut-arrival .gitignore migration (operator ask 2026-10-06); provider preflight gains the measured hub readiness split
+- Lug: readiness-review follow-ups gain the LAST SESSION certifier-session defect
+- Lugs: states and next steps after the 2026-10-06 release (cut de1cbfa)
+- Lug: readiness-review follow-ups gain the raw-snapshot status usage defect
+
+#### src/factory
+
+- Registry readers follow the rows into sealed segments
+- Held-back session segments can never be staged in any spoke
+- wcl entry tells the truth on a spoke that is on the published cut
+
+#### conformance
+
+- Secrets fixture judges each real template at its repo's committed HEAD
+
+#### repo root
+
+- chore(gitignore): basher cache sidecars (.env.template.*.{json,sha256,tmp})
+
+#### harness bookkeeping
+
+- 5 harness bookkeeping commit(s) in harness-factory (Session work 5).
+
+### 2026-10-05
+
+#### commits
+
+- Lug: .env.local tier must not reach real keys from hermetic suites
+- Communication lug to basher: secrets manifest seed exceeds rule 11 in eight spokes
 
 ## Cut de1cbfa6 -- received 2026-10-06 09:53Z (from 6175c8fe)
 
@@ -2240,7 +2366,17 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 66 (commit 46, cut_received 19, lug_review 1).
+Entries: 68 (commit 47, cut_received 20, lug_review 1).
+
+## 2026-10-07
+
+### cuts
+
+- 02:57Z cut ff0c5320 received by tracks (previous de1cbfa6) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 948be1b2..working tree -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 0 lug(s) closed at 2026-10-07T02:52:22.488Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+### runtime
+
+- 02:57Z commit b7c3b0a6 [tracks] harness-arrival-audit: absorbed 5 file(s) on cut arrival -- 5 file(s), area runtime -- source: tracks: git log main b7c3b0a6
 
 ## 2026-10-06
 
@@ -2412,6 +2548,96 @@ Entries: 66 (commit 46, cut_received 19, lug_review 1).
 - 00:18Z commit 1339bab0 [tracks] tracks: retire the v1 WAI-Harness machinery to /home/mario/projects/.archived/tracks-v1-260914 (WAI-Harness/, .claude/hooks, wai-enter/exit, the v1 settings and CLAUDE.md, basher's v1 session-cost advisor and its test) -- fully on the v2 harness (cut 66e48e3a); WAI-Spoke/sessions stays (Track files, product data) -- 1711 file(s), area WAI-Harness -- source: tracks: git log main 1339bab0
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut ff0c5320 -- received 2026-10-07 02:57Z (from de1cbfa6)
+
+02:57Z cut ff0c5320 received by tracks (previous de1cbfa6) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 948be1b2..working tree -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 0 lug(s) closed at 2026-10-07T02:52:22.488Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 39 (commit 32, lug_review 7).
+
+### 2026-10-07
+
+#### conformance
+
+- 02:08Z commit 242839ad [harness-factory] Board-then-digest reads the resolved --full pointer and sets the live-box MACHINE section aside -- fixtures 71 passed -- 1 file(s), area conformance -- source: harness-factory: git log main 242839ad
+- 00:47Z commit 4f365d3d [harness-factory] Two push-gate tests judge what they can prove about live state -- 3 file(s), area conformance -- source: harness-factory: git log main 4f365d3d
+- 00:47Z commit db8bf51f [harness-factory] raw-snapshot.js status with no session id prints usage and exits 2 -- 2 file(s), area conformance -- source: harness-factory: git log main db8bf51f
+
+#### src/conductor
+
+- 02:22Z commit 1fa2297b [harness-factory] A subagent hand-back marks its dispatch record reported, unfolded -- never interrupted -- fixtures 63 passed -- 4 file(s), area src/conductor -- source: harness-factory: git log main 1fa2297b
+- 00:51Z commit ece839a5 [harness-factory] Standing digest's details pointer names the goals-review script where it really is -- 3 file(s), area src/conductor -- source: harness-factory: git log main ece839a5
+
+#### src/lugTracking
+
+- 02:28Z commit ff0c5320 [harness-factory] The continuity checkpoint drops a stale active-lug pointer when LAST SESSION can speak -- 2 file(s), area src/lugTracking -- source: harness-factory: git log main ff0c5320
+- 02:16Z commit 017ea618 [harness-factory] dispatch-resume --done takes a worktree path and clears every open dispatch for it -- 3 file(s), area src/lugTracking -- source: harness-factory: git log main 017ea618
+
+#### commits
+
+- 00:51Z commit 0be4edb5 [harness-factory] Lug: machine-dispatch-ceiling-is-enforced-memory-aware-and-covers-agent-forks records the 2026-10-06 5:40 PM measurement (admitted forks and suite pools are uncounted) -- 1 file(s), area lugs -- source: harness-factory: git log main 0be4edb5
+
+#### src/advisor
+
+- 00:56Z commit 5d3f63db [harness-factory] Readiness judges the launch lane on the profile the launcher really uses -- 9 file(s), area src/advisor -- source: harness-factory: git log main 5d3f63db
+
+#### src/hooks
+
+- 02:09Z commit 482bb86e [harness-factory] LAST SESSION skips headless certifier and dispatched sessions -- 3 file(s), area src/hooks -- source: harness-factory: git log main 482bb86e
+
+### 2026-10-06
+
+#### commits
+
+- 21:13Z commit a423548c [harness-factory] Lug: small-defects-found-by-the-readiness-review-of-the-2026-10-06-release gains defect 11 (gate suites judged by live state) -- 1 file(s), area lugs -- source: harness-factory: git log main a423548c
+- 20:14Z commit c0430f36 [harness-factory] Lug: held-back-session-segments-can-never-be-staged-in-any-spoke outcome matches what was built (sessions-local only; the rest is the .gitignore migration) -- 1 file(s), area lugs -- source: harness-factory: git log main c0430f36
+- 19:55Z commit 4bdcf1db [harness-factory] Lugs: held-back-session-segments-can-never-be-staged-in-any-spoke (found 2026-10-06); the .gitignore migration lug cites what is on disk -- 2 file(s), area lugs -- source: harness-factory: git log main 4bdcf1db
+- 19:51Z commit 534ebc2a [harness-factory] Lug: provider-preflight-checks-the-value-that-will-win-not-just-a-value gains the unauthenticated dispatch profile case -- 1 file(s), area lugs -- source: harness-factory: git log main 534ebc2a
+- 19:11Z commit d38e84e5 [harness-factory] Lug: wcl-entry-tells-the-truth-on-a-spoke-that-is-on-the-published-cut (operator report 2026-10-06) -- 1 file(s), area lugs -- source: harness-factory: git log main d38e84e5
+- 19:00Z commit 9ce1e07f [harness-factory] Lugs: preflight finding dated exactly; the landed-commits lug steps back from ready so the autopilot does not rebuild finished work -- 2 file(s), area lugs -- source: harness-factory: git log main 9ce1e07f
+- 18:59Z commit 98593fa9 [harness-factory] Lugs: cut-arrival .gitignore migration (operator ask 2026-10-06); provider preflight gains the measured hub readiness split -- 2 file(s), area lugs -- source: harness-factory: git log main 98593fa9
+- 10:08Z commit be3baa4b [harness-factory] Lug: readiness-review follow-ups gain the LAST SESSION certifier-session defect -- 1 file(s), area lugs -- source: harness-factory: git log main be3baa4b
+- 10:06Z commit 0faa12df [harness-factory] Lugs: states and next steps after the 2026-10-06 release (cut de1cbfa) -- 20 file(s), area lugs -- source: harness-factory: git log main 0faa12df
+- 10:00Z commit 10e499d7 [harness-factory] Lug: readiness-review follow-ups gain the raw-snapshot status usage defect -- 1 file(s), area lugs -- source: harness-factory: git log main 10e499d7
+
+#### unaffiliated lugs
+
+- 10:02Z lug at review push-floor-runs-only-live-data-suites-and-commit-gate-judges-covering-first [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- tests conformance/fixtures/push-floor-runs-only-live-data-suites-and-commit-gate-judges/push-floor-runs-only-live-data-suites-and-commit-gate-judges.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/push-floor-runs-only-live-data-suites-and-commit-gate-judges-covering-first.yaml (runtime/event-log.jsonl review transition)
+- 10:02Z lug at review every-test-declares-its-tier-and-verification-is-reviewed-on-a-schedule [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- tests conformance/fixtures/every-test-declares-its-tier-and-verification-is-reviewed-on/every-test-declares-its-tier-and-verification-is-reviewed-on.conformance.test.js -- readiness stubbed -- Operator 2026-09-29: "I approve your new logic on tests -- both identifying its minimum test, whether it should be incorporated into smoke tests or feature/e2e suites. Verification is as important as the build out and must be maintained and periodically reviewed." -- source: harness-factory: lugs/every-test-declares-its-tier-and-verification-is-reviewed-on-a-schedule.yaml (runtime/event-log.jsonl review transition)
+- 10:02Z lug at review env-local-from-1password-wins-over-stale-key-store-copies [harness-factory] priority critical -- no certification receipt -- date from runtime/event-log.jsonl review transition -- tests conformance/fixtures/provider-key-resolution-and-alert/provider-key-resolution-and-alert.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/env-local-from-1password-wins-over-stale-key-store-copies.yaml (runtime/event-log.jsonl review transition)
+- 10:02Z lug at review every-growing-tracked-file-is-bounded-messages-and-dispatch-registry [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- tests conformance/fixtures/every-growing-tracked-file-is-bounded-messages-and-dispatch-/every-growing-tracked-file-is-bounded-messages-and-dispatch-.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/every-growing-tracked-file-is-bounded-messages-and-dispatch-registry.yaml (runtime/event-log.jsonl review transition)
+- 10:02Z lug at review small-defects-found-during-the-2026-09-29-release [harness-factory] priority medium -- no certification receipt -- date from runtime/event-log.jsonl review transition -- tests conformance/fixtures/small-defects-found-during-the-2026-09-29-release/small-defects-found-during-the-2026-09-29-release.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/small-defects-found-during-the-2026-09-29-release.yaml (runtime/event-log.jsonl review transition)
+- 10:02Z lug at review release-trusts-origin-not-git-exit-code-and-gc-spares-a-running-release [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- tests conformance/fixtures/release-trusts-origin-not-git-exit-code-and-gc-spares-a-runn/release-trusts-origin-not-git-exit-code-and-gc-spares-a-runn.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/release-trusts-origin-not-git-exit-code-and-gc-spares-a-running-release.yaml (runtime/event-log.jsonl review transition)
+- 10:01Z lug at review turn-record-stream-is-tracked-with-the-spoke [harness-factory] priority high -- no certification receipt -- date from runtime/event-log.jsonl review transition -- tests conformance/fixtures/turn-record-tracked-with-spoke/turn-record-tracked-with-spoke.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/turn-record-stream-is-tracked-with-the-spoke.yaml (runtime/event-log.jsonl review transition)
+
+#### runtime
+
+- 20:01Z commit febae340 [harness-factory] Session work: 5 files, no lug transitions recorded -- 5 file(s), area runtime -- source: harness-factory: git log main febae340
+- 19:52Z commit d5410c8f [harness-factory] Session work: 4 files, no lug transitions recorded -- 4 file(s), area runtime -- source: harness-factory: git log main d5410c8f
+- 19:46Z commit af1e3ffd [harness-factory] Session work: 6 files, no lug transitions recorded -- 6 file(s), area runtime -- source: harness-factory: git log main af1e3ffd
+- 19:10Z commit 66bafc93 [harness-factory] Session work: 1 file, no lug transitions recorded -- 1 file(s), area runtime -- source: harness-factory: git log main 66bafc93
+- 19:03Z commit b1481172 [harness-factory] Session work: 46 files, no lug transitions recorded -- 46 file(s), area runtime -- source: harness-factory: git log main b1481172
+
+#### src/factory
+
+- 21:10Z commit 297ff077 [harness-factory] Registry readers follow the rows into sealed segments -- fixtures 29 passed -- 4 file(s), area src/factory -- source: harness-factory: git log main 297ff077
+- 20:11Z commit 532fed30 [harness-factory] Held-back session segments can never be staged in any spoke -- 7 file(s), area src/factory -- source: harness-factory: git log main 532fed30
+- 19:28Z commit bc3cbee1 [harness-factory] wcl entry tells the truth on a spoke that is on the published cut -- 7 file(s), area src/factory -- source: harness-factory: git log main bc3cbee1
+
+#### conformance
+
+- 21:09Z commit 2c10d416 [harness-factory] Secrets fixture judges each real template at its repo's committed HEAD -- fixtures 87 passed -- 1 file(s), area conformance -- source: harness-factory: git log main 2c10d416
+
+#### repo root
+
+- 20:02Z commit 5e5f74bc [harness-factory] chore(gitignore): basher cache sidecars (.env.template.*.{json,sha256,tmp}) -- 1 file(s), area repo root -- source: harness-factory: git log main 5e5f74bc
+
+### 2026-10-05
+
+#### commits
+
+- 08:14Z commit eead6d43 [harness-factory] Lug: .env.local tier must not reach real keys from hermetic suites -- fixtures 60/0 -- 1 file(s), area lugs -- source: harness-factory: git log main eead6d43
+- 08:02Z commit b3fd1066 [harness-factory] Communication lug to basher: secrets manifest seed exceeds rule 11 in eight spokes -- 1 file(s), area lugs -- source: harness-factory: git log main b3fd1066
 
 ## Cut de1cbfa6 -- received 2026-10-06 09:53Z (from 6175c8fe)
 
@@ -4648,4 +4874,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:54f54b33b417aee51aabc5028fff47ee3aceacd437e5a8108b46d80ca1d5a598 -->
+<!-- integrity sha256:31ab42abaa525d10a75b086bc13dad1c831eb538857cf01aa5385fcf71809d78 -->

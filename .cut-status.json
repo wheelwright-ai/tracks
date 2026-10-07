@@ -1,14 +1,16 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
-  "digest": "sha256:e3f65cccd496bd7015584562afa90c18e9fea13143c0ead4f91b56e1c458efa0",
+  "version": "ff0c53202bd3347690f03cb9914d35999cbb0979",
+  "digest": "sha256:bb3cfa2b0ac8164c723a797873c1fe9d545679b418ecdca2ab7261ac6a20dc7c",
   "unchanged": true,
   "harness": {
-    "version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
-    "reused": true,
-    "pruned": []
+    "version": "ff0c53202bd3347690f03cb9914d35999cbb0979",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/ff0c53202bd3347690f03cb9914d35999cbb0979",
+    "reused": false,
+    "pruned": [
+      "6175c8fe63f6fb8c368a3f93fa17138339f64138"
+    ]
   },
   "liveApplied": false,
   "announcedSessions": [],
@@ -16,8 +18,24 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-10-06T09:53:31.436Z",
+      "auditedAt": "2026-10-07T02:57:15.219Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "docs/CHANGELOG.md",
+          "statusCode": " M",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -41,8 +59,8 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 3,
+        "LEGITIMATE_CUT_ABSORPTION": 1,
+        "ORGANIC_RUNTIME_CHURN": 4,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       },
@@ -51,16 +69,18 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
+        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "99a21b13d61be0cc57a3726b239180e8e2da9029",
+      "commit": "b7c3b0a6d97615a6585a33570d4e1f1305763111",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1791280411492-rj0ne9"
+        "ldg-arrival-audit-committed-1791341835352-twbpo2"
       ]
     },
     "profileSeeding": {
@@ -113,7 +133,7 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-10-06T09:53:32.587Z",
+  "appliedAt": "2026-10-07T02:57:17.538Z",
   "previous_version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
   "cut_owned_files": [
     "canon/circles",
