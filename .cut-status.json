@@ -3,14 +3,12 @@
   "posture": "absorb_and_report",
   "version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
   "digest": "sha256:e3f65cccd496bd7015584562afa90c18e9fea13143c0ead4f91b56e1c458efa0",
-  "unchanged": false,
+  "unchanged": true,
   "harness": {
     "version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
     "path": "/home/mario/projects/wheelwright/tracks/.harness/de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
-    "reused": false,
-    "pruned": [
-      "eafa5c39b88a29db3ae280340c97cd463a552324"
-    ]
+    "reused": true,
+    "pruned": []
   },
   "liveApplied": false,
   "announcedSessions": [],
@@ -18,31 +16,8 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-10-06T09:53:18.143Z",
+      "auditedAt": "2026-10-06T09:53:31.436Z",
       "findings": [
-        {
-          "path": ".cut-status.json",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "canon/spoke.wheel-clock.yaml",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"canon/spoke.wheel-clock.yaml\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "docs/CHANGELOG.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -66,8 +41,8 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 1,
-        "ORGANIC_RUNTIME_CHURN": 5,
+        "LEGITIMATE_CUT_ABSORPTION": 0,
+        "ORGANIC_RUNTIME_CHURN": 3,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       },
@@ -76,19 +51,16 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        ".cut-status.json",
-        "canon/spoke.wheel-clock.yaml",
-        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "81970730ac8b50be174dee41ca1d23c5af39a0fe",
+      "commit": "99a21b13d61be0cc57a3726b239180e8e2da9029",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1791280398241-m5be9d"
+        "ldg-arrival-audit-committed-1791280411492-rj0ne9"
       ]
     },
     "profileSeeding": {
@@ -113,23 +85,12 @@
     "carried": [
       "rawSnapshotCatchup"
     ],
-    "present": [],
-    "added": [
-      {
-        "key": "raw_snapshot_catchup",
-        "job": "rawSnapshotCatchup",
-        "form": "full",
-        "method": "spliced"
-      }
+    "present": [
+      "rawSnapshotCatchup"
     ],
+    "added": [],
     "findings": [],
-    "reason": "canon/spoke.wheel-clock.yaml lacks rawSnapshotCatchup -- the cut adds raw_snapshot_catchup (full)",
-    "tokens": {
-      "before": 562,
-      "after": 665,
-      "cap": 1000,
-      "reserve": 20
-    }
+    "reason": "canon/spoke.wheel-clock.yaml already declares every cut-carried job (rawSnapshotCatchup) -- nothing added"
   },
   "secretsTemplateRetirement": {
     "retired": false,
@@ -152,8 +113,8 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-10-06T09:53:20.212Z",
-  "previous_version": "6175c8fe63f6fb8c368a3f93fa17138339f64138",
+  "appliedAt": "2026-10-06T09:53:32.587Z",
+  "previous_version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
@@ -165,12 +126,12 @@
   "generated_docs": [
     {
       "file": "CLAUDE.md",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     {
       "file": "AMBASSADOR_BRIEF.md",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     {

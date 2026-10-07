@@ -15,7 +15,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+- 3 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2, hf deploy: cut 1).
 
 ## 2026-09-29
 
@@ -2240,17 +2240,22 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 64 (commit 44, cut_received 19, lug_review 1).
+Entries: 66 (commit 46, cut_received 19, lug_review 1).
 
 ## 2026-10-06
 
-### cuts
-
-- 09:53Z cut de1cbfa6 received by tracks (previous 6175c8fe) (working tree), posture absorb_and_report: +5/~4/-0 circles for tracks -- gained agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record -- changed agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry -- hooks bound StopFailure dispatch.js" StopFailure (git 81970730..working tree -- canon/circles, .claude/settings.json) -- published +5/~5/-0 circles, 1 lug(s) closed at 2026-10-06T09:48:09.961Z -- source: tracks: .cut-status.json (working tree, not yet committed)
-
 ### runtime
 
+- 09:53Z commit 99a21b13 [tracks] harness-arrival-audit: absorbed 3 file(s) on cut arrival -- 3 file(s), area runtime -- source: tracks: git log main 99a21b13
 - 09:53Z commit 81970730 [tracks] harness-arrival-audit: absorbed 6 file(s) on cut arrival -- 6 file(s), area runtime -- source: tracks: git log main 81970730
+
+### canon
+
+- 09:53Z commit 948be1b2 [tracks] hf deploy: cut de1cbfa62b82 applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 17 file(s), area canon -- source: tracks: git log main 948be1b2
+
+### cuts
+
+- 09:53Z cut de1cbfa6 received by tracks (previous 6175c8fe) landed 948be1b2, posture absorb_and_report: +5/~4/-0 circles for tracks -- gained agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record -- changed agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry -- hooks bound StopFailure dispatch.js" StopFailure (git 81970730..948be1b2 -- canon/circles, .claude/settings.json) -- published +5/~5/-0 circles, 1 lug(s) closed at 2026-10-06T09:48:09.961Z -- source: tracks: git show 948be1b2:.cut-status.json
 
 ## 2026-09-29
 
@@ -2410,7 +2415,7 @@ Entries: 64 (commit 44, cut_received 19, lug_review 1).
 
 ## Cut de1cbfa6 -- received 2026-10-06 09:53Z (from 6175c8fe)
 
-09:53Z cut de1cbfa6 received by tracks (previous 6175c8fe) (working tree), posture absorb_and_report: +5/~4/-0 circles for tracks -- gained agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record -- changed agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry -- hooks bound StopFailure dispatch.js" StopFailure (git 81970730..working tree -- canon/circles, .claude/settings.json) -- published +5/~5/-0 circles, 1 lug(s) closed at 2026-10-06T09:48:09.961Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+09:53Z cut de1cbfa6 received by tracks (previous 6175c8fe) landed 948be1b2, posture absorb_and_report: +5/~4/-0 circles for tracks -- gained agent-dispatch-record, machine-dispatch-ceiling, raw-session-snapshot-end, raw-session-snapshot-stop, turn-failure-record -- changed agent-target-scope-guard, gate-pool-serial-suites, wcl-entry-directive, worktree-registry -- hooks bound StopFailure dispatch.js" StopFailure (git 81970730..948be1b2 -- canon/circles, .claude/settings.json) -- published +5/~5/-0 circles, 1 lug(s) closed at 2026-10-06T09:48:09.961Z -- source: tracks: git show 948be1b2:.cut-status.json
 
 Entries: 62 (circle_added 5, commit 56, hook_bound 1).
 
@@ -4643,4 +4648,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:b25a27f94ce7c88f26e4ed4dc5b164856323a7b4ad7beac630f1ffe15c7b7d0a -->
+<!-- integrity sha256:54f54b33b417aee51aabc5028fff47ee3aceacd437e5a8108b46d80ca1d5a598 -->
