@@ -46,3 +46,18 @@ WAI-Spoke/advisors/*/context/snapshot-*
 .env
 .env.*
 !.env.template
+
+# harness baseline (canon/policies/gitignore-baseline.policy.yaml) -- added by the harness, safe to keep
+runtime/*
+!runtime/tracks
+!runtime/track-segments
+!runtime/turn-records
+!runtime/sessions
+!runtime/session-snapshot-findings.jsonl
+!runtime/session-snapshot-findings.jsonl.segments/
+!.env.example
+*.pem
+*.key
+.credentials.json
+credentials.json
+secrets.json
