@@ -9,13 +9,18 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ## 2026-10-19
 
+### repo root
+
+- Add missing gitignore baseline entries
+- Regenerate stale generated docs (CLAUDE.md, AMBASSADOR_BRIEF.md, docs/CHANGELOG.md)
+
 ### cuts
 
 - Cut 61be088e received (from ff0c5320), posture absorb_and_report: 3 changed (bash-lug-guard, calibration-record, zellij-tab-identity-session-end); hooks bound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit; hooks unbound: Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit; 10 lug(s) closed on the wheel; 9 prior hook(s) dropped.
 
 ### harness bookkeeping
 
-- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+- 3 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2, hf deploy: cut 1).
 
 ## 2026-10-07
 
@@ -3234,13 +3239,26 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 74 (commit 52, cut_received 21, lug_review 1).
+Entries: 78 (commit 56, cut_received 21, lug_review 1).
 
 ## 2026-10-19
 
+### repo root
+
+- 19:46Z commit 1103e0a9 [tracks] Add missing gitignore baseline entries -- 1 file(s), area repo root -- source: tracks: git log main 1103e0a9
+- 19:46Z commit dcc3242f [tracks] Regenerate stale generated docs (CLAUDE.md, AMBASSADOR_BRIEF.md, docs/CHANGELOG.md) -- 3 file(s), area repo root -- source: tracks: git log main dcc3242f
+
+### canon
+
+- 19:46Z commit 3d92bf61 [tracks] hf deploy: cut 61be088e7e4b applied (canon/circles, .claude/settings.json, generated docs, .cut-status.json) -- 5 file(s), area canon -- source: tracks: git log main 3d92bf61
+
 ### cuts
 
-- 19:44Z cut 61be088e received by tracks (previous ff0c5320) (working tree), posture absorb_and_report: +0/~3/-0 circles for tracks -- changed bash-lug-guard, calibration-record, zellij-tab-identity-session-end -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit (git a7dccfcd..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 10 lug(s) closed at 2026-10-19T18:24:01.657Z -- 9 hook(s) dropped -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 19:44Z cut 61be088e received by tracks (previous ff0c5320) landed 3d92bf61, posture absorb_and_report: +0/~3/-0 circles for tracks -- changed bash-lug-guard, calibration-record, zellij-tab-identity-session-end -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit (git a7dccfcd..3d92bf61 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 10 lug(s) closed at 2026-10-19T18:24:01.657Z -- 9 hook(s) dropped -- source: tracks: git show 3d92bf61:.cut-status.json
+
+### ledger
+
+- 19:46Z commit 91339ae9 [tracks] harness-arrival-audit: absorbed 6 file(s) on cut arrival -- 6 file(s), area ledger -- source: tracks: git log main 91339ae9
 
 ### runtime
 
@@ -3439,7 +3457,7 @@ Entries: 74 (commit 52, cut_received 21, lug_review 1).
 
 ## Cut 61be088e -- received 2026-10-19 19:44Z (from ff0c5320)
 
-19:44Z cut 61be088e received by tracks (previous ff0c5320) (working tree), posture absorb_and_report: +0/~3/-0 circles for tracks -- changed bash-lug-guard, calibration-record, zellij-tab-identity-session-end -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit (git a7dccfcd..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 10 lug(s) closed at 2026-10-19T18:24:01.657Z -- 9 hook(s) dropped -- source: tracks: .cut-status.json (working tree, not yet committed)
+19:44Z cut 61be088e received by tracks (previous ff0c5320) landed 3d92bf61, posture absorb_and_report: +0/~3/-0 circles for tracks -- changed bash-lug-guard, calibration-record, zellij-tab-identity-session-end -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit (git a7dccfcd..3d92bf61 -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 10 lug(s) closed at 2026-10-19T18:24:01.657Z -- 9 hook(s) dropped -- source: tracks: git show 3d92bf61:.cut-status.json
 
 Entries: 399 (commit 339, lug_done 24, lug_review 36).
 
@@ -6523,4 +6541,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:6c5f1e1d41722555cb4c8dcb560e616a1155174bda671a59473f689e41cdc34b -->
+<!-- integrity sha256:aa6bd4897c9be015cacc04e67267fd0d46b8e6c17c850733e662150bbf780262 -->
