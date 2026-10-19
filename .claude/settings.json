@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionStart",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionStart",
             "timeout": 450
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
             "timeout": 450
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
             "timeout": 240
           }
         ]
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PostToolUse",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PostToolUse",
             "timeout": 90
           }
         ]
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
             "timeout": 180
           }
         ]
@@ -66,7 +66,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Notification",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Notification",
             "timeout": 30
           }
         ]
@@ -78,7 +78,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreCompact",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreCompact",
             "timeout": 30
           }
         ]
@@ -90,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
             "timeout": 210
           }
         ]
@@ -102,7 +102,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" StopFailure",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" StopFailure",
             "timeout": 30
           }
         ]
@@ -116,23 +116,18 @@
       "Bash(git push -f*)"
     ],
     "allow": [
-      "Read(*)",
-      "Glob(*)",
-      "Grep(*)",
-      "Bash(git status*)",
-      "Bash(git diff*)",
-      "Bash(git log*)",
-      "Bash(git show*)",
-      "Write(*)",
-      "Edit(*)",
-      "Skill(*)",
-      "Agent(*)",
-      "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(npm test*)",
-      "Bash(npm run *)",
-      "Bash(node *)",
-      "Bash(python3 *)"
+      "Bash(node scripts/lug-verb.js *)",
+      "Bash(node scripts/lug-divergence.js *)",
+      "Bash(node scripts/readiness-sweep.js*)",
+      "Bash(git push)",
+      "Bash(git push origin main)",
+      "Bash(node scripts/push-bypass.js *)",
+      "Bash(hf deploy --stage=push,cut)",
+      "Bash(node src/cli.js deploy --stage=push,cut)",
+      "Bash(node scripts/ff-main.js *)",
+      "Bash(node scripts/worktree.js *)",
+      "Bash(node scripts/release-dead-lock.js *)",
+      "Bash(node scripts/grant-scope.js *)"
     ]
   }
 }

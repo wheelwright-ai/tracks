@@ -79,3 +79,7 @@ Subject `heuristic`, ref `external:tastegraph-heuristic:<key>`, plus
 `misses_shown` and `disputes` beside the rate. Written at every dispute
 and at every further miss of a disputed key. Over 30% on >= 3 shown misses
 mutes the heuristic (no rows, no injection) and names it at wakeup.
+
+## bash-lug-guard (261007)
+
+On-demand read: node scripts/guard-calibration.js rate; dispute: false_positive <id|last>. Goals review names the guard above 20%. See docs/bash-lug-guard-false-positive-rate.md.

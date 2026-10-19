@@ -62,3 +62,5 @@ OWN repo, under `src/`, `conformance/`, `reference/`, `canon/` or
 in this hook (`personaBoundary.checkBashAuthorship`), gated by
 max-persona-boundary-guard's own posture knob and refusal sentence. Full
 account: `docs/max-persona-boundary-bash-authorship.md`.
+
+Target-based heuristic + measured false-positive rate: see docs/bash-lug-guard-false-positive-rate.md.

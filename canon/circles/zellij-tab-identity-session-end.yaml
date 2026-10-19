@@ -20,7 +20,9 @@ invariants:
     the sidecar file names under /tmp/claude-sessions are a contract with basher
     lens and never change
   - a tab whose name carries a lens sentinel is never renamed
-  - SessionEnd never paints over an unacknowledged attention glyph
+  - >-
+    SessionEnd clears a done check but never paints over a failed, blocked or
+    question glyph
 failure_routing: lug:zellij-tab-identity-failure
 counter_metric: tab_state_apply_rate
 enforcement: hook
