@@ -14,6 +14,12 @@ spoke is, its toolbox, how the wheel works around it, where to ask for
 centralized knowledge, how to report up, how to optimize performance,
 and the preferred way to do a task where more than one tool exists.
 
+## Superseded paths -- do not read
+
+Retired slash commands -- never recommend these:
+- `/wai-shipit` is retired; use `/wai-deploy`
+- `/shipit` is retired; use `/wai-deploy`
+
 ## Live policies (0)
 
 ## Live circles (99)

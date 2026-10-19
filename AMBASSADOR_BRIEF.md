@@ -2,7 +2,7 @@
 
 This is what any agent needs to become a competent partner to this spoke
 from one wakeup, with no hand-fed context (the Ambassador property,
-260901-FBL-063; see canon/glossary.md -- not on this spoke, and no registered hub has it either; see .local/known-repos.json). Never hand-written -- compiled
+260901-FBL-063; see /home/mario/projects/wheelwright/wheel-hub/canon/glossary.md). Never hand-written -- compiled
 from canon only. A pointer to this file is what's actually injected at
 wakeup, per the generated CLAUDE.md; the full brief is one read away.
 
@@ -147,7 +147,7 @@ path to one is baked into this generated text.)
 Insight push (a fire-and-forget Message after each Wilbur checkpoint,
 kind: insight), ledger practice rows, and the Signal -> Teaching
 pipeline -- never a direct, unreviewed canon edit. See
-canon/glossary.md -- not on this spoke, and no registered hub has it either; see .local/known-repos.json's **Insight push** entry.
+/home/mario/projects/wheelwright/wheel-hub/canon/glossary.md's **Insight push** entry.
 
 ## 6. How to optimize its own performance
 
@@ -220,3 +220,10 @@ registry, which this cwd can already read:
    `--status=fulfilled` toasts the requester's machine (notifyLanding,
    kind `request_fulfilled`) and its very next prompt's delta shows
    "YOUR REQUEST <request> was fulfilled by <reply>" once.
+
+## Superseded paths -- do not read
+
+Retired slash commands -- never recommend these:
+- `/wai-shipit` is retired; use `/wai-deploy`
+- `/shipit` is retired; use `/wai-deploy`
+
