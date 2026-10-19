@@ -56,3 +56,11 @@ jobs:
     cut_carried: true
     consumer: {reader_path: src/sessionRecord/rawSnapshot.js, reads: readSessionRaw}
     rationale: every spoke snapshots its own raw Claude logs into its own runtime/sessions, oldest first, 64 MB of source per tick -- the backlog a cut finds and the Stop a crash missed. A cut adds this job to a spoke clock that lacks it.
+  advisor_activation:
+    job: dueForActivation
+    cadence_ticks: 1
+    autopilot_launch: true
+    hub_root: ../wheel-hub
+    cut_carried: true
+    consumer: {reader_path: src/conductor/goalsReview.js, reads: buildAdvisorActivationLastTickSection}
+    rationale: 'lug ozi-autopilot-run-decides-spend-asks-navigator-for-budget-and- raises-its-hand: a spoke with a declared advisor launches it as the hub does, paced by the hub''s wave gate, stop flag, provider readiness and machine ceiling (hub_root names the sibling hub). No advisor, no launch.'

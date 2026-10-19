@@ -7,10 +7,8 @@
   "harness": {
     "version": "ff0c53202bd3347690f03cb9914d35999cbb0979",
     "path": "/home/mario/projects/wheelwright/tracks/.harness/ff0c53202bd3347690f03cb9914d35999cbb0979",
-    "reused": false,
-    "pruned": [
-      "6175c8fe63f6fb8c368a3f93fa17138339f64138"
-    ]
+    "reused": true,
+    "pruned": []
   },
   "liveApplied": false,
   "announcedSessions": [],
@@ -18,24 +16,8 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-10-07T02:57:15.219Z",
+      "auditedAt": "2026-10-07T02:57:28.715Z",
       "findings": [
-        {
-          "path": ".cut-status.json",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "docs/CHANGELOG.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -59,8 +41,8 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 1,
-        "ORGANIC_RUNTIME_CHURN": 4,
+        "LEGITIMATE_CUT_ABSORPTION": 0,
+        "ORGANIC_RUNTIME_CHURN": 3,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       },
@@ -69,18 +51,16 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        ".cut-status.json",
-        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl"
       ],
-      "commit": "b7c3b0a6d97615a6585a33570d4e1f1305763111",
+      "commit": "4289300510e25c9bad37450759d2f465ffc3164f",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1791341835352-twbpo2"
+        "ldg-arrival-audit-committed-1791341848772-0z532b"
       ]
     },
     "profileSeeding": {
@@ -133,8 +113,8 @@
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [],
-  "appliedAt": "2026-10-07T02:57:17.538Z",
-  "previous_version": "de1cbfa62b82b1bd793bac80ca1a946672fe16f3",
+  "appliedAt": "2026-10-07T02:57:29.925Z",
+  "previous_version": "ff0c53202bd3347690f03cb9914d35999cbb0979",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
