@@ -25,7 +25,7 @@
   "digest": "sha256:70a287549ecca0728ebcfcb7f20d0a78ddb408d14019151ee2a68af932f80ec1",
   "gitignoreBaseline": {
     "ok": true,
-    "changed": true,
+    "changed": false,
     "tracked": [
       "runtime/active-lug/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json",
       "runtime/anthropic-usage-observed.json",
@@ -57,23 +57,23 @@
     ]
   },
   "gitignoreLines": [
-    "gitignore tracks: runtime/* added (.gitignore:51)",
-    "gitignore tracks: !runtime/tracks added (.gitignore:52)",
-    "gitignore tracks: !runtime/track-segments added (.gitignore:53)",
-    "gitignore tracks: !runtime/turn-records added (.gitignore:54)",
-    "gitignore tracks: !runtime/sessions added (.gitignore:55)",
-    "gitignore tracks: !runtime/session-snapshot-findings.jsonl added (.gitignore:56)",
-    "gitignore tracks: !runtime/session-snapshot-findings.jsonl.segments/ added (.gitignore:57)",
+    "gitignore tracks: runtime/* already present (.gitignore:51)",
+    "gitignore tracks: !runtime/tracks already present (.gitignore:52)",
+    "gitignore tracks: !runtime/track-segments already present (.gitignore:53)",
+    "gitignore tracks: !runtime/turn-records already present (.gitignore:54)",
+    "gitignore tracks: !runtime/sessions already present (.gitignore:55)",
+    "gitignore tracks: !runtime/session-snapshot-findings.jsonl already present (.gitignore:56)",
+    "gitignore tracks: !runtime/session-snapshot-findings.jsonl.segments/ already present (.gitignore:57)",
     "gitignore tracks: .local/ already present (.gitignore:30)",
     "gitignore tracks: .env already present (.gitignore:46)",
     "gitignore tracks: .env.* already present (.gitignore:47)",
     "gitignore tracks: !.env.template already present (.gitignore:48)",
-    "gitignore tracks: !.env.example added (.gitignore:58)",
-    "gitignore tracks: *.pem added (.gitignore:59)",
-    "gitignore tracks: *.key added (.gitignore:60)",
-    "gitignore tracks: .credentials.json added (.gitignore:61)",
-    "gitignore tracks: credentials.json added (.gitignore:62)",
-    "gitignore tracks: secrets.json added (.gitignore:63)",
+    "gitignore tracks: !.env.example already present (.gitignore:58)",
+    "gitignore tracks: *.pem already present (.gitignore:59)",
+    "gitignore tracks: *.key already present (.gitignore:60)",
+    "gitignore tracks: .credentials.json already present (.gitignore:61)",
+    "gitignore tracks: credentials.json already present (.gitignore:62)",
+    "gitignore tracks: secrets.json already present (.gitignore:63)",
     "gitignore tracks: NEEDS OPERATOR -- runtime/active-lug/e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda.json is tracked in git and matches the baseline; the harness does not untrack it (git rm --cached is yours to run)",
     "gitignore tracks: NEEDS OPERATOR -- runtime/anthropic-usage-observed.json is tracked in git and matches the baseline; the harness does not untrack it (git rm --cached is yours to run)",
     "gitignore tracks: NEEDS OPERATOR -- runtime/cartographer-commit-trigger-last-sha.json is tracked in git and matches the baseline; the harness does not untrack it (git rm --cached is yours to run)",
@@ -84,14 +84,12 @@
     "gitignore tracks: NEEDS OPERATOR -- runtime/cross-provider-certifications/p0-bugfix-circle-audit-conversation-track-ingestion.runs.jsonl is tracked in git and matches the baseline; the harness does not untrack it (git rm --cached is yours to run)",
     "gitignore tracks: NEEDS OPERATOR -- 19 more tracked file(s) match the baseline; run: node scripts/gitignore-baseline.js /home/mario/projects/wheelwright/tracks"
   ],
-  "unchanged": false,
+  "unchanged": true,
   "harness": {
     "version": "61be088e7e4b03db966fce7cda15dc25277cf9f3",
     "path": "/home/mario/projects/wheelwright/tracks/.harness/61be088e7e4b03db966fce7cda15dc25277cf9f3",
-    "reused": false,
-    "pruned": [
-      "de1cbfa62b82b1bd793bac80ca1a946672fe16f3"
-    ]
+    "reused": true,
+    "pruned": []
   },
   "liveApplied": false,
   "announcedSessions": [],
@@ -99,36 +97,20 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-10-19T19:44:11.910Z",
+      "auditedAt": "2026-10-19T19:46:25.028Z",
       "findings": [
-        {
-          "path": ".cut-status.json",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "canon/spoke.wheel-clock.yaml",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"canon/spoke.wheel-clock.yaml\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
-          "path": "docs/CHANGELOG.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"docs/CHANGELOG.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"ledger/ledger.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/manifest.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/manifest.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         },
         {
@@ -151,10 +133,17 @@
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"runtime/worktrees.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/000002_2026-09-29_2026-10-07.jsonl.gz",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/000002_2026-09-29_2026-10-07.jsonl.gz\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 1,
+        "LEGITIMATE_CUT_ABSORPTION": 0,
         "ORGANIC_RUNTIME_CHURN": 6,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
@@ -164,20 +153,19 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        ".cut-status.json",
-        "canon/spoke.wheel-clock.yaml",
-        "docs/CHANGELOG.md",
         "ledger/ledger.jsonl",
+        "ledger/ledger.jsonl.segments/manifest.json",
         "runtime/store-bound-state.json",
         "runtime/while-you-were-away.jsonl",
-        "runtime/worktrees.jsonl"
+        "runtime/worktrees.jsonl",
+        "ledger/ledger.jsonl.segments/000002_2026-09-29_2026-10-07.jsonl.gz"
       ],
-      "commit": "4cb231eb8c703044895af199d150d27a809e921c",
+      "commit": "91339ae91b2c4f24f763bdd308e441109aafaea0",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1792439052071-sdtmge"
+        "ldg-arrival-audit-committed-1792439185107-7ak7im"
       ]
     },
     "profileSeeding": {
@@ -185,80 +173,7 @@
       "unresolved": [],
       "written": false
     },
-    "droppedHooks": [
-      {
-        "event": "SessionStart",
-        "matcher": "",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionStart",
-        "timeout": 450,
-        "finding": "hook dropped by cut: SessionStart node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionStart",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056641-ggcadp"
-      },
-      {
-        "event": "PreToolUse",
-        "matcher": "",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
-        "timeout": 450,
-        "finding": "hook dropped by cut: PreToolUse node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056643-rhxzjm"
-      },
-      {
-        "event": "UserPromptSubmit",
-        "matcher": "",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
-        "timeout": 240,
-        "finding": "hook dropped by cut: UserPromptSubmit node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056645-plr5ph"
-      },
-      {
-        "event": "PostToolUse",
-        "matcher": "Bash|Edit|Write|NotebookEdit",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PostToolUse",
-        "timeout": 90,
-        "finding": "hook dropped by cut: PostToolUse node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PostToolUse",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056647-jk70gb"
-      },
-      {
-        "event": "Stop",
-        "matcher": "",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
-        "timeout": 180,
-        "finding": "hook dropped by cut: Stop node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056649-2iri36"
-      },
-      {
-        "event": "Notification",
-        "matcher": "permission_prompt|idle_prompt",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Notification",
-        "timeout": 30,
-        "finding": "hook dropped by cut: Notification node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Notification",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056650-pyy9kg"
-      },
-      {
-        "event": "PreCompact",
-        "matcher": "",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreCompact",
-        "timeout": 30,
-        "finding": "hook dropped by cut: PreCompact node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreCompact",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056652-rv1dbg"
-      },
-      {
-        "event": "SessionEnd",
-        "matcher": "",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
-        "timeout": 210,
-        "finding": "hook dropped by cut: SessionEnd node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056653-27sf02"
-      },
-      {
-        "event": "StopFailure",
-        "matcher": "",
-        "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" StopFailure",
-        "timeout": 30,
-        "finding": "hook dropped by cut: StopFailure node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" StopFailure",
-        "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056655-tox0b1"
-      }
-    ],
+    "droppedHooks": [],
     "spokeLocalHookCircles": [],
     "spokeLocalHookRefused": []
   },
@@ -277,24 +192,12 @@
       "dueForActivation"
     ],
     "present": [
-      "rawSnapshotCatchup"
+      "rawSnapshotCatchup",
+      "dueForActivation"
     ],
-    "added": [
-      {
-        "key": "advisor_activation",
-        "job": "dueForActivation",
-        "form": "full",
-        "method": "spliced"
-      }
-    ],
+    "added": [],
     "findings": [],
-    "reason": "canon/spoke.wheel-clock.yaml lacks dueForActivation -- the cut adds advisor_activation (full)",
-    "tokens": {
-      "before": 665,
-      "after": 801,
-      "cap": 1000,
-      "reserve": 20
-    }
+    "reason": "canon/spoke.wheel-clock.yaml already declares every cut-carried job (rawSnapshotCatchup, dueForActivation) -- nothing added"
   },
   "secretsTemplateRetirement": {
     "retired": false,
@@ -313,80 +216,7 @@
   },
   "reported": [],
   "lug_owed": false,
-  "droppedHooks": [
-    {
-      "event": "SessionStart",
-      "matcher": "",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionStart",
-      "timeout": 450,
-      "finding": "hook dropped by cut: SessionStart node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionStart",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056641-ggcadp"
-    },
-    {
-      "event": "PreToolUse",
-      "matcher": "",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
-      "timeout": 450,
-      "finding": "hook dropped by cut: PreToolUse node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreToolUse",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056643-rhxzjm"
-    },
-    {
-      "event": "UserPromptSubmit",
-      "matcher": "",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
-      "timeout": 240,
-      "finding": "hook dropped by cut: UserPromptSubmit node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056645-plr5ph"
-    },
-    {
-      "event": "PostToolUse",
-      "matcher": "Bash|Edit|Write|NotebookEdit",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PostToolUse",
-      "timeout": 90,
-      "finding": "hook dropped by cut: PostToolUse node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PostToolUse",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056647-jk70gb"
-    },
-    {
-      "event": "Stop",
-      "matcher": "",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
-      "timeout": 180,
-      "finding": "hook dropped by cut: Stop node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Stop",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056649-2iri36"
-    },
-    {
-      "event": "Notification",
-      "matcher": "permission_prompt|idle_prompt",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Notification",
-      "timeout": 30,
-      "finding": "hook dropped by cut: Notification node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" Notification",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056650-pyy9kg"
-    },
-    {
-      "event": "PreCompact",
-      "matcher": "",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreCompact",
-      "timeout": 30,
-      "finding": "hook dropped by cut: PreCompact node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" PreCompact",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056652-rv1dbg"
-    },
-    {
-      "event": "SessionEnd",
-      "matcher": "",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
-      "timeout": 210,
-      "finding": "hook dropped by cut: SessionEnd node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" SessionEnd",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056653-27sf02"
-    },
-    {
-      "event": "StopFailure",
-      "matcher": "",
-      "command": "node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" StopFailure",
-      "timeout": 30,
-      "finding": "hook dropped by cut: StopFailure node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" StopFailure",
-      "ledgerRow": "ldg-arrival-audit-hook-dropped-1792439056655-tox0b1"
-    }
-  ],
+  "droppedHooks": [],
   "spokeLocalHookCircles": [],
   "spokeLocalHookRefused": [],
   "warnings": [
@@ -396,8 +226,8 @@
       "message": "lug \"p0-bugfix-circle-audit-conversation-track-ingestion\" (lugs/p0-bugfix-circle-audit-conversation-track-ingestion.yaml) is review with no assignee (champion) and no watchers (valuator): unowned means unvaluable. Name an advisor in assignee or watchers. (Warning only, for one cycle.)"
     }
   ],
-  "appliedAt": "2026-10-19T19:44:17.816Z",
-  "previous_version": "ff0c53202bd3347690f03cb9914d35999cbb0979",
+  "appliedAt": "2026-10-19T19:46:30.539Z",
+  "previous_version": "61be088e7e4b03db966fce7cda15dc25277cf9f3",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
@@ -409,12 +239,12 @@
   "generated_docs": [
     {
       "file": "CLAUDE.md",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     {
       "file": "AMBASSADOR_BRIEF.md",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     {

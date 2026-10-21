@@ -183,20 +183,27 @@
       "disclosed_at": null
     },
     "ledger|2026-10-19|harness-arrival-audit": {
-      "admitted": 10,
+      "admitted": 11,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-19T19:44:12.072Z",
       "disclosed_at": null
     },
     "ledger|2026-10-19|claude": {
-      "admitted": 2,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-19T19:46:13.183Z",
       "disclosed_at": null
+    },
+    "ledger|2026-10-21|session-exit-commit": {
+      "admitted": 2,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-10-21T04:52:22.797Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-10-19T19:46:13.352Z"
+  "written_at": "2026-10-21T05:39:36.728Z"
 }
