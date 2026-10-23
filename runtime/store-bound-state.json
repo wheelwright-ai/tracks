@@ -197,13 +197,20 @@
       "disclosed_at": null
     },
     "ledger|2026-10-21|session-exit-commit": {
-      "admitted": 12,
+      "admitted": 14,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-21T04:52:22.797Z",
       "disclosed_at": null
+    },
+    "ledger|2026-10-23|session-exit-commit": {
+      "admitted": 2,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-10-23T06:35:02.302Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-10-21T15:41:23.446Z"
+  "written_at": "2026-10-23T07:22:12.834Z"
 }
