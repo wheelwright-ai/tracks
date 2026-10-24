@@ -2,11 +2,11 @@
   "kind": "planner_cycle",
   "schema_version": 2,
   "instance_root": "/home/mario/projects/wheelwright/tracks",
-  "computed_at": "2026-10-24T00:25:12.548Z",
+  "computed_at": "2026-10-24T03:40:29.847Z",
   "max_age_ms": 18000000,
   "allocation": {
     "instance_root": "/home/mario/projects/wheelwright/tracks",
-    "computed_at": "2026-10-24T00:25:12.548Z",
+    "computed_at": "2026-10-24T03:40:29.847Z",
     "max_age_ms": 18000000,
     "refused": false,
     "refusal_reason": null,
@@ -93,7 +93,7 @@
     "canon_decision": {
       "present": true,
       "source": "lug pointers naming a file rule 11 measures (loadCanon entity files + instructions_ref), measured by src/compiler/rules/11-no-oversized-file.js measureCanonContent; at cap = headroom < 30 (docs/done-transition-appends-push-near-cap-lugs-over-rule-11.md: the smallest real machine append measured at ~20-30 tokens; a file with less headroom than that cannot take one addition without a split)",
-      "files_under_cap": 200,
+      "files_under_cap": 201,
       "files_measured": 0,
       "files_at_cap": [],
       "rows": 0
@@ -462,8 +462,8 @@
       "source": "git status --porcelain",
       "retirement": 0,
       "v2_proposed": 0,
-      "other_tracked": 12,
-      "untracked": 2,
+      "other_tracked": 10,
+      "untracked": 1,
       "rows": 0
     },
     "stale_branch": {
@@ -487,9 +487,9 @@
     },
     "ledger_bytes": {
       "present": true,
-      "bytes": 35257,
+      "bytes": 423770,
       "cap_bytes": 48000000,
-      "fraction_of_cap": 0.001,
+      "fraction_of_cap": 0.009,
       "source": "/home/mario/projects/wheelwright/harness-factory/canon/policies/ledger-retention.policy.yaml",
       "rows": 0
     }

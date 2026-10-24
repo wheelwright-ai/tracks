@@ -1,0 +1,43 @@
+kind: policy
+name: track-governance
+owner: mario
+status: live
+schema_version: 1
+rule: >-
+  Every real session produces exactly one Track artifact (runtime/tracks/
+  <session_id>.track.json), written by the Stop hook on every turn and
+  closed by the session-end circle with a real handoff. A track's six
+  required sections (identity_triple, active_lugs_and_transitions,
+  directions_captured, cost_markers, decisions, handoff) must all be
+  present, even when a section is honestly empty -- an absent key is a
+  conformance failure, an empty array is not. Retention: tracks stay hot
+  for 90 days, then move to runtime/tracks-archive/<YYYY-MM>/, never
+  deleted; the ledger rows a track's own session produced (directions,
+  decisions, teaching) survive independently in ledger.jsonl regardless
+  of the track's own archival state. The next session's wakeup reads the
+  prior session's handoff (runtime/last-handoff.json), never the raw
+  transcript, for "what happened last time." Every response ends with the
+  merged turn footer (260830-FBL-037, formatMergedTurnFooter +
+  buildMergedFooterFields): id-v3 coordinates | local HH:MM | model |
+  framework version | turn cost (real tokens or the literal word
+  "unmeasured") | open: N. Absorbed from v1's own AI1_footer_mandatory
+  ("a values violation, not a formatting choice," Design Inputs
+  Register, 260829-FBL-027/037) -- v1's session+turn fields collapse
+  into the one real id-v3 coordinate; v1's "Gold" slot is reborn
+  honestly as the real per-turn cost. Never hand-typed. Wheel-wide by
+  construction: this policy and footerAuditHook.js are framework-level,
+  so every spoke inherits both at its next cut, not a per-spoke
+  customization -- a spoke may EXTEND the line with an overlay (extra
+  fields appended after the six core ones), never omit a core field. v1's
+  own enforcement was self-audit only (the model catching its own miss)
+  and that is exactly the failure mode this ports away from: the
+  compiled wakeup injection carries the rule at the prompt layer, and
+  the Stop hook independently audits the just-completed response's own
+  text against the real current coordinates -- a miss is never left to
+  the model's own report.
+scope: "every real session, every spoke -- src/hooks/trackWriteHook.js (Stop), src/hooks/sessionEndHandoffHook.js (SessionEnd), src/hooks/footerAuditHook.js (Stop, the turn-footer audit), src/lugTracking/trackArtifact.js, handoff.js, and turnFooter.js (the enforcement)"
+enforcement: kernel_check
+violation_signal: "a session's runtime/tracks/<id>.track.json is missing after any real Stop event fired, or is missing a required section, or a session-end fired with no handoff written -- all checkable from real files on disk after the fact"
+profile_dependent: false
+concern: "turn-track-governance"
+compiled_from: "src/lugTracking/trackGovernancePrompt.js's compileTrackGovernancePrompt() -- the one authored source; the wakeup injection and the hook bodies both trace back to this policy, never a hand-maintained duplicate"
