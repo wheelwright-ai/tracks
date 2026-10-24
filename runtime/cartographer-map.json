@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-24T03:34:20.533Z",
-  "duration_ms": 234,
+  "generated_at": "2026-10-24T17:30:59.828Z",
+  "duration_ms": 159,
   "areas": [
     {
       "area": "advisor",
@@ -6577,7 +6577,7 @@
       "implementing_files": [
         {
           "path": "src/compiler/rules/26-no-functional-wai-harness-path.js",
-          "hash": "93b0cc44dfd5d671"
+          "hash": "73e560d90a8401fb"
         }
       ],
       "found": true
@@ -8202,6 +8202,10 @@
     {
       "test": "conformance/fixtures/refusal-cause-digest/refusal-cause-digest.conformance.test.js",
       "lug": "ozi-names-the-cause-refusing-the-most-work-each-cycle"
+    },
+    {
+      "test": "conformance/fixtures/refused-cut-restores-a-harness-that-still-exists/refused-cut-restores-a-harness-that-still-exists.conformance.test.js",
+      "lug": "a-refused-cut-restores-a-harness-install-that-still-exists"
     },
     {
       "test": "conformance/fixtures/release-is-gate-proven-not-pushed/release-is-gate-proven-not-pushed.conformance.test.js",
@@ -9903,7 +9907,7 @@
     },
     {
       "path": "src/compiler/rules/26-no-functional-wai-harness-path.js",
-      "hash": "93b0cc44dfd5d671"
+      "hash": "73e560d90a8401fb"
     },
     {
       "path": "src/compiler/rules/27-no-live-lug-lists-a-test-path-that-does-not-exist.js",

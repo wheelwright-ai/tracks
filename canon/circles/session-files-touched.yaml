@@ -26,6 +26,13 @@ invariants:
     recorded paths are absolute and alias-free (realpath of the deepest existing
     ancestor), so a symlinked project root compares equal to its target
   - >-
+    lug in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug:
+    the same PostToolUse binding also matches Agent, and an Agent return appends
+    one completed agent-fork row per lug its launch record names to
+    runtime/dispatch-registry.jsonl (recordAgentForkCostRows,
+    src/lugTracking/agentDispatchRecords.js) -- a record of the fork, never a
+    launch, no new hook; an Agent call writes no files-touched row
+  - >-
     never blocks, never prints on allow, exits 0 even when the record cannot be
     written -- the tool call it observed is not this hook's to fail; the
     transcript is the exit commit's second source
@@ -38,7 +45,7 @@ consumers:
   - session-exit-commit
 runs_on: hook_event
 hook_event_name: PostToolUse
-hook_matcher: Edit|Write|NotebookEdit|Bash
+hook_matcher: Edit|Write|NotebookEdit|Bash|Agent
 hook_script: src/hooks/filesTouchedRecorderHook.js
 conformance: >-
   conformance/fixtures/session-exit-path-fails-five-ways-and-surfaces-none-of-them/session-exit-path.conformance.test.js

@@ -2,11 +2,11 @@
   "kind": "planner_cycle",
   "schema_version": 2,
   "instance_root": "/home/mario/projects/wheelwright/tracks",
-  "computed_at": "2026-10-24T03:40:29.847Z",
+  "computed_at": "2026-10-24T17:33:11.646Z",
   "max_age_ms": 18000000,
   "allocation": {
     "instance_root": "/home/mario/projects/wheelwright/tracks",
-    "computed_at": "2026-10-24T03:40:29.847Z",
+    "computed_at": "2026-10-24T17:33:11.646Z",
     "max_age_ms": 18000000,
     "refused": false,
     "refusal_reason": null,
@@ -462,8 +462,8 @@
       "source": "git status --porcelain",
       "retirement": 0,
       "v2_proposed": 0,
-      "other_tracked": 10,
-      "untracked": 1,
+      "other_tracked": 13,
+      "untracked": 0,
       "rows": 0
     },
     "stale_branch": {
@@ -487,9 +487,9 @@
     },
     "ledger_bytes": {
       "present": true,
-      "bytes": 423770,
+      "bytes": 2149572,
       "cap_bytes": 48000000,
-      "fraction_of_cap": 0.009,
+      "fraction_of_cap": 0.045,
       "source": "/home/mario/projects/wheelwright/harness-factory/canon/policies/ledger-retention.policy.yaml",
       "rows": 0
     }

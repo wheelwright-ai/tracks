@@ -10,7 +10,16 @@ the record the `session-exit-commit` circle reads at exit.
 
 ## What it does
 
-Bound to `PostToolUse`, matcher `Edit|Write|NotebookEdit|Bash` -- fires
+(Also matches `Agent`: an Agent-tool return closes the fork's dispatch cost
+row, lug `in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug`.
+Per Agent call, for each lug the PreToolUse launch record named -- a lug file
+path, `lug: <name>` or ``lug `<name>` `` in the prompt -- one `completed`,
+`invocation_source: agent-fork` row is appended to
+`runtime/dispatch-registry.jsonl`, issued_at = launch, updated_at = return,
+which `dispatchMeasuredCostForLug` reads as a `registry-span`. No row at
+launch, so a killed fork leaves no false `running` row; tokens stay unmeasured.)
+
+Bound to `PostToolUse`, matcher `Edit|Write|NotebookEdit|Bash|Agent` -- fires
 after every tool call that can write has completed. Runs the write-scope
 guard's own target extraction (`writeTargetsForTool`,
 `src/lugTracking/dispatchScope.js`: `file_path` / `notebook_path` for the
