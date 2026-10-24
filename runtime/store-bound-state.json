@@ -204,13 +204,27 @@
       "disclosed_at": null
     },
     "ledger|2026-10-23|session-exit-commit": {
-      "admitted": 2,
+      "admitted": 5,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-23T06:35:02.302Z",
       "disclosed_at": null
+    },
+    "ledger|2026-10-23|ozi": {
+      "admitted": 2,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-10-23T10:25:48.498Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-10-24|wheel-scheduler": {
+      "admitted": 7,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-10-24T00:23:24.540Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-10-23T07:22:12.834Z"
+  "written_at": "2026-10-24T00:25:50.702Z"
 }

@@ -23,15 +23,7 @@
     ],
     "bashrc_entries": []
   },
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "command": "/home/mario/projects/wheelwright/tracks/WAI-Spoke/_hooks/session-start.sh",
-      "purpose": "Executes at the beginning of a session",
-      "introduced_by": "enrich-lug",
-      "restore_criticality": "high"
-    }
-  ],
+  "hooks": [],
   "tooling": {
     "required": []
   },

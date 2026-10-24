@@ -1,11 +1,13 @@
 {
-  "tick": 6,
+  "tick": 9,
   "lastFiredTick": {
-    "planner_cycle": 6,
-    "communication_inbox": 6,
+    "planner_cycle": 9,
+    "communication_inbox": 8,
     "update_discovery": 6,
     "cartographer_map": 6,
     "ledger_reconciliation": 6,
-    "guard_denial_reconciliation": 6
+    "guard_denial_reconciliation": 6,
+    "raw_snapshot_catchup": 8,
+    "advisor_activation": 8
   }
 }

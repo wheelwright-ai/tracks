@@ -1,15 +1,99 @@
 {
   "kind": "communication_inbox_record",
   "trigger": "wheel_clock",
-  "session_id": "9f14e87d-40ad-40ab-88d0-1fa8e4727f14",
-  "read_at": "2026-09-15T03:42:55.860Z",
+  "session_id": null,
+  "read_at": "2026-10-24T00:24:22.762Z",
   "spoke": {
     "name": "tracks",
     "source": "canon/profile.yaml"
   },
-  "siblings": [],
-  "files_read": 0,
+  "siblings": [
+    {
+      "name": "wheel-hub",
+      "root": "/home/mario/projects/wheelwright/wheel-hub",
+      "source": "hub root"
+    },
+    {
+      "name": "basher",
+      "root": "/home/mario/projects/basher",
+      "source": "hub canon/basher.spoke.yaml"
+    },
+    {
+      "name": "bubo",
+      "root": "/home/mario/projects/bubo",
+      "source": "hub canon/bubo.spoke.yaml"
+    },
+    {
+      "name": "daywright",
+      "root": "/home/mario/projects/daywright",
+      "source": "hub canon/daywright.spoke.yaml"
+    },
+    {
+      "name": "easyorgs",
+      "root": "/home/mario/projects/easyorgs",
+      "source": "hub canon/easyorgs.spoke.yaml"
+    },
+    {
+      "name": "ezorg-email-website",
+      "root": "/home/mario/projects/ezorg-email-website",
+      "source": "hub canon/ezorg-email-website.spoke.yaml"
+    },
+    {
+      "name": "minder",
+      "root": "/home/mario/projects/minder",
+      "source": "hub canon/minder.spoke.yaml"
+    },
+    {
+      "name": "pathfinder",
+      "root": "/home/mario/projects/pathfinder",
+      "source": "hub canon/pathfinder.spoke.yaml"
+    },
+    {
+      "name": "roxy",
+      "root": "/home/mario/projects/roxy",
+      "source": "hub canon/roxy.spoke.yaml"
+    },
+    {
+      "name": "website",
+      "root": "/home/mario/projects/wheelwright/website",
+      "source": "hub canon/website.spoke.yaml"
+    },
+    {
+      "name": "why-go-bye",
+      "root": "/home/mario/projects/why-go-bye",
+      "source": "hub canon/why-go-bye.spoke.yaml"
+    },
+    {
+      "name": "harness-factory",
+      "root": "/home/mario/projects/wheelwright/harness-factory",
+      "source": ".local/known-repos.json"
+    }
+  ],
+  "files_read": 2811,
   "unreadable": [],
-  "open": [],
-  "digest": null
+  "open": [
+    {
+      "name": "receipt-untracked-hook-capture-logs-tracks",
+      "from_spoke": "basher",
+      "from_file": "/home/mario/projects/basher/lugs/receipt-untracked-hook-capture-logs-tracks.yaml",
+      "rank": 0,
+      "stored_priority": "medium",
+      "effective_priority": "high",
+      "escalated": true,
+      "escalation_reason": "past escalation.after 7d since requested_at -- ranks as high",
+      "seniority_role": null,
+      "ask": null,
+      "status": "pending",
+      "delivery": {
+        "state": "untapped",
+        "at": null,
+        "detail": null
+      },
+      "requested_at": "2026-09-28T23:45:00.000Z",
+      "is_reply": false,
+      "reply_to": null
+    }
+  ],
+  "absorbed": [],
+  "digest": "COMMUNICATION INBOX (tracks): 1 open request(s) from 1 sibling spoke(s), 1 past escalation -- top: receipt-untracked-hook-capture-logs-tracks [high, escalated from medium, from basher] (ranked by rankCommunicationInbox; full read: node scripts/communication-inbox.js)"
 }
