@@ -11,8 +11,13 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
-- Cut b4214370 received (from bb0a73e1), posture absorb_and_report: 1 changed (session-files-touched); policies added wheel-bootstrap; changed independent-review-is-required-and-visible, planner-class-floors, release; 8 lug(s) closed on the wheel.
+- Cut 073798ee received (from b4214370), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+- Cut b4214370 received (from bb0a73e1), posture absorb_and_report: 1 changed (session-files-touched).
 - Cut bb0a73e1 received (from 61be088e), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### docs
+
+- Regenerate stale generated docs (docs/CHANGELOG.md)
 
 ### repo root
 
@@ -20,7 +25,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### harness bookkeeping
 
-- 2 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2).
+- 3 harness bookkeeping commit(s) in tracks (harness-arrival-audit 3).
 
 ## 2026-10-23
 
@@ -172,9 +177,19 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 073798ee -- received 2026-10-24 17:33Z (from b4214370)
+
+Cut 073798ee received (from b4214370), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+
+### 2026-10-24
+
+#### src/compiler
+
+- rule-26-reports-until-basher-retires-its-wai-harness-paths + a-refused-cut-restores-a-harness-install-that-still-exists: rule 26 is report-class until basher's retirement lug lands (operator "relax it"); a line marked `rule-26: detection` and a retired/ dir are allowed; hits name the needle's own line, shell backslashes and heredocs no longer desync the scanner. installReleasedHooks keeps the install current pointed at before it, so a refused cut's restore never leaves .harness/current dangling (basher, minder after b4214370)
+
 ## Cut b4214370 -- received 2026-10-24 03:41Z (from bb0a73e1)
 
-Cut b4214370 received (from bb0a73e1), posture absorb_and_report: 1 changed (session-files-touched); policies added wheel-bootstrap; changed independent-review-is-required-and-visible, planner-class-floors, release; 8 lug(s) closed on the wheel.
+Cut b4214370 received (from bb0a73e1), posture absorb_and_report: 1 changed (session-files-touched).
 
 ### 2026-10-24
 
@@ -4171,19 +4186,25 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 90 (commit 66, cut_received 23, lug_review 1).
+Entries: 93 (commit 68, cut_received 24, lug_review 1).
 
 ## 2026-10-24
 
 ### cuts
 
-- 03:41Z cut b4214370 received by tracks (previous bb0a73e1) (working tree), posture absorb_and_report: +0/~1/-0 circles for tracks -- changed session-files-touched (git b7b5a045..working tree -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 8 lug(s) closed at 2026-10-24T03:38:06.894Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 17:33Z cut 073798ee received by tracks (previous b4214370) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 0af4cbc3..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-24T17:31:30.555Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 03:41Z cut b4214370 received by tracks (previous bb0a73e1) landed 0af4cbc3, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed session-files-touched (git b7b5a045..0af4cbc3 -- canon/circles, .claude/settings.json) -- source: tracks: git show 0af4cbc3:.cut-status.json
 - 00:25Z cut bb0a73e1 received by tracks (previous 61be088e) landed b7b5a045, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3d92bf61..b7b5a045 -- canon/circles, .claude/settings.json) -- source: tracks: git show b7b5a045:.cut-status.json
 
 ### runtime
 
+- 17:33Z commit 0af4cbc3 [tracks] harness-arrival-audit: absorbed 13 file(s) on cut arrival -- 13 file(s), area runtime -- source: tracks: git log main 0af4cbc3
 - 03:41Z commit b7b5a045 [tracks] harness-arrival-audit: absorbed 11 file(s) on cut arrival -- 11 file(s), area runtime -- source: tracks: git log main b7b5a045
 - 00:25Z commit 1f968016 [tracks] harness-arrival-audit: absorbed 15 file(s) on cut arrival -- 15 file(s), area runtime -- source: tracks: git log main 1f968016
+
+### docs
+
+- 03:41Z commit eaade2f9 [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main eaade2f9
 
 ### repo root
 
@@ -4426,9 +4447,21 @@ Entries: 90 (commit 66, cut_received 23, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 073798ee -- received 2026-10-24 17:33Z (from b4214370)
+
+17:33Z cut 073798ee received by tracks (previous b4214370) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 0af4cbc3..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-24T17:31:30.555Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 1 (commit 1).
+
+### 2026-10-24
+
+#### src/compiler
+
+- 17:12Z commit 073798ee [harness-factory] rule-26-reports-until-basher-retires-its-wai-harness-paths + a-refused-cut-restores-a-harness-install-that-still-exists: rule 26 is report-class until basher's retirement lug lands (operator "relax it"); a line marked `rule-26: detection` and a retired/ dir are allowed; hits name the needle's own line, shell backslashes and heredocs no longer desync the scanner. installReleasedHooks keeps the install current pointed at before it, so a refused cut's restore never leaves .harness/current dangling (basher, minder after b4214370) -- fixtures 369/550 -- 7 file(s), area src/compiler -- source: harness-factory: git log main 073798ee
+
 ## Cut b4214370 -- received 2026-10-24 03:41Z (from bb0a73e1)
 
-03:41Z cut b4214370 received by tracks (previous bb0a73e1) (working tree), posture absorb_and_report: +0/~1/-0 circles for tracks -- changed session-files-touched (git b7b5a045..working tree -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 8 lug(s) closed at 2026-10-24T03:38:06.894Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+03:41Z cut b4214370 received by tracks (previous bb0a73e1) landed 0af4cbc3, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed session-files-touched (git b7b5a045..0af4cbc3 -- canon/circles, .claude/settings.json) -- source: tracks: git show 0af4cbc3:.cut-status.json
 
 Entries: 163 (commit 116, lug_done 8, lug_review 39).
 
@@ -8254,4 +8287,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:462acc369167cc98d6c4a331dbabbee5a519fce39a0f2ef9cc01f1d588e9ea3b -->
+<!-- integrity sha256:6c92b2be014b03f536719124c8b17df0f753e8f253d85030c59a8b258e29470a -->
