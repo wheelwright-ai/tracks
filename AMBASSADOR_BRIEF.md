@@ -118,7 +118,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 
 0 intake protocol(s): none
 
-0 live policy/policies -- see the generated CLAUDE.md's "Live policies" section for the current list.
+1 live policy/policies -- see the generated CLAUDE.md's "Live policies" section for the current list.
 
 ## 3. How the wheel works around it
 
