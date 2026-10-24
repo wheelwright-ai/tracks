@@ -11,11 +11,16 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
-- Cut bb0a73e1 received (from 61be088e), posture absorb_and_report: no circle or hook changed for this spoke; 19 lug(s) closed on the wheel.
+- Cut b4214370 received (from bb0a73e1), posture absorb_and_report: 1 changed (session-files-touched); policies added wheel-bootstrap; changed independent-review-is-required-and-visible, planner-class-floors, release; 8 lug(s) closed on the wheel.
+- Cut bb0a73e1 received (from 61be088e), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### repo root
+
+- Regenerate stale generated docs (CLAUDE.md, AMBASSADOR_BRIEF.md, docs/CHANGELOG.md)
 
 ### harness bookkeeping
 
-- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+- 2 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2).
 
 ## 2026-10-23
 
@@ -167,9 +172,379 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut b4214370 -- received 2026-10-24 03:41Z (from bb0a73e1)
+
+Cut b4214370 received (from bb0a73e1), posture absorb_and_report: 1 changed (session-files-touched); policies added wheel-bootstrap; changed independent-review-is-required-and-visible, planner-class-floors, release; 8 lug(s) closed on the wheel.
+
+### 2026-10-24
+
+#### harness-factory-repoints-its-basher-touchpoints-behind-one-root  (at review -- certification pending)
+
+Challenge: Phase 0.5 of initiative basher-v2-fleet-steward.
+Solution: One resolver (src/basher/basherRoot.js, exported basherStateRoot() and basherConfigRoot()) honours BASHER_STATE_ROOT and BASHER_CONFIG_ROOT, falling back to today's paths. The five call sites (wclCli.js:230, configCustody.js:218, notify.js:52, zellijTabIdentity.js:29/182/275, secrets.js:75) and the co-version receipt path (deploy.js:831-855) read through it.
+Record: certification pending · fixtures 19/19, 1/541, 397/540 · shas 244e6be4, d9e25117
+
+#### harness-factorys-own-wheel-clock-runs-out-of-session  (at review -- certification pending)
+
+Challenge: Audit 2026-10-20 (docs/audits/2026-10-20-circle-liveness.md, finding 8; docs/audits/2026-10-20-ap-chain.md, finding 7): harness-factory's own wheel clock (canon/ozi.wheel-clock.yaml) stalled at tick 360 (2026-10-20 12:52 AM PDT).
+Solution: scripts/wheel-clock-cron.mjs ticks every registered spoke that declares a wheel clock (harness-factory first), not only the hub, each under its own catch-up lease and the same per-job budget. Jobs deferred by a SessionStart hook are then really run by cron, and frameworkRoot is passed to every spoke's tick.
+Record: certification pending · fixtures 1/540, 3/537 · shas 2c84f0d2, f6fd42e7
+
+#### hooks-write-session-state-to-the-main-checkout-not-the-worktree  (at review -- certification pending)
+
+Challenge: Operator 2026-10-20 8:30 PM PDT: main is the one holder of the shared spoke folders, never the worktrees. stateRoot (src/factory/worktreeRegistry.js) already routes the lug verb and the claim guard to main, but the hooks do not: measured 2026-10-20, a session whose cwd was a linked worktree wrote runtime/sessions/<id>/, runtime/tracks/<id>.track.json, runtime/turn-records/<id>.jsonl and a disclosed-gap finding plus its ledger row inside the worktree.
+Solution: The hook dispatcher (src/hooks/dispatch.js) resolves the instance root once through stateRoot, so every hook body writes lugs/, runtime/, ledger/ and messages/ at the main checkout, wherever the session's cwd is. Each written row still names the session and its cwd, so which worktree a session ran in stays on the record (the worktree registry already records head_at_create per tree).
+Record: certification pending · fixtures 1/538, 11/538 · shas 285c7984, 63210a6b
+
+#### initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them  (at review -- certification pending)
+
+Challenge: Operator 2026-10-20, 7:30 PM PDT: "can we land this clean up prior to the next cut being created? I think that's a good flag to have on our initiatives to ensure focus is on those prioritized items.." Measured: the initiative schema allows extra fields but names none for cut sequencing; the planner ranks by initiative precedence and priority only; hf deploy's cut stage (src/factory/deploy.js stageCut, cutPublish.js) checks the basher co-version receipt and nothing about initiatives.
+Solution: initiative.schema.json gains before_next_cut: a list of lug names from that initiative that must be in review or done before a cut is published. The planner ranks every lug named in any live initiative's before_next_cut ahead of all other ready work, across initiatives, in priority order. hf deploy's cut stage reads every live initiative and refuses to publish while any named lug is not in review or done, naming the lug, unless --cut-anyway is passed and recorded in the cut's delta_basis.
+Record: certification pending · fixtures 64/64, 1/542, 362/540 · shas b5057789, f1a1186e, 64b1e8c8
+
+#### raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments  (at review -- certification pending)
+
+Challenge: A comment or heredoc prose that mentions the raw worktree add command in backticks trips the raw-worktree-add-redirect guard (reproduced 2026-10-19: detectRawWorktreeAdd matches a "# use `...`" line, since a backtick counts as a command position).
+Solution: In src/hooks/lib/rawWorktreeAdd.js, a backtick counts as a command position only when it opens a command substitution. Backticks used as inline code in prose, or on a line whose first non-blank character is #, never match.
+Record: certification pending · fixtures 1/545, 381/543 · shas a2e39cdc, 4108655a
+
+#### rule-fixtures-stop-writing-runtime-into-their-canon-dirs  (at review -- certification pending)
+
+Challenge: Measured 2026-10-22 during four folds.
+Solution: The rule fixtures compile a temp copy of each broken/fixed canon tree, so the tracked fixture dirs are read-only inputs. After any run of those suites, `git status --short conformance/fixtures` is empty.
+Record: certification pending · fixtures 3/544 · shas 3394c738
+
+#### wcl-auto-entry-mode-seeds-do-it-now-directive  (at review -- certification pending)
+
+Challenge: Add a 4/a Auto entry to wcl that opens an interactive session seeded with a work-the-recommended-queue-top-down directive, with no briefing pause.
+Solution: wcl's menu offers "4/a Auto". It launches interactively with WCL_ENTRY=auto, and entryContext("auto") in src/hooks/wclEntryDirectiveHook.js returns the Ozi wakeup directive plus "then work the recommended queue top-down without waiting for the operator, scoring each action, stopping only for a genuinely destructive step." auto joins ENTRY_MODES in src/basher/wclEntry.js; keyToEntry and menuLines gain it.
+Record: certification pending · fixtures 386/547 · shas 520c0626
+
+#### wcl-bootstrap-pulls-a-sanitized-wheel-from-the-public-repo  (at review -- certification pending)
+
+Challenge: A stranger should be able to stand up a wheel from the public repo with one command.
+Solution: `node src/cli.js bootstrap` installs dependencies, runs the scaffold interview (user, machine, hub path, first spoke, model lanes, permission mode, origin code) with declared, named defaults, builds the hub and first spoke, binds hooks to that machine's paths, installs wcl on PATH and launches `wcl <first-spoke>`. README's bootstrap section is generated from the interview's own questions.
+Record: certification pending · fixtures 1/545, 23/23, 44/44, 387/545 · shas dd717d0f, e01aa1fa
+
+#### work-folds-the-moment-it-is-verified-and-carries-its-instruction-update  (at review -- certification pending)
+
+Challenge: Operator 2026-10-13: changes sitting isolated in a worktree waiting to merge make the work harder, and updating the spoke's instructions as initiatives finish keeps the wheel remembering.
+Solution: No lug branch outlives its session. A verifier approval folds the branch at once.
+Record: certification pending · fixtures 1/539, 362/538 · shas 7948bfa1, 4c29befe
+
+#### worktree-add-links-dependencies-and-gates-keep-the-first-error-line  (at review -- certification pending)
+
+Challenge: basher blocker d (2026-10-13): worktrees from scripts/worktree.js add have no node_modules, so canon-refuse-gate fails with "failed to run" and builders symlink it by hand (seen four times on 2026-10-19).
+Solution: `node scripts/worktree.js add` links node_modules and .local from the main checkout into the new tree through mirrorMachineState (src/factory/worktreeRegistry.js), and prints which entries it linked. addWorktree itself is unchanged, so the detached cut and deploy checkouts keep their behavior.
+Record: certification pending · fixtures 5/547 · shas 700bff0a
+
+#### advisor-rebuild-ships-with-the-ap-fixes
+
+- A version is released when the full push gate proved that exact commit (runtime/test-proofs.json full-suite receipt) or it is on origin/main (isReleasable in releasedCut.js). publishLatestCut and resolveReleasedCut accept either and record release_basis. [fixtures 8/8, 367/549; landed b4214370]
+- The gate entry calls main() without a top-level await, so the cycle completes and the verdict prints; a fixture pins both the call shape and the cycle. [fixtures 3/3, 367/548; landed 8fb06a2b]
+
+#### commits
+
+- worktree-add-links-dependencies-and-gates-keep-the-first-error-line + wcl-auto-entry-mode-seeds-do-it-now-directive: to review
+- raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments + rule-fixtures-stop-writing-runtime-into-their-canon-dirs: folded 04cf3442 and 45ecd061 (haiku), 9 covering suites + rule runner 64/64 green, to review
+
+#### src/basher
+
+- Reapply "harness-factory-repoints-its-basher-touchpoints-behind-one-root: basherRoot.js resolver (BASHER_STATE_ROOT/BASHER_CONFIG_ROOT) behind wcl, custody, notify, zellij, secrets, receipt gate; Ruling 5 amended; v1 delegation guarded"
+- Revert "harness-factory-repoints-its-basher-touchpoints-behind-one-root: basherRoot.js resolver (BASHER_STATE_ROOT/BASHER_CONFIG_ROOT) behind wcl, custody, notify, zellij, secrets, receipt gate; Ruling 5 amended; v1 delegation guarded"
+
+#### navigator-has-no-per-task-profile-recommendation-scoring
+
+- A generated artifact charts every available model by cost and capability per task class, with real or explicitly unknown prices, and names the cheapest fit per class. [fixtures 1/548; landed e805c5c7]
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- src/advisor/surveyorAudit.js auditSpokeReadiness(hubRoot, spoke) returns {pass, checks, fixes<=3}. [fixtures 0/541; landed 84052b9b]
+
+### 2026-10-23
+
+#### a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke  (at review -- certification pending)
+
+Challenge: Operator 2026-10-19 11:50 PM PDT: "the mission is to get the wheel to a place it can be given clear directions on refining the backlog and establishing clear numbers and drive ap into it.." Tonight each refinement pass was a hand-written advisor brief and a hand-written communication lug.
+Solution: `node scripts/refine.js <spoke> [--target=<n>] [--hub=<root>]` reads that spoke's fleetApReadiness row (lug fleet-ap-readiness-is-one-line-per-spoke-at-session-start). When the spoke has fewer than target (default 5) execute-only ready lugs, it files ONE communication lug in the hub addressed to that spoke.
+Record: certification pending · fixtures 355/533 · shas 4b2ea65c
+
+#### a-spoke-under-redesign-holds-its-legacy-backlog-until-it-is-refactored  (at review -- certification pending)
+
+Challenge: Operator 2026-10-22 9:25 AM PDT: "spokes that get a redesign must refactor their backlog as the established work cant remain relevant as it stands if we rebuild the codebase and functionality - this is happening with Basher and Minder so lets not throw work cycles at code that is about to be replaced.." Measured that day: basher has 194 ready lugs (49 critical, 128 high) against v1 code that basher-v2-fleet-steward replaces.
+Solution: A spoke entity (canon/<spoke>.spoke.yaml) may declare redesign: { successor, since, design_ref, carries_forward: [lug names] }. While that block exists, buildReadyWorkQueue (src/conductor/readyWork.js) holds every ready lug of that spoke that is not in carries_forward and not affiliated with the successor initiative.
+Record: certification pending · fixtures 1/532, 6/10, 10/10, 356/532 · shas ecfccbf1, 827ae40c
+
+#### advisor-grant-reads-the-instance-roster-not-the-hub  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, Phase 0 item 1 (wheel-hub docs/advisors-reimplementation-plan-2026-10-21.md). runAdvisorAutopilot sets hubRoot = options.hubRoot || instanceRoot (advisorAutopilot.js line 306).
+Solution: A spoke advisor's time request and grant come from the instance's own roster and ledger. The hub's grant is unchanged when instanceRoot is the hub.
+Record: certification pending · fixtures 332/506 · shas e3a06d3e
+
+#### advisor-initiatives-are-demand-ozi-weighs-against-builds  (at review -- certification pending)
+
+Challenge: Operator 2026-10-22: an advisor's upkeep initiative "allows Ozi to weigh the demand and make a case to Conductor for more budget".
+Solution: gatherAllocationInputs adds each due advisor-origin initiative as a demand item: cost is its budget_request.tokens, and its score is the advisor's measured value (scoreAdvisor), or the declared cadence_rationale when unmeasured, flagged "declared". decideAllocation ranks them with build lugs in one list. Funded advisor items are dispatched by the same drive path.
+Record: certification pending · fixtures 3/526, 346/525 · shas 2787f780, 176e5ecb
+
+#### advisor-masters-declare-data-sources-fit-and-tier-budgets  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, convention C4 and the master fields.
+Solution: advisor.schema.json validates these fields, plus a `master:` reference and a data_source_bindings map (credential references only, never secret values) for overlays. guaranteed_runtime_share and measured_activation are declared so live canon validates without exceptions.
+Record: certification pending · fixtures 1/515, 3/515 · shas 5d85d2c3, 90f3bf24
+
+#### advisor-roster-reconciliation-carries-registry-rows  (at review -- certification pending)
+
+Challenge: Extend reconcileAdvisorRoster so runtime/advisor-roster-reconciliation.json gains per-advisor registry rows, ap_budget_granted null plus a reason when an advisor is not autopilot-eligible.
+Solution: The rows in the existing file after one tick; a spoke with no advisor file reads no instance, never stale.
+Record: certification pending · fixtures 2/530, 352/530, 0/529 · shas ee7d5115, d742ffc9, b1bce899
+
+#### advisor-run-and-event-rows-are-schema-validated  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, convention C2: no log, no budget.
+Solution: runtime/advisor-runs.jsonl rows are validated against schemas/advisor-run.schema.json. The fields are the stamp, trigger, granted_tokens, measured_tokens, wall_ms, findings, actions[], initiative_ids[] and outcome. advisor_action events in the existing event log are validated against schemas/advisor-event.schema.json and carry the stamp and a run_id.
+Record: certification pending · fixtures 1/516, 388/516 · shas 2867730a, a3d0f905
+
+#### advisor-runs-skip-when-nothing-new-and-findings-count-only-when-landed  (at review -- certification pending)
+
+Challenge: Operator 10-22: "We dont need maintenance to be over done.."
+Solution: (1) deltaGateStatus skips a run when the watches are unchanged and every open finding is this advisor's own repeat. It writes one advisor_no_delta ledger row instead of a dispatch.
+Record: certification pending · fixtures 1/525, 351/524 · shas e96a77ae, 8ee88f00
+
+#### advisor-work-registers-as-a-funded-initiative  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, convention C3.
+Solution: ONE design, reconciled 2026-10-22 with harness-factory docs/built-work-runs-for-real-261022.md P3b. initiative.schema.json gets top-level fields origin (operator|advisor), originated_by, due_at, cadence_rationale and budget_request. These are P3b's own fields, the ones the drive and dueForActivation read.
+Record: certification pending · fixtures 1/521 · shas c220ad6c
+
+#### advisor-writes-carry-a-version-stamp-and-worked-by-trail  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, convention C1 (wheel-hub docs/advisors-reimplementation-plan-2026-10-21.md).
+Solution: A stamp module builds `_advisor: {name, version, master_hash, overlay_hash, model}`. It writes the stamp once on creation and appends to `_worked_by[]` on every later touch.
+Record: certification pending · fixtures 332/506 · shas 87951fff
+
+#### advisors-declare-their-next-run-cadence-and-budget-as-an-advisor-initiative  (at review -- certification pending)
+
+Challenge: Operator 2026-10-22 9:05 AM PDT: "Advisors once started should review their edict and determine a plan of attack stating reasonable and appropriate frequency to match the volume of work and applicable return on that investment in terms of lift to whomever consumes it ... advise on when it will be needed to run again and then create an initiative with that timing indicated as well as recommended budget ... so Ozi can prioritize it and queue it up when needed ... filtered.." Measured: dueForActivation (src/advisor/advisorLifecycle.js:40) makes every_cycle advisors always due. otto (41.7M tokens) and kb-curator (28.9M) ran every wave for 30 days with 0 landed.
+Solution: schemas/initiative.schema.json adds origin (build|advisor), originated_by (advisor name), due_at (ISO), cadence_rationale (volume of work and lift to its consumer) and budget_request {tokens, ms, justification}. readInitiatives projects them. driveApReadyInitiatives and rankOpenInitiatives skip an advisor-origin initiative before due_at, and both take an origin filter. advisor.schema.json activation gains self_scheduled, and dueForActivation makes a self_scheduled advisor due only when its own advisor-origin initiative's due_at <= now (or no such initiative exists yet: first run). buildAutopilotPrompt (src/otto/advisorAutopilot.js:70) tells the advisor to review its mandate and end with a plan-of-attack block (next run, cadence, rationale, budget). A parser files or updates canon/initiatives/<advisor>-upkeep.initiative.yaml from that block next to recordTimeRequest (advisorAutopilot.js:775).
+Record: certification pending · fixtures 1/524, 348/524 · shas 0d0c930c, 6824c2e7
+
+#### conductor-answers-ozi-budget-requests  (at review -- certification pending)
+
+Challenge: Measured 2026-10-22: sendBudgetRequest (src/otto/oziAllocation.js:314-331) appends message_kind budget_request, to "navigator", to the hub's messages/messages.jsonl, and nothing reads it.
+Solution: A hub handler reads unanswered budget_request messages on the wheel clock, either a JOB_RUNNERS entry or a processSignalInbox arm. It decides each one against the current window's measured headroom, minus the reserve (waveDecision's declared 20%), and the spoke's share.
+Record: certification pending · fixtures 341/522, 343/522 · shas cfd9118f, a75825b7
+
+#### conductor-chooses-work-from-the-ranked-open-initiatives  (done)
+
+Challenge: Operator 2026-10-12: initiatives must be addressed before newer or less impactful work; steer back to true alignment.
+Solution: Each wave chooses its work in this order: (1) lugs belonging to a live initiative, taken in the ranked-initiative order, one step per initiative before a second step of any; (2) only then maintenance, under a declared cap. Every launch records a drive step naming the initiative, the lug and why it ranked first, so the 0 all-time becomes an audit trail.
+Record: CONFIRMED via deepseek (reviewer b4598434) · fixtures 1 fixture(s) · 27.5M tokens over 14.4 min
+
+#### conductor-grades-its-pick-and-reports-reliability  (at review -- certification pending)
+
+Challenge: The GRADE half of the window-pick umbrella (decomposed): once a pick record is written before launch (blocked_by conductor-writes-its-pick-record-before- launching), grade it after the window and surface reliability, so the operator can see whether conductor runs pop the optimal work every five hours.
+Solution: At window end the conductor writes a grade row against each pick record -- predicted vs actual lugs landed, tokens and time -- and the session-start line shows windows fired over owed and the last window's landed count; pick accuracy appears in the weekly report.
+Record: certification pending · fixtures 1/535, 359/535 · shas 05eeff30, b66ba8c1
+
+#### conductor-writes-its-pick-record-before-launching  (at review -- certification pending)
+
+Challenge: Operator 2026-10-13: confidence that conductor runs pop the optimal work every five hours.
+Solution: At each window start, before the first builder launches, the conductor writes a pick record naming the items, their initiative rank, the unblock count, the estimated run time, and why each was chosen over the next candidate. A window that picks a lug outside the top-ranked initiatives records why.
+Record: certification pending · fixtures 355/533 · shas ef8f1a46
+
+#### cut-writes-tier-allowed-advisor-overlays-disabled  (done)
+
+Challenge: Advisors plan rev 3.1, Phase 1 item 11. applyCut (src/factory/cutUpdate.js line 504) and planDefaultWheelClock (line 51) already deliver advisor_activation to every spoke.
+Solution: applyCut writes canon/<name>.advisor.yaml stubs (`master: <name>`, `enabled: false`) for each tier-allowed master that is absent from the spoke. It never overwrites an existing overlay.
+Record: CONFIRMED via claude (reviewer b4598434) · fixtures 1/521, 343/521, 340/519 · shas f40db2e3, 96b854d3, 9641e91e
+
+#### dispatch-kill-takes-one-id-or-lug  (at review -- certification pending)
+
+Challenge: wheel-hub feedback 2026-10-22: killPendingDispatches is all or nothing.
+Solution: killPendingDispatches accepts { dispatchId } or { lug } and kills only matching queued rows. `hf stop --dispatch=<id>` and `hf stop --lug=<name>` expose it.
+Record: certification pending · fixtures 2/523, 348/522 · shas c66c0955, 078e7c54
+
+#### done-gate-requires-a-live-entry-test-for-automatic-paths  (at review -- certification pending)
+
+Challenge: 2026-10-20: the ceiling-retry lug reached done on a fixture that tested its module with stubs.
+Solution: One declared table in canon (canon/automatic-entry-points.yaml) lists the automatic entry points: scripts/conductor-heartbeat.mjs, scripts/wheel-clock-cron.mjs, src/hooks/dispatch.js, and every wheel-clock job runner module. At the kernel verb's transition to review AND to done, a lug whose pointers or delivered commit touch a listed path must name, in tests:, at least one fixture that spawns that entry point (detected statically: the fixture's source contains a spawn, spawnSync, execFile or fork call whose arguments name the entry path).
+Record: certification pending · fixtures 11/11, 360/540, 1/537, 372/537 · shas 2697a532, 586347d0, dcf2ef8f
+
+#### drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane  (done)
+
+Challenge: Stage 1 of autopilot-comes-back-as-a-proven-superset, 2026-10-23 03:23-03:30 PDT (session c672b6ef, wave wave-2026-10-23T10-23-34-894Z-xbhp1o): the drive wrote a step for all 18 spoke slots but dispatched nothing. wheel-hub and sound-sails-website were halted_unconverged by session/oak, session/viper and session/wolf: ended sessions whose only commit is the session-exit-commit of state files (ledger, runtime, tracks). foldWorktree refuses those ("main's state is authoritative"), so convergeLanes (662da9ac) halts the spoke on every pass, forever.
+Solution: convergeLanes classifies a lane whose commits ahead of main touch ONLY state paths (the same state-path set foldWorktree's refusal uses) as state_only. Such a lane never halts the spoke: the drive records a lane_state_only step naming the lane and its reconcile command, and dispatch proceeds.
+Record: CONFIRMED via dashscope (reviewer b4598434) · fixtures 1/510 · shas 50780a82, c8a671f2
+
+#### drive-lane-convergence-never-folds-a-lane-a-live-session-is-working-in  (at review -- certification pending)
+
+Challenge: Builder report on hub-drive-halts-unproductive-streaks-and-converges-lanes-first (folded 662da9ac, session c672b6ef, 2026-10-23): convergeLanes in src/conductor/readyWorkDrive.js folds any clean, unleased lane that has commits not on main, including one a live session is still working in.
+Solution: convergeLanes skips a lane whose worktree registry row names a session that is still live (the session registry's liveness check, the same one lug-ownership-claims uses), records a halted_unconverged step naming the lane and the live session, and folds nothing from that spoke.
+Record: certification pending · fixtures 1/509 · shas ec5765fb, afded40f
+
+#### fleet-ap-readiness-is-one-line-per-spoke-at-session-start  (at review -- certification pending)
+
+Challenge: Operator 2026-10-19 10:40 PM PDT: "spokes may need to refine for ap to handle them properly.." A one-off probe that night found 9 of 11 spokes with no execute-only ready work (wheel-hub 0/15, basher 0/15, easyorgs 0/6, six with empty queues), so autopilot could build only harness-factory and minder.
+Solution: src/conductor/fleetApReadiness.js exports fleetApReadiness(hubRoot, {top = 15}) -> rows [{spoke, ready, executeOnly, gaps: {reason: count}}], reading each spoke from siblingSpokeRoots (communicationInbox.js) plus the hub and harness-factory. It takes the top N of buildReadyWorkQueue(spokeRoot) and judges each with executeOnlyVerdict (readyWorkDrive.js), the same bar the drive refuses below.
+Record: certification pending · fixtures 2/531, 355/531 · shas 17bf70f7, b48b5432
+
+#### grant-is-refused-when-the-last-run-left-no-conforming-log  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, convention C2 enforcement.
+Solution: grantAdvisorTokens returns {ok: false, refused_by: "c2_log_missing", reason} when the previous dispatch for this advisor has no run row, or when its actions[] name a side effect with no event row. runAdvisorAutopilot records the refusal as an activation with that reason. Loop Closer can read the same check.
+Record: certification pending · fixtures 391/519 · shas 9ca23a5b
+
+#### hook-dispatcher-fixture-never-writes-the-real-closeout-hook  (at review -- certification pending)
+
+Challenge: Found 2026-10-23 10:58 AM PDT (session c672b6ef): the main checkout's real src/hooks/closeoutRequestHook.js carried an uncommitted edit, written at 10:50, that inserts "UNRELEASED-MARKER" into the live closeout block.
+Solution: Section 7 refuses to write unless the target path resolves (realpath) under its own mkdtemp root, and the fixture asserts that the real repo's closeoutRequestHook.js is byte-identical before and after the run.
+Record: certification pending · fixtures 1/520, 0/520, 0/512 · shas befa9a64, 3f28a8db, 0cad66e0
+
+#### hub-drive-halts-unproductive-streaks-and-converges-lanes-first  (at review -- certification pending)
+
+Challenge: Operator 2026-10-23: bring autopilot back once it is a superset of the best work.
+Solution: driveReadyWork (src/conductor/readyWorkDrive.js) stops dispatching to a spoke after N consecutive dispatches that leave no lug state change and no commit. N defaults to 3 and is read from the profile.
+Record: certification pending · fixtures 1/509, 19/0 · shas bc661a59, 662da9ac
+
+#### hub-initiative-lugs-resolve-in-the-spoke-that-holds-them  (done)
+
+Challenge: Measured 2026-10-21: resolveInitiativeLugs (src/conductor/initiativeFocus.js) reads only <instanceRoot>/lugs/<name>.yaml. readInitiatives also loads the hub's canon/initiatives/, whose lugs live in wheel-hub/lugs/ or in another spoke.
+Solution: readLugFile / resolveInitiativeLugs look for lugs/<name>.yaml in this order and stop at the first hit: (1) instanceRoot; (2) the initiative's own root (initiative.root, the hub for a hub initiative); (3) the spoke named by initiative.step_owner[name] when present, resolved through loadKnownRepos (src/advisor/repoRegistry.js); (4) every other repo in loadKnownRepos(instanceRoot), in registry order. Each resolved lug carries `found_in` (the repo name, or "instance"/"initiative-root").
+Record: CONFIRMED via dashscope (reviewer b4598434) · fixtures 1 fixture(s) · 3.4M tokens over 13.2 min
+
+#### in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug  (done)
+
+Challenge: Measured 2026-10-20: the ceiling-retry lug, built by an Agent-tool fork as a milestone build, was refused done with "no turn markers ... no dispatch record for it carries a journalled wall clock".
+Solution: When an Agent-tool call's prompt names a lug (a lugs/<name>.yaml path or a "lug: <name>" line), the agent-dispatch-record circle writes a dispatch row for that lug at launch and completes it at the fork's return, with the observed issued_at -> updated_at span. dispatchMeasuredCostForLug (src/lugTracking/track.js) then finds it, so the done gate counts the build as dispatch-measured without a hand-written flag.
+Record: CONFIRMED via claude (reviewer b4598434) · fixtures 1/512 · 15.5M tokens over 23.4 min · shas cbca34e0, 8b6f9a4c
+
+#### loop-closer-audits-loop-health-hub-wide  (done)
+
+Challenge: Advisors plan rev 3.1, Phase 1 item 10: the Loop Closer runs centrally, so the whole fleet is audited one consistent way.
+Solution: src/otto/loopCloser.js exports auditLoopHealth(hubRoot). For each registered spoke it writes a 0-100 loop_health score, the oldest open loops with their age, and the C2 compliance gaps to runtime/loop-health.json.
+Record: CONFIRMED via claude (reviewer b4598434) · fixtures 1/529, 348/528 · 15M tokens over 7.1 min · shas c6f92e4c, 1cf64d77
+
+#### no-live-lug-lists-a-test-path-that-does-not-exist  (at review -- certification pending)
+
+Challenge: Measured 2026-10-23 in session c672b6ef: 6 review lugs listed copies of their own fixture under deleted .local/worktrees lanes in tests: and traceability_evidence.
+Solution: A compile-time check (warn class, rule 27) lists every review lug whose tests: entry names a path that does not exist in the instance root, and every ready, in_progress or review lug whose traceability_evidence.file does, with the lug and the path. A ready lug's tests: names the fixture it will build, so it is not checked (the first cut warned on 77 such lugs).
+Record: certification pending · fixtures 11/0, 10/0, 60/0, 65/0, 50/0 · shas e4baf390, 5e16e4dd
+
+#### notification-ladder-routes-levels-zero-to-three  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, Phase 2 item 15.
+Solution: src/advisor/notifyLadder.js exports notify(instanceRoot, {level, stamp, subject, ref}). Every call writes an advisor_action event.
+Record: certification pending · fixtures 349/528 · shas 212c6978
+
+#### ozi-names-the-cause-refusing-the-most-work-each-cycle  (at review -- certification pending)
+
+Challenge: Operator 2026-10-19: "Ozi must notice and fill in the gaps a human represents.." Measured (docs/refusal-causes-2026-10-19.md): 2210 drive steps produced 68 dispatches; the rest were a few refusals repeated every pass (not_execute_only 126 lugs, does_not_fit_budget 52, land_blocked 22), and 34 of 49 FAILED certifications cite missing test evidence.
+Solution: New src/otto/refusalCauses.js exports buildRefusalCauseDigest(instanceRoot, {sinceMs}): reads ready-work-drive.jsonl steps, cross-provider certification records (FAILED + reason) and returned dispatch-registry.jsonl rows; normalizes each refusal to a cause key (store + outcome + reason with lug names, numbers and paths stripped); groups by cause with distinct lugs, repeats, first/last seen, three examples. SYSTEMIC = 5+ distinct lugs in the window, or the same lug refused on 3+ passes.
+Record: certification pending · fixtures 11/536, 361/535 · shas bc19b536, 5b6b716d
+
+#### ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest  (done)
+
+Challenge: Stage 1 of autopilot-comes-back-as-a-proven-superset, 2026-10-23 03:23-03:30 PDT (session c672b6ef): 4 of 18 spoke slots ended ozi_unclear and dispatched nothing. harness-factory and roxy hit conflicting_directions: one directed lug carries an open operator question, and decideAllocation (src/otto/oziAllocation.js ~line 137) refuses the WHOLE spoke for it. bubo and pathfinder hit directed_not_dispatchable: a direction names a lug not in the ready queue (~line 159), and the whole spoke stops again.
+Solution: decideAllocation no longer returns unclear for these two cases. A directed lug that is held by an open ruling, or that is not in the ready queue, goes into a new `skipped_directions` list with its reason, the operator question or "not in the ready queue".
+Record: CONFIRMED via dashscope (reviewer b4598434) · fixtures 1/511, 335/511 · 17.7M tokens over 7.3h · shas e902528f, cdaa3021, fa869d90
+
+#### service-health-detects-and-classifies-failed-checks-fleet-wide  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, Phase 1 item 9.
+Solution: src/serviceHealth/serviceHealth.js reads each registered spoke's services and repos through gh: run list, run jobs, and check-run annotations. It classifies each failure as flaky, dependency_break, config_or_secret_missing, infra_or_quota, regression or unknown. infra_or_quota includes the billing annotation.
+Record: certification pending · fixtures 1/527, 346/526 · shas 7f289452, 425fcba8
+
+#### shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, Phase 1 item 8.
+Solution: src/advisor/advisorLoader.js exports loadMergedRoster(instanceRoot, hubRoot). It merges each overlay (`master: <name>`) onto the hub master in canon/advisor-library/<name>.advisor.yaml and refuses master-only fields in an overlay.
+Record: certification pending · fixtures 1/518, 340/518 · shas c07bf31b, 386875a8
+
+#### spoke-entity-declares-foundation-goals-tier-role-services-inbound  (at review -- certification pending)
+
+Challenge: Advisors plan rev 3.1, Phase 0 item 3.
+Solution: spoke.schema.json accepts these optional fields: - goals[]: id, statement, measure, target, horizon, status - maturity: poc, active or senior - senior_spoke - role_in_wheel - graduation - services[]: repo, vercel_project, supabase_project - inbound: senders, repos, projects, domains - review: cadence, last_review_at, next_review_due The compile reports a spoke with no goals or no maturity as unfounded, as a warning.
+Record: certification pending · fixtures 1/520, 62/62, 338/517, 337/515 · shas 1daf48b2, 06e44729, 06352402
+
+#### test-runs-never-raise-a-1password-prompt  (at review -- certification pending)
+
+Challenge: Basher 2026-10-23 00:20 AM PDT, measured from the op wrapper log (~/.config/basher/logs/op-calls.jsonl, which records the caller chain): of 88 allowed op calls on 2026-10-22, 15 came from harness-factory tests -- conformance/fixtures/onepassword-secrets (9) and a vitest run (6).
+Solution: The suite pool (src/factory/suitePool.js, the env it sets on every child) and the vitest setup export BASHER_OP_PROBE=0 for every test child. The onepassword-secrets fixture puts a fake `op` first on PATH and asserts against it, never the real binary.
+Record: certification pending · fixtures 2/509 · shas eae23316
+
+#### the-sweep-rerequests-a-certification-its-author-requested  (at review -- certification pending)
+
+Challenge: Measured 2026-10-23 in session c672b6ef: 5 of 6 review lugs were held only because the session that built them also requested their certification.
+Solution: readinessSweep.js threads options.sessionId into every readDonePromotionGate call. readDonePromotionGate returns class needs_request with author_requested: true for a CONFIRMED or PLAUSIBLE verdict whose requested_by_session equals lug.author.session, when the caller holds a session that is neither the author nor the prior requester. With --certify=run the sweep then spends one certification as its own session, and the row labels it (author_requested_reissue), counted in the summary beside unowned_reissued.
+Record: certification pending · fixtures 1 fixture(s) · shas 05421e49
+
+#### the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug  (done)
+
+Challenge: Operator 2026-10-22 9:05 AM PDT: "Conductor can indicate what it's advising to focus on for each AP run in spokes. But if it doesn't, which should be the default, it's just saying, wake up spoke, here's a budget, use it as you will. And then [Ozi], the local agent, should be able to say, let's pop off the top of the priority backlog. It has to understand the priority.." Measured that morning: driveReadyWork ranked every spoke's queue at the hub (safeRanking(hub), never a spoke's own canon/initiatives/), so every 10-21 build was picked outside any live initiative. runOziAllocation, the spoke's own decider, had fixtures but 0 production ledger rows.
+Solution: For each spoke the wave selects, the drive calls runOziAllocation(s.root, { grantTokens, hubRoot, directions }). grantTokens is the spoke's share of the window. directions is the Conductor's optional advice for that spoke (guidance per_spoke focus lugs, polarity "do"), and when there is no advice it is an empty list, which is the default. The drive dispatches the allocation's first dispatchable lug through the existing queueDispatch/executeDispatch path.
+Record: CONFIRMED via dashscope (reviewer b4598434) · fixtures 1 fixture(s)
+
+#### commits
+
+- a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke + conductor-writes-its-pick-record-before-launching: folded 5718f26e and 573a756c, 47 + 18 covering suites green (initiative-focus was a load flake, 107/107 alone), pointers name the delivered files, to review
+- notification-ladder-routes-levels-zero-to-three + loop-closer-audits-loop-health-hub-wide: folded 47ae654d and c2dc3373, covering suites green (44 for goalsReview incl. one load flake green alone; 42 for wheelScheduler), to review. Loop Closer audits 3 of the 7 loops named in its intent (findings, lug lifecycle, C2); its acceptance is met
+- advisor-grant-reads-the-instance-roster-not-the-hub, advisor-writes-carry-a-version-stamp-and-worked-by-trail: folded, 22 covering suites green on main, both to review (certification launched)
+- advisor-rebuild-ships-with-the-ap-fixes step 1: the 4 AP fixes certified done by a non-author session
+- stage 1 remediation: two critical lugs from the 03:23 PDT supervised pass (0 dispatched)
+- autopilot-comes-back: three hf steps folded and at review; live-session lane guard filed as a stage-1 prerequisite
+
+#### docs
+
+- advisor-rebuild-ships-with-the-ap-fixes: batch 2 recorded (operator: empty the backlog before the release; criticals, then quick wins, then highs)
+- advisor-rebuild-ships-with-the-ap-fixes: progress, all builds folded, push blockers clear, release is next
+- advisor-rebuild-ships-with-the-ap-fixes: progress; fresh-session certification command; post-deploy hub steps; orphan-dispatch red traced to the same old-cut lugs
+- advisor-rebuild-ships-with-the-ap-fixes: progress; the closeout-hook pollution is a pre-release blocker; note on live criteria
+- advisor-rebuild-ships-with-the-ap-fixes: progress (step 1 done, wave A 2 of 8 folded)
+
+#### src/hooks
+
+- wcl <spoke> for any non-hub spoke opens on its own initiatives and its own running work. [fixtures 356/512; landed 1873457a]
+- Reapply "in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug: an Agent fork's return appends a completed agent-fork dispatch-registry row per lug its prompt names (session-files-touched Post hook matches Agent); launch record carries cost_lugs"
+- Revert "in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug: an Agent fork's return appends a completed agent-fork dispatch-registry row per lug its prompt names (session-files-touched Post hook matches Agent); launch record carries cost_lugs"
+
+#### built-work-runs-for-real
+
+- The scheduled sweep skips a lug whose fixture inputs and lug file are unchanged since its last sweep row (it carries that row's verdict), runs at most a declared per-run wall budget, and the clock's owed-tick overflow is carried forward instead of re-counted, so one cron invocation finishes in under 10 minutes. [fixtures 335/512; landed afd64a19]
+- An initiative step can carry `retry_on_remediation: true` with the remediation lug names a failure filed. [fixtures 0/512; landed ef2b640f]
+
+#### lugs
+
+- Outbox circle in canon; fulfillment record shape; the two-spoke fixture extended to close the loop with zero writes across the boundary. [fixtures 0/536; landed 1b01f676, 39f2b447]
+- roxy drops the type line from its ruling lug, or waits for the cut, and closes its request naming 6da3dcf0 and 1873457a. [fixtures 0/512; landed 21541734]
+
+#### advisor-rebuild-ships-with-the-ap-fixes
+
+- A conformance suite run without the pool (node --test or node <file>) never resolves a real provider secret. [fixtures 0/537; landed b7b8403d]
+
+#### canon
+
+- advisor-rebuild-ships-with-the-ap-fixes: record the operator's go-plan as an initiative plus a plan doc (dependency waves A-D, cert, full release, AP stage 2)
+
+#### src/advisor
+
+- cut-writes-tier-allowed-advisor-overlays-disabled + grant-is-refused-when-the-last-run-left-no-conforming-log: folded 78b1b1b0 and ad6cfcd4, with two fold-time fixes; both to review
+
+#### src/conductor
+
+- src/factory/boxLoadGovernor.js is the one answer to "may I spend the box now, and how much": it reads the latest sample (runtime/box-load.jsonl, extended with the top process trees by actor) and returns { allow, workers, reason } for an actor class. runSuitePool's sizer, the wheel-clock runner (jobs of class heavy) and executeDispatch's capacity gate call it; a held or shrunk request writes one row naming the top actor. [fixtures 36/36, 65/65, 352/530; landed 0f42d372]
+
+#### src/otto
+
+- oziAllocation raises schema-valid lugs, with a test proving it, and the price file's canon status is settled in code rather than by a basher workaround. [fixtures 24/24, 2/2, 335/512; landed 6da3dcf0]
+
+#### wheel-agents-talk-up-down-and-across
+
+- canon/profile.yaml gains permission_mode (validated against the modes the installed claude accepts; default auto, the mode the operator runs the hub in); wclCli.js passes --permission-mode <mode> beside --model <lane> on every interactive launch, resolved through the same resolveModelLane-style reader; the hub profile and every spoke profile declare the same value; a launch whose profile omits it refuses with the field named, never silently defaults. [fixtures 1/529; landed ce82a894]
+
 ## Cut bb0a73e1 -- received 2026-10-24 00:25Z (from 61be088e)
 
-Cut bb0a73e1 received (from 61be088e), posture absorb_and_report: no circle or hook changed for this spoke; 19 lug(s) closed on the wheel.
+Cut bb0a73e1 received (from 61be088e), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### 2026-10-23
 
@@ -323,12 +698,6 @@ Challenge: basher request comm-hf-tab-writer-renames-unchanged-names-and-taxes-z
 Solution: The tab writer calls rename-tab-by-id only when tabNames[position] differs from the new label, and rename-pane only when the pane's current title differs from the new title.
 Record: CONFIRMED via claude (reviewer 0e1ec7f6) · fixtures 6 fixture(s) · 15.7M tokens over 35.6 min
 
-#### test-runs-never-raise-a-1password-prompt  (at review -- certification pending)
-
-Challenge: Basher 2026-10-23 00:20 AM PDT, measured from the op wrapper log (~/.config/basher/logs/op-calls.jsonl, which records the caller chain): of 88 allowed op calls on 2026-10-22, 15 came from harness-factory tests -- conformance/fixtures/onepassword-secrets (9) and a vitest run (6).
-Solution: The suite pool (src/factory/suitePool.js, the env it sets on every child) and the vitest setup export BASHER_OP_PROBE=0 for every test child. The onepassword-secrets fixture puts a fake `op` first on PATH and asserts against it, never the real binary.
-Record: certification pending · fixtures 2/505, 10/22, 0/504 · shas b45bb057, d50f5798, 4cc4a945
-
 #### the-harness-clock-readiness-sweep-fits-inside-one-cron-interval  (at review -- certification pending)
 
 Challenge: Measured 2026-10-22 in runtime/wheel-clock-cron.log: harness-factory's clock cron (every 10 min) runs 25-29 minutes per invocation, and its slowest job is readiness_certification_sweep at 1342-1635 s.
@@ -340,12 +709,6 @@ Record: certification pending · fixtures 1/504, 325/497, 326/497 · shas b26cd0
 Challenge: Operator 2026-10-22 8:15 PM PDT, ruled a standing principle: "not only fix it but prove it indeed does it under load. Every wave should be reviewed on completion to address an opportunity to test and improve before throwing tokens at wasted jobs that fail and dont get noticed.." Today finishAutopilotRun (src/conductor/roiExtraction.js) files one remediation lug per run and extractionSteering only damps a spoke's factor; the next wave still spends on the same failing cause.
 Solution: Wave close writes a review row: dispatched, landed (reached review or done on main), failed by cause. A cause that failed in the last closed wave puts the lugs it touches on hold in the next wave (the drive skips them, naming the remediation lug) until that remediation lug is done with a live acceptance line met.
 Record: certification pending · fixtures 323/494 · shas f43fb2b8
-
-#### the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug  (at review -- certification pending)
-
-Challenge: Operator 2026-10-22 9:05 AM PDT: "Conductor can indicate what it's advising to focus on for each AP run in spokes. But if it doesn't, which should be the default, it's just saying, wake up spoke, here's a budget, use it as you will. And then [Ozi], the local agent, should be able to say, let's pop off the top of the priority backlog. It has to understand the priority.." Measured that morning: driveReadyWork ranked every spoke's queue at the hub (safeRanking(hub), never a spoke's own canon/initiatives/), so every 10-21 build was picked outside any live initiative. runOziAllocation, the spoke's own decider, had fixtures but 0 production ledger rows.
-Solution: For each spoke the wave selects, the drive calls runOziAllocation(s.root, { grantTokens, hubRoot, directions }). grantTokens is the spoke's share of the window. directions is the Conductor's optional advice for that spoke (guidance per_spoke focus lugs, polarity "do"), and when there is no advice it is an empty list, which is the default. The drive dispatches the allocation's first dispatchable lug through the existing queueDispatch/executeDispatch path.
-Record: certification pending · fixtures 322/493, 0/492 · shas e155f589, d4f1dafc
 
 #### time-estimates-come-from-measured-history-with-a-range  (done)
 
@@ -383,8 +746,13 @@ Record: CONFIRMED via claude (reviewer 0e1ec7f6) · fixtures 6 fixture(s) · 25.
 
 #### hands-on-sessions-teach-autopilot
 
+- The suite pool (src/factory/suitePool.js, the env it sets on every child) and the vitest setup export BASHER_OP_PROBE=0 for every test child. [fixtures 2/505, 10/22, 0/504; landed b45bb057, d50f5798, 4cc4a945]
 - The three circles leave harness-factory canon and the cut; their hook bodies (src/hooks/userPromptSubmitTabHook.js, preToolTabResetHook.js, sessionEndTabClearHook.js) are deleted. [fixtures 0/504; landed 0e74e1ed]
 - testBoundaryGate accepts --chunk=I/N and reports each chunk as a chunk, never as the gate; a ledger row per chunk records sha, I, N and result; the push gate passes for a sha when all N chunks are green at that sha and the tree is unchanged. [fixtures 0/504; landed cd29edb0]
+
+#### advisors-schedule-themselves-and-ozi-spends-the-budget
+
+- For each spoke the wave selects, the drive calls runOziAllocation(s.root, { grantTokens, hubRoot, directions }). grantTokens is the spoke's share of the window. directions is the Conductor's optional advice for that spoke (guidance per_spoke focus lugs, polarity "do"), and when there is no advice it is an empty list, which is the default. [fixtures 322/493, 0/492; landed e155f589, d4f1dafc]
 
 #### agent-principles-are-enforced-policies-and-tastes-are-for-communication
 
@@ -487,12 +855,6 @@ Challenge: Measured 2026-10-19: the cross-provider certifier judges a lug from a
 Solution: buildEvidenceBundle (src/advisor/evidenceBundle.js) runs every path in the lug's tests: list (bounded by a timeout, cwd = the repo that owns the lug) and adds a section "=== LUG FIXTURE RUN ===" carrying each file's path, exit code, pass/fail counts and the tail of its stdout+stderr, beside the existing Assayer section. certificationReplay.js (line 392) shows the same section so a replay sees what the certifier saw. A lug with no tests: list gets the line "(no tests: list on this lug)" so the certifier can say so plainly.
 Record: certification pending · fixtures 316/474, 7 passed · shas 9d230f9c
 
-#### hub-initiative-lugs-resolve-in-the-spoke-that-holds-them  (at review -- certification pending)
-
-Challenge: Measured 2026-10-21: resolveInitiativeLugs (src/conductor/initiativeFocus.js) reads only <instanceRoot>/lugs/<name>.yaml. readInitiatives also loads the hub's canon/initiatives/, whose lugs live in wheel-hub/lugs/ or in another spoke.
-Solution: readLugFile / resolveInitiativeLugs look for lugs/<name>.yaml in this order and stop at the first hit: (1) instanceRoot; (2) the initiative's own root (initiative.root, the hub for a hub initiative); (3) the spoke named by initiative.step_owner[name] when present, resolved through loadKnownRepos (src/advisor/repoRegistry.js); (4) every other repo in loadKnownRepos(instanceRoot), in registry order. Each resolved lug carries `found_in` (the repo name, or "instance"/"initiative-root").
-Record: certification pending · fixtures 312/482 · shas dd181083, 57fe2e56
-
 #### initiatives-declared-with-steps-count-their-step-lugs  (at review -- certification pending)
 
 Challenge: Measured 2026-10-21: 10 of harness-factory's 12 live initiatives (e.g. the-box-governs-its-own-load, nothing-ships-half-built, no-work-is-stranded) declare their work as `steps:` entries ({id, owner_spoke, lug, assertion, revert}), but readInitiatives (src/conductor/initiativeFocus.js:168) builds lug_names from `parsed.lugs` only.
@@ -547,6 +909,10 @@ Record: PLAUSIBLE via dashscope (reviewer builder-) · fixtures 9/481 · shas 20
 #### src/conductor
 
 - goal-drift: goals review proposes a goal update when ideas drift (accept|edit|decline via scripts/goal-proposal.js)
+
+#### wakeup-pops-the-initiative-queue-and-go-runs-it
+
+- readLugFile / resolveInitiativeLugs look for lugs/<name>.yaml in this order and stop at the first hit: (1) instanceRoot; (2) the initiative's own root (initiative.root, the hub for a hub initiative); (3) the spoke named by initiative.step_owner[name] when present, resolved through loadKnownRepos (src/advisor/repoRegistry.js); (4) every other repo in loadKnownRepos(instanceRoot), in registry order. [fixtures 312/482; landed dd181083, 57fe2e56]
 
 ### 2026-10-20
 
@@ -996,12 +1362,6 @@ Challenge: 2026-10-13: of the last 40 cross-provider certification records in ha
 Solution: The independence check compares the certifier's provider and model against the lug's author record correctly; a Claude-authored lug gets a non-Claude certifier when one is reachable; when none is reachable, the refusal names the real reason per provider (no key, unreachable, rate limited, same family) and the operator sees one alert with the fix.
 Record: certification pending · fixtures 298/430, 0/429 · shas 749ba0c6, 4fca4703
 
-#### conductor-chooses-work-from-the-ranked-open-initiatives  (at review -- certification pending)
-
-Challenge: Operator 2026-10-12: initiatives must be addressed before newer or less impactful work; steer back to true alignment.
-Solution: Each wave chooses its work in this order: (1) lugs belonging to a live initiative, taken in the ranked-initiative order, one step per initiative before a second step of any; (2) only then maintenance, under a declared cap. Every launch records a drive step naming the initiative, the lug and why it ranked first, so the 0 all-time becomes an audit trail.
-Record: certification pending · fixtures 1/429, 277/426 · shas 79d102f0, 865fd57c
-
 #### cuts-apply-from-the-published-sha-not-the-live-checkout  (at review -- certification pending)
 
 Challenge: 2026-10-13 13:50 PDT: the published cut db9d073 cannot reach any spoke. src/factory/releasedCut.js refuses head_not_published whenever the harness-factory checkout's HEAD differs from the published sha, and main is 26 commits ahead (normal during active work). basher's easyorgs upgrade was refused this way, and the canary hf deploy to basher spent 12 minutes reviewing HEAD (e910289) instead of the published cut, so with --agreed it could have published 26 unreviewed commits.
@@ -1067,6 +1427,12 @@ Record: certification pending · fixtures 283/413 · shas 92ec06ae
 - Operator goals applied (finish-and-unblock, stagnation as a ranked signal in the conductor lugs); Jev lug records the 20 operator ratings (neither detector separates; the ending is the real gap); two harness-factory initiatives gain serves_goal
 - Conductor initiative lugs: work chosen from ranked open initiatives, goals declared, blocker memory, alerts with cause, per-wave pricing, spoke_hygiene root (operator 2026-10-12; conductor paused by stop flag)
 
+#### conductor-works-initiatives-by-impact-and-alerts-on-trouble
+
+- Each wave chooses its work in this order: (1) lugs belonging to a live initiative, taken in the ranked-initiative order, one step per initiative before a second step of any; (2) only then maintenance, under a declared cap. [fixtures 1/429, 277/426; landed 79d102f0, 865fd57c]
+- Every conductor heartbeat tick (10 min) records load, free memory and the top load sources by process; the weekly report shows load by hour and names the quiet windows; a release is scheduled into the next quiet window with the box reserved (basher's renice wrapper on the corpus lease), and it starts only when its estimated run fits the wall budget at the pool it would get. [fixtures 1/422, 273/419, 269/411, 44/44, 9/411, 271/411; landed ac805a14, 1e36c419, b34e950f, fd712812, a6430eab, d84178f0]
+- When the last N ticks all declined to launch for the same classified cause, the conductor raises exactly one operator notice (not one per tick) carrying the cause, the evidence rows and the documented next step. [fixtures 277/422; landed 69263c61]
+
 #### src/otto
 
 - Every otto finding is landed, rejected with a reason, or open with an owner, and otto shows a non-zero value row in the ledger. [fixtures 277/422; landed f2a29362]
@@ -1078,11 +1444,6 @@ Record: certification pending · fixtures 283/413 · shas 92ec06ae
 - canon/policies/guard-gateway.policy.yaml declares block, warn or off per guard circle with an optional auto_soften to warn on measured false-positive rate (corrected 2026-10-13 by Max: the first design hardened noisy guards instead of softening them); bash-lug-guard obeys it first, other guards adopt one lug each. [fixtures 281/429, 282/429; landed 8cf6276d, 8fadee11]
 - buildReadyWorkPrompt, buildInitiativeLugPrompt and buildAutopilotPrompt each carry a short goal block (goal, weight, initiative, the initiative's reason), and the dispatch row records goal_id. [fixtures 278/426; landed 1469f5bf]
 - A cut notice that expires (overlay row appended) is not re-shown by the next prompt's inbox delta, proven by a conformance fixture that seals, overlays, and asserts the delta omits it. [fixtures 291/426; landed b5beb682]
-
-#### conductor-works-initiatives-by-impact-and-alerts-on-trouble
-
-- Every conductor heartbeat tick (10 min) records load, free memory and the top load sources by process; the weekly report shows load by hour and names the quiet windows; a release is scheduled into the next quiet window with the box reserved (basher's renice wrapper on the corpus lease), and it starts only when its estimated run fits the wall budget at the pool it would get. [fixtures 1/422, 273/419, 269/411, 44/44, 9/411, 271/411; landed ac805a14, 1e36c419, b34e950f, fd712812, a6430eab, d84178f0]
-- When the last N ticks all declined to launch for the same classified cause, the conductor raises exactly one operator notice (not one per tick) carrying the cause, the evidence rows and the documented next step. [fixtures 277/422; landed 69263c61]
 
 #### conformance
 
@@ -3810,17 +4171,23 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 87 (commit 64, cut_received 22, lug_review 1).
+Entries: 90 (commit 66, cut_received 23, lug_review 1).
 
 ## 2026-10-24
 
 ### cuts
 
-- 00:25Z cut bb0a73e1 received by tracks (previous 61be088e) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3d92bf61..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 19 lug(s) closed at 2026-10-23T09:30:34.518Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 03:41Z cut b4214370 received by tracks (previous bb0a73e1) (working tree), posture absorb_and_report: +0/~1/-0 circles for tracks -- changed session-files-touched (git b7b5a045..working tree -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 8 lug(s) closed at 2026-10-24T03:38:06.894Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 00:25Z cut bb0a73e1 received by tracks (previous 61be088e) landed b7b5a045, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3d92bf61..b7b5a045 -- canon/circles, .claude/settings.json) -- source: tracks: git show b7b5a045:.cut-status.json
 
 ### runtime
 
+- 03:41Z commit b7b5a045 [tracks] harness-arrival-audit: absorbed 11 file(s) on cut arrival -- 11 file(s), area runtime -- source: tracks: git log main b7b5a045
 - 00:25Z commit 1f968016 [tracks] harness-arrival-audit: absorbed 15 file(s) on cut arrival -- 15 file(s), area runtime -- source: tracks: git log main 1f968016
+
+### repo root
+
+- 00:26Z commit e66ee93f [tracks] Regenerate stale generated docs (CLAUDE.md, AMBASSADOR_BRIEF.md, docs/CHANGELOG.md) -- 3 file(s), area repo root -- source: tracks: git log main e66ee93f
 
 ## 2026-10-23
 
@@ -4059,18 +4426,304 @@ Entries: 87 (commit 64, cut_received 22, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut b4214370 -- received 2026-10-24 03:41Z (from bb0a73e1)
+
+03:41Z cut b4214370 received by tracks (previous bb0a73e1) (working tree), posture absorb_and_report: +0/~1/-0 circles for tracks -- changed session-files-touched (git b7b5a045..working tree -- canon/circles, .claude/settings.json) -- published +0/~1/-0 circles, 8 lug(s) closed at 2026-10-24T03:38:06.894Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 163 (commit 116, lug_done 8, lug_review 39).
+
+### 2026-10-24
+
+#### no-work-is-stranded
+
+- 01:44Z lug at review worktree-add-links-dependencies-and-gates-keep-the-first-error-line [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: no-work-is-stranded -- tests conformance/fixtures/worktree-cli-add-links-machine-state/worktree-cli-add-links-machine-state.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/worktree-add-links-dependencies-and-gates-keep-the-first-error-line.yaml (last commit touching the file)
+- 01:41Z commit 700bff0a [harness-factory] worktree-add-links-dependencies-and-gates-keep-the-first-error-line: scripts/worktree.js add links node_modules and the machine-state dirs into a new worktree and the dirt check ignores those links (haiku build a519dd85, changelog hunk dropped); 33 covering suites green -- lug worktree-add-links-dependencies-and-gates-keep-the-first-error-line -- fixtures 5/547 -- 3 file(s), area canon -- source: harness-factory: git log main 700bff0a
+- 01:22Z commit a2e39cdc [harness-factory] raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments: tests: names guard-commands-resolve-in-a-spoke so the acceptance line it carries is in the evidence bundle (the certifier found it unevidenced) -- lug raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments -- fixtures 1/545 -- 1 file(s), area lugs -- source: harness-factory: git log main a2e39cdc
+- 01:22Z lug at review raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: no-work-is-stranded -- tests conformance/fixtures/raw-worktree-add-ignores-prose/raw-worktree-add-ignores-prose.conformance.test.js, conformance/fixtures/guard-commands-resolve-in-a-spoke/guard-commands-resolve-in-a-spoke.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments.yaml (last commit touching the file)
+- 00:47Z commit 4108655a [harness-factory] raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments: backticks count as a command position only when they open a substitution; # comment lines and heredoc bodies never match; stripHeredocBodies exported from bashWriteTargets; case-table fixture (14 cases, 6 red before) -- lug raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments -- fixtures 381/543 -- 3 file(s), area src/hooks -- source: harness-factory: git log main 4108655a
+- 00:06Z commit 7948bfa1 [harness-factory] work-folds-the-moment-it-is-verified-and-carries-its-instruction-update: folded f4c21a23 (closeout refuses a verified-unfolded lug branch; worktree-age section; review needs the instruction source updated), 91 covering suites green, generated docs clean, to review -- lug work-folds-the-moment-it-is-verified-and-carries-its-instruction-update -- fixtures 1/539 -- 1 file(s), area lugs -- source: harness-factory: git log main 7948bfa1
+- 00:06Z lug at review work-folds-the-moment-it-is-verified-and-carries-its-instruction-update [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: no-work-is-stranded -- tests conformance/fixtures/work-folds-when-verified/work-folds-when-verified.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/work-folds-the-moment-it-is-verified-and-carries-its-instruction-update.yaml (last commit touching the file)
+- 00:02Z commit 285c7984 [harness-factory] hooks-write-session-state-to-the-main-checkout-not-the-worktree: folded 086697c9 (dispatcher resolves the state root once; smoke-tested PreToolUse/PostToolUse/UserPromptSubmit exit 0 before the fold), 23 covering suites green, to review -- lug hooks-write-session-state-to-the-main-checkout-not-the-worktree -- fixtures 1/538 -- 1 file(s), area lugs -- source: harness-factory: git log main 285c7984
+- 00:02Z lug at review hooks-write-session-state-to-the-main-checkout-not-the-worktree [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: no-work-is-stranded -- derived_from state-root-resolver-sends-worktrees-to-the-main-checkout -- tests conformance/fixtures/hooks-write-state-at-main/hooks-write-state-at-main.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/hooks-write-session-state-to-the-main-checkout-not-the-worktree.yaml (last commit touching the file)
+
+#### commits
+
+- 01:44Z commit e7642983 [harness-factory] worktree-add-links-dependencies-and-gates-keep-the-first-error-line + wcl-auto-entry-mode-seeds-do-it-now-directive: to review -- fixtures 2/547 -- 2 file(s), area lugs -- source: harness-factory: git log main e7642983
+- 01:34Z commit dd717d0f [harness-factory] wcl-bootstrap-pulls-a-sanitized-wheel-from-the-public-repo: to review -- lug wcl-bootstrap-pulls-a-sanitized-wheel-from-the-public-repo -- fixtures 1/545 -- 1 file(s), area lugs -- source: harness-factory: git log main dd717d0f
+- 01:03Z commit 2c6cb0f3 [harness-factory] raw-worktree-add-redirect-names-a-registrar-that-exists-and-ignores-comments + rule-fixtures-stop-writing-runtime-into-their-canon-dirs: folded 04cf3442 and 45ecd061 (haiku), 9 covering suites + rule runner 64/64 green, to review -- fixtures 64/64, 3/544 -- 2 file(s), area lugs -- source: harness-factory: git log main 2c6cb0f3
+- 00:44Z commit b5057789 [harness-factory] initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them: folded 1b3ccb56, 52 covering suites + rule runner 64/64 green, wheel-hub compiles, to review -- lug initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them -- fixtures 64/64, 1/542 -- 1 file(s), area lugs -- source: harness-factory: git log main b5057789
+- 00:34Z commit 244e6be4 [harness-factory] harness-factory-repoints-its-basher-touchpoints-behind-one-root: folded 1d56a44d, 60 of 61 covering suites green; suite-green-in-git-worktree is red only from the busy main checkout (ledger moving under the reader) and 19/19 from a clean worktree at the same HEAD, before and after this fold; to review. Acks two P0s (roxy, basher) -- lug harness-factory-repoints-its-basher-touchpoints-behind-one-root -- fixtures 19/19, 1/541 -- 3 file(s), area lugs -- source: harness-factory: git log main 244e6be4
+
+#### nothing-ships-half-built
+
+- 00:23Z commit 2c84f0d2 [harness-factory] harness-factorys-own-wheel-clock-runs-out-of-session: folded 69d36c77 (one cron run ticks harness-factory, the hub and every spoke clock), 4 wheel-clock suites green, to review. The redundant :05 harness-factory crontab entry is the operator's to remove (auto mode refused the edit) -- lug harness-factorys-own-wheel-clock-runs-out-of-session -- fixtures 1/540 -- 1 file(s), area lugs -- source: harness-factory: git log main 2c84f0d2
+- 00:23Z lug at review harness-factorys-own-wheel-clock-runs-out-of-session [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: nothing-ships-half-built -- tests conformance/fixtures/wheel-clock-cron-ticks-spokes/wheel-clock-cron-ticks-spokes.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/harness-factorys-own-wheel-clock-runs-out-of-session.yaml (last commit touching the file)
+- 00:21Z commit 2697a532 [harness-factory] done-gate-requires-a-live-entry-test-for-automatic-paths: a module entry (wheelScheduler.js) is proven by spawning a script that hosts it (row spawned_via), not by naming the module in a spawn call, which a module cannot satisfy -- lug done-gate-requires-a-live-entry-test-for-automatic-paths -- fixtures 11/11, 360/540 -- 4 file(s), area src/lugTracking -- source: harness-factory: git log main 2697a532
+
+#### src/basher
+
+- 00:33Z commit 994578cc [harness-factory] Reapply "harness-factory-repoints-its-basher-touchpoints-behind-one-root: basherRoot.js resolver (BASHER_STATE_ROOT/BASHER_CONFIG_ROOT) behind wcl, custody, notify, zellij, secrets, receipt gate; Ruling 5 amended; v1 delegation guarded" -- 11 file(s), area src/basher -- source: harness-factory: git log main 994578cc
+- 00:32Z commit 5f822666 [harness-factory] Revert "harness-factory-repoints-its-basher-touchpoints-behind-one-root: basherRoot.js resolver (BASHER_STATE_ROOT/BASHER_CONFIG_ROOT) behind wcl, custody, notify, zellij, secrets, receipt gate; Ruling 5 amended; v1 delegation guarded" -- 11 file(s), area src/basher -- source: harness-factory: git log main 5f822666
+- 00:17Z commit d9e25117 [harness-factory] harness-factory-repoints-its-basher-touchpoints-behind-one-root: basherRoot.js resolver (BASHER_STATE_ROOT/BASHER_CONFIG_ROOT) behind wcl, custody, notify, zellij, secrets, receipt gate; Ruling 5 amended; v1 delegation guarded -- lug harness-factory-repoints-its-basher-touchpoints-behind-one-root -- fixtures 397/540 -- 11 file(s), area src/basher -- source: harness-factory: git log main d9e25117
+
+#### unaffiliated lugs
+
+- 01:34Z lug at review wcl-bootstrap-pulls-a-sanitized-wheel-from-the-public-repo [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/bootstrap-scratch-home/bootstrap-scratch-home.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/wcl-bootstrap-pulls-a-sanitized-wheel-from-the-public-repo.yaml (last commit touching the file)
+- 00:44Z lug at review initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/before-next-cut/before-next-cut.conformance.test.js -- readiness stubbed -- Operator 2026-10-20, 7:30 PM PDT: "can we land this clean up prior to the next cut being created? I think that's a good flag to have on our initiatives to ensure focus is on those prioritized items." -- source: harness-factory: lugs/initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them.yaml (last commit touching the file)
+- 00:34Z lug at review harness-factory-repoints-its-basher-touchpoints-behind-one-root [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/basher-root-resolver/basher-root-resolver.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/harness-factory-repoints-its-basher-touchpoints-behind-one-root.yaml (last commit touching the file)
+
+#### advisor-rebuild-ships-with-the-ap-fixes
+
+- 03:19Z commit b4214370 [harness-factory] a-release-is-gate-proven-and-published-locally-and-the-push-follows: released = gate-proven for the exact commit, or pushed; a full release whose push fails on a proven commit publishes locally and retries the push detached -- lug a-release-is-gate-proven-and-published-locally-and-the-push-follows -- fixtures 8/8, 367/549 -- 7 file(s), area src/factory -- source: harness-factory: git log main b4214370
+- 02:52Z commit 8fb06a2b [harness-factory] push-gate-never-deadlocks-on-its-own-import-cycle: the gate entry calls main() without a top-level await -- lug push-gate-never-deadlocks-on-its-own-import-cycle -- fixtures 3/3, 367/548 -- 3 file(s), area src/factory -- source: harness-factory: git log main 8fb06a2b
+
+#### built-work-runs-for-real
+
+- 01:03Z lug at review rule-fixtures-stop-writing-runtime-into-their-canon-dirs [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: built-work-runs-for-real -- tests conformance/fixtures/rule-fixtures-are-read-only/rule-fixtures-are-read-only.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/rule-fixtures-stop-writing-runtime-into-their-canon-dirs.yaml (last commit touching the file)
+- 01:00Z commit 3394c738 [harness-factory] rule-fixtures-stop-writing-runtime-into-their-canon-dirs: the rule runner and the rule-12 suite compile a temp copy of each tracked broken/fixed tree (conformance/runner/scratchCanon.js), so runtime and ledger bytes no longer land in git's view. New fixture proves git status over conformance/fixtures is unchanged by the rule runs and fails when a tracked tree is compiled in place. -- lug rule-fixtures-stop-writing-runtime-into-their-canon-dirs -- fixtures 3/544 -- 4 file(s), area conformance -- source: harness-factory: git log main 3394c738
+
+#### wcl-launch-is-fast-and-tells-you-what-it-did
+
+- 01:44Z lug at review wcl-auto-entry-mode-seeds-do-it-now-directive [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: wcl-launch-is-fast-and-tells-you-what-it-did -- tests conformance/fixtures/wcl-auto-entry-mode/wcl-auto-entry-mode.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/wcl-auto-entry-mode-seeds-do-it-now-directive.yaml (last commit touching the file)
+- 01:42Z commit 520c0626 [harness-factory] wcl-auto-entry-mode-seeds-do-it-now-directive: wcl auto entry mode seeds a do-it-now directive (haiku build 5b3aa233, changelog hunk dropped); wcl-entry-welcome expects the new menu count; 33 covering suites green -- lug wcl-auto-entry-mode-seeds-do-it-now-directive -- fixtures 386/547 -- 5 file(s), area src/basher -- source: harness-factory: git log main 520c0626
+
+#### canon
+
+- 00:43Z commit f1a1186e [harness-factory] initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them: planner-class-floors policy states the before_next_cut ranking and the cut wait (the instruction-update gate's required canon source) -- lug initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them -- fixtures 1/542 -- 1 file(s), area canon -- source: harness-factory: git log main f1a1186e
+
+#### navigator-has-no-per-task-profile-recommendation-scoring
+
+- 03:13Z commit e805c5c7 [harness-factory] navigator-graphs-available-models-by-cost-and-capability: the validator mutations pick metered models from the live cut's own served ids, not hard-coded kimi-k3 / qwen3.7-flash, which the hub's regenerated navigator cut dropped tonight (a NEW RED that refused the release push) -- lug navigator-graphs-available-models-by-cost-and-capability -- fixtures 1/548 -- 1 file(s), area conformance -- source: harness-factory: git log main e805c5c7
+
+#### src/compiler
+
+- 00:36Z commit 64b1e8c8 [harness-factory] initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them: before_next_cut on initiatives; planner ranks flagged lugs first; cut publish refuses until they are in review or done (--cut-anyway recorded in delta_basis); goals review line; compile rule 29 -- lug initiatives-flag-lugs-that-land-before-the-next-cut-and-the-cut-waits-for-them -- fixtures 362/540 -- 11 file(s), area src/compiler -- source: harness-factory: git log main 64b1e8c8
+
+#### src/factory
+
+- 01:32Z commit e01aa1fa [harness-factory] wcl-bootstrap-pulls-a-sanitized-wheel-from-the-public-repo: hf bootstrap scaffolds a hub + first spoke in a scratch HOME, binds settings, puts wcl on PATH and launches the Ozi wakeup; README section generated from BOOTSTRAP_QUESTIONS; --pull-from fast-forwards and refuses a dirty checkout; canon policy wheel-bootstrap -- lug wcl-bootstrap-pulls-a-sanitized-wheel-from-the-public-repo -- fixtures 23/23, 44/44, 387/545 -- 8 file(s), area src/factory -- source: harness-factory: git log main e01aa1fa
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- 00:35Z commit 84052b9b [harness-factory] surveyor-audits-a-spokes-backlog-readiness-on-the-rotation: filed ready at wheel-hub's request; reuses fleetApReadiness and refineDirective -- lug surveyor-audits-a-spokes-backlog-readiness-on-the-rotation -- fixtures 0/541 -- 1 file(s), area lugs -- source: harness-factory: git log main 84052b9b
+
+### 2026-10-23
+
+#### advisor-pattern-hub-managed-spoke-leveraged
+
+- 22:03Z lug done loop-closer-audits-loop-health-hub-wide [harness-factory] priority medium -- verdict CONFIRMED via claude/claude-opus-5 -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/loop-closer-audits-loop-health-hub-wide.json (external) -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- derived_from grant-is-refused-when-the-last-run-left-no-conforming-log -- tests conformance/fixtures/loop-closer-health/loop-closer-health.conformance.test.js -- cost 15020194 tokens, 423.881s wall -- readiness stubbed -- source: harness-factory: lugs/loop-closer-audits-loop-health-hub-wide.yaml (certified_by.at)
+- 22:02Z commit c6f92e4c [harness-factory] loop-closer-audits-loop-health-hub-wide: pointers now name the delivered files (loopCloser.js, wheelScheduler.js); to review -- lug loop-closer-audits-loop-health-hub-wide -- fixtures 1/529 -- 1 file(s), area lugs -- source: harness-factory: git log main c6f92e4c
+- 21:53Z commit 1cf64d77 [harness-factory] loop-closer-audits-loop-health-hub-wide: auditLoopHealth(hubRoot) writes runtime/loop-health.json (score, oldest open loops, C2 gaps); JOB_RUNNERS.loopCloser -- lug loop-closer-audits-loop-health-hub-wide -- fixtures 348/528 -- 3 file(s), area src/otto -- source: harness-factory: git log main 1cf64d77
+- 21:15Z lug at review advisor-work-registers-as-a-funded-initiative [harness-factory] priority medium -- no certification receipt -- date from last commit touching the file -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- derived_from advisor-writes-carry-a-version-stamp-and-worked-by-trail -- tests conformance/fixtures/advisor-work-initiative/advisor-work-initiative.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/advisor-work-registers-as-a-funded-initiative.yaml (last commit touching the file)
+- 21:03Z commit f40db2e3 [harness-factory] cut-writes-tier-allowed-advisor-overlays-disabled: done (claude-opus-5 CONFIRMED after the fix; cost unmeasured-pre-attribution: the Agent cost-row matcher is not yet bound in .claude/settings.json) -- lug cut-writes-tier-allowed-advisor-overlays-disabled -- fixtures 1/521 -- 1 file(s), area lugs -- source: harness-factory: git log main f40db2e3
+- 21:00Z lug done cut-writes-tier-allowed-advisor-overlays-disabled [harness-factory] priority medium -- verdict CONFIRMED via claude/claude-opus-5 -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/cut-writes-tier-allowed-advisor-overlays-disabled.json (external) -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- derived_from shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data -- tests conformance/fixtures/cut-writes-disabled-advisor-overlays/cut-writes-disabled-advisor-overlays.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/cut-writes-tier-allowed-advisor-overlays-disabled.yaml (certified_by.at)
+- 20:57Z commit 96b854d3 [harness-factory] cut-writes-tier-allowed-advisor-overlays-disabled: honour the lug as written (poc spoke and overlay-managing spoke gain no stubs; literal exclusion reason checked); advisor-work-registers-as-a-funded-initiative + hook-dispatcher-fixture-never-writes-the-real-closeout-hook folded (28779b24, 70be57df) to review -- lug cut-writes-tier-allowed-advisor-overlays-disabled -- fixtures 343/521 -- 5 file(s), area src/factory -- source: harness-factory: git log main 96b854d3
+- 20:54Z commit c220ad6c [harness-factory] advisor-work-registers-as-a-funded-initiative: initiative schema gains origin/budget_request/advisor_work; advisorInitiative.js proposes, funds (ledger decision row), tracks forecast_vs_actual -- lug advisor-work-registers-as-a-funded-initiative -- fixtures 1/521 -- 3 file(s), area src/advisor -- source: harness-factory: git log main c220ad6c
+- 20:48Z lug at review grant-is-refused-when-the-last-run-left-no-conforming-log [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- derived_from advisor-run-and-event-rows-are-schema-validated, advisor-grant-reads-the-instance-roster-not-the-hub -- tests conformance/fixtures/grant-refused-without-advisor-log/grant-refused-without-advisor-log.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/grant-is-refused-when-the-last-run-left-no-conforming-log.yaml (last commit touching the file)
+- 20:36Z commit 9ca23a5b [harness-factory] grant-is-refused-when-the-last-run-left-no-conforming-log: checkAdvisorLogCompliance refuses the grant (c2_log_missing) when the previous dispatch has no run row or an action has no event; autopilot records the refusal -- lug grant-is-refused-when-the-last-run-left-no-conforming-log -- fixtures 391/519 -- 4 file(s), area src/advisor -- source: harness-factory: git log main 9ca23a5b
+- 20:34Z commit 9641e91e [harness-factory] cut-writes-tier-allowed-advisor-overlays-disabled: applyCut writes enabled:false master overlay stubs for tier-allowed advisors, never overwriting an overlay -- lug cut-writes-tier-allowed-advisor-overlays-disabled -- fixtures 340/519 -- 3 file(s), area src/factory -- source: harness-factory: git log main 9641e91e
+- 20:29Z commit c07bf31b [harness-factory] shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data: folded 0f02821f, 51 covering suites green on main, to review -- lug shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data -- fixtures 1/518 -- 1 file(s), area lugs -- source: harness-factory: git log main c07bf31b
+- 20:29Z lug at review shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- derived_from advisor-masters-declare-data-sources-fit-and-tier-budgets, spoke-entity-declares-foundation-goals-tier-role-services-inbound -- tests conformance/fixtures/advisor-loader/advisor-loader.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data.yaml (last commit touching the file)
+- 20:22Z commit 386875a8 [harness-factory] shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data: advisorLoader.loadMergedRoster merges hub master + overlay (allowlist, tier, fits_when/goal-fit, data bindings); scheduler, planner and budget readers delegate -- lug shared-advisor-loader-merges-master-and-overlay-by-tier-fit-and-data -- fixtures 340/518 -- 5 file(s), area src/otto -- source: harness-factory: git log main 386875a8
+- 20:08Z commit 2867730a [harness-factory] advisor-run-and-event-rows-are-schema-validated: folded 100a2ad5, 36 covering suites green on main (one load flake green on rerun), to review -- lug advisor-run-and-event-rows-are-schema-validated -- fixtures 1/516 -- 1 file(s), area lugs -- source: harness-factory: git log main 2867730a
+- 20:08Z lug at review advisor-run-and-event-rows-are-schema-validated [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- derived_from advisor-writes-carry-a-version-stamp-and-worked-by-trail -- tests conformance/fixtures/advisor-run-and-event-rows/advisor-run-and-event-rows.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/advisor-run-and-event-rows-are-schema-validated.yaml (last commit touching the file)
+- 20:01Z commit a3d0f905 [harness-factory] advisor-run-and-event-rows-are-schema-validated: advisor-run + advisor-event schemas, advisorRunLog (refusals land in the ledger), advisor_action event kind validated in appendEvent, run row from recordOutcome and recordMeasuredActivation -- lug advisor-run-and-event-rows-are-schema-validated -- fixtures 388/516 -- 8 file(s), area src/otto -- source: harness-factory: git log main a3d0f905
+- 19:58Z commit 5d85d2c3 [harness-factory] advisor-masters-declare-data-sources-fit-and-tier-budgets: folded a0f76d99, covering suites green on main (3 fleet-state reds from old-cut ozi ruling lugs in pathfinder/bubo/roxy, sent to basher), to review -- lug advisor-masters-declare-data-sources-fit-and-tier-budgets -- fixtures 1/515 -- 1 file(s), area lugs -- source: harness-factory: git log main 5d85d2c3
+- 19:58Z lug at review advisor-masters-declare-data-sources-fit-and-tier-budgets [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- tests conformance/fixtures/advisor-master-schema-fields/advisor-master-schema-fields.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/advisor-masters-declare-data-sources-fit-and-tier-budgets.yaml (last commit touching the file)
+- 19:53Z commit 90f3bf24 [harness-factory] advisor-masters-declare-data-sources-fit-and-tier-budgets: advisor.schema.json gains master fields (version, tiers, fits_when, serves_measures, warmup, data_sources, budget_floor, budget_ceiling_by_tier), overlay master + data_source_bindings (secret-looking values refused), and declares guaranteed_runtime_share and measured_activation -- lug advisor-masters-declare-data-sources-fit-and-tier-budgets -- fixtures 3/515 -- 2 file(s), area conformance -- source: harness-factory: git log main 90f3bf24
+- 19:50Z lug at review advisor-grant-reads-the-instance-roster-not-the-hub [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- tests conformance/fixtures/advisor-grant-reads-the-instance-roster/advisor-grant-reads-the-instance-roster.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/advisor-grant-reads-the-instance-roster-not-the-hub.yaml (last commit touching the file)
+- 19:50Z lug at review advisor-writes-carry-a-version-stamp-and-worked-by-trail [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: advisor-pattern-hub-managed-spoke-leveraged -- tests conformance/fixtures/advisor-version-stamp/advisor-version-stamp.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/advisor-writes-carry-a-version-stamp-and-worked-by-trail.yaml (last commit touching the file)
+- 19:39Z commit 87951fff [harness-factory] advisor-writes-carry-a-version-stamp-and-worked-by-trail: advisorStamp module + schema; appendAdvisorFinding and recordOutcome rows carry _advisor -- lug advisor-writes-carry-a-version-stamp-and-worked-by-trail -- fixtures 332/506 -- 5 file(s), area src/advisor -- source: harness-factory: git log main 87951fff
+- 19:35Z commit e3a06d3e [harness-factory] advisor-grant-reads-the-instance-roster-not-the-hub: request, grant and next request use the instance roster/ledger, not hubRoot; red-first fixture -- lug advisor-grant-reads-the-instance-roster-not-the-hub -- fixtures 332/506 -- 2 file(s), area src/otto -- source: harness-factory: git log main e3a06d3e
+
+#### built-work-runs-for-real
+
+- 20:57Z lug at review hook-dispatcher-fixture-never-writes-the-real-closeout-hook [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: built-work-runs-for-real -- tests conformance/fixtures/hook-dispatcher-per-event/hook-dispatcher-per-event.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/hook-dispatcher-fixture-never-writes-the-real-closeout-hook.yaml (last commit touching the file)
+- 20:53Z commit befa9a64 [harness-factory] hook-dispatcher-fixture-never-writes-the-real-closeout-hook: section 7 writes only through guardedWrite (realpath under own mkdtemp root, not inside the repo, lstat not a link); fixture hashes the real hook before and after; escape cause not reproduced, guard closes every route listed -- lug hook-dispatcher-fixture-never-writes-the-real-closeout-hook -- fixtures 1/520 -- 1 file(s), area conformance -- source: harness-factory: git log main befa9a64
+- 20:51Z commit 3f28a8db [harness-factory] hook-dispatcher-fixture-never-writes-the-real-closeout-hook: defined -> ready (pre-release blocker; it recurred 13:25 PDT) -- lug hook-dispatcher-fixture-never-writes-the-real-closeout-hook -- fixtures 0/520 -- 1 file(s), area lugs -- source: harness-factory: git log main 3f28a8db
+- 19:28Z lug done ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest [harness-factory] priority critical -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest.json (external) -- initiative field: built-work-runs-for-real -- tests conformance/fixtures/ozi-skips-held-directions/ozi-skips-held-directions.conformance.test.js -- cost 17659200 tokens, 26238.821s wall -- readiness stubbed -- source: harness-factory: lugs/ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest.yaml (certified_by.at)
+- 19:27Z lug done drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane [harness-factory] priority critical -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane.json (external) -- initiative field: built-work-runs-for-real -- tests conformance/fixtures/drive-state-only-lanes-do-not-halt/drive-state-only-lanes-do-not-halt.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane.yaml (certified_by.at)
+- 18:51Z commit afd64a19 [harness-factory] the-harness-clock-readiness-sweep-fits-inside-one-cron-interval: an open done gate always re-runs the fixture fresh, so a carried red no longer holds a certified lug at review -- lug the-harness-clock-readiness-sweep-fits-inside-one-cron-interval -- fixtures 335/512 -- 4 file(s), area src/conductor -- source: harness-factory: git log main afd64a19
+- 18:11Z commit ef2b640f [harness-factory] a-failed-proving-step-reruns-itself-once-its-fix-is-green: operator rule 2026-10-23 11:05 PDT, retry after a green fix without asking -- lug a-failed-proving-step-reruns-itself-once-its-fix-is-green -- fixtures 0/512 -- 1 file(s), area lugs -- source: harness-factory: git log main ef2b640f
+- 18:01Z commit 0cad66e0 [harness-factory] hook-dispatcher-fixture-never-writes-the-real-closeout-hook: filed after a fixture marker landed in the real closeout hook (restored) -- lug hook-dispatcher-fixture-never-writes-the-real-closeout-hook -- fixtures 0/512 -- 1 file(s), area lugs -- source: harness-factory: git log main 0cad66e0
+- 10:44Z commit e902528f [harness-factory] ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest: folded, covering suites green, lug to review -- lug ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest -- fixtures 1/511 -- 1 file(s), area lugs -- source: harness-factory: git log main e902528f
+- 10:42Z commit cdaa3021 [harness-factory] ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest: header comment (d) matches the new behaviour -- lug ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest -- fixtures 335/511 -- 1 file(s), area src/otto -- source: harness-factory: git log main cdaa3021
+- 10:40Z commit 50780a82 [harness-factory] drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane: folded, covering suites green on main, lug to review -- lug drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane -- fixtures 1/510 -- 1 file(s), area lugs -- source: harness-factory: git log main 50780a82
+- 10:38Z commit fa869d90 [harness-factory] ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest: decideAllocation skips held/stale directions (skipped_directions + directions_skipped note), keeps do+avoid as hard unclear; drive names them -- lug ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest -- 5 file(s), area src/conductor -- source: harness-factory: git log main fa869d90
+- 10:36Z commit c8a671f2 [harness-factory] drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane: convergeLanes classifies a state-only lane (allCommitsStateOnly, reusing foldWorktree's state-path test via new isStatePath) and the drive records lane_state_only instead of halting the spoke -- lug drive-convergence-does-not-halt-a-spoke-on-a-state-only-session-lane -- 3 file(s), area src/conductor -- source: harness-factory: git log main c8a671f2
+- 09:47Z commit ec5765fb [harness-factory] drive-lane-convergence-never-folds-a-lane-a-live-session-is-working-in: folded afded40f, 6 covering suites green on main, lug to review -- lug drive-lane-convergence-never-folds-a-lane-a-live-session-is-working-in -- fixtures 1/509 -- 1 file(s), area lugs -- source: harness-factory: git log main ec5765fb
+- 09:47Z lug at review drive-lane-convergence-never-folds-a-lane-a-live-session-is-working-in [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: built-work-runs-for-real -- tests conformance/fixtures/drive-skips-live-session-lanes/drive-skips-live-session-lanes.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/drive-lane-convergence-never-folds-a-lane-a-live-session-is-working-in.yaml (last commit touching the file)
+- 09:44Z commit afded40f [harness-factory] drive-lane-convergence-never-folds-a-lane-a-live-session-is-working-in: convergeLanes skips a lane a live session holds (halted_unconverged names lane + session); liveSessionsFor injection, default checkoutOccupancy.liveSessionsAt -- lug drive-lane-convergence-never-folds-a-lane-a-live-session-is-working-in -- 2 file(s), area src/conductor -- source: harness-factory: git log main afded40f
+- 09:40Z lug at review no-live-lug-lists-a-test-path-that-does-not-exist [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: built-work-runs-for-real -- tests conformance/fixtures/live-lug-test-paths-exist/live-lug-test-paths-exist.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/no-live-lug-lists-a-test-path-that-does-not-exist.yaml (last commit touching the file)
+- 09:40Z lug at review the-sweep-rerequests-a-certification-its-author-requested [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: built-work-runs-for-real -- tests conformance/fixtures/sweep-rerequests-author-requested-certification/sweep-rerequests-author-requested-certification.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/the-sweep-rerequests-a-certification-its-author-requested.yaml (last commit touching the file)
+- 09:37Z commit e4baf390 [harness-factory] no-live-lug-lists-a-test-path-that-does-not-exist: tests: checked only at review; traceability_evidence at every live state -- lug no-live-lug-lists-a-test-path-that-does-not-exist -- fixtures 11/0, 10/0, 60/0 -- 3 file(s), area src/compiler -- source: harness-factory: git log main e4baf390
+- 09:11Z commit 5e16e4dd [harness-factory] no-live-lug-lists-a-test-path-that-does-not-exist: rule 27 warns on live lugs naming a missing test path -- lug no-live-lug-lists-a-test-path-that-does-not-exist -- fixtures 10/0, 65/0, 50/0, 60/0 -- 6 file(s), area src/compiler -- source: harness-factory: git log main 5e16e4dd
+- 09:10Z commit 05421e49 [harness-factory] the-sweep-rerequests-a-certification-its-author-requested: sweep threads sessionId and re-requests author-requested verdicts -- lug the-sweep-rerequests-a-certification-its-author-requested -- 3 file(s), area src/conductor -- source: harness-factory: git log main 05421e49
+
+#### advisors-schedule-themselves-and-ozi-spends-the-budget
+
+- 21:42Z commit 2787f780 [harness-factory] advisor-initiatives-are-demand-ozi-weighs-against-builds: folded 0e53ad91 (the wave no longer wakes advisors ahead of the drive; 3 fixtures opt into the old wake via preDriveAdvisorWake), 48 covering suites green, to review -- lug advisor-initiatives-are-demand-ozi-weighs-against-builds -- fixtures 3/526 -- 1 file(s), area lugs -- source: harness-factory: git log main 2787f780
+- 21:42Z lug at review advisor-initiatives-are-demand-ozi-weighs-against-builds [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/ozi-weighs-advisor-demand/ozi-weighs-advisor-demand.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/advisor-initiatives-are-demand-ozi-weighs-against-builds.yaml (last commit touching the file)
+- 21:37Z commit 176e5ecb [harness-factory] advisor-initiatives-are-demand-ozi-weighs-against-builds: advisor upkeep initiatives are Ozi demand; the wave wakes advisors only as Ozi allocations; the drive dispatches funded advisor items -- lug advisor-initiatives-are-demand-ozi-weighs-against-builds -- fixtures 346/525 -- 9 file(s), area src/conductor -- source: harness-factory: git log main 176e5ecb
+- 21:34Z commit e96a77ae [harness-factory] advisor-runs-skip-when-nothing-new-and-findings-count-only-when-landed: folded 6b65f699 (4 fixtures updated to the new 'consumed = landed' semantics the lug mandates), 63 covering suites green, to review -- lug advisor-runs-skip-when-nothing-new-and-findings-count-only-when-landed -- fixtures 1/525 -- 1 file(s), area lugs -- source: harness-factory: git log main e96a77ae
+- 21:34Z lug at review advisor-runs-skip-when-nothing-new-and-findings-count-only-when-landed [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/advisor-no-delta-and-landed-consumption/advisor-no-delta-and-landed-consumption.conformance.test.js -- readiness stubbed -- Operator 10-22: "We dont need maintenance to be over done." -- source: harness-factory: lugs/advisor-runs-skip-when-nothing-new-and-findings-count-only-when-landed.yaml (last commit touching the file)
+- 21:27Z commit 8ee88f00 [harness-factory] advisor-runs-skip-when-nothing-new-and-findings-count-only-when-landed: delta gate ignores own-repeat stale findings (one advisor_no_delta row), findings pending until their lug lands, empty-roster advisor_activation is quiet -- lug advisor-runs-skip-when-nothing-new-and-findings-count-only-when-landed -- fixtures 351/524 -- 11 file(s), area src/otto -- source: harness-factory: git log main 8ee88f00
+- 21:27Z commit 0d0c930c [harness-factory] advisors-declare-their-next-run-cadence-and-budget-as-an-advisor-initiative: folded ec3a5565; 54 covering suites green except known state (wcl unreleased line, old-cut type: decision lugs) and one load flake (readiness-judges-the-launch-lane, green alone); wheel-hub compiles BUILD OK; to review -- lug advisors-declare-their-next-run-cadence-and-budget-as-an-advisor-initiative -- fixtures 1/524 -- 1 file(s), area lugs -- source: harness-factory: git log main 0d0c930c
+- 21:27Z lug at review advisors-declare-their-next-run-cadence-and-budget-as-an-advisor-initiative [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/advisor-self-schedules/advisor-self-schedules.conformance.test.js -- readiness stubbed -- Operator 2026-10-22 9:05 AM PDT: "Advisors once started should review their edict and determine a plan of attack stating reasonable and appropriate frequency to match the volume of work and applicable return on that investment in terms of lift to whomever consumes it ... advise on when it will be needed to run again and then create an initiative with that timing indicated as well as recommended budget ... so Ozi can prioritize it and queue it up when needed ... filtered." -- source: harness-factory: lugs/advisors-declare-their-next-run-cadence-and-budget-as-an-advisor-initiative.yaml (last commit touching the file)
+- 21:21Z commit 6824c2e7 [harness-factory] advisors-declare-their-next-run-cadence-and-budget-as-an-advisor-initiative: self_scheduled activation gated on the advisor's own upkeep due_at, plan-of-attack block filed as the upkeep initiative, origin filter and not-yet-due skip in rank and drive -- lug advisors-declare-their-next-run-cadence-and-budget-as-an-advisor-initiative -- fixtures 348/524 -- 9 file(s), area src/advisor -- source: harness-factory: git log main 6824c2e7
+- 21:15Z commit c66c0955 [harness-factory] dispatch-kill-takes-one-id-or-lug: folded 1b8e4223, 43 of 44 covering suites green (orphan-dispatch-disposition is red on real wheel-hub state, identical on unchanged main), to review; advisor-work-registers-as-a-funded-initiative: record the wheel-hub compile as verify evidence -- lug dispatch-kill-takes-one-id-or-lug -- fixtures 2/523 -- 2 file(s), area lugs -- source: harness-factory: git log main c66c0955
+- 21:15Z lug at review dispatch-kill-takes-one-id-or-lug [harness-factory] priority medium -- no certification receipt -- date from last commit touching the file -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/dispatch-kill-by-id/dispatch-kill-by-id.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/dispatch-kill-takes-one-id-or-lug.yaml (last commit touching the file)
+- 21:08Z commit 078e7c54 [harness-factory] dispatch-kill-takes-one-id-or-lug: killPendingDispatches takes { dispatchId } or { lug }; hf stop --dispatch=/--lug=; bare stop falls back to the hub's operator -- lug dispatch-kill-takes-one-id-or-lug -- fixtures 348/522 -- 4 file(s), area src -- source: harness-factory: git log main 078e7c54
+- 21:07Z commit cfd9118f [harness-factory] conductor-answers-ozi-budget-requests: folded 3eb6e5fb; the hub grant is read AS grantTokens (spec), never added to the caller's default, so repeated runs in a window cannot stack it; 26 covering suites green; to review -- lug conductor-answers-ozi-budget-requests -- fixtures 341/522 -- 2 file(s), area src/otto -- source: harness-factory: git log main cfd9118f
+- 21:07Z lug at review conductor-answers-ozi-budget-requests [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/budget-request-answered/budget-request-answered.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/conductor-answers-ozi-budget-requests.yaml (last commit touching the file)
+- 21:03Z commit a75825b7 [harness-factory] conductor-answers-ozi-budget-requests: hub answers Ozi budget_request with a budget_grant from measured headroom above the reserve (processSignalInbox arm); spoke's runOziAllocation reads its unexpired grant -- lug conductor-answers-ozi-budget-requests -- fixtures 343/522 -- 6 file(s), area src/otto -- source: harness-factory: git log main a75825b7
+- 19:34Z lug done the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug [harness-factory] priority critical -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug.json (external) -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/wave-wakes-spoke-ozi/wave-wakes-spoke-ozi.conformance.test.js -- readiness stubbed -- Operator 2026-10-22 9:05 AM PDT: "Conductor can indicate what it's advising to focus on for each AP run in spokes. But if it doesn't, which should be the default, it's just saying, wake up spoke, here's a budget, use it as you will. And then [Ozi], the local agent, should be able to say, let's pop off the top of the priority backlog. It has to understand the priority." -- source: harness-factory: lugs/the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug.yaml (certified_by.at)
+
+#### commits
+
+- 23:37Z commit 1b01f676 [harness-factory] communication-outbox-circle-reads-sibling-fulfillment-records: local pointers, tests/verify path, model_fit sonnet (execute-only) -- lug communication-outbox-circle-reads-sibling-fulfillment-records -- fixtures 0/536 -- 1 file(s), area lugs -- source: harness-factory: git log main 1b01f676
+- 23:37Z commit 39f2b447 [harness-factory] communication-outbox-circle-reads-sibling-fulfillment-records: defined and ready (acceptance written from wheel-hub docs/cross-spoke-communication-lugs.md 2.4-2.5; local pointers, tests/verify path, model_fit sonnet), at wheel-hub's request -- lug communication-outbox-circle-reads-sibling-fulfillment-records -- fixtures 0/536 -- 1 file(s), area lugs -- source: harness-factory: git log main 39f2b447
+- 23:03Z commit 72fe2afa [harness-factory] a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke + conductor-writes-its-pick-record-before-launching: folded 5718f26e and 573a756c, 47 + 18 covering suites green (initiative-focus was a load flake, 107/107 alone), pointers name the delivered files, to review -- fixtures 107/107, 2/534 -- 2 file(s), area lugs -- source: harness-factory: git log main 72fe2afa
+- 22:15Z commit ee7d5115 [harness-factory] advisor-roster-reconciliation-carries-registry-rows: folded 5952cb2a, 7 covering suites green, to review; loop-closer-audits-loop-health-hub-wide: done (claude-opus-5 CONFIRMED) -- lug advisor-roster-reconciliation-carries-registry-rows -- fixtures 2/530 -- 2 file(s), area lugs -- source: harness-factory: git log main ee7d5115
+- 22:09Z commit b1bce899 [harness-factory] advisor-roster-reconciliation-carries-registry-rows: prepared execute-only (tests/verify path, model_fit sonnet) and moved captured -> ready, the last wave D build -- lug advisor-roster-reconciliation-carries-registry-rows -- fixtures 0/529 -- 1 file(s), area lugs -- source: harness-factory: git log main b1bce899
+- 22:01Z commit 298dfaaa [harness-factory] notification-ladder-routes-levels-zero-to-three + loop-closer-audits-loop-health-hub-wide: folded 47ae654d and c2dc3373, covering suites green (44 for goalsReview incl. one load flake green alone; 42 for wheelScheduler), to review. Loop Closer audits 3 of the 7 loops named in its intent (findings, lug lifecycle, C2); its acceptance is met -- fixtures 2/529 -- 2 file(s), area lugs -- source: harness-factory: git log main 298dfaaa
+- 19:50Z commit 595c421d [harness-factory] advisor-grant-reads-the-instance-roster-not-the-hub, advisor-writes-carry-a-version-stamp-and-worked-by-trail: folded, 22 covering suites green on main, both to review (certification launched) -- fixtures 2/514 -- 2 file(s), area lugs -- source: harness-factory: git log main 595c421d
+- 19:35Z commit 73528641 [harness-factory] advisor-rebuild-ships-with-the-ap-fixes step 1: the 4 AP fixes certified done by a non-author session -- fixtures 9/9, 4/512 -- 7 file(s), area lugs -- source: harness-factory: git log main 73528641
+- 19:21Z commit 21541734 [harness-factory] comm-roxy-ozi-ruling-schema-and-on-deck-spoke-scope-fixed: tell roxy its request is fixed in 6da3dcf0 and 1873457a -- lug comm-roxy-ozi-ruling-schema-and-on-deck-spoke-scope-fixed -- fixtures 0/512 -- 1 file(s), area lugs -- source: harness-factory: git log main 21541734
+- 10:31Z commit 6743cd77 [harness-factory] stage 1 remediation: two critical lugs from the 03:23 PDT supervised pass (0 dispatched) -- fixtures 0/509 -- 2 file(s), area lugs -- source: harness-factory: git log main 6743cd77
+- 09:40Z commit 2644305c [harness-factory] autopilot-comes-back: three hf steps folded and at review; live-session lane guard filed as a stage-1 prerequisite -- fixtures 3/508 -- 4 file(s), area lugs -- source: harness-factory: git log main 2644305c
+
+#### conductor-works-initiatives-by-impact-and-alerts-on-trouble
+
+- 23:15Z commit 05eeff30 [harness-factory] conductor-grades-its-pick-and-reports-reliability: folded 96c1e0e7 (grade rows per pick + session-start reliability line), 55 covering suites green, to review -- lug conductor-grades-its-pick-and-reports-reliability -- fixtures 1/535 -- 1 file(s), area lugs -- source: harness-factory: git log main 05eeff30
+- 23:15Z lug at review conductor-grades-its-pick-and-reports-reliability [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative of derived_from root each-window-publishes-its-pick-and-is-graded-after: conductor-works-initiatives-by-impact-and-alerts-on-trouble -- derived_from each-window-publishes-its-pick-and-is-graded-after -- tests conformance/fixtures/conductor-pick-grade/conductor-pick-grade.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/conductor-grades-its-pick-and-reports-reliability.yaml (last commit touching the file)
+- 23:10Z commit b66ba8c1 [harness-factory] conductor-grades-its-pick-and-reports-reliability: grade each window pick record at run end (predicted vs actual landed, tokens, time) and add the fired/owed session-start line -- lug conductor-grades-its-pick-and-reports-reliability -- fixtures 359/535 -- 4 file(s), area src/conductor -- source: harness-factory: git log main b66ba8c1
+- 23:03Z lug at review conductor-writes-its-pick-record-before-launching [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative of derived_from root each-window-publishes-its-pick-and-is-graded-after: conductor-works-initiatives-by-impact-and-alerts-on-trouble -- derived_from each-window-publishes-its-pick-and-is-graded-after -- tests conformance/fixtures/conductor-pick-record/conductor-pick-record.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/conductor-writes-its-pick-record-before-launching.yaml (last commit touching the file)
+- 22:57Z commit ef8f1a46 [harness-factory] conductor-writes-its-pick-record-before-launching: drive writes a window pick record (items, initiative rank, unblock count, est run, why over next, outside-top why) before queueing the dispatch; unwritable record refuses launch -- lug conductor-writes-its-pick-record-before-launching -- fixtures 355/533 -- 3 file(s), area src/conductor -- source: harness-factory: git log main ef8f1a46
+- 18:46Z lug done conductor-chooses-work-from-the-ranked-open-initiatives [harness-factory] priority critical -- verdict CONFIRMED via deepseek/deepseek-flash -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/conductor-chooses-work-from-the-ranked-open-initiatives.json (external) -- initiative lugs list: conductor-works-initiatives-by-impact-and-alerts-on-trouble -- tests conformance/fixtures/conductor-works-the-ranked-initiatives/conductor-works-the-ranked-initiatives.conformance.test.js -- cost 27459041 tokens, 861.79s wall -- readiness stubbed -- source: harness-factory: lugs/conductor-chooses-work-from-the-ranked-open-initiatives.yaml (certified_by.at)
+
+#### docs
+
+- 22:20Z commit 63264bd6 [harness-factory] advisor-rebuild-ships-with-the-ap-fixes: batch 2 recorded (operator: empty the backlog before the release; criticals, then quick wins, then highs) -- fixtures 0/530 -- 1 file(s), area docs -- source: harness-factory: git log main 63264bd6
+- 22:15Z commit 62089ec4 [harness-factory] advisor-rebuild-ships-with-the-ap-fixes: progress, all builds folded, push blockers clear, release is next -- fixtures 0/530 -- 1 file(s), area docs -- source: harness-factory: git log main 62089ec4
+- 21:48Z commit 9b81d3f2 [harness-factory] advisor-rebuild-ships-with-the-ap-fixes: progress; fresh-session certification command; post-deploy hub steps; orphan-dispatch red traced to the same old-cut lugs -- fixtures 0/527 -- 1 file(s), area docs -- source: harness-factory: git log main 9b81d3f2
+- 20:30Z commit 1f04bdbd [harness-factory] advisor-rebuild-ships-with-the-ap-fixes: progress; the closeout-hook pollution is a pre-release blocker; note on live criteria -- fixtures 0/518 -- 1 file(s), area docs -- source: harness-factory: git log main 1f04bdbd
+- 19:51Z commit 6175cbb4 [harness-factory] advisor-rebuild-ships-with-the-ap-fixes: progress (step 1 done, wave A 2 of 8 folded) -- fixtures 0/514 -- 1 file(s), area docs -- source: harness-factory: git log main 6175cbb4
+
+#### no-work-is-stranded
+
+- 23:58Z commit 4c29befe [harness-factory] work-folds-the-moment-it-is-verified-and-carries-its-instruction-update: closeout names verified-unfolded branches with the fold command; review refused when a canon/doc-named behavior changed without its instruction source; session start names worktrees older than one session -- lug work-folds-the-moment-it-is-verified-and-carries-its-instruction-update -- fixtures 362/538 -- 7 file(s), area src/lugTracking -- source: harness-factory: git log main 4c29befe
+- 23:56Z commit 63210a6b [harness-factory] hooks-write-session-state-to-the-main-checkout-not-the-worktree: dispatcher resolves the state root once through stateRoot; session_cwd keeps the worktree on the record; gap scan reads the worktree diff -- lug hooks-write-session-state-to-the-main-checkout-not-the-worktree -- fixtures 11/538 -- 4 file(s), area src/hooks -- source: harness-factory: git log main 63210a6b
+- 19:30Z lug done in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug [harness-factory] priority high -- verdict CONFIRMED via claude/claude-sonnet-5 -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug.json (external) -- initiative field: no-work-is-stranded -- tests conformance/fixtures/agent-fork-lug-dispatch-row/agent-fork-lug-dispatch-row.conformance.test.js -- cost 15527881 tokens, 1405.993s wall -- readiness stubbed -- source: harness-factory: lugs/in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug.yaml (certified_by.at)
+- 18:00Z commit cbca34e0 [harness-factory] in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug: folded b8d42abd, 7 covering suites green on main, pointers name delivered files, lug to review -- lug in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug -- fixtures 1/512 -- 1 file(s), area lugs -- source: harness-factory: git log main cbca34e0
+- 17:43Z commit 8b6f9a4c [harness-factory] in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug: an Agent fork's return appends a completed agent-fork dispatch-registry row per lug its prompt names (session-files-touched Post hook matches Agent); launch record carries cost_lugs -- lug in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug -- 5 file(s), area src/hooks -- source: harness-factory: git log main 8b6f9a4c
+
+#### nothing-ships-half-built
+
+- 23:48Z commit 586347d0 [harness-factory] done-gate-requires-a-live-entry-test-for-automatic-paths: folded de153460 (canon/automatic-entry-points.yaml + liveEntryGate at review and done), 61 covering suites green; pointers now name the delivered files rather than the entry points this lug only references (the new gate refused it on its own pointers); to review -- lug done-gate-requires-a-live-entry-test-for-automatic-paths -- fixtures 1/537 -- 1 file(s), area lugs -- source: harness-factory: git log main 586347d0
+- 23:48Z lug at review done-gate-requires-a-live-entry-test-for-automatic-paths [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: nothing-ships-half-built -- tests conformance/fixtures/live-entry-gate/live-entry-gate.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/done-gate-requires-a-live-entry-test-for-automatic-paths.yaml (last commit touching the file)
+- 23:36Z commit dcf2ef8f [harness-factory] done-gate-requires-a-live-entry-test-for-automatic-paths: canon table of automatic entry points; verb refuses review/done when a touched entry has no spawning fixture; live-entry-audit dry-run report -- lug done-gate-requires-a-live-entry-test-for-automatic-paths -- fixtures 372/537 -- 7 file(s), area src/lugTracking -- source: harness-factory: git log main dcf2ef8f
+- 23:27Z commit f6fd42e7 [harness-factory] harness-factorys-own-wheel-clock-runs-out-of-session: wheel-clock-cron ticks every registered spoke that declares a wheel clock (harness-factory first), per-instance deadline, frameworkRoot to each; documented install line -- lug harness-factorys-own-wheel-clock-runs-out-of-session -- fixtures 3/537 -- 3 file(s), area conformance -- source: harness-factory: git log main f6fd42e7
+
+#### spokes-know-their-place-foundation-goals-tier-group
+
+- 20:50Z commit 1daf48b2 [harness-factory] spoke-entity-declares-foundation-goals-tier-role-services-inbound: record the real wheel-hub compile as verify evidence (BUILD OK, all 13 spoke cards valid, 11 unfounded as warnings) -- lug spoke-entity-declares-foundation-goals-tier-role-services-inbound -- fixtures 1/520 -- 1 file(s), area lugs -- source: harness-factory: git log main 1daf48b2
+- 20:50Z lug at review spoke-entity-declares-foundation-goals-tier-role-services-inbound [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: spokes-know-their-place-foundation-goals-tier-group -- tests conformance/fixtures/spoke-foundation-fields/spoke-foundation-fields.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/spoke-entity-declares-foundation-goals-tier-role-services-inbound.yaml (last commit touching the file)
+- 20:13Z commit 06e44729 [harness-factory] spoke-entity-declares-foundation-goals-tier-role-services-inbound: folded 41cd54e5 (+ spacing fix), 20 covering suites and the rule fixture runner (62/62) green on main, to review -- lug spoke-entity-declares-foundation-goals-tier-role-services-inbound -- fixtures 62/62, 338/517 -- 2 file(s), area src/compiler -- source: harness-factory: git log main 06e44729
+- 20:08Z commit 06352402 [harness-factory] spoke-entity-declares-foundation-goals-tier-role-services-inbound: spoke schema gains foundation fields; rule 28 warns on an unfounded spoke -- lug spoke-entity-declares-foundation-goals-tier-role-services-inbound -- fixtures 337/515 -- 6 file(s), area src/compiler -- source: harness-factory: git log main 06352402
+
+#### autopilot-comes-back-as-a-proven-superset
+
+- 10:32Z commit bc661a59 [harness-factory] hub-drive-halts-unproductive-streaks-and-converges-lanes-first: stage 1 live evidence recorded (18 per-spoke steps, halted_unconverged on live lanes) -- lug hub-drive-halts-unproductive-streaks-and-converges-lanes-first -- fixtures 1/509 -- 1 file(s), area lugs -- source: harness-factory: git log main bc661a59
+- 10:32Z lug at review hub-drive-halts-unproductive-streaks-and-converges-lanes-first [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative lugs list: autopilot-comes-back-as-a-proven-superset -- tests conformance/fixtures/drive-unproductive-streak/drive-unproductive-streak.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/hub-drive-halts-unproductive-streaks-and-converges-lanes-first.yaml (last commit touching the file)
+- 09:12Z commit 662da9ac [harness-factory] hub-drive-halts-unproductive-streaks-and-converges-lanes-first: drive halts a spoke after N no-op dispatches and folds lanes first -- lug hub-drive-halts-unproductive-streaks-and-converges-lanes-first -- fixtures 19/0 -- 2 file(s), area src/conductor -- source: harness-factory: git log main 662da9ac
+
+#### fleet-activity-dashboard-request-to-completion-visibility
+
+- 22:37Z commit 17bf70f7 [harness-factory] fleet-ap-readiness-is-one-line-per-spoke-at-session-start: folded 7a1af7f1, 45 covering suites green, to review (unblocks a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke) -- lug fleet-ap-readiness-is-one-line-per-spoke-at-session-start -- fixtures 2/531 -- 1 file(s), area lugs -- source: harness-factory: git log main 17bf70f7
+- 22:37Z lug at review fleet-ap-readiness-is-one-line-per-spoke-at-session-start [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: fleet-activity-dashboard-request-to-completion-visibility -- tests conformance/fixtures/fleet-ap-readiness/fleet-ap-readiness.conformance.test.js -- readiness stubbed -- Operator 2026-10-19 10:40 PM PDT: "spokes may need to refine for ap to handle them properly." -- source: harness-factory: lugs/fleet-ap-readiness-is-one-line-per-spoke-at-session-start.yaml (last commit touching the file)
+- 22:28Z commit b48b5432 [harness-factory] fleet-ap-readiness-is-one-line-per-spoke-at-session-start: fleetApReadiness + hub goals-review line 'autopilot can build: spoke n/N; nothing ready: ...' judged by executeOnlyVerdict; registered last -- lug fleet-ap-readiness-is-one-line-per-spoke-at-session-start -- fixtures 355/531 -- 5 file(s), area src/conductor -- source: harness-factory: git log main b48b5432
+
+#### redesigns-carry-value-forward-and-ice-the-rest
+
+- 22:53Z commit ecfccbf1 [harness-factory] a-spoke-under-redesign-holds-its-legacy-backlog-until-it-is-refactored: to review -- lug a-spoke-under-redesign-holds-its-legacy-backlog-until-it-is-refactored -- fixtures 1/532 -- 1 file(s), area lugs -- source: harness-factory: git log main ecfccbf1
+- 22:53Z lug at review a-spoke-under-redesign-holds-its-legacy-backlog-until-it-is-refactored [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: redesigns-carry-value-forward-and-ice-the-rest -- tests conformance/fixtures/redesign-holds-legacy-backlog/redesign-holds-legacy-backlog.conformance.test.js -- readiness stubbed -- Operator 2026-10-22 9:25 AM PDT: "spokes that get a redesign must refactor their backlog as the established work cant remain relevant as it stands if we rebuild the codebase and functionality - this is happening with Basher and Minder so lets not throw work cycles at code that is about to be replaced." -- source: harness-factory: lugs/a-spoke-under-redesign-holds-its-legacy-backlog-until-it-is-refactored.yaml (last commit touching the file)
+- 22:51Z commit 827ae40c [harness-factory] a-spoke-under-redesign-holds-its-legacy-backlog-until-it-is-refactored: a spoke card's optional redesign block holds its legacy ready lugs out of routing until refactored (only carried-forward lugs route); goals review names the open refactor -- lug a-spoke-under-redesign-holds-its-legacy-backlog-until-it-is-refactored -- fixtures 6/10, 10/10, 356/532 -- 5 file(s), area src/conductor -- source: harness-factory: git log main 827ae40c
+
+#### service-health-proves-advisor-roi
+
+- 21:47Z commit 7f289452 [harness-factory] service-health-detects-and-classifies-failed-checks-fleet-wide: folded 9e509bb3 (classifier + JOB_RUNNERS.serviceHealth + reference/advisors master), 42 covering suites green, to review. Still open: the hub clock declaration (after deploy) and a live gh run (needs real auth) -- lug service-health-detects-and-classifies-failed-checks-fleet-wide -- fixtures 1/527 -- 1 file(s), area lugs -- source: harness-factory: git log main 7f289452
+- 21:47Z lug at review service-health-detects-and-classifies-failed-checks-fleet-wide [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: service-health-proves-advisor-roi -- derived_from advisor-run-and-event-rows-are-schema-validated -- tests conformance/fixtures/service-health-classifier/service-health-classifier.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/service-health-detects-and-classifies-failed-checks-fleet-wide.yaml (last commit touching the file)
+- 21:42Z commit 425fcba8 [harness-factory] service-health-detects-and-classifies-failed-checks-fleet-wide: gh-backed classifier (six classes, annotations-first), metrics, C2 rows, week-1 no-auto-fix gate, JOB_RUNNERS.serviceHealth, advisor master template -- lug service-health-detects-and-classifies-failed-checks-fleet-wide -- fixtures 346/526 -- 5 file(s), area src/otto -- source: harness-factory: git log main 425fcba8
+
+#### src/hooks
+
+- 19:18Z commit 1873457a [harness-factory] comm-hf-wcl-entry-scoped-to-the-spoke-being-entered: a spoke's wcl entry shows its own work only; the hub and harness-factory keep the fleet view -- lug comm-hf-wcl-entry-scoped-to-the-spoke-being-entered -- fixtures 356/512 -- 8 file(s), area src/hooks -- source: harness-factory: git log main 1873457a
+- 17:58Z commit b8d42abd [harness-factory] Reapply "in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug: an Agent fork's return appends a completed agent-fork dispatch-registry row per lug its prompt names (session-files-touched Post hook matches Agent); launch record carries cost_lugs" -- 5 file(s), area src/hooks -- source: harness-factory: git log main b8d42abd
+- 17:58Z commit f80ebd1c [harness-factory] Revert "in-session-agent-fork-builds-record-a-dispatch-cost-row-for-their-lug: an Agent fork's return appends a completed agent-fork dispatch-registry row per lug its prompt names (session-files-touched Post hook matches Agent); launch record carries cost_lugs" -- 5 file(s), area src/hooks -- source: harness-factory: git log main f80ebd1c
+
+#### src/otto
+
+- 23:15Z commit 5b6b716d [harness-factory] ozi-names-the-cause-refusing-the-most-work-each-cycle: refusalCauses.js digests drive steps, failed certifications and returned dispatches by cause; refusal_cause_digest clock job files one lug per systemic cause; goals-review refusal-causes section -- lug ozi-names-the-cause-refusing-the-most-work-each-cycle -- fixtures 361/535 -- 5 file(s), area src/otto -- source: harness-factory: git log main 5b6b716d
+- 22:12Z commit d742ffc9 [harness-factory] advisor-roster-reconciliation-carries-registry-rows: per-spoke per-advisor registry rows in the existing reconciliation file; ap_budget_granted null with reason when not autopilot-eligible -- lug advisor-roster-reconciliation-carries-registry-rows -- fixtures 352/530 -- 2 file(s), area src/otto -- source: harness-factory: git log main d742ffc9
+- 19:04Z commit 6da3dcf0 [harness-factory] comm-hf-ozi-allocation-writes-invalid-lug-type-and-price-file-trips-rule-00: raiseHand writes a schema-valid lug (no type: decision); price file keeps basher's foreign-schema apiVersion -- lug comm-hf-ozi-allocation-writes-invalid-lug-type-and-price-file-trips-rule-00 -- fixtures 24/24, 2/2, 335/512 -- 6 file(s), area src/otto -- source: harness-factory: git log main 6da3dcf0
+
+#### canon
+
+- 23:23Z commit bc19b536 [harness-factory] ozi-names-the-cause-refusing-the-most-work-each-cycle: folded 550beb1b; restored 'planner_cycle IS declared' in the trimmed clock rationale (planner-class-balance F1 asserts it); 84 covering suites green; to review -- lug ozi-names-the-cause-refusing-the-most-work-each-cycle -- fixtures 11/536 -- 2 file(s), area canon -- source: harness-factory: git log main bc19b536
+- 19:29Z commit 47b4afd1 [harness-factory] advisor-rebuild-ships-with-the-ap-fixes: record the operator's go-plan as an initiative plus a plan doc (dependency waves A-D, cert, full release, AP stage 2) -- fixtures 0/512 -- 2 file(s), area canon -- source: harness-factory: git log main 47b4afd1
+
+#### hands-on-sessions-teach-autopilot
+
+- 09:56Z commit eae23316 [harness-factory] test-runs-never-raise-a-1password-prompt: live evidence recorded + executable verify over op-calls.jsonl -- lug test-runs-never-raise-a-1password-prompt -- fixtures 2/509 -- 1 file(s), area lugs -- source: harness-factory: git log main eae23316
+- 09:56Z lug at review test-runs-never-raise-a-1password-prompt [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: hands-on-sessions-teach-autopilot -- tests conformance/fixtures/test-runs-never-prompt-1password/test-runs-never-prompt-1password.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/test-runs-never-raise-a-1password-prompt.yaml (last commit touching the file)
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- 23:03Z lug at review a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: the-wheel-is-directed-to-refine-measure-and-drive-autopilot -- tests conformance/fixtures/refine-directive/refine-directive.conformance.test.js -- readiness stubbed -- Operator 2026-10-19 11:50 PM PDT: "the mission is to get the wheel to a place it can be given clear directions on refining the backlog and establishing clear numbers and drive ap into it." -- source: harness-factory: lugs/a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke.yaml (last commit touching the file)
+- 22:57Z commit 4b2ea65c [harness-factory] a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke: scripts/refine.js files/updates/fulfils one hub communication lug per spoke under the execute-only target; hub readiness line shows progress -- lug a-refine-directive-routes-a-measured-refinement-pass-to-a-spoke -- fixtures 355/533 -- 4 file(s), area src/conductor -- source: harness-factory: git log main 4b2ea65c
+
+#### unaffiliated lugs
+
+- 23:23Z lug at review ozi-names-the-cause-refusing-the-most-work-each-cycle [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/refusal-cause-digest/refusal-cause-digest.conformance.test.js -- readiness stubbed -- Operator 2026-10-19: "Ozi must notice and fill in the gaps a human represents." -- source: harness-factory: lugs/ozi-names-the-cause-refusing-the-most-work-each-cycle.yaml (last commit touching the file)
+- 22:15Z lug at review advisor-roster-reconciliation-carries-registry-rows [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- tests conformance/fixtures/advisor-roster-registry-rows/advisor-roster-registry-rows.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/advisor-roster-reconciliation-carries-registry-rows.yaml (last commit touching the file)
+
+#### waldo-hub-reader-and-operator-checkin
+
+- 22:01Z lug at review notification-ladder-routes-levels-zero-to-three [harness-factory] priority medium -- no certification receipt -- date from last commit touching the file -- initiative field: waldo-hub-reader-and-operator-checkin -- derived_from advisor-run-and-event-rows-are-schema-validated -- tests conformance/fixtures/notification-ladder/notification-ladder.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/notification-ladder-routes-levels-zero-to-three.yaml (last commit touching the file)
+- 21:53Z commit 212c6978 [harness-factory] notification-ladder-routes-levels-zero-to-three: src/advisor/notifyLadder.js routes levels 0-3 (event log, advisor-notices.jsonl, basher notify), goals-review ADVISOR NOTICES digest line, fixture -- lug notification-ladder-routes-levels-zero-to-three -- fixtures 349/528 -- 3 file(s), area src/advisor -- source: harness-factory: git log main 212c6978
+
+#### advisor-rebuild-ships-with-the-ap-fixes
+
+- 23:50Z commit b7b8403d [harness-factory] a-hand-run-suite-never-reaches-a-real-provider: filed ready (hand-run suites read the real .env.local DASHSCOPE key ahead of the fixture's config dir and make real paid calls; the gate is unaffected via WHEEL_ENV_LOCAL_PATH=disabled) -- lug a-hand-run-suite-never-reaches-a-real-provider -- fixtures 0/537 -- 1 file(s), area lugs -- source: harness-factory: git log main b7b8403d
+
+#### src/advisor
+
+- 20:48Z commit 6ed39a36 [harness-factory] cut-writes-tier-allowed-advisor-overlays-disabled + grant-is-refused-when-the-last-run-left-no-conforming-log: folded 78b1b1b0 and ad6cfcd4, with two fold-time fixes; both to review -- fixtures 390/520 -- 6 file(s), area src/advisor -- source: harness-factory: git log main 6ed39a36
+
+#### src/conductor
+
+- 22:33Z commit 0f42d372 [harness-factory] box-load-governor-reconditions-every-gate-and-records-each-fix-impact: fix two push-gate reds already on origin/main -- lug box-load-governor-reconditions-every-gate-and-records-each-fix-impact -- fixtures 36/36, 65/65, 352/530 -- 2 file(s), area src/conductor -- source: harness-factory: git log main 0f42d372
+
+#### wakeup-pops-the-initiative-queue-and-go-runs-it
+
+- 18:47Z lug done hub-initiative-lugs-resolve-in-the-spoke-that-holds-them [harness-factory] priority critical -- verdict CONFIRMED via dashscope/qwen3.7-flash -- date from certified_by.at -- reviewer session b4598434-a078-4624-9df6-ee087aa1f07e -- record runtime/cross-provider-certifications/hub-initiative-lugs-resolve-in-the-spoke-that-holds-them.json (external) -- initiative field: wakeup-pops-the-initiative-queue-and-go-runs-it -- tests conformance/fixtures/initiative-focus/initiative-focus.conformance.test.js -- cost 3423654 tokens, 791.191s wall -- readiness stubbed -- source: harness-factory: lugs/hub-initiative-lugs-resolve-in-the-spoke-that-holds-them.yaml (certified_by.at)
+
+#### wheel-agents-talk-up-down-and-across
+
+- 22:06Z commit ce82a894 [harness-factory] wcl-pins-one-permission-mode-wheel-wide-from-the-profile: wcl-verify-then-launch accepts the drift check's 'canon matches the published cut' wording when the checkout is past the release (patch from daywright at the operator's request; harness-factory owns it) -- lug wcl-pins-one-permission-mode-wheel-wide-from-the-profile -- fixtures 1/529 -- 1 file(s), area conformance -- source: harness-factory: git log main ce82a894
+
 ## Cut bb0a73e1 -- received 2026-10-24 00:25Z (from 61be088e)
 
-00:25Z cut bb0a73e1 received by tracks (previous 61be088e) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3d92bf61..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 19 lug(s) closed at 2026-10-23T09:30:34.518Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+00:25Z cut bb0a73e1 received by tracks (previous 61be088e) landed b7b5a045, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3d92bf61..b7b5a045 -- canon/circles, .claude/settings.json) -- source: tracks: git show b7b5a045:.cut-status.json
 
-Entries: 252 (commit 183, lug_done 41, lug_review 28).
+Entries: 249 (commit 183, lug_done 41, lug_review 25).
 
 ### 2026-10-23
 
 #### hands-on-sessions-teach-autopilot
 
 - 08:49Z commit b45bb057 [harness-factory] test-runs-never-raise-a-1password-prompt: folded d50f5798, covering suites green on main (14 suites), lug to review -- lug test-runs-never-raise-a-1password-prompt -- fixtures 2/505 -- 1 file(s), area lugs -- source: harness-factory: git log main b45bb057
-- 08:49Z lug at review test-runs-never-raise-a-1password-prompt [harness-factory] priority high -- no certification receipt -- date from last commit touching the file -- initiative field: hands-on-sessions-teach-autopilot -- tests conformance/fixtures/test-runs-never-prompt-1password/test-runs-never-prompt-1password.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/test-runs-never-raise-a-1password-prompt.yaml (last commit touching the file)
 - 08:14Z commit d50f5798 [harness-factory] test-runs-never-raise-a-1password-prompt: suite pool exports BASHER_OP_PROBE=0 to every child; onepassword-secrets fixture puts a fake op first on PATH; new fixture proves both -- lug test-runs-never-raise-a-1password-prompt -- 3 file(s), area src/factory -- source: harness-factory: git log main d50f5798
 - 07:15Z commit 4cc4a945 [harness-factory] test-runs-never-raise-a-1password-prompt: basher measured 15 hf test op prompts on 10/22 -- lug test-runs-never-raise-a-1password-prompt -- fixtures 10/22, 0/504 -- 1 file(s), area lugs -- source: harness-factory: git log main 4cc4a945
 - 06:59Z commit 0e74e1ed [harness-factory] zellij-tab-identity-circles-retire-from-the-cut: basher finding, 738 ms dead hook per prompt and tool call -- lug zellij-tab-identity-circles-retire-from-the-cut -- fixtures 0/504 -- 1 file(s), area lugs -- source: harness-factory: git log main 0e74e1ed
@@ -4138,7 +4791,6 @@ Entries: 252 (commit 183, lug_done 41, lug_review 28).
 
 - 02:52Z lug at review the-next-wave-holds-a-failing-cause-until-its-fix-is-proven-under-load [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/wave-holds-failing-cause/wave-holds-failing-cause.conformance.test.js -- readiness stubbed -- Operator 2026-10-22 8:15 PM PDT, ruled a standing principle: "not only fix it but prove it indeed does it under load. Every wave should be reviewed on completion to address an opportunity to test and improve before throwing tokens at wasted jobs that fail and dont get noticed." -- source: harness-factory: lugs/the-next-wave-holds-a-failing-cause-until-its-fix-is-proven-under-load.yaml (last commit touching the file)
 - 02:45Z commit f43fb2b8 [harness-factory] the-next-wave-holds-a-failing-cause-until-its-fix-is-proven-under-load: wave review row at close, drive holds a failed cause, 0-of-N alert -- lug the-next-wave-holds-a-failing-cause-until-its-fix-is-proven-under-load -- fixtures 323/494 -- 4 file(s), area src/conductor -- source: harness-factory: git log main f43fb2b8
-- 01:31Z lug at review the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: advisors-schedule-themselves-and-ozi-spends-the-budget -- tests conformance/fixtures/wave-wakes-spoke-ozi/wave-wakes-spoke-ozi.conformance.test.js -- readiness stubbed -- Operator 2026-10-22 9:05 AM PDT: "Conductor can indicate what it's advising to focus on for each AP run in spokes. But if it doesn't, which should be the default, it's just saying, wake up spoke, here's a budget, use it as you will. And then [Ozi], the local agent, should be able to say, let's pop off the top of the priority backlog. It has to understand the priority." -- source: harness-factory: lugs/the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug.yaml (last commit touching the file)
 - 01:22Z commit e155f589 [harness-factory] the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug: the drive asks each spoke Ozi which lug to build -- lug the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug -- fixtures 322/493 -- 3 file(s), area src/conductor -- source: harness-factory: git log main e155f589
 - 01:15Z commit d4f1dafc [harness-factory] the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug: live acceptance line (first real wave writes an ozi-allocation row) -- lug the-wave-wakes-each-spokes-ozi-with-a-budget-and-ozi-pops-its-own-top-lug -- fixtures 0/492 -- 1 file(s), area lugs -- source: harness-factory: git log main d4f1dafc
 
@@ -4262,7 +4914,6 @@ Entries: 252 (commit 183, lug_done 41, lug_review 28).
 - 10:32Z commit f6510bac [harness-factory] rolling-now-says-what-is-spending-the-box-and-why: rolling block in on-deck.json -- lug rolling-now-says-what-is-spending-the-box-and-why -- fixtures 314/483 -- 3 file(s), area src/conductor -- source: harness-factory: git log main f6510bac
 - 10:22Z commit 52504313 [harness-factory] on-deck-is-the-top-of-the-initiative-queue-and-refreshes-when-one-lands: ON DECK file for wakeup and herdr -- lug on-deck-is-the-top-of-the-initiative-queue-and-refreshes-when-one-lands -- fixtures 315/483 -- 4 file(s), area src/conductor -- source: harness-factory: git log main 52504313
 - 10:16Z commit 251822a2 [harness-factory] on-deck-is-the-top-of-the-initiative-queue-and-refreshes-when-one-lands: defined -> ready (kernel verb), trimmed to rule 11 cap -- lug on-deck-is-the-top-of-the-initiative-queue-and-refreshes-when-one-lands -- fixtures 0/482 -- 1 file(s), area lugs -- source: harness-factory: git log main 251822a2
-- 10:15Z lug at review hub-initiative-lugs-resolve-in-the-spoke-that-holds-them [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: wakeup-pops-the-initiative-queue-and-go-runs-it -- tests conformance/fixtures/initiative-focus/initiative-focus.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/hub-initiative-lugs-resolve-in-the-spoke-that-holds-them.yaml (last commit touching the file)
 - 10:15Z lug at review initiatives-declared-with-steps-count-their-step-lugs [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative field: wakeup-pops-the-initiative-queue-and-go-runs-it -- tests conformance/fixtures/initiative-focus/initiative-focus.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/initiatives-declared-with-steps-count-their-step-lugs.yaml (last commit touching the file)
 - 10:11Z commit dd181083 [harness-factory] hub-initiative-lugs-resolve-in-the-spoke-that-holds-them: the drive stays instance-local -- lug hub-initiative-lugs-resolve-in-the-spoke-that-holds-them -- fixtures 312/482 -- 2 file(s), area src/conductor -- source: harness-factory: git log main dd181083
 - 10:05Z commit 57fe2e56 [harness-factory] hub-initiative-lugs-resolve-in-the-spoke-that-holds-them: resolveInitiativeLugs looks up each lug file in the instance, the initiative's own root, the step_owner spoke, then every other registered repo; found_in per lug -- lug hub-initiative-lugs-resolve-in-the-spoke-that-holds-them -- fixtures 312/482 -- 2 file(s), area src/conductor -- source: harness-factory: git log main 57fe2e56
@@ -4544,7 +5195,7 @@ Entries: 252 (commit 183, lug_done 41, lug_review 28).
 
 19:44Z cut 61be088e received by tracks (previous ff0c5320) landed 3d92bf61, posture absorb_and_report: +0/~3/-0 circles for tracks -- changed bash-lug-guard, calibration-record, zellij-tab-identity-session-end -- hooks bound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit -- hooks unbound Notification dispatch.js" Notification, PostToolUse dispatch.js" PostToolUse, PreCompact dispatch.js" PreCompact, PreToolUse dispatch.js" PreToolUse, SessionEnd dispatch.js" SessionEnd, SessionStart dispatch.js" SessionStart, Stop dispatch.js" Stop, StopFailure dispatch.js" StopFailure, UserPromptSubmit dispatch.js" UserPromptSubmit (git a7dccfcd..3d92bf61 -- canon/circles, .claude/settings.json) -- 9 hook(s) dropped -- source: tracks: git show 3d92bf61:.cut-status.json
 
-Entries: 377 (commit 339, lug_done 25, lug_review 13).
+Entries: 376 (commit 339, lug_done 25, lug_review 12).
 
 ### 2026-10-19
 
@@ -4787,19 +5438,6 @@ Entries: 377 (commit 339, lug_done 25, lug_review 13).
 - 02:44Z commit 5216c817 [harness-factory] Operator goals applied (finish-and-unblock, stagnation as a ranked signal in the conductor lugs); Jev lug records the 20 operator ratings (neither detector separates; the ending is the real gap); two harness-factory initiatives gain serves_goal -- fixtures 0/409 -- 5 file(s), area lugs -- source: harness-factory: git log main 5216c817
 - 02:30Z commit fdc972d6 [harness-factory] Conductor initiative lugs: work chosen from ranked open initiatives, goals declared, blocker memory, alerts with cause, per-wave pricing, spoke_hygiene root (operator 2026-10-12; conductor paused by stop flag) -- fixtures 0/409 -- 6 file(s), area lugs -- source: harness-factory: git log main fdc972d6
 
-#### conductor-works-initiatives-by-impact-and-alerts-on-trouble
-
-- 21:38Z lug at review conductor-chooses-work-from-the-ranked-open-initiatives [harness-factory] priority critical -- no certification receipt -- date from last commit touching the file -- initiative lugs list: conductor-works-initiatives-by-impact-and-alerts-on-trouble -- tests conformance/fixtures/conductor-works-the-ranked-initiatives/conductor-works-the-ranked-initiatives.conformance.test.js -- readiness stubbed -- source: harness-factory: lugs/conductor-chooses-work-from-the-ranked-open-initiatives.yaml (last commit touching the file)
-- 21:36Z commit 79d102f0 [harness-factory] conductor-chooses-work-from-the-ranked-open-initiatives: fixture asserts both ordering semantics -- lug conductor-chooses-work-from-the-ranked-open-initiatives -- fixtures 1/429 -- 1 file(s), area conformance -- source: harness-factory: git log main 79d102f0
-- 21:18Z commit 865fd57c [harness-factory] conductor-chooses-work-from-the-ranked-open-initiatives: waves work the ranked initiatives first -- lug conductor-chooses-work-from-the-ranked-open-initiatives -- fixtures 277/426 -- 7 file(s), area src/conductor -- source: harness-factory: git log main 865fd57c
-- 18:19Z commit ac805a14 [harness-factory] box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window: gate-corpus-lease D6 accepts the three shapes b34e950 prints -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 1/422 -- 1 file(s), area conformance -- source: harness-factory: git log main ac805a14
-- 18:15Z commit 1e36c419 [harness-factory] box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window: gate-corpus-lease D6 expects the current first line -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 1/422 -- 1 file(s), area conformance -- source: harness-factory: git log main 1e36c419
-- 17:29Z commit 69263c61 [harness-factory] conductor-escalates-a-persistent-cause-and-never-sits-silent: classify no-launch causes, one notice per episode, one remedy for a stale reading, stop flag held never cleared, liveness line at session start -- lug conductor-escalates-a-persistent-cause-and-never-sits-silent -- fixtures 277/422 -- 7 file(s), area src/conductor -- source: harness-factory: git log main 69263c61
-- 10:23Z commit b34e950f [harness-factory] box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window: pool median load and per-tick re-size -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 273/419 -- 3 file(s), area src/factory -- source: harness-factory: git log main b34e950f
-- 06:41Z commit fd712812 [harness-factory] Every fixture that imports the gate sets GATE_RESERVE_BIN; fixture-lint refuses one that does not (lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window) -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 269/411 -- 16 file(s), area src/factory -- source: harness-factory: git log main fd712812
-- 06:28Z commit a6430eab [harness-factory] Gate-running fixtures never reach the real basher reserve tool (lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window) -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 44/44, 9/411 -- 9 file(s), area conformance -- source: harness-factory: git log main a6430eab
-- 06:23Z commit d84178f0 [harness-factory] Box load is sampled every tick and the gate reserves the box while it holds the corpus lease (lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window) -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 271/411 -- 4 file(s), area src/factory -- source: harness-factory: git log main d84178f0
-
 #### runtime
 
 - 23:33Z commit 73e382ba [harness-factory] Session work: 30 files, no lug transitions recorded -- fixtures 0/433 -- 30 file(s), area runtime -- source: harness-factory: git log main 73e382ba
@@ -4812,6 +5450,18 @@ Entries: 377 (commit 339, lug_done 25, lug_review 13).
 - 10:50Z commit a02cb42d [harness-factory] Session work: 4 files, no lug transitions recorded -- fixtures 0/420 -- 4 file(s), area runtime -- source: harness-factory: git log main a02cb42d
 - 10:36Z commit 6e9cba89 [harness-factory] Session work: 19 files, no lug transitions recorded -- fixtures 0/420 -- 12 file(s), area runtime -- source: harness-factory: git log main 6e9cba89
 - 09:46Z commit 64e552db [harness-factory] Session work: 74 files, no lug transitions recorded -- fixtures 3/418 -- 74 file(s), area runtime -- source: harness-factory: git log main 64e552db
+
+#### conductor-works-initiatives-by-impact-and-alerts-on-trouble
+
+- 21:36Z commit 79d102f0 [harness-factory] conductor-chooses-work-from-the-ranked-open-initiatives: fixture asserts both ordering semantics -- lug conductor-chooses-work-from-the-ranked-open-initiatives -- fixtures 1/429 -- 1 file(s), area conformance -- source: harness-factory: git log main 79d102f0
+- 21:18Z commit 865fd57c [harness-factory] conductor-chooses-work-from-the-ranked-open-initiatives: waves work the ranked initiatives first -- lug conductor-chooses-work-from-the-ranked-open-initiatives -- fixtures 277/426 -- 7 file(s), area src/conductor -- source: harness-factory: git log main 865fd57c
+- 18:19Z commit ac805a14 [harness-factory] box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window: gate-corpus-lease D6 accepts the three shapes b34e950 prints -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 1/422 -- 1 file(s), area conformance -- source: harness-factory: git log main ac805a14
+- 18:15Z commit 1e36c419 [harness-factory] box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window: gate-corpus-lease D6 expects the current first line -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 1/422 -- 1 file(s), area conformance -- source: harness-factory: git log main 1e36c419
+- 17:29Z commit 69263c61 [harness-factory] conductor-escalates-a-persistent-cause-and-never-sits-silent: classify no-launch causes, one notice per episode, one remedy for a stale reading, stop flag held never cleared, liveness line at session start -- lug conductor-escalates-a-persistent-cause-and-never-sits-silent -- fixtures 277/422 -- 7 file(s), area src/conductor -- source: harness-factory: git log main 69263c61
+- 10:23Z commit b34e950f [harness-factory] box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window: pool median load and per-tick re-size -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 273/419 -- 3 file(s), area src/factory -- source: harness-factory: git log main b34e950f
+- 06:41Z commit fd712812 [harness-factory] Every fixture that imports the gate sets GATE_RESERVE_BIN; fixture-lint refuses one that does not (lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window) -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 269/411 -- 16 file(s), area src/factory -- source: harness-factory: git log main fd712812
+- 06:28Z commit a6430eab [harness-factory] Gate-running fixtures never reach the real basher reserve tool (lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window) -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 44/44, 9/411 -- 9 file(s), area conformance -- source: harness-factory: git log main a6430eab
+- 06:23Z commit d84178f0 [harness-factory] Box load is sampled every tick and the gate reserves the box while it holds the corpus lease (lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window) -- lug box-load-is-sampled-every-tick-and-releases-run-in-the-quietest-window -- fixtures 271/411 -- 4 file(s), area src/factory -- source: harness-factory: git log main d84178f0
 
 #### src/factory
 
@@ -7604,4 +8254,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:61871c5fac9f2557215d1d6004a116fa1219ad1c836f79196739a6599a5d2214 -->
+<!-- integrity sha256:462acc369167cc98d6c4a331dbabbee5a519fce39a0f2ef9cc01f1d588e9ea3b -->
