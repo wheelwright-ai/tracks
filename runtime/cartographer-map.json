@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-25T07:49:31.818Z",
-  "duration_ms": 135,
+  "generated_at": "2026-10-25T10:04:11.150Z",
+  "duration_ms": 123,
   "areas": [
     {
       "area": "advisor",
@@ -903,7 +903,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "35528d188928b8b4"
+          "hash": "d4698bb4afe08bf9"
         },
         {
           "path": "src/lugTracking/forkSelfGrant.js",
@@ -2259,7 +2259,7 @@
       "implementing_files": [
         {
           "path": "src/lugTracking/dispatchSalvage.js",
-          "hash": "48ab6792cb0cf19e"
+          "hash": "4546be102bb68ff1"
         },
         {
           "path": "src/lugTracking/dispatchJournal.js",
@@ -3069,7 +3069,7 @@
         },
         {
           "path": "src/basher/wcl.js",
-          "hash": "eac51315c98d35b7"
+          "hash": "59967c4b6908da54"
         },
         {
           "path": "src/basher/idleWatchdog.js",
@@ -3563,7 +3563,7 @@
         },
         {
           "path": "src/lugTracking/personaBoundary.js",
-          "hash": "2f3c1e589ae6b51e"
+          "hash": "fe59029da74cfdfd"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -4278,7 +4278,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "35528d188928b8b4"
+          "hash": "d4698bb4afe08bf9"
         },
         {
           "path": "src/lugTracking/dispatchScope.js",
@@ -4323,7 +4323,7 @@
         },
         {
           "path": "src/conductor/readinessSweep.js",
-          "hash": "c8c4809d857f3131"
+          "hash": "5c43b905e7133637"
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
@@ -5018,7 +5018,7 @@
         },
         {
           "path": "src/basher/wcl.js",
-          "hash": "eac51315c98d35b7"
+          "hash": "59967c4b6908da54"
         },
         {
           "path": "src/factory/testBoundaryGate.js",
@@ -5860,7 +5860,7 @@
       "implementing_files": [
         {
           "path": "src/basher/wcl.js",
-          "hash": "eac51315c98d35b7"
+          "hash": "59967c4b6908da54"
         },
         {
           "path": "src/basher/wclCli.js",
@@ -6173,7 +6173,7 @@
       "implementing_files": [
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "35528d188928b8b4"
+          "hash": "d4698bb4afe08bf9"
         },
         {
           "path": "scripts/worktree.js",
@@ -8895,7 +8895,7 @@
     },
     {
       "path": "src/factory/worktreeRegistry.js",
-      "hash": "35528d188928b8b4"
+      "hash": "d4698bb4afe08bf9"
     },
     {
       "path": "src/lugTracking/forkSelfGrant.js",
@@ -9211,7 +9211,7 @@
     },
     {
       "path": "src/lugTracking/dispatchSalvage.js",
-      "hash": "48ab6792cb0cf19e"
+      "hash": "4546be102bb68ff1"
     },
     {
       "path": "src/lugTracking/dispatchJournal.js",
@@ -9347,7 +9347,7 @@
     },
     {
       "path": "src/basher/wcl.js",
-      "hash": "eac51315c98d35b7"
+      "hash": "59967c4b6908da54"
     },
     {
       "path": "src/lugTracking/lugIntegrity.js",
@@ -9439,7 +9439,7 @@
     },
     {
       "path": "src/lugTracking/personaBoundary.js",
-      "hash": "2f3c1e589ae6b51e"
+      "hash": "fe59029da74cfdfd"
     },
     {
       "path": "src/lugTracking/traceability.js",
@@ -9567,7 +9567,7 @@
     },
     {
       "path": "src/conductor/readinessSweep.js",
-      "hash": "c8c4809d857f3131"
+      "hash": "5c43b905e7133637"
     },
     {
       "path": "src/hooks/readyGateStubHook.js",
@@ -9954,7 +9954,5 @@
       "hash": "29f14e8aa4a4d6f4"
     }
   ],
-  "changed_since_last_map": [
-    "src/factory/worktreeRegistry.js"
-  ]
+  "changed_since_last_map": []
 }
