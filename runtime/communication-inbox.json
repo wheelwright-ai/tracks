@@ -2,7 +2,7 @@
   "kind": "communication_inbox_record",
   "trigger": "wheel_clock",
   "session_id": null,
-  "read_at": "2026-10-25T07:48:05.827Z",
+  "read_at": "2026-10-25T07:50:56.215Z",
   "spoke": {
     "name": "tracks",
     "source": "canon/profile.yaml"

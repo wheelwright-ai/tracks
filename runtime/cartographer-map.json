@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-25T07:29:33.393Z",
-  "duration_ms": 183,
+  "generated_at": "2026-10-25T07:49:31.818Z",
+  "duration_ms": 135,
   "areas": [
     {
       "area": "advisor",
@@ -903,7 +903,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "d37a41c60aab38cd"
+          "hash": "35528d188928b8b4"
         },
         {
           "path": "src/lugTracking/forkSelfGrant.js",
@@ -4278,7 +4278,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "d37a41c60aab38cd"
+          "hash": "35528d188928b8b4"
         },
         {
           "path": "src/lugTracking/dispatchScope.js",
@@ -6173,7 +6173,7 @@
       "implementing_files": [
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "d37a41c60aab38cd"
+          "hash": "35528d188928b8b4"
         },
         {
           "path": "scripts/worktree.js",
@@ -8895,7 +8895,7 @@
     },
     {
       "path": "src/factory/worktreeRegistry.js",
-      "hash": "d37a41c60aab38cd"
+      "hash": "35528d188928b8b4"
     },
     {
       "path": "src/lugTracking/forkSelfGrant.js",
@@ -9955,7 +9955,6 @@
     }
   ],
   "changed_since_last_map": [
-    "src/lugTracking/dispatchRegistryReconciliation.js",
-    "src/conductor/stopFlag.js"
+    "src/factory/worktreeRegistry.js"
   ]
 }

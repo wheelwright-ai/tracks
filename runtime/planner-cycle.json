@@ -2,11 +2,11 @@
   "kind": "planner_cycle",
   "schema_version": 2,
   "instance_root": "/home/mario/projects/wheelwright/tracks",
-  "computed_at": "2026-10-25T07:48:38.076Z",
+  "computed_at": "2026-10-25T07:50:50.561Z",
   "max_age_ms": 18000000,
   "allocation": {
     "instance_root": "/home/mario/projects/wheelwright/tracks",
-    "computed_at": "2026-10-25T07:48:38.076Z",
+    "computed_at": "2026-10-25T07:50:50.561Z",
     "max_age_ms": 18000000,
     "refused": false,
     "refusal_reason": null,
@@ -109,13 +109,13 @@
     {
       "kind": "health",
       "class": "health",
-      "signal": "miss_backlog",
-      "subject": "footer-miss",
-      "evidence": "12 footer-miss row(s) still captured in ledger/ledger.jsonl (oldest 2026-09-15T00:16:30.904Z: Turn status footer missing from the response completing at turn_ordinal unknown (no track yet): no coordinate id naming )",
-      "clears_with": "node scripts/acknowledge-live-state.js footer-miss --before=<ISO> --reason=\"<why>\" --root=/home/mario/projects/wheelwright/tracks (or explicit row ids; --all only with a reason that covers every row)",
+      "signal": "commits_ahead",
+      "subject": "origin/main",
+      "evidence": "2 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
+      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
       "share": null,
       "priority": null,
-      "count": 12,
+      "count": 2,
       "class_rank": 0,
       "class_ranking_basis": "signal order (circle_audit, ratchet_red_suite, cut_status, commits_ahead, stale_worktree, miss_backlog, ledger_bytes), then each store's own order",
       "ap_rank": 0,
@@ -161,12 +161,12 @@
       "kind": "health",
       "class": "health",
       "signal": "miss_backlog",
-      "subject": "upkeep-miss",
-      "evidence": "2 session-upkeep-miss row(s) still captured in ledger/ledger.jsonl (oldest 2026-09-15T06:05:02.711Z: session-upkeep: asset \"goals_backlog\" should have moved this session but didn't -- p0-bugfix-circle-audit-conversation-t)",
-      "clears_with": "node scripts/acknowledge-live-state.js upkeep-miss --before=<ISO> --reason=\"<why>\" --root=/home/mario/projects/wheelwright/tracks (or explicit row ids; --all only with a reason that covers every row)",
+      "subject": "footer-miss",
+      "evidence": "12 footer-miss row(s) still captured in ledger/ledger.jsonl (oldest 2026-09-15T00:16:30.904Z: Turn status footer missing from the response completing at turn_ordinal unknown (no track yet): no coordinate id naming )",
+      "clears_with": "node scripts/acknowledge-live-state.js footer-miss --before=<ISO> --reason=\"<why>\" --root=/home/mario/projects/wheelwright/tracks (or explicit row ids; --all only with a reason that covers every row)",
       "share": null,
       "priority": null,
-      "count": 2,
+      "count": 12,
       "class_rank": 1,
       "class_ranking_basis": "signal order (circle_audit, ratchet_red_suite, cut_status, commits_ahead, stale_worktree, miss_backlog, ledger_bytes), then each store's own order",
       "ap_rank": 2,
@@ -179,9 +179,32 @@
         "runner_up": null,
         "basis": "slot 2: health deficit 0.200 = floor 0.15 x (0.0 + 2) - (0.0 recorded + 1 emitted) + 0.900 waterfalled from initiative_build+build+maintain+inbox (spent; this slot's effective floor 1.000 = 0.15 + 0.850 received); no other class had rows left"
       }
+    },
+    {
+      "kind": "health",
+      "class": "health",
+      "signal": "miss_backlog",
+      "subject": "upkeep-miss",
+      "evidence": "2 session-upkeep-miss row(s) still captured in ledger/ledger.jsonl (oldest 2026-09-15T06:05:02.711Z: session-upkeep: asset \"goals_backlog\" should have moved this session but didn't -- p0-bugfix-circle-audit-conversation-t)",
+      "clears_with": "node scripts/acknowledge-live-state.js upkeep-miss --before=<ISO> --reason=\"<why>\" --root=/home/mario/projects/wheelwright/tracks (or explicit row ids; --all only with a reason that covers every row)",
+      "share": null,
+      "priority": null,
+      "count": 2,
+      "class_rank": 2,
+      "class_ranking_basis": "signal order (circle_audit, ratchet_red_suite, cut_status, commits_ahead, stale_worktree, miss_backlog, ledger_bytes), then each store's own order",
+      "ap_rank": 3,
+      "interleave": {
+        "slot": 3,
+        "class": "health",
+        "deficit_at_pick": 0.20000000000000018,
+        "effective_floor": 1,
+        "waterfalled": 1.75,
+        "runner_up": null,
+        "basis": "slot 3: health deficit 0.200 = floor 0.15 x (0.0 + 3) - (0.0 recorded + 2 emitted) + 1.750 waterfalled from initiative_build+build+maintain+inbox (spent; this slot's effective floor 1.000 = 0.15 + 0.850 received); no other class had rows left"
+      }
     }
   ],
-  "ap_queue_length": 3,
+  "ap_queue_length": 4,
   "ap_queue_rule": "ap_queue: deficit_against_declared_floors -- at every slot k the class taken is the one with the largest deficit floor_c x (total + k) + waterfall_c(k) - (recorded_c + emitted_c) over the recorded at-bat stream (dispatch registry for the build classes, advisor recordOutcome rows for maintain, health unmeasured and placed at par); ties in class order initiative_build > build > maintain > health > inbox. SHORTFALL (proportional_to_remaining_floors, declared by the policy): a class whose rows run out at slot j releases its floor for every later slot to the classes still holding rows, split in proportion to their floors, accumulated as waterfall_c(k) on the deficit; the recorded stream keeps the declared floors. Inside initiative_build: initiative sequence rank first (rule 4 kept inside the class); inside both build classes: a lug whose up edge (lugEdges.js derived_from / dependency) is not done ranks below it, dependency-free siblings carry parallel_wave n, then priority, then estimate ascending; maintain keeps the allocation's order; health keeps signal order. Build rows stay unpriced.",
   "interleave_applied": true,
   "interleave_reason": null,
@@ -202,14 +225,14 @@
       "rule": "proportional_to_remaining_floors",
       "declared": true,
       "note": "/home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml shortfall: proportional_to_remaining_floors -- a class whose rows run out releases the rest of its floor to the classes that still have rows, split in proportion to THEIR floors",
-      "slots": 3,
+      "slots": 4,
       "per_class": {
         "initiative_build": {
           "floor": 0.5,
           "released": {
             "share": 0.5,
             "from_slot": 0,
-            "slots": 1.5
+            "slots": 2
           },
           "received": {
             "share": 0,
@@ -222,7 +245,7 @@
           "released": {
             "share": 0.1,
             "from_slot": 0,
-            "slots": 0.3
+            "slots": 0.4
           },
           "received": {
             "share": 0,
@@ -235,7 +258,7 @@
           "released": {
             "share": 0.15,
             "from_slot": 0,
-            "slots": 0.45
+            "slots": 0.6
           },
           "received": {
             "share": 0,
@@ -253,7 +276,7 @@
           "received": {
             "share": 0.45,
             "at_slot": 0,
-            "slots": 1.75
+            "slots": 2.6
           }
         },
         "inbox": {
@@ -261,7 +284,7 @@
           "released": {
             "share": 0.1,
             "from_slot": 2,
-            "slots": 0.1
+            "slots": 0.2
           },
           "received": {
             "share": 0.3,
@@ -295,7 +318,7 @@
         },
         {
           "from_slot": 2,
-          "to_slot": 2,
+          "to_slot": 3,
           "live": [
             "health"
           ],
@@ -371,7 +394,7 @@
         "initiative_build": 0,
         "build": 0,
         "maintain": 0,
-        "health": 2,
+        "health": 3,
         "inbox": 1
       }
     }
@@ -380,24 +403,35 @@
     "initiative_build": 0,
     "build": 0,
     "maintain": 0,
-    "health": 2,
+    "health": 3,
     "inbox": 1
   },
   "class_mix": {
     "initiative_build": 0,
     "build": 0,
     "maintain": 0,
-    "health": 2,
+    "health": 3,
     "inbox": 1
   },
   "class_mix_first_8": {
     "initiative_build": 0,
     "build": 0,
     "maintain": 0,
-    "health": 2,
+    "health": 3,
     "inbox": 1
   },
   "health_rows": [
+    {
+      "kind": "health",
+      "class": "health",
+      "signal": "commits_ahead",
+      "subject": "origin/main",
+      "evidence": "2 commit(s) on HEAD not on origin/main (git rev-list --count @{upstream}..HEAD)",
+      "clears_with": "git push (cwd /home/mario/projects/wheelwright/tracks) -- through the push gate, never --no-verify",
+      "share": null,
+      "priority": null,
+      "count": 2
+    },
     {
       "kind": "health",
       "class": "health",
@@ -444,8 +478,8 @@
     "commits_ahead": {
       "present": true,
       "upstream": "origin/main",
-      "ahead": 0,
-      "rows": 0
+      "ahead": 2,
+      "rows": 1
     },
     "stale_worktree": {
       "present": true,
@@ -462,7 +496,7 @@
       "source": "git status --porcelain",
       "retirement": 0,
       "v2_proposed": 0,
-      "other_tracked": 10,
+      "other_tracked": 8,
       "untracked": 0,
       "rows": 0
     },
@@ -487,7 +521,7 @@
     },
     "ledger_bytes": {
       "present": true,
-      "bytes": 3368214,
+      "bytes": 3375617,
       "cap_bytes": 48000000,
       "fraction_of_cap": 0.07,
       "source": "/home/mario/projects/wheelwright/harness-factory/canon/policies/ledger-retention.policy.yaml",
@@ -496,5 +530,5 @@
   },
   "moved_to_operator_queue": [],
   "moved_to_operator_queue_source": "no runtime/readiness-sweep.jsonl on this instance -- no build row can be judged gate-closed (unmeasured, nothing moved)",
-  "disclosure": "0 queue row(s) in ONE ranked order (initiative_membership_first): 0 initiative row(s) first (0 build, 0 maintain), then 0 non-initiative build row(s) (ranked, unpriced) and 0 non-initiative maintain row(s) (priced). initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it. no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal. OPERATOR QUEUE: 0 row(s) the machine cannot advance (see operator_queue_rule). AP QUEUE: 3 row(s) interleaved by deficit_against_declared_floors against floors initiative_build=0.5, build=0.1, maintain=0.15, health=0.15, inbox=0.1 (operator_confirmed_260914; /home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml) over 0 measured at-bat(s) (initiative_build=0, build=0, maintain=0, inbox=0; health unmeasured, at par); shortfall proportional_to_remaining_floors: released initiative_build=1.50 slot(s) from slot 0, build=0.30 slot(s) from slot 0, maintain=0.45 slot(s) from slot 0, inbox=0.10 slot(s) from slot 2; received health=1.75 slot(s) (+0.450 share at slot 0), inbox=0.60 slot(s) (+0.300 share at slot 0); class mix initiative_build=0, build=0, maintain=0, health=2, inbox=1. health: 2 row(s) from 8/9 signal(s) present (circle_audit=0, cut_status=0, commits_ahead=0, stale_worktree=0, dirty_tree=0, stale_branch=0, miss_backlog=2, ledger_bytes=0); absent, nothing emitted: ratchet_red_suite (no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here)."
+  "disclosure": "0 queue row(s) in ONE ranked order (initiative_membership_first): 0 initiative row(s) first (0 build, 0 maintain), then 0 non-initiative build row(s) (ranked, unpriced) and 0 non-initiative maintain row(s) (priced). initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it. no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal. OPERATOR QUEUE: 0 row(s) the machine cannot advance (see operator_queue_rule). AP QUEUE: 4 row(s) interleaved by deficit_against_declared_floors against floors initiative_build=0.5, build=0.1, maintain=0.15, health=0.15, inbox=0.1 (operator_confirmed_260914; /home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml) over 0 measured at-bat(s) (initiative_build=0, build=0, maintain=0, inbox=0; health unmeasured, at par); shortfall proportional_to_remaining_floors: released initiative_build=2.00 slot(s) from slot 0, build=0.40 slot(s) from slot 0, maintain=0.60 slot(s) from slot 0, inbox=0.20 slot(s) from slot 2; received health=2.60 slot(s) (+0.450 share at slot 0), inbox=0.60 slot(s) (+0.300 share at slot 0); class mix initiative_build=0, build=0, maintain=0, health=3, inbox=1. health: 3 row(s) from 8/9 signal(s) present (circle_audit=0, cut_status=0, commits_ahead=1, stale_worktree=0, dirty_tree=0, stale_branch=0, miss_backlog=2, ledger_bytes=0); absent, nothing emitted: ratchet_red_suite (no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here)."
 }
