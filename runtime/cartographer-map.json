@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-25T10:04:11.150Z",
-  "duration_ms": 123,
+  "generated_at": "2026-10-25T10:50:33.261Z",
+  "duration_ms": 112,
   "areas": [
     {
       "area": "advisor",
@@ -903,7 +903,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "d4698bb4afe08bf9"
+          "hash": "303c1b5525150b3c"
         },
         {
           "path": "src/lugTracking/forkSelfGrant.js",
@@ -979,7 +979,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
@@ -1031,7 +1031,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/circle-agent-tool-scope-guard/agent-tool-scope-guard.conformance.test.js",
@@ -1149,7 +1149,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/circle-bash-destructive-guard/bash-destructive-guard.conformance.test.js",
@@ -1182,7 +1182,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/circle-bash-lug-guard/bash-lug-guard.conformance.test.js",
@@ -1241,7 +1241,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -1276,7 +1276,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/compiler/tokenCount.js",
@@ -1313,7 +1313,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -2033,7 +2033,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/advisor/independence.js",
@@ -2084,7 +2084,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/store/storeBounds.js",
@@ -2145,7 +2145,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -2198,7 +2198,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -2275,7 +2275,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/otto/advisorBudgetMeasurement.js",
@@ -2317,7 +2317,7 @@
       "implementing_files": [
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/factory/bootstrap.js",
@@ -2498,7 +2498,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/ledger/promptId.js",
@@ -2549,7 +2549,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/circle-footer-correction-injection/footer-correction-injection.conformance.test.js",
@@ -2716,7 +2716,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/otto/wheelScheduler.js",
@@ -2967,7 +2967,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/initiative-focus/initiative-focus.conformance.test.js",
@@ -3023,7 +3023,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3085,7 +3085,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/lugTracking/lugIntegrity.js",
@@ -3199,7 +3199,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3241,7 +3241,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3291,7 +3291,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3360,7 +3360,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -3567,7 +3567,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3626,7 +3626,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3768,7 +3768,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3881,7 +3881,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/advisor/chainDisposition.js",
@@ -4013,7 +4013,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -4052,7 +4052,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/messaging/messageStore.js",
@@ -4278,7 +4278,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "d4698bb4afe08bf9"
+          "hash": "303c1b5525150b3c"
         },
         {
           "path": "src/lugTracking/dispatchScope.js",
@@ -4374,7 +4374,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -4408,7 +4408,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -4442,7 +4442,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/ledger/runReconcile.js",
@@ -4531,7 +4531,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/release-policy-at-exit/release-policy-at-exit.conformance.test.js",
@@ -4610,7 +4610,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/rule-12-live-state-reported-not-refused/rule-12-live-state-reported-not-refused.conformance.test.js",
@@ -4702,7 +4702,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -4775,7 +4775,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/compiler/scanShippingArtifact.js",
@@ -4878,7 +4878,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/ledger/promptId.js",
@@ -4948,7 +4948,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/ledger/promptId.js",
@@ -5026,7 +5026,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/otto/regressionOracle.js",
@@ -5145,7 +5145,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/observability/eventLog.js",
@@ -5226,7 +5226,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -5332,7 +5332,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/lugTracking/sessionCheckpoint.js",
@@ -5688,7 +5688,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/messaging/messageStore.js",
@@ -5740,7 +5740,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/factory/cutUpdate.js",
@@ -5968,7 +5968,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         }
       ],
       "test": "conformance/fixtures/wheel-clock-catchup/wheel-clock-catchup.conformance.test.js",
@@ -6074,7 +6074,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/messaging/messageStore.js",
@@ -6139,7 +6139,7 @@
         },
         {
           "path": "src/ledger/ledgerStore.js",
-          "hash": "135cabc7a1d21802"
+          "hash": "a95659395d57f034"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -6173,7 +6173,7 @@
       "implementing_files": [
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "d4698bb4afe08bf9"
+          "hash": "303c1b5525150b3c"
         },
         {
           "path": "scripts/worktree.js",
@@ -7530,6 +7530,10 @@
     {
       "test": "conformance/fixtures/frameworkroot-fallback-worktree/frameworkroot-fallback-worktree.conformance.test.js",
       "lug": "frameworkroot-fallback-resolves-to-worktree-not-canonical-repo"
+    },
+    {
+      "test": "conformance/fixtures/fresh-base-on-worktree-add/fresh-base-on-worktree-add.conformance.test.js",
+      "lug": "every-run-starts-from-latest-main-and-no-branch-is-left-stranded"
     },
     {
       "test": "conformance/fixtures/gate-corpus-lease/gate-corpus-lease.conformance.test.js",
@@ -8895,7 +8899,7 @@
     },
     {
       "path": "src/factory/worktreeRegistry.js",
-      "hash": "d4698bb4afe08bf9"
+      "hash": "303c1b5525150b3c"
     },
     {
       "path": "src/lugTracking/forkSelfGrant.js",
@@ -8943,7 +8947,7 @@
     },
     {
       "path": "src/ledger/ledgerStore.js",
-      "hash": "135cabc7a1d21802"
+      "hash": "a95659395d57f034"
     },
     {
       "path": "src/lugTracking/dispatchMechanism.js",
