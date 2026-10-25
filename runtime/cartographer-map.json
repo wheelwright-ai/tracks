@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-25T10:50:33.261Z",
-  "duration_ms": 112,
+  "generated_at": "2026-10-25T21:43:11.422Z",
+  "duration_ms": 148,
   "areas": [
     {
       "area": "advisor",
@@ -3579,7 +3579,7 @@
         },
         {
           "path": "src/lugTracking/traceability.js",
-          "hash": "3954aa863374802e"
+          "hash": "a20bc3a86096015a"
         }
       ],
       "test": "conformance/fixtures/circle-max-persona-boundary-guard/max-persona-boundary-guard.conformance.test.js",
@@ -9447,7 +9447,7 @@
     },
     {
       "path": "src/lugTracking/traceability.js",
-      "hash": "3954aa863374802e"
+      "hash": "a20bc3a86096015a"
     },
     {
       "path": "src/navigator/nodeProbe.js",
