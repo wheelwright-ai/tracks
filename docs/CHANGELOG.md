@@ -7,16 +7,27 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
+## 2026-10-25
+
+### cuts
+
+- Cut 7e15497f received (from 073798ee), posture absorb_and_report: no circle or hook changed for this spoke; policies changed segmented-streams.
+
+### harness bookkeeping
+
+- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+
 ## 2026-10-24
 
 ### cuts
 
-- Cut 073798ee received (from b4214370), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+- Cut 073798ee received (from b4214370), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut b4214370 received (from bb0a73e1), posture absorb_and_report: 1 changed (session-files-touched).
 - Cut bb0a73e1 received (from 61be088e), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### docs
 
+- Regenerate stale generated docs (docs/CHANGELOG.md)
 - Regenerate stale generated docs (docs/CHANGELOG.md)
 
 ### repo root
@@ -177,9 +188,39 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 7e15497f -- received 2026-10-25 07:48Z (from 073798ee)
+
+Cut 7e15497f received (from 073798ee), posture absorb_and_report: no circle or hook changed for this spoke; policies changed segmented-streams.
+
+### 2026-10-25
+
+#### src/conductor
+
+- a-build-in-a-dispatch-worktree-folds-before-review + a-lug-waiting-on-another-spoke-is-not-dispatched + a-dispatch-never-builds-in-a-dirty-main-checkout: the drive folds a finished build's lane and asks review when main carries the lug's work; an external blocked_by is read through the registered repos; a dispatch goes to its own worktree when main holds uncommitted deliverable files (AP stage 2 run 3 landed 0 on these three)
+- The done gate recognises `*.test.ts`, `*.test.tsx`, `*.test.mts`, `*.test.cts` (and `.spec.*`) as test-shaped in both `walkTestFiles` and `isTestShapedPath`, same runtime/ledger/fixture exclusions. [fixtures 372/554; landed e5ee7cfb]
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- executeDispatch judges a run where it ran: the launcher's launchDir when it differs from the target (else the first external target, else the target), with an empty launch baseline for a fresh lane. [fixtures 370/558; landed 7e15497f]
+- writeWaveReview records each failed cause's scope: "lug" when every failure on that spoke was a safeguard refusal, else "spoke". heldForRemediation returns the scope and the held lugs (legacy rows are scoped from their wave's drive rows), and the drive holds a lug only when holdsLug says so; a spoke-wide hold still wins. [fixtures 366/553; landed 934015e6]
+
+#### the-box-governs-its-own-load
+
+- runLugFixtures (src/advisor/evidenceBundle.js) never spawns the script that is itself running, and every fixture it spawns carries WHEEL_LUG_FIXTURE_RUN; a fixture run inside one is skipped and its row says why ("nested inside a lug fixture run" / "this is the running script"), rendered in the LUG FIXTURE RUN section. [fixtures 377/552; landed 20e20168]
+
+### 2026-10-24
+
+#### the-box-governs-its-own-load
+
+- scripts/conductor-heartbeat.mjs records one sample per tick at the hub (cpus, load1, runnable, top actors, MemAvailable MB) through the segmented-stream writer, before anything that pass launches asks the governor. boxLoadRootFor resolves one box-wide sample root (BOX_LOAD_GOVERNOR_ROOT, else the hub the checkout -- or a worktree's checkout -- registers, else the root itself), and the push gate's pool and the wheel clock's heavy-job hold read it. [fixtures 373/551; landed c4798fb7]
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- `hf stop --help` / `-h` prints the usage from src/cli.js's stop block and exits 0 with no flag written; an unknown flag or a --root with no value is refused with the usage and exit 2, writing nothing. [fixtures 0/551; landed 6e2c9775]
+
 ## Cut 073798ee -- received 2026-10-24 17:33Z (from b4214370)
 
-Cut 073798ee received (from b4214370), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+Cut 073798ee received (from b4214370), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### 2026-10-24
 
@@ -4186,13 +4227,23 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 93 (commit 68, cut_received 24, lug_review 1).
+Entries: 96 (commit 70, cut_received 25, lug_review 1).
+
+## 2026-10-25
+
+### cuts
+
+- 07:48Z cut 7e15497f received by tracks (previous 073798ee) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 59decd96..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T07:29:43.598Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+### runtime
+
+- 07:48Z commit 59decd96 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main 59decd96
 
 ## 2026-10-24
 
 ### cuts
 
-- 17:33Z cut 073798ee received by tracks (previous b4214370) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 0af4cbc3..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-24T17:31:30.555Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 17:33Z cut 073798ee received by tracks (previous b4214370) landed 59decd96, posture absorb_and_report: +0/~0/-0 circles for tracks (git 0af4cbc3..59decd96 -- canon/circles, .claude/settings.json) -- source: tracks: git show 59decd96:.cut-status.json
 - 03:41Z cut b4214370 received by tracks (previous bb0a73e1) landed 0af4cbc3, posture absorb_and_report: +0/~1/-0 circles for tracks -- changed session-files-touched (git b7b5a045..0af4cbc3 -- canon/circles, .claude/settings.json) -- source: tracks: git show 0af4cbc3:.cut-status.json
 - 00:25Z cut bb0a73e1 received by tracks (previous 61be088e) landed b7b5a045, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3d92bf61..b7b5a045 -- canon/circles, .claude/settings.json) -- source: tracks: git show b7b5a045:.cut-status.json
 
@@ -4204,6 +4255,7 @@ Entries: 93 (commit 68, cut_received 24, lug_review 1).
 
 ### docs
 
+- 17:34Z commit cd96f113 [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main cd96f113
 - 03:41Z commit eaade2f9 [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main eaade2f9
 
 ### repo root
@@ -4447,9 +4499,41 @@ Entries: 93 (commit 68, cut_received 24, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 7e15497f -- received 2026-10-25 07:48Z (from 073798ee)
+
+07:48Z cut 7e15497f received by tracks (previous 073798ee) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 59decd96..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T07:29:43.598Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 7 (commit 7).
+
+### 2026-10-25
+
+#### src/conductor
+
+- 04:23Z commit a7a0ef79 [harness-factory] a-build-in-a-dispatch-worktree-folds-before-review + a-lug-waiting-on-another-spoke-is-not-dispatched + a-dispatch-never-builds-in-a-dirty-main-checkout: the drive folds a finished build's lane and asks review when main carries the lug's work; an external blocked_by is read through the registered repos; a dispatch goes to its own worktree when main holds uncommitted deliverable files (AP stage 2 run 3 landed 0 on these three) -- fixtures 368/556 -- 10 file(s), area src/conductor -- source: harness-factory: git log main a7a0ef79
+- 04:16Z commit e5ee7cfb [harness-factory] done-gate-traceability-recognises-typescript-test-files: recognise *.test/spec.(ts|tsx|mts|cts|jsx) as test files -- lug done-gate-traceability-recognises-typescript-test-files -- fixtures 372/554 -- 3 file(s), area src/conductor -- source: harness-factory: git log main e5ee7cfb
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- 05:09Z commit 7e15497f [harness-factory] a-dispatch-is-judged-in-the-worktree-it-ran-in: executeDispatch salvages and judges the launcher's launchDir, not the main checkout (the hub's isolated foundation build was returned as 'on main') -- lug a-dispatch-is-judged-in-the-worktree-it-ran-in -- fixtures 370/558 -- 3 file(s), area src/lugTracking -- source: harness-factory: git log main 7e15497f
+- 03:01Z commit 934015e6 [harness-factory] a-safeguard-refusal-holds-only-the-lug-it-refused: a wave review scopes a launch failure to its lugs when every reason is a safeguard refusal, and the drive holds only those lugs (basher's 11 lugs were held for 7 days behind one refused prompt) -- lug a-safeguard-refusal-holds-only-the-lug-it-refused -- fixtures 366/553 -- 4 file(s), area src/conductor -- source: harness-factory: git log main 934015e6
+
+#### the-box-governs-its-own-load
+
+- 02:56Z commit 20e20168 [harness-factory] a-lug-fixture-run-never-re-runs-itself: runLugFixtures never spawns the running script and marks every child it spawns, so a fixture that builds its own lug's evidence bundle cannot recurse (wheel-hub verbatim-citation fixture self-spawned ~46 x 570 MB inside a push gate) -- lug a-lug-fixture-run-never-re-runs-itself -- fixtures 377/552 -- 3 file(s), area src/advisor -- source: harness-factory: git log main 20e20168
+
+### 2026-10-24
+
+#### the-box-governs-its-own-load
+
+- 21:49Z commit c4798fb7 [harness-factory] every-heartbeat-tick-records-the-box-load-sample-the-governor-reads: each heartbeat tick records one box-load sample (load, runnable, actors, MemAvailable) at the hub through the segmented-stream writer; boxLoadRootFor gives the push gate's pool and the wheel clock's heavy-job hold the same box-wide sample dispatch reads (AP stage 2 launched into load 60 because recordSample had no caller and every decision was 'unmeasured') -- lug every-heartbeat-tick-records-the-box-load-sample-the-governor-reads -- fixtures 373/551 -- 7 file(s), area src/factory -- source: harness-factory: git log main c4798fb7
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- 21:53Z commit 6e2c9775 [harness-factory] hf-stop-help-prints-usage-and-never-raises-the-flag: file the lug (stop --help raised the flag and killed 708 queued rows) -- lug hf-stop-help-prints-usage-and-never-raises-the-flag -- fixtures 0/551 -- 1 file(s), area lugs -- source: harness-factory: git log main 6e2c9775
+
 ## Cut 073798ee -- received 2026-10-24 17:33Z (from b4214370)
 
-17:33Z cut 073798ee received by tracks (previous b4214370) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 0af4cbc3..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-24T17:31:30.555Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+17:33Z cut 073798ee received by tracks (previous b4214370) landed 59decd96, posture absorb_and_report: +0/~0/-0 circles for tracks (git 0af4cbc3..59decd96 -- canon/circles, .claude/settings.json) -- source: tracks: git show 59decd96:.cut-status.json
 
 Entries: 1 (commit 1).
 
@@ -8287,4 +8371,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:6c92b2be014b03f536719124c8b17df0f753e8f253d85030c59a8b258e29470a -->
+<!-- integrity sha256:a3381363735a2ee973358dd81e96c8d87982968e958f1a5184f4ced5af6a490d -->
