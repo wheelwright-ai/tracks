@@ -2,7 +2,7 @@
   "kind": "communication_inbox_record",
   "trigger": "wheel_clock",
   "session_id": null,
-  "read_at": "2026-10-24T17:32:05.629Z",
+  "read_at": "2026-10-25T07:48:05.827Z",
   "spoke": {
     "name": "tracks",
     "source": "canon/profile.yaml"
@@ -69,7 +69,7 @@
       "source": ".local/known-repos.json"
     }
   ],
-  "files_read": 2830,
+  "files_read": 2865,
   "unreadable": [],
   "open": [
     {

@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-24T17:30:59.828Z",
-  "duration_ms": 159,
+  "generated_at": "2026-10-25T07:29:33.393Z",
+  "duration_ms": 183,
   "areas": [
     {
       "area": "advisor",
@@ -983,7 +983,7 @@
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
-          "hash": "2524812f7c4aa2e2"
+          "hash": "e374edc2fc04299b"
         },
         {
           "path": "src/factory/hookBindingDrift.js",
@@ -1096,7 +1096,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -1466,7 +1466,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         }
       ],
       "test": "conformance/fixtures/circle-circle-completeness-audit/circle-completeness-audit.conformance.test.js",
@@ -1657,7 +1657,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "2f11d1a51d91d8cf"
+          "hash": "69c92a1247a1ef33"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -1665,7 +1665,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/factory/circleAudit.js",
@@ -1708,7 +1708,7 @@
       "implementing_files": [
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "2f11d1a51d91d8cf"
+          "hash": "69c92a1247a1ef33"
         }
       ],
       "test": "conformance/fixtures/harness-factory-leverage-routing/harness-factory-leverage-routing.conformance.test.js",
@@ -1750,7 +1750,7 @@
         },
         {
           "path": "src/lugTracking/dispatchRegistryReconciliation.js",
-          "hash": "b60ad6f7cd430cb6"
+          "hash": "38f68d9ad61824f4"
         },
         {
           "path": "src/conductor/waveRecord.js",
@@ -2153,7 +2153,7 @@
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
-          "hash": "2524812f7c4aa2e2"
+          "hash": "e374edc2fc04299b"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -2577,7 +2577,7 @@
         },
         {
           "path": "src/factory/testBoundaryGate.js",
-          "hash": "767be1d47cec38f8"
+          "hash": "0798d6e58d03873e"
         },
         {
           "path": "scripts/cross-provider-certify.js",
@@ -2647,7 +2647,7 @@
       "implementing_files": [
         {
           "path": "src/factory/testBoundaryGate.js",
-          "hash": "767be1d47cec38f8"
+          "hash": "0798d6e58d03873e"
         }
       ],
       "test": "conformance/fixtures/git-boundary-test-gate/git-boundary-test-gate.conformance.test.js",
@@ -2720,7 +2720,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         }
       ],
       "test": "conformance/fixtures/circle-guard-denial-reconciliation/guard-denial-reconciliation.conformance.test.js",
@@ -2808,7 +2808,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         }
       ],
       "test": "conformance/fixtures/hf-deploy-verb/hf-deploy-verb.conformance.test.js",
@@ -2927,7 +2927,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "2f11d1a51d91d8cf"
+          "hash": "69c92a1247a1ef33"
         },
         {
           "path": "src/lugTracking/lugVerb.js",
@@ -3069,7 +3069,7 @@
         },
         {
           "path": "src/basher/wcl.js",
-          "hash": "4d66c26ad17a6c35"
+          "hash": "eac51315c98d35b7"
         },
         {
           "path": "src/basher/idleWatchdog.js",
@@ -3081,7 +3081,7 @@
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
-          "hash": "2524812f7c4aa2e2"
+          "hash": "e374edc2fc04299b"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -3463,7 +3463,7 @@
         },
         {
           "path": "src/factory/testBoundaryGate.js",
-          "hash": "767be1d47cec38f8"
+          "hash": "0798d6e58d03873e"
         },
         {
           "path": "src/lugTracking/lugCorpus.js",
@@ -3502,7 +3502,7 @@
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
-          "hash": "2524812f7c4aa2e2"
+          "hash": "e374edc2fc04299b"
         },
         {
           "path": "src/conductor/machineCapacityLine.js",
@@ -3579,7 +3579,7 @@
         },
         {
           "path": "src/lugTracking/traceability.js",
-          "hash": "6e89955266df1a90"
+          "hash": "3954aa863374802e"
         }
       ],
       "test": "conformance/fixtures/circle-max-persona-boundary-guard/max-persona-boundary-guard.conformance.test.js",
@@ -3618,7 +3618,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/navigator/navigatorCut.js",
@@ -3701,7 +3701,7 @@
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
-          "hash": "2524812f7c4aa2e2"
+          "hash": "e374edc2fc04299b"
         },
         {
           "path": "src/conductor/runCostTotal.js",
@@ -3869,11 +3869,11 @@
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
-          "hash": "2524812f7c4aa2e2"
+          "hash": "e374edc2fc04299b"
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "2f11d1a51d91d8cf"
+          "hash": "69c92a1247a1ef33"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3961,7 +3961,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/conductor/waveDecision.js",
@@ -4178,7 +4178,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/factory/runtimeTrackingTiers.js",
@@ -4228,7 +4228,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/factory/runtimeTrackingTiers.js",
@@ -4519,7 +4519,7 @@
         },
         {
           "path": "src/factory/testBoundaryGate.js",
-          "hash": "767be1d47cec38f8"
+          "hash": "0798d6e58d03873e"
         },
         {
           "path": "src/lugTracking/closeoutReport.js",
@@ -4643,7 +4643,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/conductor/waveRecord.js",
@@ -5018,11 +5018,11 @@
         },
         {
           "path": "src/basher/wcl.js",
-          "hash": "4d66c26ad17a6c35"
+          "hash": "eac51315c98d35b7"
         },
         {
           "path": "src/factory/testBoundaryGate.js",
-          "hash": "767be1d47cec38f8"
+          "hash": "0798d6e58d03873e"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -5034,7 +5034,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         }
       ],
       "test": "conformance/fixtures/session-exit-path-fails-five-ways-and-surfaces-none-of-them/session-exit-path.conformance.test.js",
@@ -5273,7 +5273,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         }
       ],
       "test": "conformance/fixtures/success-prediction/success-prediction.conformance.test.js",
@@ -5356,7 +5356,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -5592,11 +5592,11 @@
         },
         {
           "path": "src/conductor/stopFlag.js",
-          "hash": "122c34b1fe622b91"
+          "hash": "bb057209c01670f9"
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
-          "hash": "2524812f7c4aa2e2"
+          "hash": "e374edc2fc04299b"
         },
         {
           "path": "src/conductor/heartbeat.js",
@@ -5680,7 +5680,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -5781,7 +5781,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "2f11d1a51d91d8cf"
+          "hash": "69c92a1247a1ef33"
         },
         {
           "path": "src/conductor/conductor.js",
@@ -5860,7 +5860,7 @@
       "implementing_files": [
         {
           "path": "src/basher/wcl.js",
-          "hash": "4d66c26ad17a6c35"
+          "hash": "eac51315c98d35b7"
         },
         {
           "path": "src/basher/wclCli.js",
@@ -5915,7 +5915,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/compiler/scanShippingArtifact.js",
@@ -6013,7 +6013,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "2f11d1a51d91d8cf"
+          "hash": "69c92a1247a1ef33"
         },
         {
           "path": "src/compiler/rules/11-no-oversized-file.js",
@@ -6062,7 +6062,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/factory/bootstrap.js",
@@ -6131,7 +6131,7 @@
       "implementing_files": [
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "9fc32cfb216434e0"
+          "hash": "1f3d9038083315c8"
         },
         {
           "path": "src/navigator/navigatorCut.js",
@@ -7300,6 +7300,14 @@
       "lug": "agent-tool-dispatch-into-external-repo-has-no-scope-grant"
     },
     {
+      "test": "conformance/fixtures/dispatch-isolates-from-a-dirty-main/dispatch-isolates-from-a-dirty-main.conformance.test.js",
+      "lug": "a-dispatch-never-builds-in-a-dirty-main-checkout"
+    },
+    {
+      "test": "conformance/fixtures/dispatch-judged-in-the-lane-it-ran-in/dispatch-judged-in-the-lane-it-ran-in.conformance.test.js",
+      "lug": "a-dispatch-is-judged-in-the-worktree-it-ran-in"
+    },
+    {
       "test": "conformance/fixtures/dispatch-kill-by-id/dispatch-kill-by-id.conformance.test.js",
       "lug": "dispatch-kill-takes-one-id-or-lug"
     },
@@ -7324,6 +7332,10 @@
       "lug": "dispatch-survives-orchestrator-session-termination"
     },
     {
+      "test": "conformance/fixtures/dispatch-worktree-build-folds-before-review/dispatch-worktree-build-folds-before-review.conformance.test.js",
+      "lug": "a-build-in-a-dispatch-worktree-folds-before-review"
+    },
+    {
       "test": "conformance/fixtures/dispatch-worktree-consolidation/dispatch-worktree-consolidation.conformance.test.js",
       "lug": "session-start-has-no-lane-consolidation-or-git-clean-check"
     },
@@ -7342,6 +7354,10 @@
     {
       "test": "conformance/fixtures/done-gate-evidence-paths/done-gate-evidence-paths.conformance.test.js",
       "lug": "done-gate-process-checks-hold-38-verified-lugs"
+    },
+    {
+      "test": "conformance/fixtures/done-gate-traceability-recognises-typescript-test-files/done-gate-traceability-recognises-typescript-test-files.conformance.test.js",
+      "lug": "done-gate-traceability-recognises-typescript-test-files"
     },
     {
       "test": "conformance/fixtures/done-gate-two-store-certification/done-gate-two-store-certification.conformance.test.js",
@@ -7438,6 +7454,10 @@
     {
       "test": "conformance/fixtures/exit-verdict-line/exit-verdict-line.conformance.test.js",
       "lug": "exit-prints-one-verdict-line"
+    },
+    {
+      "test": "conformance/fixtures/external-blocker-holds-the-lug/external-blocker-holds-the-lug.conformance.test.js",
+      "lug": "a-lug-waiting-on-another-spoke-is-not-dispatched"
     },
     {
       "test": "conformance/fixtures/fabrication-binder/fabrication-binder.conformance.test.js",
@@ -7610,6 +7630,10 @@
     {
       "test": "conformance/fixtures/heartbeat-aged-headroom/heartbeat-aged-headroom.conformance.test.js",
       "lug": "heartbeat-decides-on-aged-headroom-when-the-oauth-token-has-lapsed"
+    },
+    {
+      "test": "conformance/fixtures/heartbeat-records-the-box-load-sample/heartbeat-records-the-box-load-sample.conformance.test.js",
+      "lug": "every-heartbeat-tick-records-the-box-load-sample-the-governor-reads"
     },
     {
       "test": "conformance/fixtures/held-back-segments-never-staged/held-back-segments-never-staged.conformance.test.js",
@@ -7818,6 +7842,10 @@
     {
       "test": "conformance/fixtures/lug-edges/lug-edges.conformance.test.js",
       "lug": "implement-lug-lineage-and-association-edges"
+    },
+    {
+      "test": "conformance/fixtures/lug-fixture-run-never-re-runs-itself/lug-fixture-run-never-re-runs-itself.conformance.test.js",
+      "lug": "a-lug-fixture-run-never-re-runs-itself"
     },
     {
       "test": "conformance/fixtures/lug-lifecycle-companion/lug-lifecycle-companion.conformance.test.js",
@@ -8314,6 +8342,10 @@
     {
       "test": "conformance/fixtures/run-roi-extraction/run-roi-extraction.conformance.test.js",
       "lug": "autopilot-run-ends-with-an-roi-extractor-that-steers-the-next-wave"
+    },
+    {
+      "test": "conformance/fixtures/safeguard-refusal-holds-only-its-lug/safeguard-refusal-holds-only-its-lug.conformance.test.js",
+      "lug": "a-safeguard-refusal-holds-only-the-lug-it-refused"
     },
     {
       "test": "conformance/fixtures/scaffolded-spoke-wheel-clock/scaffolded-spoke-wheel-clock.conformance.test.js",
@@ -8915,7 +8947,7 @@
     },
     {
       "path": "src/lugTracking/dispatchMechanism.js",
-      "hash": "2524812f7c4aa2e2"
+      "hash": "e374edc2fc04299b"
     },
     {
       "path": "src/factory/hookBindingDrift.js",
@@ -8943,7 +8975,7 @@
     },
     {
       "path": "src/otto/wheelScheduler.js",
-      "hash": "9fc32cfb216434e0"
+      "hash": "1f3d9038083315c8"
     },
     {
       "path": "src/compiler/rules/18-kb-cut-integrity.js",
@@ -9079,7 +9111,7 @@
     },
     {
       "path": "src/conductor/readyWork.js",
-      "hash": "2f11d1a51d91d8cf"
+      "hash": "69c92a1247a1ef33"
     },
     {
       "path": "src/otto/wheelClockDeclaration.js",
@@ -9099,7 +9131,7 @@
     },
     {
       "path": "src/lugTracking/dispatchRegistryReconciliation.js",
-      "hash": "b60ad6f7cd430cb6"
+      "hash": "38f68d9ad61824f4"
     },
     {
       "path": "src/conductor/waveRecord.js",
@@ -9251,7 +9283,7 @@
     },
     {
       "path": "src/factory/testBoundaryGate.js",
-      "hash": "767be1d47cec38f8"
+      "hash": "0798d6e58d03873e"
     },
     {
       "path": "src/lugTracking/livenessLease.js",
@@ -9315,7 +9347,7 @@
     },
     {
       "path": "src/basher/wcl.js",
-      "hash": "4d66c26ad17a6c35"
+      "hash": "eac51315c98d35b7"
     },
     {
       "path": "src/lugTracking/lugIntegrity.js",
@@ -9411,7 +9443,7 @@
     },
     {
       "path": "src/lugTracking/traceability.js",
-      "hash": "6e89955266df1a90"
+      "hash": "3954aa863374802e"
     },
     {
       "path": "src/navigator/nodeProbe.js",
@@ -9731,7 +9763,7 @@
     },
     {
       "path": "src/conductor/stopFlag.js",
-      "hash": "122c34b1fe622b91"
+      "hash": "bb057209c01670f9"
     },
     {
       "path": "src/hooks/updateDiscoveryHook.js",
@@ -9922,5 +9954,8 @@
       "hash": "29f14e8aa4a4d6f4"
     }
   ],
-  "changed_since_last_map": []
+  "changed_since_last_map": [
+    "src/lugTracking/dispatchRegistryReconciliation.js",
+    "src/conductor/stopFlag.js"
+  ]
 }
