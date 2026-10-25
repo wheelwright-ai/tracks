@@ -11,11 +11,16 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
-- Cut 7e15497f received (from 073798ee), posture absorb_and_report: no circle or hook changed for this spoke; policies changed segmented-streams.
+- Cut 78c2a92f received (from 7e15497f), posture absorb_and_report: no circle or hook changed for this spoke.
+- Cut 7e15497f received (from 073798ee), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### docs
+
+- Regenerate stale generated docs (docs/CHANGELOG.md)
 
 ### harness bookkeeping
 
-- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+- 5 harness bookkeeping commit(s) in tracks (Session work 3, harness-arrival-audit 2).
 
 ## 2026-10-24
 
@@ -188,9 +193,62 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 78c2a92f -- received 2026-10-25 22:09Z (from 7e15497f)
+
+Cut 78c2a92f received (from 7e15497f), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### 2026-10-25
+
+#### docs
+
+- docs: AP proving series 2026-10-25 -- waves 8-12, 4 lugs done by AP, release needed to carry the fixes out
+- docs: AP proving series 2026-10-25 findings (waves, causes fixed, still open)
+
+#### src/conductor
+
+- a-shell-test-proves-its-lug-and-a-hub-build-edits-with-edit: tests/**/*.bash|sh are test files (repo-relative) and '# lug:' is a marker, so a lug proven by bash tests can reach done; a hub-rooted build's prompt says to edit code with Edit/Write and not to stop at a Bash-write refusal
+- a-finished-dispatch-row-does-not-hold-the-wave: reconcileDispatchRegistry reads the supervised child's own ended event (runtime/dispatch-children.jsonl) and, once it is past the finalize grace with no pid alive, reconciles the row instead of waiting out the 65min age rule (AP proving pass hpiu21 was held by a bubo row whose child ended after 2.5min)
+
+#### src/lugTracking
+
+- a-hub-build-in-a-hub-worktree-reads-its-grant: a headless child of its own dispatch running in a hub worktree reads that dispatch's grants at the hub's main and carries all of them (root + external target)
+- a-hub-build-is-told-how-to-make-its-edit: a hub-dispatched build whose call its grant does not cover gets a short refusal naming the grant's paths -- Edit/Write inside them is allowed; a path outside them belongs in its own dispatch -- instead of the orchestrator's 'dispatch it' (the wave 8ehcik builder stopped there)
+
+#### conformance
+
+- push-gate-reds-are-stale-checks-not-regressions: drop stale tier-pending lines (readiness-certification-sweep, planner-cross-segment-ranking now tagged); the orphan-disclosure and destructive-guard ledger checks count their own rows, not the live ledger's whole size; an empty live hub planner queue is a recorded measurement
+
+#### no-work-is-stranded
+
+- addWorktree (src/factory/worktreeRegistry.js) runs `git fetch origin <main>` first, with a 5s timeout. [fixtures 1/559, 383/559; landed 60e8845a, 8f58f2e5]
+
+#### scripts
+
+- heartbeat-summary-survives-a-pre-reconcile-decline: the --verbose printer no longer reads result.reconciliation.checked when a pass declines before reconciling (machine_dispatch_ceiling crashed AP proving pass 2 after its record was written)
+
+#### src/advisor
+
+- a-lug-test-runs-under-its-own-runner: runLugFixtures and the readiness sweep run a lug's test by its own verify command (allowlisted runners) or by extension, never every file through node; a runnerless non-JS test is skipped/INCONCLUSIVE, never a failed run
+
+#### src/basher
+
+- a-hub-dispatched-build-is-dispatched-in-its-spoke: a headless child carrying its own WCL_DISPATCH_ID reads its dispatch's hub scope grant and is dispatched for Write/Edit inside the grant's paths; Bash never rides the grant; launchSpoke always sets WCL_DISPATCH_ID
+
+#### src/factory
+
+- a-build-lane-lands-and-a-small-build-is-not-skipped: the drive reconciles a finished build's own state-touching lane and folds it; salvage, fold and reconcile keep .local/node_modules links off main; on-pace fit checks judge the estimate at the measured builder speed
+
+#### src/ledger
+
+- a-worktree-ledger-write-lands-in-main: appendRow and the status updates resolve a ledger path inside a linked worktree to the main checkout's ledger, so a hook in a build's worktree no longer dirties the lane
+
+#### src/otto
+
+- ozi-keeps-funded-directed-work-on-a-leftover-tie: decideAllocation raises no_impact_signal only when nothing is funded yet and the remaining grant can fund some but not all of the tie (harness-factory's Ozi dispatched nothing on AP pass nhw148, remaining grant 0 after directed work)
+
 ## Cut 7e15497f -- received 2026-10-25 07:48Z (from 073798ee)
 
-Cut 7e15497f received (from 073798ee), posture absorb_and_report: no circle or hook changed for this spoke; policies changed segmented-streams.
+Cut 7e15497f received (from 073798ee), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### 2026-10-25
 
@@ -4227,17 +4285,26 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 96 (commit 70, cut_received 25, lug_review 1).
+Entries: 102 (commit 75, cut_received 26, lug_review 1).
 
 ## 2026-10-25
 
-### cuts
-
-- 07:48Z cut 7e15497f received by tracks (previous 073798ee) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 59decd96..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T07:29:43.598Z -- source: tracks: .cut-status.json (working tree, not yet committed)
-
 ### runtime
 
+- 22:09Z commit 3f893538 [tracks] harness-arrival-audit: absorbed 8 file(s) on cut arrival -- 8 file(s), area runtime -- source: tracks: git log main 3f893538
+- 10:52Z commit 77436b2f [tracks] Session work: 7 files, no lug transitions recorded -- 7 file(s), area runtime -- source: tracks: git log main 77436b2f
+- 10:09Z commit 439fc16e [tracks] Session work: 7 files, no lug transitions recorded -- 7 file(s), area runtime -- source: tracks: git log main 439fc16e
+- 07:57Z commit 3f226dd7 [tracks] Session work: 9 files, no lug transitions recorded -- 9 file(s), area runtime -- source: tracks: git log main 3f226dd7
 - 07:48Z commit 59decd96 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main 59decd96
+
+### cuts
+
+- 22:09Z cut 78c2a92f received by tracks (previous 7e15497f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3f226dd7..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T22:05:01.432Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 07:48Z cut 7e15497f received by tracks (previous 073798ee) landed 3f226dd7, posture absorb_and_report: +0/~0/-0 circles for tracks (git 59decd96..3f226dd7 -- canon/circles, .claude/settings.json) -- source: tracks: git show 3f226dd7:.cut-status.json
+
+### docs
+
+- 07:49Z commit 4990b67a [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main 4990b67a
 
 ## 2026-10-24
 
@@ -4499,9 +4566,65 @@ Entries: 96 (commit 70, cut_received 25, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 78c2a92f -- received 2026-10-25 22:09Z (from 7e15497f)
+
+22:09Z cut 78c2a92f received by tracks (previous 7e15497f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3f226dd7..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T22:05:01.432Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 15 (commit 15).
+
+### 2026-10-25
+
+#### docs
+
+- 11:14Z commit 2ec311dc [harness-factory] docs: AP proving series 2026-10-25 -- waves 8-12, 4 lugs done by AP, release needed to carry the fixes out -- 1 file(s), area docs -- source: harness-factory: git log main 2ec311dc
+- 08:20Z commit 15a34c92 [harness-factory] docs: AP proving series 2026-10-25 findings (waves, causes fixed, still open) -- 1 file(s), area docs -- source: harness-factory: git log main 15a34c92
+
+#### no-work-is-stranded
+
+- 10:09Z commit 60e8845a [harness-factory] every-run-starts-from-latest-main-and-no-branch-is-left-stranded: operator-verb canon names the fetch-first start; fixture pointer -- lug every-run-starts-from-latest-main-and-no-branch-is-left-stranded -- fixtures 1/559 -- 2 file(s), area canon -- source: harness-factory: git log main 60e8845a
+- 10:06Z commit 8f58f2e5 [harness-factory] every-run-starts-from-latest-main-and-no-branch-is-left-stranded: addWorktree fetches origin main when no ref is given -- lug every-run-starts-from-latest-main-and-no-branch-is-left-stranded -- fixtures 383/559 -- 2 file(s), area src/factory -- source: harness-factory: git log main 8f58f2e5
+
+#### src/conductor
+
+- 10:57Z commit c8bc2bf4 [harness-factory] a-shell-test-proves-its-lug-and-a-hub-build-edits-with-edit: tests/**/*.bash|sh are test files (repo-relative) and '# lug:' is a marker, so a lug proven by bash tests can reach done; a hub-rooted build's prompt says to edit code with Edit/Write and not to stop at a Bash-write refusal -- fixtures 376/559 -- 5 file(s), area src/conductor -- source: harness-factory: git log main c8bc2bf4
+- 07:27Z commit 07621107 [harness-factory] a-finished-dispatch-row-does-not-hold-the-wave: reconcileDispatchRegistry reads the supervised child's own ended event (runtime/dispatch-children.jsonl) and, once it is past the finalize grace with no pid alive, reconciles the row instead of waiting out the 65min age rule (AP proving pass hpiu21 was held by a bubo row whose child ended after 2.5min) -- fixtures 371/558 -- 3 file(s), area src/conductor -- source: harness-factory: git log main 07621107
+
+#### src/lugTracking
+
+- 09:58Z commit 74b60f56 [harness-factory] a-hub-build-in-a-hub-worktree-reads-its-grant: a headless child of its own dispatch running in a hub worktree reads that dispatch's grants at the hub's main and carries all of them (root + external target) -- fixtures 374/558 -- 2 file(s), area src/lugTracking -- source: harness-factory: git log main 74b60f56
+- 09:47Z commit be4352c9 [harness-factory] a-hub-build-is-told-how-to-make-its-edit: a hub-dispatched build whose call its grant does not cover gets a short refusal naming the grant's paths -- Edit/Write inside them is allowed; a path outside them belongs in its own dispatch -- instead of the orchestrator's 'dispatch it' (the wave 8ehcik builder stopped there) -- fixtures 374/558 -- 2 file(s), area src/lugTracking -- source: harness-factory: git log main be4352c9
+
+#### conformance
+
+- 21:37Z commit 78c2a92f [harness-factory] push-gate-reds-are-stale-checks-not-regressions: drop stale tier-pending lines (readiness-certification-sweep, planner-cross-segment-ranking now tagged); the orphan-disclosure and destructive-guard ledger checks count their own rows, not the live ledger's whole size; an empty live hub planner queue is a recorded measurement -- fixtures 5/559 -- 4 file(s), area conformance -- source: harness-factory: git log main 78c2a92f
+
+#### scripts
+
+- 07:16Z commit 3598c3f6 [harness-factory] heartbeat-summary-survives-a-pre-reconcile-decline: the --verbose printer no longer reads result.reconciliation.checked when a pass declines before reconciling (machine_dispatch_ceiling crashed AP proving pass 2 after its record was written) -- fixtures 5/558 -- 1 file(s), area scripts -- source: harness-factory: git log main 3598c3f6
+
+#### src/advisor
+
+- 08:58Z commit 2375c7ff [harness-factory] a-lug-test-runs-under-its-own-runner: runLugFixtures and the readiness sweep run a lug's test by its own verify command (allowlisted runners) or by extension, never every file through node; a runnerless non-JS test is skipped/INCONCLUSIVE, never a failed run -- fixtures 5/5, 29/29, 382/558 -- 5 file(s), area src/advisor -- source: harness-factory: git log main 2375c7ff
+
+#### src/basher
+
+- 09:29Z commit e53c96ce [harness-factory] a-hub-dispatched-build-is-dispatched-in-its-spoke: a headless child carrying its own WCL_DISPATCH_ID reads its dispatch's hub scope grant and is dispatched for Write/Edit inside the grant's paths; Bash never rides the grant; launchSpoke always sets WCL_DISPATCH_ID -- fixtures 374/558 -- 4 file(s), area src/basher -- source: harness-factory: git log main e53c96ce
+
+#### src/factory
+
+- 08:18Z commit 209afbec [harness-factory] a-build-lane-lands-and-a-small-build-is-not-skipped: the drive reconciles a finished build's own state-touching lane and folds it; salvage, fold and reconcile keep .local/node_modules links off main; on-pace fit checks judge the estimate at the measured builder speed -- fixtures 382/558 -- 6 file(s), area src/factory -- source: harness-factory: git log main 209afbec
+
+#### src/ledger
+
+- 10:45Z commit cd47da54 [harness-factory] a-worktree-ledger-write-lands-in-main: appendRow and the status updates resolve a ledger path inside a linked worktree to the main checkout's ledger, so a hook in a build's worktree no longer dirties the lane -- fixtures 478/559 -- 2 file(s), area src/ledger -- source: harness-factory: git log main cd47da54
+
+#### src/otto
+
+- 06:52Z commit 421309ce [harness-factory] ozi-keeps-funded-directed-work-on-a-leftover-tie: decideAllocation raises no_impact_signal only when nothing is funded yet and the remaining grant can fund some but not all of the tie (harness-factory's Ozi dispatched nothing on AP pass nhw148, remaining grant 0 after directed work) -- fixtures 370/558 -- 2 file(s), area src/otto -- source: harness-factory: git log main 421309ce
+
 ## Cut 7e15497f -- received 2026-10-25 07:48Z (from 073798ee)
 
-07:48Z cut 7e15497f received by tracks (previous 073798ee) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 59decd96..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T07:29:43.598Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+07:48Z cut 7e15497f received by tracks (previous 073798ee) landed 3f226dd7, posture absorb_and_report: +0/~0/-0 circles for tracks (git 59decd96..3f226dd7 -- canon/circles, .claude/settings.json) -- source: tracks: git show 3f226dd7:.cut-status.json
 
 Entries: 7 (commit 7).
 
@@ -8371,4 +8494,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:a3381363735a2ee973358dd81e96c8d87982968e958f1a5184f4ced5af6a490d -->
+<!-- integrity sha256:ad2145b8708046641500b24199d10bd8a24f02c08b109746f8255801f693e774 -->
