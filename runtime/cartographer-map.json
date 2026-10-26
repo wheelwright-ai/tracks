@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-26T07:24:47.931Z",
-  "duration_ms": 252,
+  "generated_at": "2026-10-26T20:25:57.140Z",
+  "duration_ms": 144,
   "areas": [
     {
       "area": "advisor",
@@ -931,7 +931,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/conductor/sectionCache.js",
@@ -1100,7 +1100,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/compiler/rules/18-kb-cut-integrity.js",
@@ -1661,7 +1661,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/otto/wheelScheduler.js",
@@ -2157,7 +2157,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         }
       ],
       "test": "conformance/fixtures/default-forward-veto-ledger/default-forward-veto-ledger.conformance.test.js",
@@ -2506,7 +2506,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         }
       ],
       "test": "conformance/fixtures/footer-audit/footer-audit.conformance.test.js",
@@ -2919,7 +2919,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/planner/planner.js",
@@ -3015,7 +3015,7 @@
         },
         {
           "path": "src/factory/cutUpdate.js",
-          "hash": "ca4ba404b19b4db2"
+          "hash": "62796c3542cf93a2"
         },
         {
           "path": "src/identity/sessionRegistry.js",
@@ -3364,7 +3364,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         }
       ],
       "test": "conformance/fixtures/lug-ownership-claims/lug-ownership-claims.conformance.test.js",
@@ -3522,7 +3522,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -4294,7 +4294,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         }
       ],
       "test": "conformance/fixtures/worktree-gc-at-fold-and-exit/worktree-gc-at-fold-and-exit.conformance.test.js",
@@ -4404,7 +4404,7 @@
       "implementing_files": [
         {
           "path": "src/otto/reconcileAdvisorRoster.js",
-          "hash": "ea5c9dc19dc03c46"
+          "hash": "71f53206c8b1bf06"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -4594,7 +4594,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/ledger/defaultForwardDecisions.js",
@@ -4710,7 +4710,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         }
       ],
       "test": "conformance/fixtures/scheduler-failure-operator-channel/scheduler-failure-operator-channel.conformance.test.js",
@@ -4767,7 +4767,7 @@
         },
         {
           "path": "src/factory/cutUpdate.js",
-          "hash": "ca4ba404b19b4db2"
+          "hash": "62796c3542cf93a2"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -5010,7 +5010,7 @@
         },
         {
           "path": "src/factory/cutUpdate.js",
-          "hash": "ca4ba404b19b4db2"
+          "hash": "62796c3542cf93a2"
         },
         {
           "path": "src/factory/hookBindingDrift.js",
@@ -5185,7 +5185,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         }
       ],
       "test": "conformance/fixtures/spoke-gauge/spoke-gauge.conformance.test.js",
@@ -5404,7 +5404,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         }
       ],
       "test": "conformance/fixtures/taste-injection/taste-injection.conformance.test.js",
@@ -5542,7 +5542,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/compiler/generate.js",
@@ -5696,7 +5696,7 @@
         },
         {
           "path": "src/factory/cutUpdate.js",
-          "hash": "ca4ba404b19b4db2"
+          "hash": "62796c3542cf93a2"
         },
         {
           "path": "src/factory/bootstrap.js",
@@ -5728,7 +5728,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -5788,7 +5788,7 @@
         },
         {
           "path": "src/factory/cutUpdate.js",
-          "hash": "ca4ba404b19b4db2"
+          "hash": "62796c3542cf93a2"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -5821,7 +5821,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/conductor/readyWork.js",
@@ -5955,7 +5955,7 @@
       "implementing_files": [
         {
           "path": "src/factory/changeLog.js",
-          "hash": "35fa68b0bbea2632"
+          "hash": "fdaf36c090578906"
         },
         {
           "path": "src/otto/wheelScheduler.js",
@@ -6138,7 +6138,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "23fcc0bad7bc3b30"
+          "hash": "efbba2eaa650fcf2"
         },
         {
           "path": "src/otto/processSignalInbox.js",
@@ -6225,7 +6225,7 @@
         },
         {
           "path": "src/factory/cutUpdate.js",
-          "hash": "ca4ba404b19b4db2"
+          "hash": "62796c3542cf93a2"
         },
         {
           "path": "src/planner/healthSignals.js",
@@ -7276,6 +7276,10 @@
       "lug": "cut-gives-a-clockless-spoke-the-default-wheel-clock"
     },
     {
+      "test": "conformance/fixtures/cut-lands-without-fixtures/cut-lands-without-fixtures.conformance.test.js",
+      "lug": "cut-lands-with-a-spoke-test-runner-ignore-for-the-harness-dir"
+    },
+    {
       "test": "conformance/fixtures/cut-promotion-report-class/cut-promotion-report-class.conformance.test.js",
       "lug": "cut-promotion-rolls-back-on-hygiene-rules-the-launcher-already-classifies-as-report"
     },
@@ -7414,6 +7418,10 @@
     {
       "test": "conformance/fixtures/done-transition-appends-push-near-cap-lugs-over-rule-11/done-transition-appends-push-near-cap-lugs-over-rule-11.conformance.test.js",
       "lug": "done-transition-appends-push-near-cap-lugs-over-rule-11"
+    },
+    {
+      "test": "conformance/fixtures/drift-check-14-days/drift-check-14-days.conformance.test.js",
+      "lug": "drift-check-flags-14-days-without-movement-in-goals-review"
     },
     {
       "test": "conformance/fixtures/drive-skips-live-session-lanes/drive-skips-live-session-lanes.conformance.test.js",
@@ -8999,7 +9007,7 @@
     },
     {
       "path": "src/conductor/goalsReview.js",
-      "hash": "23fcc0bad7bc3b30"
+      "hash": "efbba2eaa650fcf2"
     },
     {
       "path": "src/conductor/sectionCache.js",
@@ -9419,7 +9427,7 @@
     },
     {
       "path": "src/factory/cutUpdate.js",
-      "hash": "ca4ba404b19b4db2"
+      "hash": "62796c3542cf93a2"
     },
     {
       "path": "src/basher/wcl.js",
@@ -9651,7 +9659,7 @@
     },
     {
       "path": "src/otto/reconcileAdvisorRoster.js",
-      "hash": "ea5c9dc19dc03c46"
+      "hash": "71f53206c8b1bf06"
     },
     {
       "path": "src/ledger/reconcileLedger.js",
@@ -9895,7 +9903,7 @@
     },
     {
       "path": "src/factory/changeLog.js",
-      "hash": "35fa68b0bbea2632"
+      "hash": "fdaf36c090578906"
     },
     {
       "path": "src/hooks/wheelClockCatchupHook.js",
