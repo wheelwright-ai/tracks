@@ -337,56 +337,56 @@
       "disclosed_at": null
     },
     "ledger|2026-10-26|session-exit-commit": {
-      "admitted": 1,
+      "admitted": 2,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:04:45.388Z",
       "disclosed_at": null
     },
     "ledger|2026-10-26|wheel-scheduler": {
-      "admitted": 606,
+      "admitted": 677,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:08:08.516Z",
       "disclosed_at": null
     },
     "ledger|2026-10-26|reconcile-ledger": {
-      "admitted": 52,
+      "admitted": 58,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:08:08.588Z",
       "disclosed_at": null
     },
     "ledger|2026-10-26|guard-denial-reconciliation": {
-      "admitted": 104,
+      "admitted": 116,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:08:26.983Z",
       "disclosed_at": null
     },
     "ledger|2026-10-26|harness-arrival-audit": {
-      "admitted": 2,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:11:29.627Z",
       "disclosed_at": null
     },
     "ledger|2026-10-26|claude": {
-      "admitted": 2,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:11:54.083Z",
       "disclosed_at": null
     },
     "ledger|2026-10-26|update-discovery": {
-      "admitted": 2,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:11:54.655Z",
       "disclosed_at": null
     },
     "ledger|2026-10-26|wheel-clock-catchup": {
-      "admitted": 30,
+      "admitted": 34,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-26T00:13:30.485Z",
@@ -401,5 +401,5 @@
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-10-26T06:44:21.699Z"
+  "written_at": "2026-10-26T07:28:51.582Z"
 }

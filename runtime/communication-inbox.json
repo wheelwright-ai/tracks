@@ -2,7 +2,7 @@
   "kind": "communication_inbox_record",
   "trigger": "wheel_clock",
   "session_id": null,
-  "read_at": "2026-10-26T06:42:14.418Z",
+  "read_at": "2026-10-26T07:26:21.861Z",
   "spoke": {
     "name": "tracks",
     "source": "canon/profile.yaml"
@@ -39,6 +39,11 @@
       "source": "hub canon/ezorg-email-website.spoke.yaml"
     },
     {
+      "name": "keeping-open-lines",
+      "root": "/home/mario/projects/keeping-open-lines",
+      "source": "hub canon/keeping-open-lines.spoke.yaml"
+    },
+    {
       "name": "minder",
       "root": "/home/mario/projects/minder",
       "source": "hub canon/minder.spoke.yaml"
@@ -69,7 +74,7 @@
       "source": ".local/known-repos.json"
     }
   ],
-  "files_read": 2920,
+  "files_read": 2934,
   "unreadable": [],
   "open": [
     {

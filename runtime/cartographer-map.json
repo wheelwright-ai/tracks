@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-26T06:37:25.036Z",
-  "duration_ms": 185,
+  "generated_at": "2026-10-26T07:24:47.931Z",
+  "duration_ms": 252,
   "areas": [
     {
       "area": "advisor",
@@ -931,7 +931,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/conductor/sectionCache.js",
@@ -1096,11 +1096,11 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/compiler/rules/18-kb-cut-integrity.js",
@@ -1466,7 +1466,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         }
       ],
       "test": "conformance/fixtures/circle-circle-completeness-audit/circle-completeness-audit.conformance.test.js",
@@ -1661,11 +1661,11 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/factory/circleAudit.js",
@@ -2157,7 +2157,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         }
       ],
       "test": "conformance/fixtures/default-forward-veto-ledger/default-forward-veto-ledger.conformance.test.js",
@@ -2506,7 +2506,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         }
       ],
       "test": "conformance/fixtures/footer-audit/footer-audit.conformance.test.js",
@@ -2720,7 +2720,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         }
       ],
       "test": "conformance/fixtures/circle-guard-denial-reconciliation/guard-denial-reconciliation.conformance.test.js",
@@ -2808,7 +2808,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         }
       ],
       "test": "conformance/fixtures/hf-deploy-verb/hf-deploy-verb.conformance.test.js",
@@ -2919,7 +2919,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/planner/planner.js",
@@ -3364,7 +3364,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         }
       ],
       "test": "conformance/fixtures/lug-ownership-claims/lug-ownership-claims.conformance.test.js",
@@ -3522,7 +3522,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -3618,7 +3618,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/navigator/navigatorCut.js",
@@ -3961,7 +3961,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/conductor/waveDecision.js",
@@ -4178,7 +4178,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/factory/runtimeTrackingTiers.js",
@@ -4228,7 +4228,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/factory/runtimeTrackingTiers.js",
@@ -4294,7 +4294,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         }
       ],
       "test": "conformance/fixtures/worktree-gc-at-fold-and-exit/worktree-gc-at-fold-and-exit.conformance.test.js",
@@ -4594,7 +4594,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/ledger/defaultForwardDecisions.js",
@@ -4643,7 +4643,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/conductor/waveRecord.js",
@@ -4710,7 +4710,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         }
       ],
       "test": "conformance/fixtures/scheduler-failure-operator-channel/scheduler-failure-operator-channel.conformance.test.js",
@@ -5034,7 +5034,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         }
       ],
       "test": "conformance/fixtures/session-exit-path-fails-five-ways-and-surfaces-none-of-them/session-exit-path.conformance.test.js",
@@ -5181,11 +5181,11 @@
         },
         {
           "path": "scripts/fleet-gauge.js",
-          "hash": "d83840130edb4562"
+          "hash": "774a4c533f3e8279"
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         }
       ],
       "test": "conformance/fixtures/spoke-gauge/spoke-gauge.conformance.test.js",
@@ -5317,7 +5317,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         }
       ],
       "test": "conformance/fixtures/success-prediction/success-prediction.conformance.test.js",
@@ -5400,11 +5400,11 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         }
       ],
       "test": "conformance/fixtures/taste-injection/taste-injection.conformance.test.js",
@@ -5542,7 +5542,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/compiler/generate.js",
@@ -5724,11 +5724,11 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -5821,7 +5821,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/conductor/readyWork.js",
@@ -5959,7 +5959,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/compiler/scanShippingArtifact.js",
@@ -6106,7 +6106,7 @@
         },
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/factory/bootstrap.js",
@@ -6138,7 +6138,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "7e94b342ea366694"
+          "hash": "23fcc0bad7bc3b30"
         },
         {
           "path": "src/otto/processSignalInbox.js",
@@ -6175,7 +6175,7 @@
       "implementing_files": [
         {
           "path": "src/otto/wheelScheduler.js",
-          "hash": "1f3d9038083315c8"
+          "hash": "635e26cececd0aaa"
         },
         {
           "path": "src/navigator/navigatorCut.js",
@@ -8560,6 +8560,10 @@
       "lug": "spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it"
     },
     {
+      "test": "conformance/fixtures/spoke-survey/spoke-survey.conformance.test.js",
+      "lug": "the-hub-surveys-every-spokes-gauge-and-routes-each-raised-need"
+    },
+    {
       "test": "conformance/fixtures/spokes-talk-directly/spokes-talk-directly.conformance.test.js",
       "lug": "spokes-talk-directly-via-lugs-with-a-confirm-back-and-a-p0-taps-the-live-session"
     },
@@ -8995,7 +8999,7 @@
     },
     {
       "path": "src/conductor/goalsReview.js",
-      "hash": "7e94b342ea366694"
+      "hash": "23fcc0bad7bc3b30"
     },
     {
       "path": "src/conductor/sectionCache.js",
@@ -9047,7 +9051,7 @@
     },
     {
       "path": "src/otto/wheelScheduler.js",
-      "hash": "1f3d9038083315c8"
+      "hash": "635e26cececd0aaa"
     },
     {
       "path": "src/compiler/rules/18-kb-cut-integrity.js",
@@ -9783,7 +9787,7 @@
     },
     {
       "path": "scripts/fleet-gauge.js",
-      "hash": "d83840130edb4562"
+      "hash": "774a4c533f3e8279"
     },
     {
       "path": "src/hooks/stopNotifyHook.js",
