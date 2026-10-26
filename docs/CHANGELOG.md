@@ -7,6 +7,16 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
+## 2026-10-26
+
+### cuts
+
+- Cut 7b020f29 received (from 78c2a92f), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+
+### harness bookkeeping
+
+- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+
 ## 2026-10-25
 
 ### cuts
@@ -16,6 +26,7 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### docs
 
+- Regenerate stale generated docs (docs/CHANGELOG.md)
 - Regenerate stale generated docs (docs/CHANGELOG.md)
 
 ### harness bookkeeping
@@ -192,6 +203,29 @@ Record: certification pending
 - 5 harness bookkeeping commit(s) in tracks (Session work 2, harness-arrival-audit 3).
 
 # Part 2 -- the wheel's history that reached tracks
+
+## Cut 7b020f29 -- received 2026-10-26 00:11Z (from 78c2a92f)
+
+Cut 7b020f29 received (from 78c2a92f), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+
+### 2026-10-25
+
+#### src/factory
+
+- a-build-never-commits-an-installed-harness: salvage never commits, a fold refuses, and reconcile drops a NEW path under .harness/.local/node_modules (NEVER_COMMITTED_ENTRIES); files main already tracks there still fold
+- a-lane-dirty-only-with-hook-appends-folds: foldWorktree restores a linked worktree's append-only changes to its hook-capture logs and ledger.jsonl (diff backed up under main's runtime/fold-churn-backups) before the dirt check
+
+#### src/advisor
+
+- a-typescript-test-runs-under-the-repos-vitest: runLugFixtures runs a *.test.ts|tsx in a repo that installs vitest through that vitest, and counts vitest's ✓/× lines
+
+#### src/lugTracking
+
+- a-build-in-its-spokes-worktree-reads-its-grant: a headless child of its own dispatch, placed in a linked worktree of its spoke, reads that dispatch's grant from the main checkout's runtime/ (the worktree's copy is frozen)
+
+#### wcl-launch-is-fast-and-tells-you-what-it-did
+
+- `wcl --help` and `wcl -h` print USAGE (wclCli.js, ~line 1059) and exit 0 before any step, handled first in main() before inferSpokeFromCwd. [fixtures 8/560, 374/560; landed 61017764, 35b2e043]
 
 ## Cut 78c2a92f -- received 2026-10-25 22:09Z (from 7e15497f)
 
@@ -4285,7 +4319,17 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 102 (commit 75, cut_received 26, lug_review 1).
+Entries: 105 (commit 77, cut_received 27, lug_review 1).
+
+## 2026-10-26
+
+### cuts
+
+- 00:11Z cut 7b020f29 received by tracks (previous 78c2a92f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 96e4f9b9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T00:01:57.072Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+### runtime
+
+- 00:11Z commit 96e4f9b9 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main 96e4f9b9
 
 ## 2026-10-25
 
@@ -4299,11 +4343,12 @@ Entries: 102 (commit 75, cut_received 26, lug_review 1).
 
 ### cuts
 
-- 22:09Z cut 78c2a92f received by tracks (previous 7e15497f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3f226dd7..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T22:05:01.432Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 22:09Z cut 78c2a92f received by tracks (previous 7e15497f) landed 96e4f9b9, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3f226dd7..96e4f9b9 -- canon/circles, .claude/settings.json) -- source: tracks: git show 96e4f9b9:.cut-status.json
 - 07:48Z cut 7e15497f received by tracks (previous 073798ee) landed 3f226dd7, posture absorb_and_report: +0/~0/-0 circles for tracks (git 59decd96..3f226dd7 -- canon/circles, .claude/settings.json) -- source: tracks: git show 3f226dd7:.cut-status.json
 
 ### docs
 
+- 22:09Z commit 225526ef [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main 225526ef
 - 07:49Z commit 4990b67a [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main 4990b67a
 
 ## 2026-10-24
@@ -4566,9 +4611,35 @@ Entries: 102 (commit 75, cut_received 26, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut 7b020f29 -- received 2026-10-26 00:11Z (from 78c2a92f)
+
+00:11Z cut 7b020f29 received by tracks (previous 78c2a92f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 96e4f9b9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T00:01:57.072Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 6 (commit 6).
+
+### 2026-10-25
+
+#### src/factory
+
+- 22:43Z commit 0eb74c88 [harness-factory] a-build-never-commits-an-installed-harness: salvage never commits, a fold refuses, and reconcile drops a NEW path under .harness/.local/node_modules (NEVER_COMMITTED_ENTRIES); files main already tracks there still fold -- fixtures 487/560 -- 5 file(s), area src/factory -- source: harness-factory: git log main 0eb74c88
+- 22:31Z commit e5afded9 [harness-factory] a-lane-dirty-only-with-hook-appends-folds: foldWorktree restores a linked worktree's append-only changes to its hook-capture logs and ledger.jsonl (diff backed up under main's runtime/fold-churn-backups) before the dirt check -- fixtures 487/560 -- 2 file(s), area src/factory -- source: harness-factory: git log main e5afded9
+
+#### wcl-launch-is-fast-and-tells-you-what-it-did
+
+- 22:18Z commit 61017764 [harness-factory] wcl-help-prints-usage-without-an-arrival: note help/unknown-flag exits precede the launch gate -- lug wcl-help-prints-usage-without-an-arrival -- fixtures 8/560 -- 1 file(s), area canon -- source: harness-factory: git log main 61017764
+- 22:14Z commit 35b2e043 [harness-factory] wcl-help-prints-usage-without-an-arrival: wcl --help/-h print usage (exit 0), unknown leading flag exits 2, before any arrival -- lug wcl-help-prints-usage-without-an-arrival -- fixtures 374/560 -- 4 file(s), area src/basher -- source: harness-factory: git log main 35b2e043
+
+#### src/advisor
+
+- 22:26Z commit ad64c534 [harness-factory] a-typescript-test-runs-under-the-repos-vitest: runLugFixtures runs a *.test.ts|tsx in a repo that installs vitest through that vitest, and counts vitest's ✓/× lines -- fixtures 382/560 -- 2 file(s), area src/advisor -- source: harness-factory: git log main ad64c534
+
+#### src/lugTracking
+
+- 22:52Z commit 7b020f29 [harness-factory] a-build-in-its-spokes-worktree-reads-its-grant: a headless child of its own dispatch, placed in a linked worktree of its spoke, reads that dispatch's grant from the main checkout's runtime/ (the worktree's copy is frozen) -- fixtures 374/560 -- 2 file(s), area src/lugTracking -- source: harness-factory: git log main 7b020f29
+
 ## Cut 78c2a92f -- received 2026-10-25 22:09Z (from 7e15497f)
 
-22:09Z cut 78c2a92f received by tracks (previous 7e15497f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 3f226dd7..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-25T22:05:01.432Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+22:09Z cut 78c2a92f received by tracks (previous 7e15497f) landed 96e4f9b9, posture absorb_and_report: +0/~0/-0 circles for tracks (git 3f226dd7..96e4f9b9 -- canon/circles, .claude/settings.json) -- source: tracks: git show 96e4f9b9:.cut-status.json
 
 Entries: 15 (commit 15).
 
@@ -8494,4 +8565,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:ad2145b8708046641500b24199d10bd8a24f02c08b109746f8255801f693e774 -->
+<!-- integrity sha256:0acc3569cae1025d79698d1a9e425b0d9d3c2c8d6b02d40f62b9f5737d4d29cd -->
