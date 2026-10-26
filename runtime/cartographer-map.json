@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-25T23:47:57.654Z",
-  "duration_ms": 199,
+  "generated_at": "2026-10-26T05:08:47.205Z",
+  "duration_ms": 111,
   "areas": [
     {
       "area": "advisor",
@@ -1272,7 +1272,7 @@
       "implementing_files": [
         {
           "path": "src/hooks/captureDirectionHook.js",
-          "hash": "79cd4bf03047c1d4"
+          "hash": "6acc5b1afdd5e27f"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -5864,7 +5864,7 @@
         },
         {
           "path": "src/basher/wclCli.js",
-          "hash": "6ab585055925436c"
+          "hash": "40bf7459d2367fb6"
         },
         {
           "path": "src/factory/bootstrap.js",
@@ -8016,6 +8016,10 @@
       "lug": "ozi-skips-a-held-or-stale-direction-and-still-allocates-the-rest"
     },
     {
+      "test": "conformance/fixtures/ozi-spends-leftover-budget-on-its-own-solidify-pass/ozi-spends-leftover-budget-on-its-own-solidify-pass.conformance.test.js",
+      "lug": "ozi-spends-leftover-budget-on-its-own-solidify-pass"
+    },
+    {
       "test": "conformance/fixtures/ozi-weighs-advisor-demand/ozi-weighs-advisor-demand.conformance.test.js",
       "lug": "advisor-initiatives-are-demand-ozi-weighs-against-builds"
     },
@@ -8464,6 +8468,10 @@
       "lug": "a-sessionless-done-promotion-still-refuses-a-certification-the-author-requested"
     },
     {
+      "test": "conformance/fixtures/setup-refusal-hold-lifts-once-hooks-resolve/setup-refusal-hold-lifts-once-hooks-resolve.conformance.test.js",
+      "lug": "a-setup-refusal-hold-lifts-once-the-hooks-resolve"
+    },
+    {
       "test": "conformance/fixtures/shared-runtime-files-have-no-cross-process-lock/shared-runtime-files-have-no-cross-process-lock.conformance.test.js",
       "lug": "shared-runtime-files-have-no-cross-process-lock"
     },
@@ -8752,6 +8760,10 @@
       "lug": "wcl-init-clobbers-existing-repo-settings-and-docs"
     },
     {
+      "test": "conformance/fixtures/wcl-launch-step-log/wcl-launch-step-log.conformance.test.js",
+      "lug": "wcl-interactive-launch-writes-a-durable-step-log"
+    },
+    {
       "test": "conformance/fixtures/wcl-launchspoke-pending-cut-parity/wcl-launchspoke-pending-cut-parity.conformance.test.js",
       "lug": "headless-launchspoke-never-got-pending-cut-parity"
     },
@@ -9007,7 +9019,7 @@
     },
     {
       "path": "src/hooks/captureDirectionHook.js",
-      "hash": "79cd4bf03047c1d4"
+      "hash": "6acc5b1afdd5e27f"
     },
     {
       "path": "src/compiler/tokenCount.js",
@@ -9807,7 +9819,7 @@
     },
     {
       "path": "src/basher/wclCli.js",
-      "hash": "6ab585055925436c"
+      "hash": "40bf7459d2367fb6"
     },
     {
       "path": "src/factory/suiteHermetic.js",

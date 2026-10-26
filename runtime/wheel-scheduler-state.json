@@ -1,13 +1,13 @@
 {
-  "tick": 1129,
+  "tick": 1246,
   "lastFiredTick": {
-    "planner_cycle": 1129,
-    "communication_inbox": 1128,
-    "update_discovery": 1126,
-    "cartographer_map": 1126,
-    "ledger_reconciliation": 1128,
-    "guard_denial_reconciliation": 1128,
-    "raw_snapshot_catchup": 1128,
-    "advisor_activation": 1128
+    "planner_cycle": 1246,
+    "communication_inbox": 1245,
+    "update_discovery": 1243,
+    "cartographer_map": 1243,
+    "ledger_reconciliation": 1242,
+    "guard_denial_reconciliation": 1242,
+    "raw_snapshot_catchup": 1245,
+    "advisor_activation": 1245
   }
 }

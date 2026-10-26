@@ -1,7 +1,7 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "78c2a92f775d9d5f375e463457482a276388f49b",
+  "version": "7b020f296141e9bfea80f24b550c7da44023e7cc",
   "membership": {
     "ok": true,
     "skipped": false,
@@ -22,7 +22,7 @@
   "previousIncarnationLines": [
     "previous-incarnation tracks: no superseded tree or old hook scripts; 6 retired slash-command string(s) remain in managed files (CLAUDE.md, AGENTS.md, AMBASSADOR_BRIEF.md); the generated briefs now name them as retired, a hand-kept file needs its owner to edit it"
   ],
-  "digest": "sha256:205c99729a08fee72463dcc0992ef4bb74d88c8e4bddeb374fe9c088e122be68",
+  "digest": "sha256:478e9780f217d27689e7dd382d6e98d4ad976dd3ee8d6c22fb5c87c8dd270aa5",
   "gitignoreBaseline": {
     "ok": true,
     "changed": false,
@@ -86,11 +86,11 @@
   ],
   "unchanged": true,
   "harness": {
-    "version": "78c2a92f775d9d5f375e463457482a276388f49b",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/78c2a92f775d9d5f375e463457482a276388f49b",
+    "version": "7b020f296141e9bfea80f24b550c7da44023e7cc",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/7b020f296141e9bfea80f24b550c7da44023e7cc",
     "reused": false,
     "pruned": [
-      "073798ee60d0bdb38a4d3488cb27d5360bb10a87"
+      "7e15497fb9093a6aba3dad5650f7d34d464b271b"
     ]
   },
   "liveApplied": false,
@@ -99,8 +99,15 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-10-25T22:09:03.137Z",
+      "auditedAt": "2026-10-26T00:11:29.405Z",
       "findings": [
+        {
+          "path": ".cut-status.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
@@ -151,6 +158,13 @@
           "evidence": {}
         },
         {
+          "path": "runtime/while-you-were-away.jsonl",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/while-you-were-away.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
           "path": "runtime/worktrees.jsonl",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
@@ -160,7 +174,7 @@
       ],
       "summary": {
         "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 8,
+        "ORGANIC_RUNTIME_CHURN": 10,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       },
@@ -169,6 +183,7 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
+        ".cut-status.json",
         "ledger/ledger.jsonl",
         "runtime/cartographer-map.json",
         "runtime/communication-inbox.json",
@@ -176,15 +191,16 @@
         "runtime/store-bound-state.json",
         "runtime/wheel-clock-catchup-state.json",
         "runtime/wheel-scheduler-state.json",
+        "runtime/while-you-were-away.jsonl",
         "runtime/worktrees.jsonl"
       ],
-      "commit": "3f893538a176a86fc183a25a0c3e99448cf174f3",
+      "commit": "96e4f9b918878814e0c8d2afbf81730ffbc76850",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "retiredGeneration": null,
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1792966143536-w4dw11"
+        "ldg-arrival-audit-committed-1792973489627-godleb"
       ]
     },
     "profileSeeding": {
@@ -251,8 +267,8 @@
       "message": "lug \"p0-bugfix-circle-audit-conversation-track-ingestion\" (lugs/p0-bugfix-circle-audit-conversation-track-ingestion.yaml) is review with no assignee (champion) and no watchers (valuator): unowned means unvaluable. Name an advisor in assignee or watchers. (Warning only, for one cycle.)"
     }
   ],
-  "appliedAt": "2026-10-25T22:09:11.055Z",
-  "previous_version": "7e15497fb9093a6aba3dad5650f7d34d464b271b",
+  "appliedAt": "2026-10-26T00:11:36.795Z",
+  "previous_version": "78c2a92f775d9d5f375e463457482a276388f49b",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
