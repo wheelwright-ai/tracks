@@ -11,11 +11,16 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
-- Cut 7b020f29 received (from 78c2a92f), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+- Cut c2473c6d received (from 7b020f29), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+- Cut 7b020f29 received (from 78c2a92f), posture absorb_and_report: no circle or hook changed for this spoke.
+
+### docs
+
+- Regenerate stale generated docs (docs/CHANGELOG.md)
 
 ### harness bookkeeping
 
-- 1 harness bookkeeping commit(s) in tracks (harness-arrival-audit 1).
+- 2 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2).
 
 ## 2026-10-25
 
@@ -204,9 +209,28 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut c2473c6d -- received 2026-10-26 05:14Z (from 7b020f29)
+
+Cut c2473c6d received (from 7b020f29), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+
+### 2026-10-26
+
+#### advisors-schedule-themselves-and-ozi-spends-the-budget
+
+- heldForRemediation skips a review entry whose every failed drive row on that spoke was the setup refusal, when the refused directory (spoke_dir, else root) now passes checkHookBindingResolution. [fixtures 374/563, 372/561; landed 6ec349ff, 62f39c98]
+- When a spoke's funded lugs leave nothing dispatchable and solidify work exists, the same drive pass dispatches that spoke's Ozi on a solidify brief naming exactly the lugs it must bring to the bar, inside the remaining grant. [fixtures 371/562, 0/560; landed 287ae37a, c72bd8a4]
+
+#### src/hooks
+
+- a-build-brief-is-never-an-operator-direction: capture-direction skips a dispatched build's own prompt (headless + WCL_DISPATCH_ID); the turn record is still written
+
+#### wcl-launch-is-fast-and-tells-you-what-it-did
+
+- Every `wcl <spoke>` launch appends one JSON row per printed step line, {ts, spoke, step, status, detail}, to <spokeDir>/runtime/wcl-launch-log.jsonl, hooked where say() (wclCli.js ~line 138) and the wclEntry reporter emit steps. [fixtures 9/563, 375/563; landed c2473c6d, aa8d7a72]
+
 ## Cut 7b020f29 -- received 2026-10-26 00:11Z (from 78c2a92f)
 
-Cut 7b020f29 received (from 78c2a92f), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+Cut 7b020f29 received (from 78c2a92f), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### 2026-10-25
 
@@ -4319,17 +4343,23 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 105 (commit 77, cut_received 27, lug_review 1).
+Entries: 108 (commit 79, cut_received 28, lug_review 1).
 
 ## 2026-10-26
 
 ### cuts
 
-- 00:11Z cut 7b020f29 received by tracks (previous 78c2a92f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 96e4f9b9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T00:01:57.072Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 05:14Z cut c2473c6d received by tracks (previous 7b020f29) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git e6d3ec91..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T05:10:18.165Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 00:11Z cut 7b020f29 received by tracks (previous 78c2a92f) landed e6d3ec91, posture absorb_and_report: +0/~0/-0 circles for tracks (git 96e4f9b9..e6d3ec91 -- canon/circles, .claude/settings.json) -- source: tracks: git show e6d3ec91:.cut-status.json
 
 ### runtime
 
+- 05:13Z commit e6d3ec91 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main e6d3ec91
 - 00:11Z commit 96e4f9b9 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main 96e4f9b9
+
+### docs
+
+- 00:11Z commit af9ec9e1 [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main af9ec9e1
 
 ## 2026-10-25
 
@@ -4611,9 +4641,33 @@ Entries: 105 (commit 77, cut_received 27, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut c2473c6d -- received 2026-10-26 05:14Z (from 7b020f29)
+
+05:14Z cut c2473c6d received by tracks (previous 7b020f29) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git e6d3ec91..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T05:10:18.165Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 7 (commit 7).
+
+### 2026-10-26
+
+#### advisors-schedule-themselves-and-ozi-spends-the-budget
+
+- 03:54Z commit 6ec349ff [harness-factory] a-setup-refusal-hold-lifts-once-the-hooks-resolve: anchor SETUP_REFUSAL to the dispatch's own "refused: " prefix (pattern-gate observation, ldg-pattern-gate-1792986787180) -- lug a-setup-refusal-hold-lifts-once-the-hooks-resolve -- fixtures 374/563 -- 1 file(s), area src/conductor -- source: harness-factory: git log main 6ec349ff
+- 03:47Z commit 287ae37a [harness-factory] ozi-spends-leftover-budget-on-its-own-solidify-pass: solidify demand item and nothing_dispatchable fallback dispatching Ozi -- lug ozi-spends-leftover-budget-on-its-own-solidify-pass -- fixtures 371/562 -- 5 file(s), area src/otto -- source: harness-factory: git log main 287ae37a
+- 03:41Z commit 62f39c98 [harness-factory] a-setup-refusal-hold-lifts-once-the-hooks-resolve: a wave hold whose every failure was the hooks-do-not-resolve setup refusal lifts once the refused directory's bindings resolve; any other failure, or a check that throws, still holds the spoke -- lug a-setup-refusal-hold-lifts-once-the-hooks-resolve -- fixtures 372/561 -- 3 file(s), area src/conductor -- source: harness-factory: git log main 62f39c98
+- 03:31Z commit c72bd8a4 [harness-factory] lug ozi-spends-leftover-budget-on-its-own-solidify-pass: operator direction 2026-10-25 -- Ozi funds its own prepare/split/repoint pass when nothing is dispatchable -- lug ozi-spends-leftover-budget-on-its-own-solidify-pass -- fixtures 0/560 -- 1 file(s), area lugs -- source: harness-factory: git log main c72bd8a4
+
+#### wcl-launch-is-fast-and-tells-you-what-it-did
+
+- 03:58Z commit c2473c6d [harness-factory] wcl-interactive-launch-writes-a-durable-step-log: note the observation-only step log in the launch-class policy, name the fixture in pointers -- lug wcl-interactive-launch-writes-a-durable-step-log -- fixtures 9/563 -- 2 file(s), area canon -- source: harness-factory: git log main c2473c6d
+- 03:56Z commit aa8d7a72 [harness-factory] wcl-interactive-launch-writes-a-durable-step-log: say() appends one JSON row per step line to runtime/wcl-launch-log.jsonl, best effort -- lug wcl-interactive-launch-writes-a-durable-step-log -- fixtures 375/563 -- 2 file(s), area src/basher -- source: harness-factory: git log main aa8d7a72
+
+#### src/hooks
+
+- 00:23Z commit 028e2e82 [harness-factory] a-build-brief-is-never-an-operator-direction: capture-direction skips a dispatched build's own prompt (headless + WCL_DISPATCH_ID); the turn record is still written -- fixtures 2/560 -- 2 file(s), area src/hooks -- source: harness-factory: git log main 028e2e82
+
 ## Cut 7b020f29 -- received 2026-10-26 00:11Z (from 78c2a92f)
 
-00:11Z cut 7b020f29 received by tracks (previous 78c2a92f) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git 96e4f9b9..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T00:01:57.072Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+00:11Z cut 7b020f29 received by tracks (previous 78c2a92f) landed e6d3ec91, posture absorb_and_report: +0/~0/-0 circles for tracks (git 96e4f9b9..e6d3ec91 -- canon/circles, .claude/settings.json) -- source: tracks: git show e6d3ec91:.cut-status.json
 
 Entries: 6 (commit 6).
 
@@ -8565,4 +8619,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:0acc3569cae1025d79698d1a9e425b0d9d3c2c8d6b02d40f62b9f5737d4d29cd -->
+<!-- integrity sha256:ca1b077fe8cf9db53255104cfaae14fef42a14b57d537a12f29943dfefa1f881 -->
