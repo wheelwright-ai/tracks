@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-25T21:43:11.422Z",
-  "duration_ms": 148,
+  "generated_at": "2026-10-25T23:47:57.654Z",
+  "duration_ms": 199,
   "areas": [
     {
       "area": "advisor",
@@ -903,7 +903,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "303c1b5525150b3c"
+          "hash": "0c79c4bcda2deff9"
         },
         {
           "path": "src/lugTracking/forkSelfGrant.js",
@@ -2259,7 +2259,7 @@
       "implementing_files": [
         {
           "path": "src/lugTracking/dispatchSalvage.js",
-          "hash": "4546be102bb68ff1"
+          "hash": "ffb90941c67b4d39"
         },
         {
           "path": "src/lugTracking/dispatchJournal.js",
@@ -3563,7 +3563,7 @@
         },
         {
           "path": "src/lugTracking/personaBoundary.js",
-          "hash": "fe59029da74cfdfd"
+          "hash": "b0fab010ef16c713"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -4278,7 +4278,7 @@
         },
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "303c1b5525150b3c"
+          "hash": "0c79c4bcda2deff9"
         },
         {
           "path": "src/lugTracking/dispatchScope.js",
@@ -5864,7 +5864,7 @@
         },
         {
           "path": "src/basher/wclCli.js",
-          "hash": "6c90d883ec4eb467"
+          "hash": "6ab585055925436c"
         },
         {
           "path": "src/factory/bootstrap.js",
@@ -6173,7 +6173,7 @@
       "implementing_files": [
         {
           "path": "src/factory/worktreeRegistry.js",
-          "hash": "303c1b5525150b3c"
+          "hash": "0c79c4bcda2deff9"
         },
         {
           "path": "scripts/worktree.js",
@@ -8732,6 +8732,10 @@
       "lug": "basher-owns-real-global-claude-settings-and-statusline"
     },
     {
+      "test": "conformance/fixtures/wcl-help-no-arrival/wcl-help-no-arrival.conformance.test.js",
+      "lug": "wcl-help-prints-usage-without-an-arrival"
+    },
+    {
       "test": "conformance/fixtures/wcl-hygiene-rule-never-refuses-launch/wcl-hygiene-rule-never-refuses-launch.conformance.test.js",
       "lug": "wcl-strands-the-operator-on-a-hygiene-rule-and-reports-one-violation-at-a-time"
     },
@@ -8899,7 +8903,7 @@
     },
     {
       "path": "src/factory/worktreeRegistry.js",
-      "hash": "303c1b5525150b3c"
+      "hash": "0c79c4bcda2deff9"
     },
     {
       "path": "src/lugTracking/forkSelfGrant.js",
@@ -9215,7 +9219,7 @@
     },
     {
       "path": "src/lugTracking/dispatchSalvage.js",
-      "hash": "4546be102bb68ff1"
+      "hash": "ffb90941c67b4d39"
     },
     {
       "path": "src/lugTracking/dispatchJournal.js",
@@ -9443,7 +9447,7 @@
     },
     {
       "path": "src/lugTracking/personaBoundary.js",
-      "hash": "fe59029da74cfdfd"
+      "hash": "b0fab010ef16c713"
     },
     {
       "path": "src/lugTracking/traceability.js",
@@ -9803,7 +9807,7 @@
     },
     {
       "path": "src/basher/wclCli.js",
-      "hash": "6c90d883ec4eb467"
+      "hash": "6ab585055925436c"
     },
     {
       "path": "src/factory/suiteHermetic.js",
