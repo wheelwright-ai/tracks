@@ -11,16 +11,18 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 ### cuts
 
-- Cut c2473c6d received (from 7b020f29), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+- Cut db803567 received (from c2473c6d), posture absorb_and_report: 1 circle(s) gained (spoke-gauge).
+- Cut c2473c6d received (from 7b020f29), posture absorb_and_report: no circle or hook changed for this spoke.
 - Cut 7b020f29 received (from 78c2a92f), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### docs
 
 - Regenerate stale generated docs (docs/CHANGELOG.md)
+- Regenerate stale generated docs (docs/CHANGELOG.md)
 
 ### harness bookkeeping
 
-- 2 harness bookkeeping commit(s) in tracks (harness-arrival-audit 2).
+- 3 harness bookkeeping commit(s) in tracks (harness-arrival-audit 3).
 
 ## 2026-10-25
 
@@ -209,9 +211,28 @@ Record: certification pending
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut db803567 -- received 2026-10-26 06:44Z (from c2473c6d)
+
+Cut db803567 received (from c2473c6d), posture absorb_and_report: 1 circle(s) gained (spoke-gauge).
+
+### 2026-10-26
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- One gauge line per spoke -- GAS, SPEED, POSITION, IMPROVE -- printed first by spoke-status.js, at every session start in every spoke, and as one row per spoke on the hub's fleet view, so no one has to ask. [fixtures 374/565, 3/565, 10/565, 22/565, 378/565, 1/564, 0/564; landed db803567, 9a9a7561, 121d8113, 87c2801e, 1cbc7d24, 486341b6, da1147f5, 5adbb32c, 00d8343e]
+- `node scripts/spoke-status.js [spokeRoot] [--json]` prints one spoke's verdict, initiatives, last 10 runs, advisors, holds and the ranked actions that would unstick it. /wai-status (basher-owned) calls it. [fixtures 374/565, 1/564, 0/563; landed f05f66b6, 5903a980, a23cd6b9, 838252eb, a73f3520]
+
+#### circles
+
+- Circle spoke-gauge declared: a spoke's gauge is composed or shown -- buildSpokeGauge (src/conductor/spokeGauge.js) printed first by `node scripts/spoke-status.js`, as the first line of the SessionStart goals review in every spoke (buildGoalsReviewWakeupParts, src/conductor/goalsReview.js), and one row per registered spoke by `node scripts/fleet-gauge.js` on the hub; and every Ozi run's close (recordOutcome, src/otto/advisorAutopilot.js) rewrites runtime/spoke-gauge.json, which Ozi's next brief and the session-start line read first
+
+#### every-spoke-reports-its-health-and-someone-answers
+
+- A hub wheel-clock job reads every registered spoke's gauge, classifies each spoke (RIGHT PLACE, STRUGGLING, NO WORK, NO TOOLS, SILENT), opens or updates one need per spoke and cause with a named owner, and the conductor's next wave spends on open needs before ordinary ranking. [fixtures 0/564; landed 7d7764a6]
+
 ## Cut c2473c6d -- received 2026-10-26 05:14Z (from 7b020f29)
 
-Cut c2473c6d received (from 7b020f29), posture absorb_and_report: no circle or hook changed for this spoke; policies changed compile-rule-launch-classes.
+Cut c2473c6d received (from 7b020f29), posture absorb_and_report: no circle or hook changed for this spoke.
 
 ### 2026-10-26
 
@@ -4343,22 +4364,25 @@ Records read: git log (main); lugs/*.yaml (state done, certified_by, tests, cost
 
 # Part 1 -- tracks's own history
 
-Entries: 108 (commit 79, cut_received 28, lug_review 1).
+Entries: 111 (commit 81, cut_received 29, lug_review 1).
 
 ## 2026-10-26
 
 ### cuts
 
-- 05:14Z cut c2473c6d received by tracks (previous 7b020f29) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git e6d3ec91..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T05:10:18.165Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 06:44Z cut db803567 received by tracks (previous c2473c6d) (working tree), posture absorb_and_report: +1/~0/-0 circles for tracks -- gained spoke-gauge (git 5725e586..working tree -- canon/circles, .claude/settings.json) -- published +1/~0/-0 circles, 0 lug(s) closed at 2026-10-26T06:39:08.810Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+- 05:14Z cut c2473c6d received by tracks (previous 7b020f29) landed 5725e586, posture absorb_and_report: +0/~0/-0 circles for tracks (git e6d3ec91..5725e586 -- canon/circles, .claude/settings.json) -- source: tracks: git show 5725e586:.cut-status.json
 - 00:11Z cut 7b020f29 received by tracks (previous 78c2a92f) landed e6d3ec91, posture absorb_and_report: +0/~0/-0 circles for tracks (git 96e4f9b9..e6d3ec91 -- canon/circles, .claude/settings.json) -- source: tracks: git show e6d3ec91:.cut-status.json
 
 ### runtime
 
+- 06:44Z commit 5725e586 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main 5725e586
 - 05:13Z commit e6d3ec91 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main e6d3ec91
 - 00:11Z commit 96e4f9b9 [tracks] harness-arrival-audit: absorbed 10 file(s) on cut arrival -- 10 file(s), area runtime -- source: tracks: git log main 96e4f9b9
 
 ### docs
 
+- 05:14Z commit 29b5750a [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main 29b5750a
 - 00:11Z commit af9ec9e1 [tracks] Regenerate stale generated docs (docs/CHANGELOG.md) -- 1 file(s), area docs -- source: tracks: git log main af9ec9e1
 
 ## 2026-10-25
@@ -4641,9 +4665,42 @@ Entries: 108 (commit 79, cut_received 28, lug_review 1).
 
 # Part 2 -- the wheel's history that reached tracks
 
+## Cut db803567 -- received 2026-10-26 06:44Z (from c2473c6d)
+
+06:44Z cut db803567 received by tracks (previous c2473c6d) (working tree), posture absorb_and_report: +1/~0/-0 circles for tracks -- gained spoke-gauge (git 5725e586..working tree -- canon/circles, .claude/settings.json) -- published +1/~0/-0 circles, 0 lug(s) closed at 2026-10-26T06:39:08.810Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+
+Entries: 16 (circle_added 1, commit 15).
+
+### 2026-10-26
+
+#### the-wheel-is-directed-to-refine-measure-and-drive-autopilot
+
+- 06:18Z commit db803567 [harness-factory] every-spoke-shows-its-gas-speed-and-position-at-a-glance: unmeasured account gas is the GAS UNMEASURED gap, never a silent RIGHT PLACE -- pattern-gate ldg-pattern-gate-1792995281451 -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 374/565 -- 2 file(s), area src/conductor -- source: harness-factory: git log main db803567
+- 06:16Z commit f05f66b6 [harness-factory] spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it: --json carries advisors' last run in Pacific (raw kept as last_run_iso) -- pattern-gate ldg-pattern-gate-1792995281451 -- lug spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it -- fixtures 374/565 -- 1 file(s), area src/conductor -- source: harness-factory: git log main f05f66b6
+- 06:05Z commit 9a9a7561 [harness-factory] every-spoke-shows-its-gas-speed-and-position-at-a-glance: POSITION reads the renamed cut hold (applied vs published); fixture lugs are definition-complete inside the autonomy line -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 374/565 -- 3 file(s), area src/conductor -- source: harness-factory: git log main 9a9a7561
+- 06:03Z commit 5903a980 [harness-factory] spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it: build-ready counts only what the drive would launch; the last 10 runs are the spoke's own; Navigator answers read from hub budget_grant messages; cut position compares the applied cut (the source spoke is never behind) -- lug spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it -- fixtures 374/565 -- 3 file(s), area src/conductor -- source: harness-factory: git log main 5903a980
+- 05:58Z commit 121d8113 [harness-factory] every-spoke-shows-its-gas-speed-and-position-at-a-glance: back to ready with the review defect (POSITION compared the wrong versions) -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 3/565 -- 1 file(s), area lugs -- source: harness-factory: git log main 121d8113
+- 05:56Z commit 87c2801e [harness-factory] every-spoke-shows-its-gas-speed-and-position-at-a-glance: returned (POSITION compares the wrong versions), back to ready -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 3/565 -- 1 file(s), area lugs -- source: harness-factory: git log main 87c2801e
+- 05:53Z commit 1cbc7d24 [harness-factory] every-spoke-shows-its-gas-speed-and-position-at-a-glance: ozi wheel-clock canon names the spoke-gauge snapshot Ozi's close rewrites -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 10/565 -- 1 file(s), area canon -- source: harness-factory: git log main 1cbc7d24
+- 05:50Z commit 486341b6 [harness-factory] every-spoke-shows-its-gas-speed-and-position-at-a-glance: spoke-gauge circle (canon source for the gauge) -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 22/565 -- 4 file(s), area reference -- source: harness-factory: git log main 486341b6
+- 05:48Z commit da1147f5 [harness-factory] every-spoke-shows-its-gas-speed-and-position-at-a-glance: gauge line (GAS/SPEED/POSITION/IMPROVE) on spoke-status, session start, fleet-gauge, Ozi snapshot -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 378/565 -- 10 file(s), area src/conductor -- source: harness-factory: git log main da1147f5
+- 05:38Z commit a23cd6b9 [harness-factory] spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it: returned with three live defects, back to ready for the fix build -- lug spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it -- fixtures 1/564 -- 1 file(s), area lugs -- source: harness-factory: git log main a23cd6b9
+- 05:18Z commit 838252eb [harness-factory] spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it: carry the remediation lug on the hold instead of parsing prose -- lug spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it -- fixtures 1/564 -- 1 file(s), area src/conductor -- source: harness-factory: git log main 838252eb
+- 05:17Z commit 5adbb32c [harness-factory] lug every-spoke-shows-its-gas-speed-and-position-at-a-glance: Ozi maintains the gauge at every run close (operator 2026-10-25 10:20 PM PDT) -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 1/564 -- 5 file(s), area src/conductor -- source: harness-factory: git log main 5adbb32c
+- 05:15Z commit 00d8343e [harness-factory] lug every-spoke-shows-its-gas-speed-and-position-at-a-glance: operator direction 2026-10-25 -- GAS / SPEED / POSITION / IMPROVE gauge per spoke, shown at session start and on a hub fleet view -- lug every-spoke-shows-its-gas-speed-and-position-at-a-glance -- fixtures 0/564 -- 1 file(s), area lugs -- source: harness-factory: git log main 00d8343e
+- 05:11Z commit a73f3520 [harness-factory] lug spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it: operator direction 2026-10-25 -- one-spoke status with verdict, me-vs-AP split, last 10 runs, advisors, holds, unstick actions -- lug spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it -- fixtures 0/563 -- 1 file(s), area lugs -- source: harness-factory: git log main a73f3520
+
+#### circles
+
+- 05:50Z circle spoke-gauge added at 486341b6 -- source: harness-factory: git log --diff-filter=A 486341b6 -- reference/circles/spoke-gauge.yaml
+
+#### every-spoke-reports-its-health-and-someone-answers
+
+- 05:21Z commit 7d7764a6 [harness-factory] initiative every-spoke-reports-its-health-and-someone-answers + lug the-hub-surveys-every-spokes-gauge-and-routes-each-raised-need: operator 2026-10-25 10:25 PM PDT -- every spoke reports, the hub surveys, needs are raised and routed -- lug the-hub-surveys-every-spokes-gauge-and-routes-each-raised-need -- fixtures 0/564 -- 3 file(s), area canon -- source: harness-factory: git log main 7d7764a6
+
 ## Cut c2473c6d -- received 2026-10-26 05:14Z (from 7b020f29)
 
-05:14Z cut c2473c6d received by tracks (previous 7b020f29) (working tree), posture absorb_and_report: +0/~0/-0 circles for tracks (git e6d3ec91..working tree -- canon/circles, .claude/settings.json) -- published +0/~0/-0 circles, 0 lug(s) closed at 2026-10-26T05:10:18.165Z -- source: tracks: .cut-status.json (working tree, not yet committed)
+05:14Z cut c2473c6d received by tracks (previous 7b020f29) landed 5725e586, posture absorb_and_report: +0/~0/-0 circles for tracks (git e6d3ec91..5725e586 -- canon/circles, .claude/settings.json) -- source: tracks: git show 5725e586:.cut-status.json
 
 Entries: 7 (commit 7).
 
@@ -8619,4 +8676,4 @@ Entries: 484 (circle_added 94, commit 353, hook_bound 37).
 
 - 09:49Z commit bd2ddd3d [harness-factory] Increment 3: the ledger (capture-direction, reconcile-ledger) -- 10 file(s), area src/ledger -- source: harness-factory: git log main bd2ddd3d
 
-<!-- integrity sha256:ca1b077fe8cf9db53255104cfaae14fef42a14b57d537a12f29943dfefa1f881 -->
+<!-- integrity sha256:ad1857fc484b2afdc3b1cd63d2c8b89e414396005dee02a50f4a145744789710 -->

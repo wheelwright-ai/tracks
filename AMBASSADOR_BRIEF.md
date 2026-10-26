@@ -12,7 +12,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 
 ## 2. Its toolbox
 
-99 live circle(s):
+100 live circle(s):
 - **agent-dispatch-record** (hook_event): an Agent-tool call is about to run
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
@@ -93,6 +93,7 @@ tracks -- Tracks -- structured records of AI conversations (WAI Points in JSONL)
 - **session-registry** (hook_event): a session starts (SessionStart event)
 - **session-start-warmup** (hook_event): a session starts
 - **session-track-write** (hook_event): a turn ends (Stop event)
+- **spoke-gauge** (on_demand): a spoke's gauge is composed or shown -- buildSpokeGauge (src/conductor/spokeGauge.js) printed first by `node scripts/spoke-status.js`, as the first line of the SessionStart goals review in every spoke (buildGoalsReviewWakeupParts, src/conductor/goalsReview.js), and one row per registered spoke by `node scripts/fleet-gauge.js` on the hub; and every Ozi run's close (recordOutcome, src/otto/advisorAutopilot.js) rewrites runtime/spoke-gauge.json, which Ozi's next brief and the session-start line read first
 - **stop-agent-waiting-notify** (hook_event): a real turn completes -- Claude stopped and is waiting
 - **stop-turn-marker** (hook_event): a turn ends (Stop event)
 - **success-prediction** (on_demand): a prediction is registered, superseded or reviewed (src/conductor/successPrediction.js; scripts/success-prediction.js on demand); the wheel-clock job success_prediction_review grading what is due, the calling session as reviewer; every autopilot run's ROI extraction reading the registry (roiExtraction.js prediction-missed rule); and every session start, where buildSuccessPredictionSection reports counts
