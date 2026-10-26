@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-26T05:08:47.205Z",
-  "duration_ms": 111,
+  "generated_at": "2026-10-26T06:37:25.036Z",
+  "duration_ms": 185,
   "areas": [
     {
       "area": "advisor",
@@ -931,7 +931,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/conductor/sectionCache.js",
@@ -1100,7 +1100,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/compiler/rules/18-kb-cut-integrity.js",
@@ -1661,7 +1661,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/otto/wheelScheduler.js",
@@ -1805,7 +1805,7 @@
         },
         {
           "path": "src/otto/advisorAutopilot.js",
-          "hash": "ead7120bba21481a"
+          "hash": "2722a8963d08dc86"
         },
         {
           "path": "src/basher/providerConfigDir.js",
@@ -1858,7 +1858,7 @@
         },
         {
           "path": "src/otto/advisorAutopilot.js",
-          "hash": "ead7120bba21481a"
+          "hash": "2722a8963d08dc86"
         },
         {
           "path": "src/conductor/waveRecord.js",
@@ -2157,7 +2157,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         }
       ],
       "test": "conformance/fixtures/default-forward-veto-ledger/default-forward-veto-ledger.conformance.test.js",
@@ -2506,7 +2506,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         }
       ],
       "test": "conformance/fixtures/footer-audit/footer-audit.conformance.test.js",
@@ -2919,7 +2919,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/planner/planner.js",
@@ -2963,7 +2963,7 @@
         },
         {
           "path": "src/otto/advisorAutopilot.js",
-          "hash": "ead7120bba21481a"
+          "hash": "2722a8963d08dc86"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -3364,7 +3364,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         }
       ],
       "test": "conformance/fixtures/lug-ownership-claims/lug-ownership-claims.conformance.test.js",
@@ -3514,7 +3514,7 @@
         },
         {
           "path": "src/otto/advisorAutopilot.js",
-          "hash": "ead7120bba21481a"
+          "hash": "2722a8963d08dc86"
         },
         {
           "path": "src/conductor/heartbeat.js",
@@ -3522,7 +3522,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -4294,7 +4294,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         }
       ],
       "test": "conformance/fixtures/worktree-gc-at-fold-and-exit/worktree-gc-at-fold-and-exit.conformance.test.js",
@@ -4594,7 +4594,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/ledger/defaultForwardDecisions.js",
@@ -4655,7 +4655,7 @@
         },
         {
           "path": "src/otto/advisorAutopilot.js",
-          "hash": "ead7120bba21481a"
+          "hash": "2722a8963d08dc86"
         }
       ],
       "test": "conformance/fixtures/run-roi-extraction/run-roi-extraction.conformance.test.js",
@@ -4710,7 +4710,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         }
       ],
       "test": "conformance/fixtures/scheduler-failure-operator-channel/scheduler-failure-operator-channel.conformance.test.js",
@@ -5166,6 +5166,50 @@
       ]
     },
     {
+      "name": "spoke-gauge",
+      "owner": "ozi",
+      "runs_on": "on_demand",
+      "hosted_by": "framework",
+      "implementing_files": [
+        {
+          "path": "src/conductor/spokeGauge.js",
+          "hash": "5cf1f16f99258e72"
+        },
+        {
+          "path": "scripts/spoke-status.js",
+          "hash": "713121c779c10964"
+        },
+        {
+          "path": "scripts/fleet-gauge.js",
+          "hash": "d83840130edb4562"
+        },
+        {
+          "path": "src/conductor/goalsReview.js",
+          "hash": "7e94b342ea366694"
+        }
+      ],
+      "test": "conformance/fixtures/spoke-gauge/spoke-gauge.conformance.test.js",
+      "doc": "reference/circles/spoke-gauge.md",
+      "found": true,
+      "failure_routing": "lug:every-spoke-shows-its-gas-speed-and-position-at-a-glance",
+      "invariants": [
+        "one gauge line, four parts in order: GAS (account five-hour and seven-day left_pct against the share of the window still ahead -> on pace / burning hot / gas left unused, plus the work tank: build-ready hours by estimate and the needs-prep count), SPEED (lugs reached done per day over the last 7 days and the 7 before with a trend, and dispatches landed vs dispatched), POSITION (RIGHT PLACE only when ROLLING with work in the tank and gas not unused or hot; otherwise the first gap named), IMPROVE (the single top unstick action from spoke-status, with who acts)",
+        "no second implementation: the pace is readPaceReading, the tank, verdict, holds and unstick actions are buildSpokeStatus's own, the dispatch rows are read through spoke-status's readJsonl",
+        "numbers are measured or print `unmeasured`, never estimated: an absent pace reading, event log or drive log reads unmeasured on that part only",
+        "reading is read-only: spoke-status.js and fleet-gauge.js write nothing; the one writer is writeSpokeGauge, called at an Ozi run's close, and it never fails the outcome row",
+        "the session-start line reads the snapshot first and prints its age once it is older than one cadence (GAUGE_CADENCE_MS); with no snapshot it reads live",
+        "an instance with nothing to review stays silent at session start, the gauge included"
+      ],
+      "depends_on": [
+        "buildSpokeStatus",
+        "readPaceReading"
+      ],
+      "consumers": [
+        "external:operator",
+        "external:ozi (the brief's GAUGE line)"
+      ]
+    },
+    {
       "name": "stop-agent-waiting-notify",
       "owner": "basher",
       "runs_on": "hook_event",
@@ -5360,7 +5404,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         }
       ],
       "test": "conformance/fixtures/taste-injection/taste-injection.conformance.test.js",
@@ -5498,7 +5542,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/compiler/generate.js",
@@ -5604,7 +5648,7 @@
         },
         {
           "path": "src/otto/advisorAutopilot.js",
-          "hash": "ead7120bba21481a"
+          "hash": "2722a8963d08dc86"
         },
         {
           "path": "src/basher/idleWatchdog.js",
@@ -5676,7 +5720,7 @@
         },
         {
           "path": "src/otto/advisorAutopilot.js",
-          "hash": "ead7120bba21481a"
+          "hash": "2722a8963d08dc86"
         },
         {
           "path": "src/otto/wheelScheduler.js",
@@ -5684,7 +5728,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -5777,7 +5821,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/conductor/readyWork.js",
@@ -6094,7 +6138,7 @@
         },
         {
           "path": "src/conductor/goalsReview.js",
-          "hash": "932fc99e3f8b462f"
+          "hash": "7e94b342ea366694"
         },
         {
           "path": "src/otto/processSignalInbox.js",
@@ -8500,12 +8544,20 @@
       "lug": "spoke-entity-declares-foundation-goals-tier-role-services-inbound"
     },
     {
+      "test": "conformance/fixtures/spoke-gauge/spoke-gauge.conformance.test.js",
+      "lug": "every-spoke-shows-its-gas-speed-and-position-at-a-glance"
+    },
+    {
       "test": "conformance/fixtures/spoke-hygiene/spoke-hygiene.conformance.test.js",
       "lug": "stale-generated-docs-and-env-hygiene-are-fixed-by-the-wheel-not-the-operator"
     },
     {
       "test": "conformance/fixtures/spoke-membership/spoke-membership.conformance.test.js",
       "lug": "harness-install-mandates-wheel-membership-and-a-verified-hub-link"
+    },
+    {
+      "test": "conformance/fixtures/spoke-status/spoke-status.conformance.test.js",
+      "lug": "spoke-status-says-rolling-idle-or-stuck-and-how-to-unstick-it"
     },
     {
       "test": "conformance/fixtures/spokes-talk-directly/spokes-talk-directly.conformance.test.js",
@@ -8943,7 +8995,7 @@
     },
     {
       "path": "src/conductor/goalsReview.js",
-      "hash": "932fc99e3f8b462f"
+      "hash": "7e94b342ea366694"
     },
     {
       "path": "src/conductor/sectionCache.js",
@@ -9167,7 +9219,7 @@
     },
     {
       "path": "src/otto/advisorAutopilot.js",
-      "hash": "ead7120bba21481a"
+      "hash": "2722a8963d08dc86"
     },
     {
       "path": "src/basher/providerConfigDir.js",
@@ -9720,6 +9772,18 @@
     {
       "path": "src/observability/eventLog.js",
       "hash": "cfd046cc79a09fb1"
+    },
+    {
+      "path": "src/conductor/spokeGauge.js",
+      "hash": "5cf1f16f99258e72"
+    },
+    {
+      "path": "scripts/spoke-status.js",
+      "hash": "713121c779c10964"
+    },
+    {
+      "path": "scripts/fleet-gauge.js",
+      "hash": "d83840130edb4562"
     },
     {
       "path": "src/hooks/stopNotifyHook.js",

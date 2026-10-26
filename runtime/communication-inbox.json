@@ -2,7 +2,7 @@
   "kind": "communication_inbox_record",
   "trigger": "wheel_clock",
   "session_id": null,
-  "read_at": "2026-10-26T05:10:23.333Z",
+  "read_at": "2026-10-26T06:42:14.418Z",
   "spoke": {
     "name": "tracks",
     "source": "canon/profile.yaml"
@@ -69,7 +69,7 @@
       "source": ".local/known-repos.json"
     }
   ],
-  "files_read": 2886,
+  "files_read": 2920,
   "unreadable": [],
   "open": [
     {
@@ -92,8 +92,29 @@
       "requested_at": "2026-09-28T23:45:00.000Z",
       "is_reply": false,
       "reply_to": null
+    },
+    {
+      "name": "refine-tracks-backlog-to-execute-only",
+      "from_spoke": "wheel-hub",
+      "from_file": "/home/mario/projects/wheelwright/wheel-hub/lugs/refine-tracks-backlog-to-execute-only.yaml",
+      "rank": 1,
+      "stored_priority": "high",
+      "effective_priority": "high",
+      "escalated": false,
+      "escalation_reason": "inside escalation.after",
+      "seniority_role": null,
+      "ask": "request",
+      "status": "pending",
+      "delivery": {
+        "state": "untapped",
+        "at": null,
+        "detail": null
+      },
+      "requested_at": "2026-10-26T05:44:52.175Z",
+      "is_reply": false,
+      "reply_to": null
     }
   ],
   "absorbed": [],
-  "digest": "COMMUNICATION INBOX (tracks): 1 open request(s) from 1 sibling spoke(s), 1 past escalation -- top: receipt-untracked-hook-capture-logs-tracks [high, escalated from medium, from basher] (ranked by rankCommunicationInbox; full read: node scripts/communication-inbox.js)"
+  "digest": "COMMUNICATION INBOX (tracks): 2 open request(s) from 2 sibling spoke(s), 1 past escalation -- top: receipt-untracked-hook-capture-logs-tracks [high, escalated from medium, from basher]; +1 more (ranked by rankCommunicationInbox; full read: node scripts/communication-inbox.js)"
 }

@@ -1,7 +1,7 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "7b020f296141e9bfea80f24b550c7da44023e7cc",
+  "version": "c2473c6d3dfd00c91cc4b61daf83b5674bfe0bd4",
   "membership": {
     "ok": true,
     "skipped": false,
@@ -22,7 +22,7 @@
   "previousIncarnationLines": [
     "previous-incarnation tracks: no superseded tree or old hook scripts; 6 retired slash-command string(s) remain in managed files (CLAUDE.md, AGENTS.md, AMBASSADOR_BRIEF.md); the generated briefs now name them as retired, a hand-kept file needs its owner to edit it"
   ],
-  "digest": "sha256:478e9780f217d27689e7dd382d6e98d4ad976dd3ee8d6c22fb5c87c8dd270aa5",
+  "digest": "sha256:4b52b41413f3c3712ef1519408f088f569a7d1f93bac3dc24251e7cc0f97f9ba",
   "gitignoreBaseline": {
     "ok": true,
     "changed": false,
@@ -86,11 +86,11 @@
   ],
   "unchanged": true,
   "harness": {
-    "version": "7b020f296141e9bfea80f24b550c7da44023e7cc",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/7b020f296141e9bfea80f24b550c7da44023e7cc",
+    "version": "c2473c6d3dfd00c91cc4b61daf83b5674bfe0bd4",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/c2473c6d3dfd00c91cc4b61daf83b5674bfe0bd4",
     "reused": false,
     "pruned": [
-      "7e15497fb9093a6aba3dad5650f7d34d464b271b"
+      "78c2a92f775d9d5f375e463457482a276388f49b"
     ]
   },
   "liveApplied": false,
@@ -99,7 +99,7 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-10-26T00:11:29.405Z",
+      "auditedAt": "2026-10-26T05:13:58.334Z",
       "findings": [
         {
           "path": ".cut-status.json",
@@ -194,13 +194,13 @@
         "runtime/while-you-were-away.jsonl",
         "runtime/worktrees.jsonl"
       ],
-      "commit": "96e4f9b918878814e0c8d2afbf81730ffbc76850",
+      "commit": "e6d3ec9163b8dd3124598cffc33438c32d69e052",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "retiredGeneration": null,
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1792973489627-godleb"
+        "ldg-arrival-audit-committed-1792991638730-t9286c"
       ]
     },
     "profileSeeding": {
@@ -267,8 +267,8 @@
       "message": "lug \"p0-bugfix-circle-audit-conversation-track-ingestion\" (lugs/p0-bugfix-circle-audit-conversation-track-ingestion.yaml) is review with no assignee (champion) and no watchers (valuator): unowned means unvaluable. Name an advisor in assignee or watchers. (Warning only, for one cycle.)"
     }
   ],
-  "appliedAt": "2026-10-26T00:11:36.795Z",
-  "previous_version": "78c2a92f775d9d5f375e463457482a276388f49b",
+  "appliedAt": "2026-10-26T05:14:07.653Z",
+  "previous_version": "7b020f296141e9bfea80f24b550c7da44023e7cc",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
