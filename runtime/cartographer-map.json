@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-31T04:16:37.215Z",
-  "duration_ms": 183,
+  "generated_at": "2026-10-31T06:04:20.717Z",
+  "duration_ms": 202,
   "areas": [
     {
       "area": "advisor",
@@ -2503,7 +2503,7 @@
         },
         {
           "path": "src/ledger/promptId.js",
-          "hash": "4908934d75600591"
+          "hash": "9c272af511a73f3e"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -4883,7 +4883,7 @@
         },
         {
           "path": "src/ledger/promptId.js",
-          "hash": "4908934d75600591"
+          "hash": "9c272af511a73f3e"
         }
       ],
       "test": "conformance/fixtures/session-end-handoff/session-end-handoff.conformance.test.js",
@@ -4953,7 +4953,7 @@
         },
         {
           "path": "src/ledger/promptId.js",
-          "hash": "4908934d75600591"
+          "hash": "9c272af511a73f3e"
         }
       ],
       "test": "conformance/fixtures/session-exit-commit/session-exit-commit.conformance.test.js",
@@ -7659,6 +7659,10 @@
       "lug": "footer-audit"
     },
     {
+      "test": "conformance/fixtures/footer-date-month-day/footer-date-month-day.conformance.test.js",
+      "lug": "the-footer-date-reads-as-a-month-and-day"
+    },
+    {
       "test": "conformance/fixtures/footer-identity-generated/footer-identity-generated.conformance.test.js",
       "lug": "footer-identity-is-generated-from-spoke-registration-and-never-defaulted"
     },
@@ -9578,7 +9582,7 @@
     },
     {
       "path": "src/ledger/promptId.js",
-      "hash": "4908934d75600591"
+      "hash": "9c272af511a73f3e"
     },
     {
       "path": "src/hooks/footerCorrectionInjectionHook.js",

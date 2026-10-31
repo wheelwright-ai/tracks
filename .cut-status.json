@@ -1,7 +1,7 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "db803567b7df28efeaa58e0bf2d504c72e97e61a",
+  "version": "f79d1e22a63fde6a96485c130b26c514dbed2104",
   "membership": {
     "ok": true,
     "skipped": false,
@@ -22,7 +22,7 @@
   "previousIncarnationLines": [
     "previous-incarnation tracks: no superseded tree or old hook scripts; 6 retired slash-command string(s) remain in managed files (CLAUDE.md, AGENTS.md, AMBASSADOR_BRIEF.md); the generated briefs now name them as retired, a hand-kept file needs its owner to edit it"
   ],
-  "digest": "sha256:ce07f6a616b5a5669878b17ad6cd4493f37530cd4ff411203134f5344cd7f309",
+  "digest": "sha256:47383811c714c3163e4132f79f22e7d486eb069beea5b2f660b57134a8962b8a",
   "gitignoreBaseline": {
     "ok": true,
     "changed": false,
@@ -86,33 +86,34 @@
   ],
   "unchanged": false,
   "harness": {
-    "version": "db803567b7df28efeaa58e0bf2d504c72e97e61a",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/db803567b7df28efeaa58e0bf2d504c72e97e61a",
+    "version": "f79d1e22a63fde6a96485c130b26c514dbed2104",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/f79d1e22a63fde6a96485c130b26c514dbed2104",
     "reused": false,
     "pruned": [
-      "7b020f296141e9bfea80f24b550c7da44023e7cc"
+      "c2473c6d3dfd00c91cc4b61daf83b5674bfe0bd4"
     ]
   },
+  "testRunnerFinding": null,
   "liveApplied": false,
   "announcedSessions": [],
   "arrivalAudit": {
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-10-26T06:44:25.271Z",
+      "auditedAt": "2026-10-31T04:26:34.528Z",
       "findings": [
-        {
-          "path": ".cut-status.json",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\".cut-status.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
         {
           "path": "ledger/ledger.jsonl",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"ledger/ledger.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/manifest.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/manifest.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         },
         {
@@ -127,6 +128,20 @@
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"runtime/communication-inbox.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/event-log.jsonl",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/event-log.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "runtime/lug-checksums.json",
+          "statusCode": " M",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"runtime/lug-checksums.json\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
         },
         {
@@ -158,23 +173,76 @@
           "evidence": {}
         },
         {
-          "path": "runtime/while-you-were-away.jsonl",
-          "statusCode": " M",
-          "bucket": "ORGANIC_RUNTIME_CHURN",
-          "reason": "\"runtime/while-you-were-away.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
-          "evidence": {}
-        },
-        {
           "path": "runtime/worktrees.jsonl",
           "statusCode": " M",
           "bucket": "ORGANIC_RUNTIME_CHURN",
           "reason": "\"runtime/worktrees.jsonl\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
           "evidence": {}
+        },
+        {
+          "path": "canon/circles/spoke-gauge.md",
+          "statusCode": "??",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"canon/circles/spoke-gauge.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
+        {
+          "path": "canon/circles/spoke-gauge.yaml",
+          "statusCode": "??",
+          "bucket": "LEGITIMATE_CUT_ABSORPTION",
+          "reason": "\"canon/circles/spoke-gauge.yaml\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
+          "evidence": {
+            "cutOwnedPath": true
+          }
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/000003_2026-10-19_2026-10-27.jsonl.gz",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/000003_2026-10-19_2026-10-27.jsonl.gz\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/000004_2026-10-27_2026-10-27.jsonl.gz",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/000004_2026-10-27_2026-10-27.jsonl.gz\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/000005_2026-10-27_2026-10-30.jsonl.gz",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/000005_2026-10-27_2026-10-30.jsonl.gz\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "ledger/ledger.jsonl.segments/000006_2026-10-30_2026-10-30.jsonl.gz",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"ledger/ledger.jsonl.segments/000006_2026-10-30_2026-10-30.jsonl.gz\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "lugs/receipt-untracked-hook-capture-logs-tracks.yaml",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"lugs/receipt-untracked-hook-capture-logs-tracks.yaml\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
+        },
+        {
+          "path": "lugs/refine-tracks-backlog-to-execute-only.yaml",
+          "statusCode": "??",
+          "bucket": "ORGANIC_RUNTIME_CHURN",
+          "reason": "\"lugs/refine-tracks-backlog-to-execute-only.yaml\" has complete, well-formed (or non-inferable-format) content -- expected change, not agent-introduced",
+          "evidence": {}
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 0,
-        "ORGANIC_RUNTIME_CHURN": 10,
+        "LEGITIMATE_CUT_ABSORPTION": 2,
+        "ORGANIC_RUNTIME_CHURN": 17,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
       },
@@ -183,24 +251,33 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        ".cut-status.json",
         "ledger/ledger.jsonl",
+        "ledger/ledger.jsonl.segments/manifest.json",
         "runtime/cartographer-map.json",
         "runtime/communication-inbox.json",
+        "runtime/event-log.jsonl",
+        "runtime/lug-checksums.json",
         "runtime/planner-cycle.json",
         "runtime/store-bound-state.json",
         "runtime/wheel-clock-catchup-state.json",
         "runtime/wheel-scheduler-state.json",
-        "runtime/while-you-were-away.jsonl",
-        "runtime/worktrees.jsonl"
+        "runtime/worktrees.jsonl",
+        "canon/circles/spoke-gauge.md",
+        "canon/circles/spoke-gauge.yaml",
+        "ledger/ledger.jsonl.segments/000003_2026-10-19_2026-10-27.jsonl.gz",
+        "ledger/ledger.jsonl.segments/000004_2026-10-27_2026-10-27.jsonl.gz",
+        "ledger/ledger.jsonl.segments/000005_2026-10-27_2026-10-30.jsonl.gz",
+        "ledger/ledger.jsonl.segments/000006_2026-10-30_2026-10-30.jsonl.gz",
+        "lugs/receipt-untracked-hook-capture-logs-tracks.yaml",
+        "lugs/refine-tracks-backlog-to-execute-only.yaml"
       ],
-      "commit": "5725e586a55f5cdc04f95eefb932b3ec7094c1a1",
+      "commit": "5da74c73fcb26ee33b491a53f12328a8ce063278",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "retiredGeneration": null,
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1792997065643-k1zjtq"
+        "ldg-arrival-audit-committed-1793420794745-wghh1y"
       ]
     },
     "profileSeeding": {
@@ -267,8 +344,8 @@
       "message": "lug \"p0-bugfix-circle-audit-conversation-track-ingestion\" (lugs/p0-bugfix-circle-audit-conversation-track-ingestion.yaml) is review with no assignee (champion) and no watchers (valuator): unowned means unvaluable. Name an advisor in assignee or watchers. (Warning only, for one cycle.)"
     }
   ],
-  "appliedAt": "2026-10-26T06:44:37.986Z",
-  "previous_version": "c2473c6d3dfd00c91cc4b61daf83b5674bfe0bd4",
+  "appliedAt": "2026-10-31T04:26:44.894Z",
+  "previous_version": "db803567b7df28efeaa58e0bf2d504c72e97e61a",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
@@ -280,12 +357,12 @@
   "generated_docs": [
     {
       "file": "CLAUDE.md",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     {
       "file": "AMBASSADOR_BRIEF.md",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     {
