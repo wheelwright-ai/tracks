@@ -519,7 +519,7 @@
       "disclosed_at": null
     },
     "ledger|2026-10-31|wheel-scheduler": {
-      "admitted": 375,
+      "admitted": 376,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-31T00:01:31.486Z",
@@ -568,7 +568,7 @@
       "disclosed_at": null
     },
     "ledger|2026-10-31|session-exit-commit": {
-      "admitted": 1,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-31T06:34:44.590Z",
@@ -576,5 +576,5 @@
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-10-31T06:34:44.590Z"
+  "written_at": "2026-10-31T06:51:44.932Z"
 }
