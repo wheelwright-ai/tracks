@@ -1,0 +1,30 @@
+kind: lug
+name: receipt-untracked-hook-capture-logs-tracks
+owner: otto
+schema_version: 1
+state: defined
+priority: medium
+estimate: 5m
+executor: claude
+proof_required: true
+intent: >-
+  Tell tracks' next session why its capture logs vanished from git and that
+  nothing else changed.
+outcome: >-
+  git ls-files in tracks lists no docs/live-hook-capture* data file, the files
+  remain on disk, and the .gitignore line is present.
+acceptance:
+  - git ls-files | grep -c live-hook-capture returns 0 in tracks
+constraints:
+  - every build commit message names this lug
+open_questions: []
+out_of_scope:
+  - rewriting git history
+pointers:
+  - external:basher/lugs/receipt-untracked-hook-capture-logs-tracks.yaml
+  - external:basher/.gitignore
+tests: []
+next_action: >-
+  Ask receipt-untracked-hook-capture-logs-tracks from basher arrived; define the
+  fixture for each acceptance line, then build.
+requested_by: basher

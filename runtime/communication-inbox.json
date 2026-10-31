@@ -2,7 +2,7 @@
   "kind": "communication_inbox_record",
   "trigger": "wheel_clock",
   "session_id": null,
-  "read_at": "2026-10-26T20:26:49.583Z",
+  "read_at": "2026-10-31T04:23:02.096Z",
   "spoke": {
     "name": "tracks",
     "source": "canon/profile.yaml"
@@ -22,6 +22,11 @@
       "name": "bubo",
       "root": "/home/mario/projects/bubo",
       "source": "hub canon/bubo.spoke.yaml"
+    },
+    {
+      "name": "daycade",
+      "root": "/home/mario/projects/daycade",
+      "source": "hub canon/daycade.spoke.yaml"
     },
     {
       "name": "daywright",
@@ -59,6 +64,11 @@
       "source": "hub canon/roxy.spoke.yaml"
     },
     {
+      "name": "track-prompt-lab",
+      "root": "/home/mario/projects/wheelwright/track-prompt-lab",
+      "source": "hub canon/track-prompt-lab.spoke.yaml"
+    },
+    {
       "name": "website",
       "root": "/home/mario/projects/wheelwright/website",
       "source": "hub canon/website.spoke.yaml"
@@ -74,52 +84,24 @@
       "source": ".local/known-repos.json"
     }
   ],
-  "files_read": 2953,
+  "files_read": 3444,
   "unreadable": [],
-  "open": [
-    {
-      "name": "receipt-untracked-hook-capture-logs-tracks",
-      "from_spoke": "basher",
-      "from_file": "/home/mario/projects/basher/lugs/receipt-untracked-hook-capture-logs-tracks.yaml",
-      "rank": 0,
-      "stored_priority": "medium",
-      "effective_priority": "high",
-      "escalated": true,
-      "escalation_reason": "past escalation.after 7d since requested_at -- ranks as high",
-      "seniority_role": null,
-      "ask": null,
-      "status": "pending",
-      "delivery": {
-        "state": "untapped",
-        "at": null,
-        "detail": null
-      },
-      "requested_at": "2026-09-28T23:45:00.000Z",
-      "is_reply": false,
-      "reply_to": null
-    },
+  "open": [],
+  "absorbed": [
     {
       "name": "refine-tracks-backlog-to-execute-only",
       "from_spoke": "wheel-hub",
-      "from_file": "/home/mario/projects/wheelwright/wheel-hub/lugs/refine-tracks-backlog-to-execute-only.yaml",
-      "rank": 1,
-      "stored_priority": "high",
-      "effective_priority": "high",
-      "escalated": false,
-      "escalation_reason": "inside escalation.after",
-      "seniority_role": null,
-      "ask": "request",
-      "status": "pending",
-      "delivery": {
-        "state": "untapped",
-        "at": null,
-        "detail": null
-      },
-      "requested_at": "2026-10-26T05:44:52.175Z",
-      "is_reply": false,
-      "reply_to": null
+      "into": "refine-tracks-backlog-to-execute-only",
+      "by": "ask-intake",
+      "at": "2026-10-31T01:31:30.878Z"
+    },
+    {
+      "name": "receipt-untracked-hook-capture-logs-tracks",
+      "from_spoke": "basher",
+      "into": "receipt-untracked-hook-capture-logs-tracks",
+      "by": "ask-intake",
+      "at": "2026-10-31T01:31:31.111Z"
     }
   ],
-  "absorbed": [],
-  "digest": "COMMUNICATION INBOX (tracks): 2 open request(s) from 2 sibling spoke(s), 1 past escalation -- top: receipt-untracked-hook-capture-logs-tracks [high, escalated from medium, from basher]; +1 more (ranked by rankCommunicationInbox; full read: node scripts/communication-inbox.js)"
+  "digest": "COMMUNICATION INBOX (tracks): 0 open request(s); 2 absorbed into a lug (refine-tracks-backlog-to-execute-only -> refine-tracks-backlog-to-execute-only; receipt-untracked-hook-capture-logs-tracks -> receipt-untracked-hook-capture-logs-tracks)"
 }

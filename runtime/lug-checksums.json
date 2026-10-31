@@ -4,5 +4,15 @@
     "state": "review",
     "readiness": "stubbed",
     "session": "e5c1bdbc-cf2f-4f11-8724-ac2bb3901bda"
+  },
+  "lugs/refine-tracks-backlog-to-execute-only.yaml": {
+    "checksum": "f67a8aec22cecbd4fecf2520392b274fcbdd901ee5d4b2e21d2daadbaffbf928",
+    "state": "defined",
+    "readiness": null
+  },
+  "lugs/receipt-untracked-hook-capture-logs-tracks.yaml": {
+    "checksum": "b7718fde0ee715ae4c9bd572e73304aa23919e29d2dea678fffb4fd9d3580774",
+    "state": "defined",
+    "readiness": null
   }
 }

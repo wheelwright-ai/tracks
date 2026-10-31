@@ -1,0 +1,28 @@
+kind: lug
+name: refine-tracks-backlog-to-execute-only
+owner: otto
+schema_version: 1
+state: defined
+priority: high
+estimate: 3h
+executor: claude
+proof_required: false
+intent: >-
+  Refine tracks's ready backlog until autopilot can build at least 5 of its top
+  15 ready lugs without thinking (execute-only).
+outcome: >-
+  tracks reports 5 or more execute-only ready lugs in the hub's fleet readiness
+  line.
+acceptance:
+  - the hub's measurement of tracks shows 5 or more execute-only ready lugs
+constraints:
+  - every build commit message names this lug
+open_questions: []
+out_of_scope: []
+pointers:
+  - external:wheel-hub/lugs/refine-tracks-backlog-to-execute-only.yaml
+tests: []
+next_action: >-
+  Ask refine-tracks-backlog-to-execute-only from wheel-hub arrived; define the
+  fixture for each acceptance line, then build.
+requested_by: wheel-hub
