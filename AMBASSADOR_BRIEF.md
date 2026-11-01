@@ -166,13 +166,16 @@ percent of lugs traceable to a test).
 ## 7. The footer
 
 Every turn ends with a merged footer, one line, `|`-joined:
-`coordinates | localTime | persona@model | frameworkVersion | turnCost-or-"unmeasured" | open: N`
+`coordinates | localTime | persona@model | frameworkVersion | turnCost-or-"unmeasured" | review: N`
 (`formatMergedTurnFooter`, `src/ledger/promptId.js`) -- `coordinates` is
-the real id-v3 FROM (never fabricated -- the function throws without
+the real id-v3 FROM, `<Mon><DD>-<origin>-<Callsign>-t<n>` such as
+`Oct30-HF-Hippo-t67` (older ids carry a 4-digit `1030` date and still
+parse; never fabricated -- the function throws without
 one), `persona` is the real recorded session-registry persona (ozi |
 max | builder | proofer; `"unknown"` only when none is recorded yet),
 `turnCost` is `"unmeasured"` rather than a guessed number when no
-real cost was captured, and `open: N` is the real open-item count. The
+real cost was captured, and `review: N` is the real count of this spoke's
+lugs at state review (the lugs waiting for a verdict). The
 footer-audit circle checks the id every turn and the agent segment
 against the session's own recorded persona.
 
