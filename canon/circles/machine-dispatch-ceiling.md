@@ -43,7 +43,9 @@ It is enforced at:
   after the last failure; or `touch runtime/dispatch-ceiling.ack` in the
   main checkout, no session restart -- an ack newer than the newest counted
   failure turns the refusal into an advisory, and a failure after it counts
-  again. Also the relief line `sudo sysctl vm.compact_memory=1`.
+  again. Also the relief line, which names basher's
+  `basher-memory-relief.timer` (it compacts on its own; force it with
+  `sudo systemctl start basher-memory-relief.service`).
 - **Advises and allows** on a soft signal (load per cpu, few large blocks),
   on the since-boot count (`kernel_alloc_failures_since_boot_above` is read
   for the advisory only), and on any hard signal when no machine entity

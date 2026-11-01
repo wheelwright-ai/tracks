@@ -10,7 +10,12 @@ rule: >-
   required sections (identity_triple, active_lugs_and_transitions,
   directions_captured, cost_markers, decisions, handoff) must all be
   present, even when a section is honestly empty -- an absent key is a
-  conformance failure, an empty array is not. Retention: tracks stay hot
+  conformance failure, an empty array is not. Each Stop also appends the
+  per-turn digest (runtime/turn-digests/<session_id>.jsonl, read from the
+  session transcript: operator words, tools, files, subagents, final reply,
+  model, tokens), and attaches the model's own notes from runtime/
+  track-notes.json, which the Stop consumes each turn; a turn without notes
+  is recorded as missing, never filled in. Retention: tracks stay hot
   for 90 days, then move to runtime/tracks-archive/<YYYY-MM>/, never
   deleted; the ledger rows a track's own session produced (directions,
   decisions, teaching) survive independently in ledger.jsonl regardless

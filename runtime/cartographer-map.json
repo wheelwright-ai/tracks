@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-10-31T06:04:20.717Z",
-  "duration_ms": 202,
+  "generated_at": "2026-11-01T07:35:40.029Z",
+  "duration_ms": 236,
   "areas": [
     {
       "area": "advisor",
@@ -1391,7 +1391,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -1411,7 +1411,7 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         }
       ],
       "test": "conformance/fixtures/chain-disposition/chain-disposition.conformance.test.js",
@@ -1619,7 +1619,7 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         }
       ],
       "test": "conformance/fixtures/communication-inbox-delta-injected-at-each-prompt/communication-inbox-delta.conformance.test.js",
@@ -1934,11 +1934,11 @@
       "implementing_files": [
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         },
         {
           "path": "src/advisor/crossProviderCertify.js",
-          "hash": "6409963bc9218a3a"
+          "hash": "0dfbfc0de840933e"
         },
         {
           "path": "src/hooks/crossProviderVerificationHook.js",
@@ -1950,7 +1950,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -2006,7 +2006,7 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         },
         {
           "path": "scripts/cross-provider-certify.js",
@@ -2014,7 +2014,7 @@
         },
         {
           "path": "src/advisor/crossProviderCertify.js",
-          "hash": "6409963bc9218a3a"
+          "hash": "0dfbfc0de840933e"
         },
         {
           "path": "src/factory/bootstrap.js",
@@ -2022,7 +2022,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -2326,7 +2326,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/lugTracking/track.js",
@@ -2346,15 +2346,15 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         },
         {
           "path": "src/advisor/crossProviderCertify.js",
-          "hash": "6409963bc9218a3a"
+          "hash": "0dfbfc0de840933e"
         },
         {
           "path": "src/advisor/proofer.js",
-          "hash": "18b0a748af5a7aad"
+          "hash": "d1f84cfb75406bd9"
         },
         {
           "path": "src/conductor/initiativeFocus.js",
@@ -2503,7 +2503,7 @@
         },
         {
           "path": "src/ledger/promptId.js",
-          "hash": "9c272af511a73f3e"
+          "hash": "073a530d82c2fd75"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -2602,7 +2602,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -2618,7 +2618,7 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         }
       ],
       "test": "conformance/fixtures/gate-pool-serial-suites/gate-pool-serial-suites.conformance.test.js",
@@ -2932,7 +2932,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/lugTracking/track.js",
@@ -2956,11 +2956,11 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         },
         {
           "path": "src/advisor/crossProviderCertify.js",
-          "hash": "6409963bc9218a3a"
+          "hash": "0dfbfc0de840933e"
         },
         {
           "path": "src/otto/advisorAutopilot.js",
@@ -3094,7 +3094,7 @@
         },
         {
           "path": "src/compiler/rules/11-no-oversized-file.js",
-          "hash": "81013ff86c057395"
+          "hash": "363760f361ab7a56"
         }
       ],
       "test": "conformance/fixtures/liveness-lease/liveness-lease.conformance.test.js",
@@ -3137,7 +3137,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/compiler/schemaRegistry.js",
@@ -3149,7 +3149,7 @@
         },
         {
           "path": "src/lugTracking/pickupReverification.js",
-          "hash": "90fece65b20ee261"
+          "hash": "40961699c2d7257a"
         }
       ],
       "test": "conformance/fixtures/lug-edges/lug-edges.conformance.test.js",
@@ -3196,7 +3196,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/ledger/ledgerStore.js",
@@ -3250,7 +3250,7 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         },
         {
           "path": "src/advisor/independence.js",
@@ -3300,7 +3300,7 @@
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         },
         {
           "path": "src/advisor/independence.js",
@@ -3345,7 +3345,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/lugTracking/lugDivergence.js",
@@ -3411,7 +3411,7 @@
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/lugTracking/lugIntegrity.js",
@@ -3753,11 +3753,11 @@
         },
         {
           "path": "src/compiler/oversizedWriteCheck.js",
-          "hash": "878bd9421c9a82a8"
+          "hash": "d9e6b7e22a9f9647"
         },
         {
           "path": "src/compiler/rules/11-no-oversized-file.js",
-          "hash": "81013ff86c057395"
+          "hash": "363760f361ab7a56"
         },
         {
           "path": "src/compiler/tokenCount.js",
@@ -3825,7 +3825,7 @@
         },
         {
           "path": "src/compiler/rules/11-no-oversized-file.js",
-          "hash": "81013ff86c057395"
+          "hash": "363760f361ab7a56"
         }
       ],
       "test": "conformance/fixtures/pattern-language/pattern-language.conformance.test.js",
@@ -3862,11 +3862,11 @@
       "implementing_files": [
         {
           "path": "src/lugTracking/pickupReverification.js",
-          "hash": "90fece65b20ee261"
+          "hash": "40961699c2d7257a"
         },
         {
           "path": "src/lugTracking/lugVerb.js",
-          "hash": "3fe292a396139b89"
+          "hash": "c360a249d1e882f8"
         },
         {
           "path": "src/lugTracking/dispatchMechanism.js",
@@ -4324,11 +4324,11 @@
         },
         {
           "path": "src/conductor/readinessSweep.js",
-          "hash": "5c43b905e7133637"
+          "hash": "2da9e26a380d1319"
         },
         {
           "path": "src/advisor/crossProviderVerification.js",
-          "hash": "9ac560b4b68af5de"
+          "hash": "ceb02a0bf38e1338"
         },
         {
           "path": "src/advisor/independence.js",
@@ -4591,7 +4591,7 @@
         },
         {
           "path": "src/lugTracking/sessionCheckpoint.js",
-          "hash": "aad210e9c8058f0d"
+          "hash": "b161bfca1fd66e0c"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -4822,7 +4822,7 @@
         },
         {
           "path": "src/lugTracking/sessionCheckpoint.js",
-          "hash": "aad210e9c8058f0d"
+          "hash": "b161bfca1fd66e0c"
         },
         {
           "path": "src/sessionRecord/lastSessionSection.js",
@@ -4871,7 +4871,7 @@
         },
         {
           "path": "src/lugTracking/sessionCheckpoint.js",
-          "hash": "aad210e9c8058f0d"
+          "hash": "b161bfca1fd66e0c"
         },
         {
           "path": "src/lugTracking/trackArtifact.js",
@@ -4883,7 +4883,7 @@
         },
         {
           "path": "src/ledger/promptId.js",
-          "hash": "9c272af511a73f3e"
+          "hash": "073a530d82c2fd75"
         }
       ],
       "test": "conformance/fixtures/session-end-handoff/session-end-handoff.conformance.test.js",
@@ -4953,7 +4953,7 @@
         },
         {
           "path": "src/ledger/promptId.js",
-          "hash": "9c272af511a73f3e"
+          "hash": "073a530d82c2fd75"
         }
       ],
       "test": "conformance/fixtures/session-exit-commit/session-exit-commit.conformance.test.js",
@@ -5381,11 +5381,11 @@
         },
         {
           "path": "src/lugTracking/sessionCheckpoint.js",
-          "hash": "aad210e9c8058f0d"
+          "hash": "b161bfca1fd66e0c"
         },
         {
           "path": "src/lugTracking/trackGovernancePrompt.js",
-          "hash": "b1ea51d604465e2b"
+          "hash": "e8c356f3b19fa80f"
         },
         {
           "path": "src/compiler/tokenCount.js",
@@ -6062,7 +6062,7 @@
         },
         {
           "path": "src/compiler/rules/11-no-oversized-file.js",
-          "hash": "81013ff86c057395"
+          "hash": "363760f361ab7a56"
         }
       ],
       "test": "conformance/fixtures/wheel-feedback-digest/wheel-feedback-digest.conformance.test.js",
@@ -6472,7 +6472,7 @@
       "implementing_files": [
         {
           "path": "src/compiler/rules/11-no-oversized-file.js",
-          "hash": "81013ff86c057395"
+          "hash": "363760f361ab7a56"
         }
       ],
       "found": true
@@ -6917,6 +6917,14 @@
     {
       "test": "conformance/fixtures/certification-replay/certification-replay.conformance.test.js",
       "lug": "fabrication-check-still-rejects-most-verdicts-and-the-record-cannot-replay-why"
+    },
+    {
+      "test": "conformance/fixtures/certification-runs-only-on-its-trigger/certification-runs-only-on-its-trigger.conformance.test.js",
+      "lug": "certification-runs-only-on-its-trigger-and-records-no-provider-once"
+    },
+    {
+      "test": "conformance/fixtures/certifier-leaves-live-criteria-pending/certifier-leaves-live-criteria-pending.conformance.test.js",
+      "lug": "certifier-judges-fixture-criteria-and-leaves-live-criteria-pending"
     },
     {
       "test": "conformance/fixtures/certifier-provider-budget/certifier-provider-budget.conformance.test.js",
@@ -7475,6 +7483,10 @@
       "lug": "done-gate-process-checks-hold-38-verified-lugs"
     },
     {
+      "test": "conformance/fixtures/done-gate-reads-hub-and-spoke-registries/done-gate-reads-hub-and-spoke-registries.conformance.test.js",
+      "lug": "done-gate-finds-the-latest-dispatch-in-the-hub-and-spoke-registries"
+    },
+    {
       "test": "conformance/fixtures/done-gate-traceability-recognises-typescript-test-files/done-gate-traceability-recognises-typescript-test-files.conformance.test.js",
       "lug": "done-gate-traceability-recognises-typescript-test-files"
     },
@@ -7665,6 +7677,10 @@
     {
       "test": "conformance/fixtures/footer-identity-generated/footer-identity-generated.conformance.test.js",
       "lug": "footer-identity-is-generated-from-spoke-registration-and-never-defaulted"
+    },
+    {
+      "test": "conformance/fixtures/footer-review-count/footer-review-count.conformance.test.js",
+      "lug": "the-footer-shows-lugs-waiting-at-review-not-unclosed-references"
     },
     {
       "test": "conformance/fixtures/force-push-guard-segment/force-push-guard-segment.conformance.test.js",
@@ -8547,6 +8563,10 @@
       "lug": "rule-11-measures-authored-canon-not-generated-registries"
     },
     {
+      "test": "conformance/fixtures/rule-11-work-records-warn/rule-11-work-records-warn.conformance.test.js",
+      "lug": "rule-11-refuses-only-files-every-session-loads-whole"
+    },
+    {
       "test": "conformance/fixtures/rule-12-live-state-reported-not-refused/rule-12-live-state-reported-not-refused.conformance.test.js",
       "lug": "rule-12-measures-live-runtime-state-so-the-hub-compile-verdict-flips-hourly"
     },
@@ -9342,7 +9362,7 @@
     },
     {
       "path": "src/lugTracking/lugVerb.js",
-      "hash": "3fe292a396139b89"
+      "hash": "c360a249d1e882f8"
     },
     {
       "path": "src/advisor/independence.js",
@@ -9358,7 +9378,7 @@
     },
     {
       "path": "src/advisor/crossProviderVerification.js",
-      "hash": "9ac560b4b68af5de"
+      "hash": "ceb02a0bf38e1338"
     },
     {
       "path": "src/hooks/circleAuditHook.js",
@@ -9470,7 +9490,7 @@
     },
     {
       "path": "src/advisor/crossProviderCertify.js",
-      "hash": "6409963bc9218a3a"
+      "hash": "0dfbfc0de840933e"
     },
     {
       "path": "src/hooks/crossProviderVerificationHook.js",
@@ -9546,7 +9566,7 @@
     },
     {
       "path": "src/advisor/proofer.js",
-      "hash": "18b0a748af5a7aad"
+      "hash": "d1f84cfb75406bd9"
     },
     {
       "path": "src/conductor/initiativeFocus.js",
@@ -9582,7 +9602,7 @@
     },
     {
       "path": "src/ledger/promptId.js",
-      "hash": "9c272af511a73f3e"
+      "hash": "073a530d82c2fd75"
     },
     {
       "path": "src/hooks/footerCorrectionInjectionHook.js",
@@ -9666,7 +9686,7 @@
     },
     {
       "path": "src/compiler/rules/11-no-oversized-file.js",
-      "hash": "81013ff86c057395"
+      "hash": "363760f361ab7a56"
     },
     {
       "path": "scripts/lug-edges.js",
@@ -9686,7 +9706,7 @@
     },
     {
       "path": "src/lugTracking/pickupReverification.js",
-      "hash": "90fece65b20ee261"
+      "hash": "40961699c2d7257a"
     },
     {
       "path": "src/hooks/lugIntegrityHook.js",
@@ -9790,7 +9810,7 @@
     },
     {
       "path": "src/compiler/oversizedWriteCheck.js",
-      "hash": "878bd9421c9a82a8"
+      "hash": "d9e6b7e22a9f9647"
     },
     {
       "path": "src/compiler/index.js",
@@ -9878,7 +9898,7 @@
     },
     {
       "path": "src/conductor/readinessSweep.js",
-      "hash": "5c43b905e7133637"
+      "hash": "2da9e26a380d1319"
     },
     {
       "path": "src/hooks/readyGateStubHook.js",
@@ -9930,7 +9950,7 @@
     },
     {
       "path": "src/lugTracking/sessionCheckpoint.js",
-      "hash": "aad210e9c8058f0d"
+      "hash": "b161bfca1fd66e0c"
     },
     {
       "path": "src/conductor/roiExtraction.js",
@@ -10042,7 +10062,7 @@
     },
     {
       "path": "src/lugTracking/trackGovernancePrompt.js",
-      "hash": "b1ea51d604465e2b"
+      "hash": "e8c356f3b19fa80f"
     },
     {
       "path": "src/tastegraph/communicationAudit.js",

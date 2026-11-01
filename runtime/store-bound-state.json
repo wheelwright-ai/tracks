@@ -519,28 +519,28 @@
       "disclosed_at": null
     },
     "ledger|2026-10-31|wheel-scheduler": {
-      "admitted": 376,
+      "admitted": 1070,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-31T00:01:31.486Z",
       "disclosed_at": null
     },
     "ledger|2026-10-31|guard-denial-reconciliation": {
-      "admitted": 64,
+      "admitted": 188,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-31T00:03:15.644Z",
       "disclosed_at": null
     },
     "ledger|2026-10-31|wheel-clock-catchup": {
-      "admitted": 16,
+      "admitted": 48,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-31T00:04:56.273Z",
       "disclosed_at": null
     },
     "ledger|2026-10-31|reconcile-ledger": {
-      "admitted": 32,
+      "admitted": 96,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-31T00:12:28.724Z",
@@ -568,13 +568,48 @@
       "disclosed_at": null
     },
     "ledger|2026-10-31|session-exit-commit": {
-      "admitted": 3,
+      "admitted": 4,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-10-31T06:34:44.590Z",
       "disclosed_at": null
+    },
+    "ledger|2026-11-01|wheel-scheduler": {
+      "admitted": 301,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-01T00:02:16.035Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-01|guard-denial-reconciliation": {
+      "admitted": 52,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-01T01:02:10.201Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-01|reconcile-ledger": {
+      "admitted": 24,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-01T01:04:38.716Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-01|wheel-clock-catchup": {
+      "admitted": 14,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-01T01:07:40.968Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-01|session-exit-commit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-01T06:41:28.147Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-10-31T06:51:44.932Z"
+  "written_at": "2026-11-01T08:10:32.581Z"
 }

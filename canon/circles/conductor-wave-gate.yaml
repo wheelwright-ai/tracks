@@ -52,6 +52,12 @@ invariants:
     `available`), per spoke, and it travels verbatim into the dispatched
     session's own prompt
   - >-
+    a spoke's ready count is its EXECUTE-ONLY count: decideWave judges each
+    ready lug with the drive's own bar (latestViabilityVerdict, over
+    executeOnlyVerdict) so a spoke whose ready lugs the drive would all reject
+    is not selected for a build, and the reason names 'N execute-only (k
+    cross-spoke, ...)'
+  - >-
     a read-only caller passes persist:false, so merely LOOKING never consumes
     the boundary a real decision would otherwise have seen
   - >-

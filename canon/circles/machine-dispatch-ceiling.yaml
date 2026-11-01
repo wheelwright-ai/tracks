@@ -24,7 +24,7 @@ invariants:
     is newer than the newest counted failure
   - >-
     every refusal names the measured numbers and the ways out: wait, touch the
-    ack file, the relief line (sudo sysctl vm.compact_memory=1), the off switch
+    ack file, the relief line (basher-memory-relief.timer), the off switch
     (WHEEL_DISPATCH_CEILING=off)
   - >-
     a soft signal (load per cpu, few large free blocks) and the since-boot

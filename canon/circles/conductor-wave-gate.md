@@ -41,12 +41,10 @@ boundaries, past the declared 60s same-boundary tolerance), and only as a
 fallback `used_percentage_dropped` past a declared 15-point floor, used when
 a `resets_at` is missing from one side.
 
-Both `resets_at` shapes are parsed as INSTANTS: epoch seconds as a string
-from the statusline source, ISO-8601 from the headless one. That is not
-cosmetic. `Date.parse("1788778200")` is NaN, so before MAX-115 found it, both
-primary signals were silently unreachable on every real statusline reading
-and the detector quietly answered "same window" on evidence it could not
-read. `failure_routing` names that lug: this circle's own drift history.
+Both `resets_at` shapes parse as INSTANTS (epoch seconds as a string from the
+statusline, ISO-8601 from the headless source). Before MAX-115 the epoch string
+parsed as NaN, so both primary signals were silently unreachable;
+`failure_routing` names that lug.
 
 ## What it does not do
 
@@ -57,17 +55,12 @@ yes spends the operator's quota.
 
 ## The one gate removed (260909)
 
-An empty ready-work queue used to be a third refusal, `no_ready_work`. Not
-any more: lug
-`conductor-wakes-the-spoke-rather-than-gating-on-an-empty-ready-queue`, after
-wave `wave-2026-09-09T08-10-04-564Z-lhrpv1` declined a real
-`resets_at_crossed` boundary at 100% headroom and spent a whole open window
-on nothing. Asking "is there ready BUILD work" before waking anyone let that
-measurement veto maintenance work too. `decideWave` now returns
-`launch_kind: "maintenance"`, wakes ONE spoke (`MAINTENANCE_WAKE_MAX_SPOKES`,
-narrower than a build wave), and hands it a `guidance` block stating "no
-build work currently clears the ready bar". Every other gate is untouched;
-the refusal survives behind `requireReadyWork: true` for `waveReview.js`'s
+An empty ready-work queue is no longer a refusal (lug
+`conductor-wakes-the-spoke-rather-than-gating-on-an-empty-ready-queue`, after a
+real boundary at 100% headroom was declined and the window spent on nothing).
+`decideWave` returns `launch_kind: "maintenance"`, wakes ONE spoke
+(`MAINTENANCE_WAKE_MAX_SPOKES`) with guidance "no build work currently clears
+the ready bar"; the refusal survives behind `requireReadyWork: true` for the
 repeat arm. Proof: `conformance/fixtures/conductor-wake-on-empty-ready-queue/`.
 
 ## Wiring
@@ -75,3 +68,6 @@ repeat arm. Proof: `conformance/fixtures/conductor-wake-on-empty-ready-queue/`.
 `runs_on: on_demand` -- no hook binding, no wheel_clock job of its own. Two
 real callers: `advisorAutopilot.js` in session (on the `advisor_activation`
 job) and `scripts/conductor-heartbeat.mjs` out of session.
+
+
+A spoke's ready count is its execute-only count (lug `a-wave-launches-only-for-work-the-drive-will-accept`): `evaluateSpoke` keeps only the ready lugs the drive's own bar accepts, so the wave reason names, per spoke, "N execute-only (k cross-spoke, ...)". Proof: `conformance/fixtures/wave-counts-execute-only/`.
