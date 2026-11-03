@@ -31,7 +31,7 @@
           {
             "type": "command",
             "command": "[ -f \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" ] || exit 0; node \"$CLAUDE_PROJECT_DIR/.harness/current/src/hooks/dispatch.js\" UserPromptSubmit",
-            "timeout": 240
+            "timeout": 300
           }
         ]
       }

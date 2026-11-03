@@ -1,0 +1,46 @@
+kind: circle
+name: build-load-warning
+owner: max
+level: wheel
+status: live
+schema_version: 1
+trigger: >-
+  a real prompt is submitted (UserPromptSubmit), it asks for a build (build,
+  implement, fix, run the suite/tests/gate), and the box is loaded (basher
+  verdict degrade or hold, or load1 above 0.8 x cores, or swap above 75%)
+inputs:
+  - user_prompt
+  - box_hygiene_verdict
+  - box_load_sample
+outputs:
+  - loaded_box_warning_line
+invariants:
+  - >-
+    ONE READER: the loaded-box reading comes from
+    src/factory/boxHygieneReader.js, the same reader hf conduct's gate uses
+    (conductRun.js re-exports hygieneFromSample from it); the thresholds exist
+    once
+  - >-
+    A STALE VERDICT (older than 15 min) FALLS BACK to the hub box-load sample
+    with the same thresholds
+  - 'NO BUILD REQUEST OR NO LOAD INJECTS NOTHING: empty stdout'
+  - >-
+    ONE LINE, NEVER BLOCKS: a single additionalContext line; exit 0 on every
+    path; read-only, no provider call
+failure_routing: lug:a-build-request-on-a-loaded-box-is-warned-and-routed-to-autopilot
+counter_metric: build_prompts_on_loaded_box_without_warning
+enforcement: hook
+depends_on:
+  - capture-direction
+consumers:
+  - external:operator
+interface_version: v1
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/buildLoadWarningHook.js
+conformance: >-
+  conformance/fixtures/loaded-box-build-warning/loaded-box-build-warning.conformance.test.js
+concern: a-build-request-on-a-loaded-box-is-warned-and-routed-to-autopilot
+instructions_ref: reference/circles/build-load-warning.md
+duplicate_of: build-load-warning

@@ -1,0 +1,47 @@
+kind: circle
+name: prompt-interpreter
+owner: ozi
+level: wheel
+status: live
+schema_version: 1
+trigger: a real prompt is submitted (UserPromptSubmit)
+inputs:
+  - user_prompt
+  - prompt_interpreter_config
+outputs:
+  - prompt_interpretation_row
+invariants:
+  - >-
+    ONE ROW PER PROMPT: every prompt appends exactly one row to
+    runtime/prompt-interpretations.jsonl -- intent (a closed set), inferred
+    actions (class information|transformation|effectful, risk low|medium|high),
+    missing information, an enhancement score, normalized text and the would-be
+    one-line reading
+  - >-
+    SHADOW INJECTS NOTHING: in shadow mode stdout is empty and the operator's
+    prompt is untouched; the interpretation sits beside the words, never
+    replaces them
+  - >-
+    A THROWN RULE NEVER BLOCKS: a rule that throws leaves the prompt untouched,
+    writes the one row marked status error, and exits 0
+  - 'RULES ONLY, NO PROVIDER CALL: under 100 ms; push and cut are effectful/high'
+  - >-
+    THE SHADOW WINDOW IS CANON: canon/prompt-interpreter.yaml shadow_days counts
+    from the first row; readShadowWindow gives the scorer shadow_until
+failure_routing: lug:every-prompt-gets-a-shadow-interpretation-for-three-days
+counter_metric: prompts_without_an_interpretation_row
+enforcement: hook
+depends_on:
+  - turn-start-attribution
+consumers:
+  - external:operator (the 'I read this as ...' view, after the shadow window)
+interface_version: v1
+runs_on: hook_event
+hook_event_name: UserPromptSubmit
+hook_matcher: ''
+hook_script: src/hooks/promptInterpreterHook.js
+conformance: >-
+  conformance/fixtures/prompt-interpreter-shadow/prompt-interpreter-shadow.conformance.test.js
+concern: prompt-interpretation-shadow
+instructions_ref: reference/circles/prompt-interpreter.md
+duplicate_of: prompt-interpreter

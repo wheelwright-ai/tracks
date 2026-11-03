@@ -1,7 +1,8 @@
 {
   "ok": true,
   "posture": "absorb_and_report",
-  "version": "6ad2b2b13d5895d437020b3a37f2de2a70fabdfc",
+  "version": "97899dd821c6c1fa615532a9cbbd4fc52291001e",
+  "harness_version": "1.0.0",
   "membership": {
     "ok": true,
     "skipped": false,
@@ -22,7 +23,7 @@
   "previousIncarnationLines": [
     "previous-incarnation tracks: no superseded tree or old hook scripts; 6 retired slash-command string(s) remain in managed files (CLAUDE.md, AGENTS.md, AMBASSADOR_BRIEF.md); the generated briefs now name them as retired, a hand-kept file needs its owner to edit it"
   ],
-  "digest": "sha256:167c4f10664033e79d977fb96a2a0ba1b91a716fdd7f91fb4e686d157e2e2436",
+  "digest": "sha256:1450b0732a0b074bdd42acec3ca0c220258d28d03a31bfafb3316b807c30408e",
   "gitignoreBaseline": {
     "ok": true,
     "changed": false,
@@ -82,15 +83,15 @@
     "gitignore tracks: NEEDS OPERATOR -- runtime/communication-inbox.json is tracked in git and matches the baseline; the harness does not untrack it (git rm --cached is yours to run)",
     "gitignore tracks: NEEDS OPERATOR -- runtime/cross-provider-certifications/p0-bugfix-circle-audit-conversation-track-ingestion.json is tracked in git and matches the baseline; the harness does not untrack it (git rm --cached is yours to run)",
     "gitignore tracks: NEEDS OPERATOR -- runtime/cross-provider-certifications/p0-bugfix-circle-audit-conversation-track-ingestion.runs.jsonl is tracked in git and matches the baseline; the harness does not untrack it (git rm --cached is yours to run)",
-    "gitignore tracks: NEEDS OPERATOR -- 19 more tracked file(s) match the baseline; run: node scripts/gitignore-baseline.js /home/mario/projects/wheelwright/tracks"
+    "gitignore tracks: NEEDS OPERATOR -- 19 more tracked file(s) match the baseline; run: node .harness/current/scripts/gitignore-baseline.js /home/mario/projects/wheelwright/tracks"
   ],
-  "unchanged": true,
+  "unchanged": false,
   "harness": {
-    "version": "6ad2b2b13d5895d437020b3a37f2de2a70fabdfc",
-    "path": "/home/mario/projects/wheelwright/tracks/.harness/6ad2b2b13d5895d437020b3a37f2de2a70fabdfc",
+    "version": "97899dd821c6c1fa615532a9cbbd4fc52291001e",
+    "path": "/home/mario/projects/wheelwright/tracks/.harness/97899dd821c6c1fa615532a9cbbd4fc52291001e",
     "reused": false,
     "pruned": [
-      "db803567b7df28efeaa58e0bf2d504c72e97e61a"
+      "f79d1e22a63fde6a96485c130b26c514dbed2104"
     ]
   },
   "testRunnerFinding": null,
@@ -100,44 +101,8 @@
     "audit": {
       "ok": true,
       "notGitRepo": false,
-      "auditedAt": "2026-11-01T08:10:35.423Z",
+      "auditedAt": "2026-11-03T04:53:19.876Z",
       "findings": [
-        {
-          "path": "canon/circles/conductor-wave-gate.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/conductor-wave-gate.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "canon/circles/conductor-wave-gate.yaml",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/conductor-wave-gate.yaml\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "canon/circles/machine-dispatch-ceiling.md",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/machine-dispatch-ceiling.md\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
-        {
-          "path": "canon/circles/machine-dispatch-ceiling.yaml",
-          "statusCode": " M",
-          "bucket": "LEGITIMATE_CUT_ABSORPTION",
-          "reason": "\"canon/circles/machine-dispatch-ceiling.yaml\" is under a cut-owned path with complete, well-formed content -- a real prior cut's own write",
-          "evidence": {
-            "cutOwnedPath": true
-          }
-        },
         {
           "path": "canon/policies/track-governance.policy.yaml",
           "statusCode": " M",
@@ -203,7 +168,7 @@
         }
       ],
       "summary": {
-        "LEGITIMATE_CUT_ABSORPTION": 4,
+        "LEGITIMATE_CUT_ABSORPTION": 0,
         "ORGANIC_RUNTIME_CHURN": 9,
         "CRASHED_AGENT_ARTIFACTS": 0,
         "UNCLASSIFIABLE": 0
@@ -213,10 +178,6 @@
     "reconciliation": {
       "reverted": [],
       "committed": [
-        "canon/circles/conductor-wave-gate.md",
-        "canon/circles/conductor-wave-gate.yaml",
-        "canon/circles/machine-dispatch-ceiling.md",
-        "canon/circles/machine-dispatch-ceiling.yaml",
         "canon/policies/track-governance.policy.yaml",
         "ledger/ledger.jsonl",
         "runtime/cartographer-map.json",
@@ -227,13 +188,13 @@
         "runtime/wheel-scheduler-state.json",
         "runtime/worktrees.jsonl"
       ],
-      "commit": "1b43e7081d1b4747b7c20a00c55d0df2b0cbc2a3",
+      "commit": "a615534016bdc5235503d420140ed175ca4c533e",
       "blocked": [],
       "credentialBlocked": [],
       "tierHeld": [],
       "retiredGeneration": null,
       "ledgerRowsWritten": [
-        "ldg-arrival-audit-committed-1793520635636-qik7gi"
+        "ldg-arrival-audit-committed-1793681600170-if20qy"
       ]
     },
     "profileSeeding": {
@@ -300,8 +261,10 @@
       "message": "lug \"p0-bugfix-circle-audit-conversation-track-ingestion\" (lugs/p0-bugfix-circle-audit-conversation-track-ingestion.yaml) is review with no assignee (champion) and no watchers (valuator): unowned means unvaluable. Name an advisor in assignee or watchers. (Warning only, for one cycle.)"
     }
   ],
-  "appliedAt": "2026-11-01T08:10:53.731Z",
-  "previous_version": "f79d1e22a63fde6a96485c130b26c514dbed2104",
+  "appliedAt": "2026-11-03T04:53:39.882Z",
+  "previous_version": "6ad2b2b13d5895d437020b3a37f2de2a70fabdfc",
+  "previous_harness_version": null,
+  "harness_version_line": "harness v1.0.0 applied",
   "cut_owned_files": [
     "canon/circles",
     ".claude/settings.json",
@@ -313,7 +276,7 @@
   "generated_docs": [
     {
       "file": "CLAUDE.md",
-      "changed": false,
+      "changed": true,
       "ok": true
     },
     {
