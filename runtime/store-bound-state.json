@@ -673,35 +673,35 @@
       "disclosed_at": null
     },
     "ledger|2026-11-03|wheel-scheduler": {
-      "admitted": 92,
+      "admitted": 121,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-03T00:43:49.652Z",
       "disclosed_at": null
     },
     "ledger|2026-11-03|wheel-clock-catchup": {
-      "admitted": 11,
+      "admitted": 14,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-03T00:46:46.508Z",
       "disclosed_at": null
     },
     "ledger|2026-11-03|guard-denial-reconciliation": {
-      "admitted": 20,
+      "admitted": 32,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-03T01:01:47.436Z",
       "disclosed_at": null
     },
     "ledger|2026-11-03|reconcile-ledger": {
-      "admitted": 8,
+      "admitted": 10,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-03T01:02:57.786Z",
       "disclosed_at": null
     },
     "ledger|2026-11-03|session-exit-commit": {
-      "admitted": 1,
+      "admitted": 2,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-03T03:41:04.458Z",
@@ -709,5 +709,5 @@
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-11-03T03:41:04.458Z"
+  "written_at": "2026-11-03T04:53:04.865Z"
 }

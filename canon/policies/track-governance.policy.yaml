@@ -25,7 +25,7 @@ rule: >-
   merged turn footer (260830-FBL-037, formatMergedTurnFooter +
   buildMergedFooterFields): id-v3 coordinates | local HH:MM | model |
   framework version | turn cost (real tokens or the literal word
-  "unmeasured") | open: N. Absorbed from v1's own AI1_footer_mandatory
+  "unmeasured") | review: N (lugs at state review). Absorbed from v1's own AI1_footer_mandatory
   ("a values violation, not a formatting choice," Design Inputs
   Register, 260829-FBL-027/037) -- v1's session+turn fields collapse
   into the one real id-v3 coordinate; v1's "Gold" slot is reborn
