@@ -706,8 +706,22 @@
       "cap": 2000,
       "first_seen": "2026-11-03T03:41:04.458Z",
       "disclosed_at": null
+    },
+    "ledger|2026-11-03|harness-arrival-audit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-03T04:53:20.227Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-03|claude": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-03T04:54:05.351Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-11-03T04:53:04.865Z"
+  "written_at": "2026-11-03T04:54:05.352Z"
 }
