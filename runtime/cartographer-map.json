@@ -1,7 +1,7 @@
 {
   "engine": "builtin",
-  "generated_at": "2026-11-02T21:35:11.181Z",
-  "duration_ms": 131,
+  "generated_at": "2026-11-03T03:32:42.944Z",
+  "duration_ms": 141,
   "areas": [
     {
       "area": "advisor",
@@ -1689,11 +1689,11 @@
       "implementing_files": [
         {
           "path": "src/conductor/communicationInbox.js",
-          "hash": "7ccb6cb2d2cb0574"
+          "hash": "f80150c62740debb"
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "f51e56dd36725632"
+          "hash": "9cef64c1b35da2f5"
         },
         {
           "path": "src/conductor/goalsReview.js",
@@ -1744,7 +1744,7 @@
       "implementing_files": [
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "f51e56dd36725632"
+          "hash": "9cef64c1b35da2f5"
         }
       ],
       "test": "conformance/fixtures/harness-factory-leverage-routing/harness-factory-leverage-routing.conformance.test.js",
@@ -2227,7 +2227,7 @@
       "implementing_files": [
         {
           "path": "src/hooks/definitionCompleteGateHook.js",
-          "hash": "ececcf72e5f44b94"
+          "hash": "d6ccb71f254455c2"
         },
         {
           "path": "src/compiler/generate.js",
@@ -2964,7 +2964,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "f51e56dd36725632"
+          "hash": "9cef64c1b35da2f5"
         },
         {
           "path": "src/lugTracking/lugVerb.js",
@@ -3106,7 +3106,7 @@
         },
         {
           "path": "src/basher/wcl.js",
-          "hash": "614968f659624314"
+          "hash": "1ef9314947d85871"
         },
         {
           "path": "src/basher/idleWatchdog.js",
@@ -3785,7 +3785,7 @@
       "implementing_files": [
         {
           "path": "src/hooks/oversizedCanonWriteGuardHook.js",
-          "hash": "f7ee57172412bca1"
+          "hash": "de4d35622bca9442"
         },
         {
           "path": "src/compiler/oversizedWriteCheck.js",
@@ -3910,7 +3910,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "f51e56dd36725632"
+          "hash": "9cef64c1b35da2f5"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -4038,7 +4038,7 @@
       "implementing_files": [
         {
           "path": "src/hooks/preCompactCheckpointHook.js",
-          "hash": "7d76bbbe7ca6a436"
+          "hash": "9397e17f030ee1b2"
         },
         {
           "path": "src/lugTracking/activeLug.js",
@@ -4585,7 +4585,7 @@
         },
         {
           "path": "src/compiler/rules/index.js",
-          "hash": "54d6d6b8f6bb35d7"
+          "hash": "57f17c2fe4840069"
         },
         {
           "path": "src/factory/testBoundaryGate.js",
@@ -4656,7 +4656,7 @@
         },
         {
           "path": "src/compiler/rules/index.js",
-          "hash": "54d6d6b8f6bb35d7"
+          "hash": "57f17c2fe4840069"
         },
         {
           "path": "src/lugTracking/sessionCheckpoint.js",
@@ -4887,7 +4887,7 @@
       "implementing_files": [
         {
           "path": "src/hooks/sessionCheckpointHook.js",
-          "hash": "f49dc13b92d18a02"
+          "hash": "3786d13e435549b7"
         },
         {
           "path": "src/lugTracking/sessionCheckpoint.js",
@@ -4928,7 +4928,7 @@
       "implementing_files": [
         {
           "path": "src/hooks/sessionEndHandoffHook.js",
-          "hash": "58108103173da1f1"
+          "hash": "33455eb77ab17fb5"
         },
         {
           "path": "src/identity/sessionTriple.js",
@@ -5088,7 +5088,7 @@
         },
         {
           "path": "src/basher/wcl.js",
-          "hash": "614968f659624314"
+          "hash": "1ef9314947d85871"
         },
         {
           "path": "src/factory/testBoundaryGate.js",
@@ -5895,7 +5895,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "f51e56dd36725632"
+          "hash": "9cef64c1b35da2f5"
         },
         {
           "path": "src/conductor/conductor.js",
@@ -5944,7 +5944,7 @@
         },
         {
           "path": "src/basher/wclEntry.js",
-          "hash": "d4c80587651f7722"
+          "hash": "a36543d91bc92c77"
         },
         {
           "path": "src/compiler/generate.js",
@@ -5974,7 +5974,7 @@
       "implementing_files": [
         {
           "path": "src/basher/wcl.js",
-          "hash": "614968f659624314"
+          "hash": "1ef9314947d85871"
         },
         {
           "path": "src/basher/wclCli.js",
@@ -6127,7 +6127,7 @@
         },
         {
           "path": "src/conductor/readyWork.js",
-          "hash": "f51e56dd36725632"
+          "hash": "9cef64c1b35da2f5"
         },
         {
           "path": "src/compiler/rules/11-no-oversized-file.js",
@@ -6735,6 +6735,26 @@
         }
       ],
       "found": true
+    },
+    {
+      "rule": "31-change-ask-without-justification",
+      "implementing_files": [
+        {
+          "path": "src/compiler/rules/31-change-ask-without-justification.js",
+          "hash": "c930c0069c22966f"
+        }
+      ],
+      "found": true
+    },
+    {
+      "rule": "32-spoke-lug-that-only-changes-harness-code",
+      "implementing_files": [
+        {
+          "path": "src/compiler/rules/32-spoke-lug-that-only-changes-harness-code.js",
+          "hash": "f8f6d11c13030ba2"
+        }
+      ],
+      "found": true
     }
   ],
   "advisors": [],
@@ -6856,6 +6876,10 @@
       "lug": "hub-hosts-an-approach-pattern-library-that-ozi-advocates-or-innovates-against"
     },
     {
+      "test": "conformance/fixtures/arc-survives-compaction/arc-survives-compaction.conformance.test.js",
+      "lug": "agent-written-arc-record-carried-across-compaction-and-exit"
+    },
+    {
       "test": "conformance/fixtures/ask-becomes-hf-lug-on-arrival/ask-becomes-hf-lug-on-arrival.conformance.test.js",
       "lug": "an-ask-to-harness-factory-becomes-a-harness-factory-lug-on-arrival"
     },
@@ -6878,6 +6902,10 @@
     {
       "test": "conformance/fixtures/assayer-gate-by-default/assayer-gate-by-default.conformance.test.js",
       "lug": "assayer-is-qa-with-its-gate-on-by-default-on-a-running-provider"
+    },
+    {
+      "test": "conformance/fixtures/assayer-resume-synopsis-skips-a-focus-taken-from-the-assistants-own-reply/resume-synopsis-skips-a-focus-taken-from-the-assistants-own-reply.assayer.test.js",
+      "lug": "resume-synopsis-skips-a-focus-taken-from-the-assistants-own-reply"
     },
     {
       "test": "conformance/fixtures/assayer-signal-inbox-processing/signal-inbox-processing.assayer.test.js",
@@ -7408,6 +7436,10 @@
       "lug": "a-spoke-session-never-edits-another-repos-canonical-checkout"
     },
     {
+      "test": "conformance/fixtures/cross-spoke-ask-carries-justification/cross-spoke-ask-carries-justification.conformance.test.js",
+      "lug": "a-cross-spoke-ask-for-a-patch-carries-its-benefit-cost-and-can-wait"
+    },
+    {
       "test": "conformance/fixtures/cross-spoke-driver/cross-spoke-driver.conformance.test.js",
       "lug": "hub-drives-initiative-steps-across-spokes-with-an-assertion-ratchet"
     },
@@ -7444,6 +7476,10 @@
       "lug": "cut-lands-with-a-spoke-test-runner-ignore-for-the-harness-dir"
     },
     {
+      "test": "conformance/fixtures/cut-owned-edit-holds-its-own-spoke/cut-owned-edit-holds-its-own-spoke.conformance.test.js",
+      "lug": "a-cut-owned-file-edit-holds-only-its-own-spoke-and-files-the-upstream-lug"
+    },
+    {
       "test": "conformance/fixtures/cut-promotion-report-class/cut-promotion-report-class.conformance.test.js",
       "lug": "cut-promotion-rolls-back-on-hygiene-rules-the-launcher-already-classifies-as-report"
     },
@@ -7470,6 +7506,10 @@
     {
       "test": "conformance/fixtures/default-forward-veto-ledger/default-forward-veto-ledger.conformance.test.js",
       "lug": "default-forward-acts-have-no-rollback-and-veto-ledger"
+    },
+    {
+      "test": "conformance/fixtures/definition-gate-resolves-from-repo-root/definition-gate-resolves-from-repo-root.conformance.test.js",
+      "lug": "definition-complete-gate-resolves-pointers-from-the-lugs-repo-root"
     },
     {
       "test": "conformance/fixtures/deploy-waits-for-the-basher-receipt/deploy-waits-for-the-basher-receipt.conformance.test.js",
@@ -7886,6 +7926,10 @@
     {
       "test": "conformance/fixtures/harness-arrival-audit/harness-arrival-audit.conformance.test.js",
       "lug": "harness-arrival-audit-and-clean-spoke-on-cut-apply"
+    },
+    {
+      "test": "conformance/fixtures/harness-code-lug-filed-in-wrong-spoke/harness-code-lug-filed-in-wrong-spoke.conformance.test.js",
+      "lug": "a-spoke-lug-that-only-changes-harness-code-is-flagged-at-filing"
     },
     {
       "test": "conformance/fixtures/harness-code-lugs-move-home/harness-code-lugs-move-home.conformance.test.js",
@@ -8430,6 +8474,10 @@
     {
       "test": "conformance/fixtures/position-map/position-map.conformance.test.js",
       "lug": "absorb-mywheel-spoke-position-map"
+    },
+    {
+      "test": "conformance/fixtures/prep-lane-refills-the-queue/prep-lane-refills-the-queue.conformance.test.js",
+      "lug": "autopilot-prep-lane-writes-the-fixture-and-moves-a-lug-to-ready"
     },
     {
       "test": "conformance/fixtures/previous-incarnation/previous-incarnation.conformance.test.js",
@@ -9635,11 +9683,11 @@
     },
     {
       "path": "src/conductor/communicationInbox.js",
-      "hash": "7ccb6cb2d2cb0574"
+      "hash": "f80150c62740debb"
     },
     {
       "path": "src/conductor/readyWork.js",
-      "hash": "f51e56dd36725632"
+      "hash": "9cef64c1b35da2f5"
     },
     {
       "path": "src/otto/wheelClockDeclaration.js",
@@ -9727,7 +9775,7 @@
     },
     {
       "path": "src/hooks/definitionCompleteGateHook.js",
-      "hash": "ececcf72e5f44b94"
+      "hash": "d6ccb71f254455c2"
     },
     {
       "path": "src/compiler/generate.js",
@@ -9875,7 +9923,7 @@
     },
     {
       "path": "src/basher/wcl.js",
-      "hash": "614968f659624314"
+      "hash": "1ef9314947d85871"
     },
     {
       "path": "src/lugTracking/lugIntegrity.js",
@@ -10003,7 +10051,7 @@
     },
     {
       "path": "src/hooks/oversizedCanonWriteGuardHook.js",
-      "hash": "f7ee57172412bca1"
+      "hash": "de4d35622bca9442"
     },
     {
       "path": "src/compiler/oversizedWriteCheck.js",
@@ -10027,7 +10075,7 @@
     },
     {
       "path": "src/hooks/preCompactCheckpointHook.js",
-      "hash": "7d76bbbe7ca6a436"
+      "hash": "9397e17f030ee1b2"
     },
     {
       "path": "src/advisor/activeAdvisor.js",
@@ -10135,7 +10183,7 @@
     },
     {
       "path": "src/compiler/rules/index.js",
-      "hash": "54d6d6b8f6bb35d7"
+      "hash": "57f17c2fe4840069"
     },
     {
       "path": "scripts/acknowledge-live-state.js",
@@ -10187,7 +10235,7 @@
     },
     {
       "path": "src/hooks/sessionCheckpointHook.js",
-      "hash": "f49dc13b92d18a02"
+      "hash": "3786d13e435549b7"
     },
     {
       "path": "src/sessionRecord/lastSessionSection.js",
@@ -10199,7 +10247,7 @@
     },
     {
       "path": "src/hooks/sessionEndHandoffHook.js",
-      "hash": "58108103173da1f1"
+      "hash": "33455eb77ab17fb5"
     },
     {
       "path": "src/hooks/sessionEndNotifyHook.js",
@@ -10343,7 +10391,7 @@
     },
     {
       "path": "src/basher/wclEntry.js",
-      "hash": "d4c80587651f7722"
+      "hash": "a36543d91bc92c77"
     },
     {
       "path": "src/basher/wclCli.js",
@@ -10504,9 +10552,15 @@
     {
       "path": "src/compiler/rules/30-initiative-without-projected-impact.js",
       "hash": "891418906a4bcbd4"
+    },
+    {
+      "path": "src/compiler/rules/31-change-ask-without-justification.js",
+      "hash": "c930c0069c22966f"
+    },
+    {
+      "path": "src/compiler/rules/32-spoke-lug-that-only-changes-harness-code.js",
+      "hash": "f8f6d11c13030ba2"
     }
   ],
-  "changed_since_last_map": [
-    "src/basher/wclEntry.js"
-  ]
+  "changed_since_last_map": []
 }

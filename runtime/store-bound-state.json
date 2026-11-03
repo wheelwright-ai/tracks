@@ -631,48 +631,83 @@
       "disclosed_at": null
     },
     "ledger|2026-11-02|wheel-scheduler": {
-      "admitted": 587,
+      "admitted": 635,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-02T00:11:44.194Z",
       "disclosed_at": null
     },
     "ledger|2026-11-02|reconcile-ledger": {
-      "admitted": 50,
+      "admitted": 54,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-02T00:14:50.102Z",
       "disclosed_at": null
     },
     "ledger|2026-11-02|wheel-clock-catchup": {
-      "admitted": 68,
+      "admitted": 74,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-02T00:15:22.351Z",
       "disclosed_at": null
     },
     "ledger|2026-11-02|guard-denial-reconciliation": {
-      "admitted": 100,
+      "admitted": 108,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-02T00:31:40.014Z",
       "disclosed_at": null
     },
     "ledger|2026-11-02|ozi": {
-      "admitted": 9,
+      "admitted": 12,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-02T02:36:22.991Z",
       "disclosed_at": null
     },
     "ledger|2026-11-02|session-exit-commit": {
-      "admitted": 2,
+      "admitted": 3,
       "refused": 0,
       "cap": 2000,
       "first_seen": "2026-11-02T08:48:03.964Z",
       "disclosed_at": null
+    },
+    "ledger|2026-11-03|wheel-scheduler": {
+      "admitted": 92,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-03T00:43:49.652Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-03|wheel-clock-catchup": {
+      "admitted": 11,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-03T00:46:46.508Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-03|guard-denial-reconciliation": {
+      "admitted": 20,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-03T01:01:47.436Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-03|reconcile-ledger": {
+      "admitted": 8,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-03T01:02:57.786Z",
+      "disclosed_at": null
+    },
+    "ledger|2026-11-03|session-exit-commit": {
+      "admitted": 1,
+      "refused": 0,
+      "cap": 2000,
+      "first_seen": "2026-11-03T03:41:04.458Z",
+      "disclosed_at": null
     }
   },
   "kind": "store_bound_state",
-  "written_at": "2026-11-02T22:21:49.542Z"
+  "written_at": "2026-11-03T03:41:04.458Z"
 }
