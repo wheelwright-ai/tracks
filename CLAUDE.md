@@ -23,13 +23,14 @@ Retired slash commands -- never recommend these:
 ## Live policies (1)
 - **track-governance**: Every real session produces exactly one Track artifact (runtime/tracks/ <session_id>.track.json), wr...
 
-## Live circles (100)
+## Live circles (102)
 - **agent-dispatch-record** (hook_event): an Agent-tool call is about to run
 - **agent-target-scope-guard** (hook_event): a Write, Edit, NotebookEdit or Bash call is about to run from inside a dispatched Agent-tool fork
 - **agent-tool-scope-guard** (hook_event): an Agent-tool call is about to run, or a dispatched fork reaches for a write
 - **anthropic-rate-limit-five-hour-envelope** (on_demand): a caller asks for the account's real five-hour rate-limit headroom -- detectWindowStart on every wave decision and every heartbeat tick (measureAnthropicRateLimitUsage), or a caller running enforceAnthropicRateLimitEnvelope to write the measured value back onto the Envelope row
 - **bash-destructive-command-guard** (hook_event): a Bash command is about to run
 - **bash-lug-guard** (hook_event): a Bash command is about to run
+- **build-load-warning** (hook_event): a real prompt is submitted (UserPromptSubmit), it asks for a build (build, implement, fix, run the suite/tests/gate), and the box is loaded (basher verdict degrade or hold, or load1 above 0.8 x cores, or swap above 75%)
 - **calibration-record** (on_demand): an operator or agent asks what a named heuristic's real error rate is
 - **capture-direction** (hook_event): user submits a prompt containing a standing-rule marker phrase
 - **cartographer** (schedule): the wheel-scheduler's cartographer_map job, on its declared cadence
@@ -84,6 +85,7 @@ Retired slash commands -- never recommend these:
 - **planner-cross-segment-ranking** (schedule): every wheel_clock planner_cycle job -- runPlannerCycle -> buildPlannerCycle -> rankCrossSegment (src/planner/planner.js), reading canon/initiatives/ live on each cycle
 - **planner-cycle-allocation** (schedule): wheel_clock job planner_cycle (canon/otto.advisor.yaml), declared FIRST so it fires before every other scheduled job
 - **precompact-checkpoint** (hook_event): a real context compaction is about to happen (PreCompact event, manual or auto)
+- **prompt-interpreter** (hook_event): a real prompt is submitted (UserPromptSubmit)
 - **provider-usage-and-retry** (on_demand): any provider call is made through src/advisor/providerContract.js's callProvider -- every caller: proofer.js (the cross-provider certification path), machineProbe.js, and any script or fixture that calls it directly
 - **raw-session-snapshot-end** (hook_event): a real session ends (SessionEnd event): the closing snapshot of the raw log after the last Stop
 - **raw-session-snapshot-stop** (hook_event): a turn ends (Stop event); the same body also runs at SessionEnd (raw-session-snapshot-end) and as the wheel-clock job rawSnapshotCatchup
