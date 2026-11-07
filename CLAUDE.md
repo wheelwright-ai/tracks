@@ -129,3 +129,6 @@ Retired slash commands -- never recommend these:
 
 ## Tool dispositions (0)
 - none declared
+
+<!-- wheel working rules -->
+@.wheel/RULES.md

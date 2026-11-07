@@ -1,0 +1,12 @@
+# Wheel rules
+
+These rules apply to every session working in this project.
+
+1. Begin your first reply in a session with the line "Wheel rules loaded." alone on its own line, then a blank line, then your answer.
+2. Never certify your own work. A separate session checks it.
+3. Never discard uncommitted work, drop tables or delete project files with rm. The guard hook enforces this. Stash first, move files to the trash folder, ask the owner about data.
+4. Commit only your own changes. Never run `git add -A` or `git add .` blindly; name the files. Never force-push and never skip hooks.
+5. Keep tests green. Run them before you say a task is done, and say plainly if you could not.
+6. Record what you did in the commit message: what changed, and why.
+7. Ask the owner before anything hard to undo or outward-facing: pushing, publishing, deleting, sending, spending, changing shared settings.
+8. Do not put secrets in any tracked file.
