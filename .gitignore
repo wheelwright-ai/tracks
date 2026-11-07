@@ -65,3 +65,9 @@ secrets.json
 .wheel/tracks/
 
 .wheel/checkpoints/
+.harness/
+WAI-Spoke/
+runtime/
+ledger/
+lugs/
+AMBASSADOR_BRIEF.md
