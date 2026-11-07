@@ -2,7 +2,7 @@ kind: lug
 name: receipt-untracked-hook-capture-logs-tracks
 owner: otto
 schema_version: 1
-state: defined
+state: closed
 priority: medium
 estimate: 5m
 executor: claude
@@ -28,3 +28,11 @@ next_action: >-
   Ask receipt-untracked-hook-capture-logs-tracks from basher arrived; define the
   fixture for each acceptance line, then build.
 requested_by: basher
+closure:
+  reason: obsolete
+  note: >-
+    merged into basher/receipt-untracked-hook-capture-logs-tracks: that lug
+    already covers this work (policy lug-home); linked, not duplicated
+  from_state: defined
+  at: '2026-11-03T20:29:55.355Z'
+  by: 43c9bc93-3830-425c-a285-c9972c12c17e

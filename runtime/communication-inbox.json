@@ -2,7 +2,7 @@
   "kind": "communication_inbox_record",
   "trigger": "wheel_clock",
   "session_id": null,
-  "read_at": "2026-11-03T04:52:55.114Z",
+  "read_at": "2026-11-06T09:05:13.782Z",
   "spoke": {
     "name": "tracks",
     "source": "canon/profile.yaml"
@@ -12,6 +12,11 @@
       "name": "wheel-hub",
       "root": "/home/mario/projects/wheelwright/wheel-hub",
       "source": "hub root"
+    },
+    {
+      "name": "basher-engine",
+      "root": "/home/mario/projects/wheelwright/basher",
+      "source": "hub canon/basher-engine.spoke.yaml"
     },
     {
       "name": "basher",
@@ -84,7 +89,7 @@
       "source": ".local/known-repos.json"
     }
   ],
-  "files_read": 3660,
+  "files_read": 4995,
   "unreadable": [],
   "open": [],
   "absorbed": [
@@ -101,7 +106,21 @@
       "into": "receipt-untracked-hook-capture-logs-tracks",
       "by": "ask-intake",
       "at": "2026-10-31T01:31:31.111Z"
+    },
+    {
+      "name": "ask-tracks-about-harness-factory-track-is-generated-from-the-raw-log-with-said-and-considered",
+      "from_spoke": "harness-factory",
+      "into": "ask-tracks-about-harness-factory-track-is-generated-from-the-raw-log-with-said-and-conside",
+      "by": "ask-intake",
+      "at": "2026-11-03T20:45:21.269Z"
+    },
+    {
+      "name": "tracks-p0-ack-ask-harness-factory-about-tracks-p0-bugfix-circle-audit-conversation-track-ingestion",
+      "from_spoke": "harness-factory",
+      "into": "tracks-p0-ack-ask-harness-factory-about-tracks-p0-bugfix-circle-audit-conversation-track-i",
+      "by": "ask-intake",
+      "at": "2026-11-03T20:45:21.200Z"
     }
   ],
-  "digest": "COMMUNICATION INBOX (tracks): 0 open request(s); 2 absorbed into a lug (refine-tracks-backlog-to-execute-only -> refine-tracks-backlog-to-execute-only; receipt-untracked-hook-capture-logs-tracks -> receipt-untracked-hook-capture-logs-tracks)"
+  "digest": "COMMUNICATION INBOX (tracks): 0 open request(s); 4 absorbed into a lug (refine-tracks-backlog-to-execute-only -> refine-tracks-backlog-to-execute-only; receipt-untracked-hook-capture-logs-tracks -> receipt-untracked-hook-capture-logs-tracks; ask-tracks-about-harness-factory-track-is-generated-from-the-raw-log-with-said-and-considered -> ask-tracks-about-harness-factory-track-is-generated-from-the-raw-log-with-said-and-conside; +1 more)"
 }

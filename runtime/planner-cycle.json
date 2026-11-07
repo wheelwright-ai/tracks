@@ -2,11 +2,11 @@
   "kind": "planner_cycle",
   "schema_version": 2,
   "instance_root": "/home/mario/projects/wheelwright/tracks",
-  "computed_at": "2026-11-03T04:51:34.953Z",
+  "computed_at": "2026-11-06T09:03:33.744Z",
   "max_age_ms": 18000000,
   "allocation": {
     "instance_root": "/home/mario/projects/wheelwright/tracks",
-    "computed_at": "2026-11-03T04:51:34.953Z",
+    "computed_at": "2026-11-06T09:03:33.744Z",
     "max_age_ms": 18000000,
     "refused": false,
     "refusal_reason": null,
@@ -26,10 +26,10 @@
       "by_advisor": {
         "kb-curator": 81,
         "otto": 95,
-        "ozi": 32
+        "ozi": 135
       },
-      "total": 208,
-      "rows_read": 208,
+      "total": 311,
+      "rows_read": 311,
       "duplicate_rows_discarded": 0
     },
     "zero_share_advisors": [],
@@ -58,9 +58,54 @@
     "remaining_build_rows": 0,
     "statement": "initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it."
   },
-  "operator_queue": [],
-  "operator_queue_length": 0,
-  "operator_queue_rule": "operator_queue: one row per lug no autopilot run can advance, each class read from its own real source (docs/planner-operator-queue.md); ranked by unblocked weight (lugs whose lugEdges.js chain reaches the row's lug: lineage descendants + dependency associations), ties by operator-declared priority, then lug name. Classes emitted (3/6): operator_ruling=0, permission_denied_cleanup=0, canon_decision=0; plus ap_queue_gate_closed=0 moved out of the AP queue by the planner (sweep gate closed). NOT emitted -- no source stream on this instance: certification_adjudication (no runtime/readiness-sweep.jsonl on this instance -- no readiness sweep has run here); spoke_side_debt (this instance registers no canon/*.spoke.yaml, so there is no spoke cut status to read); definition_needed (no canon/initiatives/ on this instance, so no lug carries an initiative sequence rank). permission_denied_cleanup: 0 open guard refusal row(s), 0 of them a cleanup command, 0 naming a live lug; only the harness's own guards write a ledger row; Claude Code's permission classifier writes none anywhere the harness reads, so a classifier denial is unmeasured here until a row exists for it. A row leaves only when its source condition is gone on a later cycle; a lug blocked in two classes carries two rows.",
+  "operator_queue": [
+    {
+      "lug": "agent-principles-are-enforced-policies-and-tastes-are-for-communication",
+      "state": "initiative",
+      "priority": null,
+      "unblocks": [],
+      "weight": 0,
+      "blocker_class": "done_looks_like_needed",
+      "evidence": "initiative agent-principles-are-enforced-policies-and-tastes-are-for-communication has no done_looks_like and nothing of it has landed; no build is dispatched for it",
+      "action": "ask the operator: what will you see or do when this is done? -- record the answer as done_looks_like on canon/initiatives/agent-principles-are-enforced-policies-and-tastes-are-for-communication.initiative.yaml",
+      "rank": 0
+    },
+    {
+      "lug": "design-intelligence-hub-master-spoke-overlay",
+      "state": "initiative",
+      "priority": null,
+      "unblocks": [],
+      "weight": 0,
+      "blocker_class": "done_looks_like_needed",
+      "evidence": "initiative design-intelligence-hub-master-spoke-overlay has no done_looks_like and nothing of it has landed; no build is dispatched for it",
+      "action": "ask the operator: what will you see or do when this is done? -- record the answer as done_looks_like on canon/initiatives/design-intelligence-hub-master-spoke-overlay.initiative.yaml",
+      "rank": 1
+    },
+    {
+      "lug": "tastegraph-learns-from-humanizer-and-operator-ratings",
+      "state": "initiative",
+      "priority": null,
+      "unblocks": [],
+      "weight": 0,
+      "blocker_class": "done_looks_like_needed",
+      "evidence": "initiative tastegraph-learns-from-humanizer-and-operator-ratings has no done_looks_like and nothing of it has landed; no build is dispatched for it",
+      "action": "ask the operator: what will you see or do when this is done? -- record the answer as done_looks_like on canon/initiatives/tastegraph-learns-from-humanizer-and-operator-ratings.initiative.yaml",
+      "rank": 2
+    },
+    {
+      "lug": "wheel-reaches-deploys-and-initializes-spokes-on-every-machine",
+      "state": "initiative",
+      "priority": null,
+      "unblocks": [],
+      "weight": 0,
+      "blocker_class": "done_looks_like_needed",
+      "evidence": "initiative wheel-reaches-deploys-and-initializes-spokes-on-every-machine has no done_looks_like and nothing of it has landed; no build is dispatched for it",
+      "action": "ask the operator: what will you see or do when this is done? -- record the answer as done_looks_like on canon/initiatives/wheel-reaches-deploys-and-initializes-spokes-on-every-machine.initiative.yaml",
+      "rank": 3
+    }
+  ],
+  "operator_queue_length": 4,
+  "operator_queue_rule": "operator_queue: one row per lug no autopilot run can advance, each class read from its own real source (docs/planner-operator-queue.md); ranked by unblocked weight (lugs whose lugEdges.js chain reaches the row's lug: lineage descendants + dependency associations), ties by operator-declared priority, then lug name. Classes emitted (4/6): operator_ruling=0, certification_adjudication=0, permission_denied_cleanup=0, canon_decision=0; plus ap_queue_gate_closed=0 moved out of the AP queue by the planner (sweep gate closed). NOT emitted -- no source stream on this instance: spoke_side_debt (this instance registers no canon/*.spoke.yaml, so there is no spoke cut status to read); definition_needed (no canon/initiatives/ on this instance, so no lug carries an initiative sequence rank). permission_denied_cleanup: 0 open guard refusal row(s), 0 of them a cleanup command, 0 naming a live lug; only the harness's own guards write a ledger row; Claude Code's permission classifier writes none anywhere the harness reads, so a classifier denial is unmeasured here until a row exists for it. A row leaves only when its source condition is gone on a later cycle; a lug blocked in two classes carries two rows.",
   "operator_queue_sources": {
     "operator_ruling": {
       "present": true,
@@ -68,8 +113,9 @@
       "rows": 0
     },
     "certification_adjudication": {
-      "present": false,
-      "source": "runtime/readiness-sweep.jsonl",
+      "present": true,
+      "source": "runtime/readiness-sweep.jsonl last row per lug",
+      "lugs_with_rows": 1,
       "rows": 0
     },
     "permission_denied_cleanup": {
@@ -93,7 +139,7 @@
     "canon_decision": {
       "present": true,
       "source": "lug pointers naming a file rule 11 measures (loadCanon entity files + instructions_ref), measured by src/compiler/rules/11-no-oversized-file.js measureCanonContent; at cap = headroom < 30 (docs/done-transition-appends-push-near-cap-lugs-over-rule-11.md: the smallest real machine append measured at ~20-30 tokens; a file with less headroom than that cannot take one addition without a split)",
-      "files_under_cap": 205,
+      "files_under_cap": 212,
       "files_measured": 0,
       "files_at_cap": [],
       "rows": 0
@@ -102,6 +148,16 @@
       "present": true,
       "source": "readyWork.js build rows whose last runtime/readiness-sweep.jsonl row is refused_by a gate (moved out of the AP queue by buildPlannerCycle)",
       "handed_in": 0,
+      "rows": 0
+    },
+    "done_looks_like_needed": {
+      "present": true,
+      "source": "canon/initiatives/*.initiative.yaml done_looks_like (live initiatives with no landed lug)",
+      "rows": 4
+    },
+    "done_contradicts_non_goal": {
+      "present": true,
+      "source": "canon/initiatives/*.initiative.yaml done_looks_like vs non_goals",
       "rows": 0
     }
   },
@@ -375,7 +431,7 @@
     "circle_audit": {
       "present": true,
       "source": "auditCircles",
-      "closed": 100,
+      "closed": 71,
       "open": 0,
       "phantom": 0,
       "excluded": 0,
@@ -412,8 +468,8 @@
       "source": "git status --porcelain",
       "retirement": 0,
       "v2_proposed": 0,
-      "other_tracked": 8,
-      "untracked": 0,
+      "other_tracked": 11,
+      "untracked": 3,
       "rows": 0
     },
     "stale_branch": {
@@ -437,14 +493,14 @@
     },
     "ledger_bytes": {
       "present": true,
-      "bytes": 4621141,
+      "bytes": 6863399,
       "cap_bytes": 48000000,
-      "fraction_of_cap": 0.096,
+      "fraction_of_cap": 0.143,
       "source": "/home/mario/projects/wheelwright/harness-factory/canon/policies/ledger-retention.policy.yaml",
       "rows": 0
     }
   },
   "moved_to_operator_queue": [],
-  "moved_to_operator_queue_source": "no runtime/readiness-sweep.jsonl on this instance -- no build row can be judged gate-closed (unmeasured, nothing moved)",
-  "disclosure": "0 queue row(s) in ONE ranked order (initiative_membership_first): 0 initiative row(s) first (0 build, 0 maintain), then 0 non-initiative build row(s) (ranked, unpriced) and 0 non-initiative maintain row(s) (priced). initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it. no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal. OPERATOR QUEUE: 0 row(s) the machine cannot advance (see operator_queue_rule). AP QUEUE: 2 row(s) interleaved by deficit_against_declared_floors against floors initiative_build=0.5, build=0.1, maintain=0.15, health=0.15, inbox=0.1 (operator_confirmed_260914; /home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml) over 1 measured at-bat(s) (initiative_build=0, build=1, maintain=0, inbox=0; health unmeasured, at par); shortfall proportional_to_remaining_floors: released initiative_build=1.00 slot(s) from slot 0, build=0.20 slot(s) from slot 0, maintain=0.30 slot(s) from slot 0, inbox=0.20 slot(s) from slot 0; received health=1.70 slot(s) (+0.850 share at slot 0); class mix initiative_build=0, build=0, maintain=0, health=2, inbox=0. health: 2 row(s) from 8/9 signal(s) present (circle_audit=0, cut_status=0, commits_ahead=0, stale_worktree=0, dirty_tree=0, stale_branch=0, miss_backlog=2, ledger_bytes=0); absent, nothing emitted: ratchet_red_suite (no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here)."
+  "moved_to_operator_queue_source": "runtime/readiness-sweep.jsonl last row per lug: disposition != done and refused_by names a gate",
+  "disclosure": "0 queue row(s) in ONE ranked order (initiative_membership_first): 0 initiative row(s) first (0 build, 0 maintain), then 0 non-initiative build row(s) (ranked, unpriced) and 0 non-initiative maintain row(s) (priced). initiative work takes the top of the queue: 0 build row(s) and 0 maintain row(s) holding 0.0000 of the wheel runtime; the remaining capacity -- 0 build slot(s) and 0 of the wheel runtime -- goes to non-initiative work. Floors (0) were reserved off the top before ranking and no share was moved by it. no allocation to make: this instance's roster has 0 advisor file(s) and NONE is allocatable (live + a real autopilot_budget_ms). Every exclusion is named in roster.excluded. This is a real measurement, not a refusal. OPERATOR QUEUE: 4 row(s) the machine cannot advance (see operator_queue_rule). AP QUEUE: 2 row(s) interleaved by deficit_against_declared_floors against floors initiative_build=0.5, build=0.1, maintain=0.15, health=0.15, inbox=0.1 (operator_confirmed_260914; /home/mario/projects/wheelwright/harness-factory/canon/policies/planner-class-floors.policy.yaml) over 1 measured at-bat(s) (initiative_build=0, build=1, maintain=0, inbox=0; health unmeasured, at par); shortfall proportional_to_remaining_floors: released initiative_build=1.00 slot(s) from slot 0, build=0.20 slot(s) from slot 0, maintain=0.30 slot(s) from slot 0, inbox=0.20 slot(s) from slot 0; received health=1.70 slot(s) (+0.850 share at slot 0); class mix initiative_build=0, build=0, maintain=0, health=2, inbox=0. health: 2 row(s) from 8/9 signal(s) present (circle_audit=0, cut_status=0, commits_ahead=0, stale_worktree=0, dirty_tree=0, stale_branch=0, miss_backlog=2, ledger_bytes=0); absent, nothing emitted: ratchet_red_suite (no readable runtime/test-ratchet.json on this instance -- the gate has not baselined a run here)."
 }
