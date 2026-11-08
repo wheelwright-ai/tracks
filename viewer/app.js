@@ -48,6 +48,8 @@ const elements = {
   trackMeta: document.querySelector("#track-meta"),
   detailView: document.querySelector("#detail-view"),
   detailTag: document.querySelector("#detail-tag"),
+  trackDigest: document.querySelector("#track-digest"),
+  dropOverlay: document.querySelector("#drop-overlay"),
   prevPoint: document.querySelector("#prev-point"),
   nextPoint: document.querySelector("#next-point"),
 };
@@ -527,6 +529,47 @@ function renderDetail() {
   `;
 }
 
+function renderDigest() {
+  if (!state.track) {
+    elements.trackDigest.innerHTML =
+      '<div class="empty-state">Load a Track to see its decisions and open items.</div>';
+    return;
+  }
+  const collect = (key) =>
+    state.track.points.flatMap((point) =>
+      (Array.isArray(point[key]) ? point[key] : []).map((item) => ({
+        turn: point.turn,
+        item,
+      })),
+    );
+  const section = (title, id, rows) => `
+    <div class="detail-block" id="${id}">
+      <h3>${title} (${rows.length})</h3>
+      ${
+        rows.length
+          ? `<ul class="object-list">${rows
+              .map(
+                ({ turn, item }) =>
+                  `<li><strong>Turn ${escapeHtml(turn)}:</strong> ${
+                    typeof item === "string"
+                      ? escapeHtml(item)
+                      : Object.entries(item)
+                          .map(
+                            ([k, v]) =>
+                              `${escapeHtml(k)}: ${escapeHtml(Array.isArray(v) ? v.join(", ") : v)}`,
+                          )
+                          .join(" | ")
+                  }</li>`,
+              )
+              .join("")}</ul>`
+          : '<p class="field-note">None</p>'
+      }
+    </div>`;
+  elements.trackDigest.innerHTML =
+    section("Decisions", "digest-decisions", collect("decisions")) +
+    section("Open items", "digest-open", collect("open"));
+}
+
 function renderAll() {
   renderPhaseOptions();
   computeFilteredPoints();
@@ -535,6 +578,7 @@ function renderAll() {
   renderSummary();
   renderTrackMeta();
   renderDetail();
+  renderDigest();
 }
 
 function updateMode(mode) {
@@ -870,6 +914,39 @@ function attachEvents() {
   });
 }
 
+function attachDrop() {
+  let depth = 0;
+  const hasFiles = (event) =>
+    Array.from(event.dataTransfer?.types || []).includes("Files");
+  window.addEventListener("dragenter", (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    depth += 1;
+    elements.dropOverlay.hidden = false;
+  });
+  window.addEventListener("dragover", (event) => {
+    if (hasFiles(event)) event.preventDefault();
+  });
+  window.addEventListener("dragleave", () => {
+    depth = Math.max(0, depth - 1);
+    if (depth === 0) elements.dropOverlay.hidden = true;
+  });
+  window.addEventListener("drop", async (event) => {
+    event.preventDefault();
+    depth = 0;
+    elements.dropOverlay.hidden = true;
+    const [file] = event.dataTransfer?.files || [];
+    if (!file) return;
+    try {
+      updateMode("local");
+      await loadTrackFromText(await file.text(), file.name);
+    } catch (error) {
+      setStatus("Failed to open dropped Track file.", error.message);
+    }
+  });
+}
+
 attachEvents();
+attachDrop();
 renderAll();
 hydrateFromQuery();

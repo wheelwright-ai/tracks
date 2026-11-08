@@ -4,15 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tracks Viewer</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div id="drop-overlay" class="drop-overlay" hidden>Drop a Track file to open it</div>
     <div class="page-shell">
       <header class="hero">
         <div class="hero-copy">
@@ -43,6 +38,10 @@
             <div class="section-heading">
               <h2>Load Tracks</h2>
               <span class="mode-tag" id="mode-tag">Local mode</span>
+            </div>
+
+            <div id="drop-zone" class="drop-zone" tabindex="0">
+              Drop a Track (.jsonl) file anywhere on this page
             </div>
 
             <label class="control-group file-picker">
@@ -191,6 +190,15 @@
             </div>
           </section>
 
+          <section class="panel" id="track-digest-panel">
+            <div class="section-heading">
+              <h2>All Decisions and Open Items</h2>
+            </div>
+            <div id="track-digest" class="detail-view">
+              <div class="empty-state">Load a Track to see its decisions and open items.</div>
+            </div>
+          </section>
+
           <section class="panel detail-panel">
             <div class="section-heading">
               <h2>Turn Detail</h2>
@@ -206,6 +214,6 @@
       </main>
     </div>
 
-    <script type="module" src="./app.js"></script>
+    <script src="./app.js"></script>
   </body>
 </html>
