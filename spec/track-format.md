@@ -138,6 +138,32 @@ Include when applicable, omit when not:
 
 ---
 
+## Validator Rule Map
+
+`tools/validate_track.py` checks every rule below; each failure names its rule ID.
+`tests/test_validator.py` proves each ID has a broken fixture that fails with it.
+
+| ID | Rule |
+|----|------|
+| NAME-1 | File name is WAI_Track-YYYYMMDD-HHMM-Provider-Model.jsonl (opt-in: --check-name) |
+| STRUCT-1 | Every line is a JSON object |
+| STRUCT-2 | First line is a session_start event |
+| STRUCT-3 | session_end, if present, is the last line and only once |
+| START-1 | session_start has ts, session_id, provider, model, mode, continues |
+| START-2 | session_start mode is active-collection, prep-and-request or closing-request |
+| START-3 | A continuation (continues set) carries continuation_gap_hours over 24 |
+| END-1 | session_end has ts, total_turns, summary, unresolved_count |
+| END-2 | session_end total_turns equals the number of points |
+| POINT-1 | Point has turn, ts, phase, focus, action, thinking, with the right types |
+| POINT-2 | turn numbers are sequential from 1 |
+| POINT-3 | phase is in the phase vocabulary |
+| POINT-4 | thinking is 3-8 sentences |
+| POINT-5 | ts is ISO-8601 UTC |
+| COND-1 | Conditional fields, when present, have their specified types |
+| COND-2 | context_health usage_estimate is a number and the field only appears above 0.70 |
+
+---
+
 ## Design Principles
 
 **One point per turn.** Every turn is recorded regardless of apparent significance.
