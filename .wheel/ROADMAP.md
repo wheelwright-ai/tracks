@@ -8,7 +8,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-001 Start here: the current prompt, a sample track and a way to check your own
 
-*0 of 2 lugs done · proposed · owner sign-off: pending*
+*0 of 2 lugs done · proposed · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** Someone new opens the Tracks README, copies the current recommended prompt, sees a sample track, and checks their own track file in a few steps.
 - **Why now:** Anyone can use it is the product goal, but the lab's v4.0.0 prompt written on 10-28 is still not in the library and there is no single place to start.
@@ -23,7 +23,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-002 The format holds: spec, validator and viewer agree
 
-*0 of 2 lugs done · proposed · owner sign-off: pending*
+*0 of 2 lugs done · proposed · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** Every rule in the format spec is checked by the validator, a broken file fails with the rule named, and any valid track opens in the viewer as a static page with no server.
 - **Why now:** A portable record is only portable if the spec and the tools agree; today the viewer needs serve.py and no test ties spec rules to validator checks.
@@ -42,7 +42,7 @@ The wheel's own sessions and wake-ups run on Tracks.
 
 ### I-003 The wheel's own sessions pick up from their last track
 
-*0 of 2 lugs done · proposed · owner sign-off: pending*
+*0 of 2 lugs done · proposed · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** A new session in a wheel project opens with the last session's open items and decisions from its track, and ideas stranded in old tracks are listed as lug candidates.
 - **Why now:** Using Tracks ourselves is the proof it is worth using; the wheel's wake-ups still read other records, and old tracks hold ideas no one picked up.
