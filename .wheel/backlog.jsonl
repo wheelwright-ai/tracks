@@ -55,3 +55,8 @@
 {"event": "status", "id": "B-004", "status": "doing", "from": "checking", "by": "wake-051aec/builder", "reason": "check failed (attempt 1): No browser test exists, and I had no command that could run one. The only test file in the repo is the validator's compiled .pyc under tests/__pycache__. The check was therefore not run, and reading t", "at": "2026-11-08T22:24:15Z"}
 {"event": "status", "id": "B-004", "status": "ready", "from": "doing", "by": "wake-051aec/builder", "reason": "the wake's budget ran out before it finished", "at": "2026-11-08T22:24:15Z"}
 {"event": "release", "id": "B-004", "by": "wake-051aec/builder", "reason": "budget spent", "at": "2026-11-08T22:24:15Z"}
+{"event": "claim", "id": "B-004", "by": "wake-4e0064/builder", "lease": 120.0, "until": "2026-11-09T00:41:31Z", "renew": false, "at": "2026-11-08T22:41:31Z"}
+{"event": "status", "id": "B-004", "status": "doing", "from": "ready", "by": "wake-4e0064/builder", "reason": "spoke wake 4e0064 is building it", "at": "2026-11-08T22:41:31Z"}
+{"event": "claim", "id": "B-004", "by": "wake-4e0064/builder", "lease": 120.0, "until": "2026-11-09T00:41:31Z", "renew": true, "at": "2026-11-08T22:41:31Z"}
+{"event": "status", "id": "B-004", "status": "checking", "from": "doing", "by": "wake-4e0064/builder", "reason": "built on wheel/2026-11-08-4e0064; the checker runs next", "at": "2026-11-08T22:42:26Z"}
+{"event": "status", "id": "B-004", "status": "done", "from": "checking", "by": "wake-4e0064/checker", "reason": "check passed: I ran `python3 tests/viewer_drop.py`, which exited 0 and printed: PASS: dropped coding-session.jsonl: 10 turns, 9 decisions, 8 open items shown. The test opens viewer/index.html in headless Chromium f", "at": "2026-11-08T22:42:40Z"}

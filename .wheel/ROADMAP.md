@@ -23,7 +23,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-002 The format holds: spec, validator and viewer agree
 
-*0 of 2 lugs done · proposed · owner sign-off: signed off by owner on 2026-11-08*
+*1 of 2 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** Every rule in the format spec is checked by the validator, a broken file fails with the rule named, and any valid track opens in the viewer as a static page with no server.
 - **Why now:** A portable record is only portable if the spec and the tools agree; today the viewer needs serve.py and no test ties spec rules to validator checks.
@@ -34,7 +34,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 | rank | lug | kind | status |
 |---:|---|---|---|
 | 3 | B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes | autopilot | blocked |
-| 4 | B-004 The viewer opens any track file dropped on it, as a static page | autopilot | ready |
+- Done: B-004 The viewer opens any track file dropped on it, as a static page, 2026-11-08 (wake-4e0064/checker)
 
 ## Goal 2: Use it ourselves
 
@@ -52,8 +52,8 @@ The wheel's own sessions and wake-ups run on Tracks.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 5 | B-005 A new session in a project opens from the last session's track | autopilot | proposed |
-| 6 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | proposed |
+| 4 | B-005 A new session in a project opens from the last session's track | autopilot | proposed |
+| 5 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | proposed |
 
 ## Goal 3: Make it the best
 
@@ -69,4 +69,4 @@ No initiative yet.
 
 ## Completed history
 
-Nothing finished yet.
+- 2026-11-08 · B-004 The viewer opens any track file dropped on it, as a static page · done by wake-4e0064/checker

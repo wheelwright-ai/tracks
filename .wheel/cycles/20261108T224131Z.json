@@ -1,0 +1,47 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-08T22:41:31Z",
+ "ended": "2026-11-08T22:42:40Z",
+ "tokens_used": 69199,
+ "lugs_done": [
+  "B-004"
+ ],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261108T224131Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-08-4e0064",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-08-4e0064",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-004",
+   "title": "The viewer opens any track file dropped on it, as a static page",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Viewer opens a dropped .jsonl from file:// with no server (classic script, no external fonts), shows turns plus an all-decisions/open-items digest; tests/viewer_drop.py headless browser test passes",
+     "build_tokens": 58433,
+     "check": "pass",
+     "evidence": "I ran `python3 tests/viewer_drop.py`, which exited 0 and printed: PASS: dropped coding-session.jsonl: 10 turns, 9 decisions, 8 open items shown. The test opens viewer/index.html in headless Chromium from a file:// URL, so no server is involved. It dispatches a drop event carrying samples/coding-sess",
+     "check_tokens": 10766
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "merged",
+  "text": "merged wheel/2026-11-08-4e0064 into main (tests none)"
+ },
+ "notes": [
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-08-4e0064 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "worktree_removed": true
+}
