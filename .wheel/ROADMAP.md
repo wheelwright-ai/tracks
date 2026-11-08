@@ -33,8 +33,22 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 3 | B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes | autopilot | ready |
+| 4 | B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes | autopilot | ready |
 - Done: B-004 The viewer opens any track file dropped on it, as a static page, 2026-11-08 (wake-4e0064/checker)
+
+### I-004 Keep tracks healthy and current
+
+*0 of 1 lug done · proposed · owner sign-off: signed off by owner on 2026-11-08*
+
+- **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
+- **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
+- **In scope:** The Spotter's proposed fixes for this project from its first round, approved by the owner: CI, tests, security fixes, stale files, and the bun directive.
+- **Not in scope:** New features, redesigns, and anything that changes production data or deploys without the owner.
+- **Done when:** Every lug in this initiative is done: CI or the project's tests pass on a clean checkout, the named security fixes have tests, and no file named in the findings stays uncommitted for more than a day.
+
+| rank | lug | kind | status |
+|---:|---|---|---|
+| 3 | B-007 Add a small validator test run that checks every sample against the spec | autopilot | ready |
 
 ## Goal 2: Use it ourselves
 
@@ -52,8 +66,8 @@ The wheel's own sessions and wake-ups run on Tracks.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 4 | B-005 A new session in a project opens from the last session's track | autopilot | ready |
-| 5 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | ready |
+| 5 | B-005 A new session in a project opens from the last session's track | autopilot | ready |
+| 6 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | ready |
 
 ## Goal 3: Make it the best
 
