@@ -1,0 +1,40 @@
+{
+ "advisors": [
+  {
+   "name": "expediter",
+   "version": 1,
+   "cadence_hours": 24,
+   "nothing_count": 0,
+   "last_run": "2026-11-08T22:17:30Z",
+   "last_summary": "Four lugs are ready and unclaimed: B-001 and B-002 fit haiku, B-003 and B-004 fit sonnet, none needs opus or the owner. Capacity is ample (five_hour 11%, seven_day 67%), but overwatch reports tests none and CI shows no runs, so the B-003 and B-004 checks have no runner yet.",
+   "last_result": "finding"
+  },
+  {
+   "name": "health",
+   "version": 2,
+   "cadence_hours": 24,
+   "nothing_count": 1,
+   "last_run": "2026-11-08T22:17:37Z",
+   "last_summary": "No CI runs exist: `gh run list --limit 1` returned nothing, and there is no `.github/workflows` directory. The worktree is clean (0 uncommitted files). The repo is docs and prompts only, with no tests, dependencies or deploys to check, so the overwatch line's \"tests none\" is expected.",
+   "last_result": "nothing"
+  },
+  {
+   "name": "historian",
+   "version": 1,
+   "cadence_hours": 168,
+   "nothing_count": 0,
+   "last_run": "2026-11-08T22:17:51Z",
+   "last_summary": "Seven \"Session work: N files, no lug transitions recorded\" commits landed between 2026-10-26 and 2026-11-02, all with no lug behind them. \"Regenerate stale generated docs\" also recurs 6 times in the same window (10-25 to 11-02), so the same staleness keeps coming back. Backlog holds 6 lugs; none covers either pattern.",
+   "last_result": "finding"
+  },
+  {
+   "name": "security",
+   "version": 1,
+   "cadence_hours": 72,
+   "nothing_count": 1,
+   "last_run": "2026-11-08T22:18:06Z",
+   "last_summary": "I scanned the tracked files for key-shaped strings (AWS, GitHub, OpenAI-style, Slack, private-key headers, and key/secret/token/password assignments). The only hit is docs/CHANGELOG.md:7443, a commit-log line whose text contains the word \"secret\" inside a lug name, so it is a false positive. The repo has no .env files, key or pem files, or dependency manifests (package.json, requirements, lockfiles), so there are no packages to check for advisories. No CI runs exist. Bash was denied in this run,",
+   "last_result": "nothing"
+  }
+ ]
+}

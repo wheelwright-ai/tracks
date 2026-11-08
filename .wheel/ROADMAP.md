@@ -18,8 +18,8 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 1 | B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file | autopilot | ready |
-| 2 | B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner | autopilot | ready |
+| 1 | B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file | autopilot | blocked |
+| 2 | B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner | autopilot | blocked |
 
 ### I-002 The format holds: spec, validator and viewer agree
 
@@ -33,7 +33,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 3 | B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes | autopilot | ready |
+| 3 | B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes | autopilot | blocked |
 | 4 | B-004 The viewer opens any track file dropped on it, as a static page | autopilot | ready |
 
 ## Goal 2: Use it ourselves
