@@ -19,7 +19,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 | rank | lug | kind | status |
 |---:|---|---|---|
 | 1 | B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file | autopilot | ready |
-| 2 | B-002 Publish the lab's winning prompt (v4.0.0) as the library's current variant | autopilot | ready |
+| 2 | B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner | autopilot | ready |
 
 ### I-002 The format holds: spec, validator and viewer agree
 
