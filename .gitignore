@@ -77,3 +77,5 @@ AMBASSADOR_BRIEF.md
 .wai-superseded/
 __pycache__/
 .venv/
+
+.wheel/backlog.jsonl.lock
