@@ -593,6 +593,30 @@ def init_problems(ini, goals):
     return out
 
 
+# production and deploy work is the owner's: an autopilot lug must not apply a migration to production, deploy to
+# production, change production data or settings, or need credentials (trial 1 of the spoke wake)
+OWNER_WORK = [
+    (re.compile(r"\bmigrat\w*\b[^.;]{0,60}\bprod(uction)?\b|\bprod(uction)?\b[^.;]{0,60}\bmigrat\w*\b", re.I),
+     "applies a migration to production"),
+    (re.compile(r"\bdeploy\w*\b[^.;]{0,60}\bprod(uction)?\b|\bprod(uction)?\b[^.;]{0,40}\bdeploy\w*\b|\bpromote\w*\b[^.;]{0,30}\bprod(uction)?\b", re.I),
+     "deploys to production"),
+    (re.compile(r"\bprod(uction)?\s+(data|database|db|settings?|config\w*|secrets?|env\w*)\b", re.I),
+     "changes production data or settings"),
+    (re.compile(r"\bcredentials?\b|\bapi[ -]?keys?\b|\bpasswords?\b", re.I), "needs credentials"),
+]
+NEGATION = re.compile(r"\b(no|not|without|never|nor|doesn'?t|don'?t)\b[^.;]{0,25}$", re.I)
+
+
+def owner_work_reason(*texts):
+    """Why an autopilot lug's title or check looks like owner work, or None."""
+    for text in texts:
+        for rx, why in OWNER_WORK:
+            for m in rx.finditer(text or ""):
+                if not NEGATION.search(text[: m.start()]):
+                    return why
+    return None
+
+
 def lint(root, st):
     goals = agreed_goals(root)
     errors, pending = [], []
@@ -625,6 +649,9 @@ def lint(root, st):
                 errors.append((lid, "autopilot lug has no check"))
             elif text_problem("check", c) or words(c) < 3:
                 errors.append((lid, "autopilot lug's check is not a real check (%r)" % c[:40]))
+            why = owner_work_reason(it.get("title"), c)
+            if why:
+                errors.append((lid, "autopilot lug looks like owner work: %s" % why))
         t = (it.get("title") or "").strip()
         if not t or re.sub(r"[\s.!]+$", "", t.lower()) in PLACEHOLDERS or PLACEHOLDER_RE.search(t) or TODO_RE.search(t):
             errors.append((lid, "lug title is empty or placeholder"))
