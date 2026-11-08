@@ -758,6 +758,21 @@ function hydrateFromQuery() {
 }
 
 function attachEvents() {
+  const zone = document.body;
+  zone.addEventListener("dragover", (event) => event.preventDefault());
+  zone.addEventListener("drop", async (event) => {
+    event.preventDefault();
+    const [file] = (event.dataTransfer && event.dataTransfer.files) || [];
+    if (!file) {
+      return;
+    }
+    const text = await file.text();
+    updateMode("local");
+    await loadTrackFromText(text, file.name).catch((error) => {
+      setStatus("Failed to open dropped Track file.", error.message);
+    });
+  });
+
   elements.trackFileInput.addEventListener("change", async (event) => {
     const [file] = event.target.files || [];
     if (!file) {
