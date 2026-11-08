@@ -14,7 +14,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - **Why now:** Anyone can use it is the product goal, but the lab's v4.0.0 prompt written on 10-28 is still not in the library and there is no single place to start.
 - **In scope:** A start section at the top of the README with the recommended prompt, a sample track and how to validate a file; v4.0.0 published as the library's current variant with its sample.
 - **Not in scope:** The claude.ai connector, a hosted service, or new prompt research.
-- **Done when:** The README opens with the start section; the prompt file matches the lab's v4.0.0 text and the variants table names it current; validate_track.py passes on every sample track, including the new one.
+- **Done when:** The README opens with the start section; the prompt file matches the lab's v4.0.0 text and the variants table lists it as latest (provisional until the lab's bench names a winner); validate_track.py passes on every sample track, including the new one.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
