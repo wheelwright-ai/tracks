@@ -20,6 +20,15 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/track_write.py\""
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/turnsave.py\""
+          }
+        ]
       }
     ],
     "PreCompact": [
