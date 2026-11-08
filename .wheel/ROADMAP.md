@@ -52,8 +52,8 @@ The wheel's own sessions and wake-ups run on Tracks.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 4 | B-005 A new session in a project opens from the last session's track | autopilot | proposed |
-| 5 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | proposed |
+| 4 | B-005 A new session in a project opens from the last session's track | autopilot | ready |
+| 5 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | ready |
 
 ## Goal 3: Make it the best
 
