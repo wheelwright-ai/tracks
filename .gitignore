@@ -71,3 +71,9 @@ runtime/
 ledger/
 lugs/
 AMBASSADOR_BRIEF.md
+
+# wheel: keep secrets, dependencies, caches and local folders out
+.wheel/turnsave.log
+.wai-superseded/
+__pycache__/
+.venv/
