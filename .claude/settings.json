@@ -81,6 +81,8 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash \"$CLAUDE_PROJECT_DIR/.wheel/hooks/statusline.sh\""
+    "command": "bash \"$CLAUDE_PROJECT_DIR/.wheel/hooks/statusline.sh\"",
+    "padding": 2,
+    "refreshInterval": 30
   }
 }
