@@ -1,6 +1,6 @@
 # tracks
 
-Status: proposed, awaiting owner
+Status: goals agreed with the owner
 Date: 2026-11-06
 
 ## What it is
@@ -12,6 +12,10 @@ Tracks is the wheel's prompt-and-format library for turning an AI conversation i
 - Be a public, adoptable piece of the open-source Wheelwright framework — 45%
 
 ## Owner's goals
-(to agree)
+Ordered along the path to market: works for you, proven with real users, earns, grows.
+1. **The product:** a portable, model-neutral record of an AI conversation that anyone can use.
+2. **Use it ourselves:** the wheel's own sessions and wake-ups run on Tracks.
+3. **Make it the best:** measure prompt variants across models and keep the winner.
+4. **Distribute:** define and prove the claude.ai connector.
 
-Source: wheelwright-hub spokes/landing/tracks.md
+Agreed with the owner, 2026-11-07 (hub ledger r-003060; plans/spoke-goals.md in the hub).
