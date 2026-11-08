@@ -8,6 +8,37 @@
 
 ---
 
+## Start here
+
+Get your first Track in about five minutes. No install, no account.
+
+1. **Copy the prompt.** Open [prompts/closing-request.md](prompts/closing-request.md)
+   (the recommended one: it works on a chat you have already had) and paste
+   everything below its divider line into the end of any AI conversation. You can
+   also give the AI the raw URL of that file and say "follow these instructions."
+2. **Save the answer** as a `.jsonl` file, for example
+   `WAI_Track-20260317-1304-Claude-claude-opus-4-6.jsonl`.
+3. **Look at a finished one first** if you want to know what to expect:
+   [samples/coding-session.jsonl](samples/coding-session.jsonl) (also a
+   [strategy](samples/strategy-session.jsonl) and a
+   [learning](samples/learning-session.jsonl) session).
+4. **Check your file** with the validator (Python 3, nothing to install):
+
+   ```bash
+   python3 tools/validate_track.py path/to/your-track.jsonl
+   ```
+
+   It prints `OK` and exits 0, or `FAIL` with the line numbers to fix. Try it on
+   the samples: `python3 tools/validate_track.py samples/*.jsonl`
+5. **Read it in the viewer.** From this folder run `python3 -m http.server 8000`,
+   then open <http://localhost:8000/viewer/?track=../samples/coding-session.jsonl>
+   (or open [viewer/](viewer/) and upload your own file).
+
+Want the AI to record as you go instead? See the other two prompts under
+[Three Ways to Generate a Track](#three-ways-to-generate-a-track).
+
+---
+
 ## What is a Track?
 
 A **Track** is a structured record of an AI conversation — every decision made,
