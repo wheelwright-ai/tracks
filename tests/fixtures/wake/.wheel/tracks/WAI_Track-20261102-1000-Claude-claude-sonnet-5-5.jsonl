@@ -1,0 +1,3 @@
+{"event":"session_start","ts":"2026-11-02T10:00:00Z","session_id":"last","provider":"Claude","model":"claude-sonnet-5-5","mode":"active-collection","continues":null}
+{"turn":1,"ts":"2026-11-02T10:01:00Z","phase":"planning","focus":"Choose store","action":"Chose sqlite","thinking":"One. Two. Three.","decisions":["Use sqlite for the cache"],"open":[{"item":"Pick a migration tool","status":"unknown"},{"item":"Benchmark writes","status":"deferred"}]}
+{"turn":2,"ts":"2026-11-02T10:05:00Z","phase":"execution","focus":"Build","action":"Built schema","thinking":"One. Two. Three.","decisions":["Keep the schema flat"],"open":[{"item":"Pick a migration tool","status":"unknown"},{"item":"Benchmark writes","status":"deferred"}]}

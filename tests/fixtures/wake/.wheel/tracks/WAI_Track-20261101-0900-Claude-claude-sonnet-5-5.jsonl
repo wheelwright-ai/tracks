@@ -1,0 +1,2 @@
+{"event":"session_start","ts":"2026-11-01T09:00:00Z","session_id":"old","provider":"Claude","model":"claude-sonnet-5-5","mode":"active-collection","continues":null}
+{"turn":1,"ts":"2026-11-01T09:01:00Z","phase":"planning","focus":"Old","action":"Old","thinking":"One. Two. Three.","decisions":["OLD-DECISION"],"open":[{"item":"OLD-OPEN","status":"unknown"}]}
