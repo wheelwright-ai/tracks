@@ -8,7 +8,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-001 Start here: the current prompt, a sample track and a way to check your own
 
-*0 of 2 lugs done · proposed · owner sign-off: signed off by owner on 2026-11-08*
+*2 of 2 lugs done · done · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** Someone new opens the Tracks README, copies the current recommended prompt, sees a sample track, and checks their own track file in a few steps.
 - **Why now:** Anyone can use it is the product goal, but the lab's v4.0.0 prompt written on 10-28 is still not in the library and there is no single place to start.
@@ -16,14 +16,12 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - **Not in scope:** The claude.ai connector, a hosted service, or new prompt research.
 - **Done when:** The README opens with the start section; the prompt file matches the lab's v4.0.0 text and the variants table lists it as latest (provisional until the lab's bench names a winner); validate_track.py passes on every sample track, including the new one.
 
-| rank | lug | kind | status |
-|---:|---|---|---|
-| 1 | B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file | autopilot | ready |
-| 2 | B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner | autopilot | ready |
+- Done: B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file, 2026-11-09 (wake-f95d17/checker)
+- Done: B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner, 2026-11-09 (wake-f95d17/checker)
 
 ### I-002 The format holds: spec, validator and viewer agree
 
-*1 of 2 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*2 of 2 lugs done · done · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** Every rule in the format spec is checked by the validator, a broken file fails with the rule named, and any valid track opens in the viewer as a static page with no server.
 - **Why now:** A portable record is only portable if the spec and the tools agree; today the viewer needs serve.py and no test ties spec rules to validator checks.
@@ -31,14 +29,12 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - **Not in scope:** Changing the format itself, editing tracks in the viewer, or hosting the viewer.
 - **Done when:** A test maps each spec rule to a validator check, all samples pass and a broken fixture fails with its rule named; a browser test drops a sample track on the static viewer and sees its turns, decisions and open items with no server running.
 
-| rank | lug | kind | status |
-|---:|---|---|---|
-| 4 | B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes | autopilot | ready |
 - Done: B-004 The viewer opens any track file dropped on it, as a static page, 2026-11-08 (wake-4e0064/checker)
+- Done: B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes, 2026-11-09 (wake-f95d17/checker)
 
 ### I-004 Keep tracks healthy and current
 
-*0 of 1 lug done · proposed · owner sign-off: signed off by owner on 2026-11-08*
+*1 of 1 lug done · done · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -46,9 +42,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - **Not in scope:** New features, redesigns, and anything that changes production data or deploys without the owner.
 - **Done when:** Every lug in this initiative is done: CI or the project's tests pass on a clean checkout, the named security fixes have tests, and no file named in the findings stays uncommitted for more than a day.
 
-| rank | lug | kind | status |
-|---:|---|---|---|
-| 3 | B-007 Add a small validator test run that checks every sample against the spec | autopilot | ready |
+- Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 
 ## Goal 2: Use it ourselves
 
@@ -56,7 +50,7 @@ The wheel's own sessions and wake-ups run on Tracks.
 
 ### I-003 The wheel's own sessions pick up from their last track
 
-*0 of 2 lugs done · proposed · owner sign-off: signed off by owner on 2026-11-08*
+*1 of 2 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** A new session in a wheel project opens with the last session's open items and decisions from its track, and ideas stranded in old tracks are listed as lug candidates.
 - **Why now:** Using Tracks ourselves is the proof it is worth using; the wheel's wake-ups still read other records, and old tracks hold ideas no one picked up.
@@ -66,8 +60,8 @@ The wheel's own sessions and wake-ups run on Tracks.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 5 | B-005 A new session in a project opens from the last session's track | autopilot | ready |
-| 6 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | ready |
+| 1 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | ready |
+- Done: B-005 A new session in a project opens from the last session's track, 2026-11-09 (wake-f95d17/checker)
 
 ## Goal 3: Make it the best
 
@@ -83,4 +77,9 @@ No initiative yet.
 
 ## Completed history
 
+- 2026-11-09 · B-005 A new session in a project opens from the last session's track · done by wake-f95d17/checker
+- 2026-11-09 · B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes · done by wake-f95d17/checker
+- 2026-11-09 · B-007 Add a small validator test run that checks every sample against the spec · done by wake-f95d17/checker
+- 2026-11-09 · B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner · done by wake-f95d17/checker
+- 2026-11-09 · B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file · done by wake-f95d17/checker
 - 2026-11-08 · B-004 The viewer opens any track file dropped on it, as a static page · done by wake-4e0064/checker

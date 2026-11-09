@@ -1,0 +1,128 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-09T00:00:02Z",
+ "ended": "2026-11-09T00:07:03Z",
+ "tokens_used": 365399,
+ "lugs_done": [
+  "B-001",
+  "B-002",
+  "B-007",
+  "B-003",
+  "B-005"
+ ],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261109T000002Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-09-f95d17",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-09-f95d17",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-001",
+   "title": "Start here: one page with the recommended prompt, a sample track and how to check your own file",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "README now opens with a Start here section (recommended prompt, sample track, check and view steps); added tools/validate_track.py, which passes all 3 samples; the viewer drop test passes.",
+     "build_tokens": 54646,
+     "check": "fail",
+     "evidence": "checker gave no readable verdict: 'NoneType' object has no attribute 'group'",
+     "check_tokens": 0
+    },
+    {
+     "attempt": 2,
+     "outcome": "built",
+     "summary": "B-001 already committed in a879572: README Start here section and tools/validate_track.py; re-verified all 3 samples pass and the viewer has a sample loader (viewer not opened in a browser this attempt)",
+     "build_tokens": 37998,
+     "check": "pass",
+     "evidence": "README.md puts '## Start here' first, after only the title, tagline and badges (lines 11-28). `python3 tools/validate_track.py` printed OK for all three samples: coding-session, learning-session and strategy-session. `python3 tests/viewer_drop.py` opened viewer/index.html from file://, dropped sampl",
+     "check_tokens": 5176
+    }
+   ],
+   "result": "done",
+   "reason": null
+  },
+  {
+   "id": "B-002",
+   "title": "Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Copied lab v4.0.0 verbatim to prompts/v4.0.0.md, added prompts/README.md variants table (latest, provisional, no winner claimed) and samples/v4-session.jsonl, which passes validate_track.py; committed b878f60.",
+     "build_tokens": 55837,
+     "check": "pass",
+     "evidence": "prompts/v4.0.0.md has the same SHA-256 as track-prompt-lab/prompts/v4.0.0.md (08734e61…47e990), so the two files are byte-identical. prompts/README.md row 1 lists v4.0.0 as '**latest, provisional**: not yet benchmarked… no winner is claimed'. The same file says 'Nothing is current yet', so nothing i",
+     "check_tokens": 21562
+    }
+   ],
+   "result": "done",
+   "reason": null
+  },
+  {
+   "id": "B-007",
+   "title": "Add a small validator test run that checks every sample against the spec",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Added tests/validate_samples.sh: runs the validator on all samples, exits non-zero on any failure or no samples, and self-checks it rejects a bad track",
+     "build_tokens": 41069,
+     "check": "pass",
+     "evidence": "Running `bash tests/validate_samples.sh` validated all 4 samples (coding, learning, strategy and v4-session) and printed PASS. The script exits 1 if no samples are found or if the validator fails on any sample. It also feeds the validator a deliberately bad track and exits 1 if that is accepted. The",
+     "check_tokens": 7996
+    }
+   ],
+   "result": "done",
+   "reason": null
+  },
+  {
+   "id": "B-003",
+   "title": "Format spec and validator agree: every rule in the spec is checked, every sample passes",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Numbered spec rules R01-R19, validator tags and checks each, tests/validate_rules.sh maps every rule to a failing fixture; samples pass",
+     "build_tokens": 65504,
+     "check": "pass",
+     "evidence": "tests/validate_rules.sh exits 0 and prints 'PASS: 19 spec rules each checked; each broken fixture fails naming its rule; samples pass'. It reads the rule IDs (R01-R19) from spec/track-format.md and requires a fixture tests/fixtures/Rnn-*.jsonl for each one. It also requires the validator to use no r",
+     "check_tokens": 9499
+    }
+   ],
+   "result": "done",
+   "reason": null
+  },
+  {
+   "id": "B-005",
+   "title": "A new session in a project opens from the last session's track",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Added SessionStart hook .wheel/hooks/wake_from_track.py (registered in .claude/settings.json) that prints the newest track's open items and decisions, with fixture project and tests/wake_from_track.sh passing; hub overlap not checked",
+     "build_tokens": 54319,
+     "check": "pass",
+     "evidence": "Running `bash tests/wake_from_track.sh` printed PASS and exited 0. The test pipes a SessionStart payload into `.wheel/hooks/wake_from_track.py` for the fixture project `tests/fixtures/wake`, which has an old track and a newest track. It checks that the output is valid SessionStart JSON. It checks th",
+     "check_tokens": 11793
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "merged",
+  "text": "merged wheel/2026-11-09-f95d17 into main (tests none)"
+ },
+ "notes": [
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-09-f95d17 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "worktree_removed": true
+}
