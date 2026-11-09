@@ -138,6 +138,36 @@ Include when applicable, omit when not:
 
 ---
 
+## Validation Rules
+
+Each rule below is enforced by `tools/validate_track.py`, which tags every
+problem with its rule ID. `tests/validate_rules.sh` proves each rule has a
+broken fixture in `tests/fixtures/` that fails with that ID named.
+
+| ID | Rule |
+|----|------|
+| R01 | File name is `WAI_Track-{YYYYMMDD}-{HHMM}-{Provider}-{Model}.jsonl` (checked with `--check-name`) |
+| R02 | Every non-blank line is one JSON object; the file is not empty |
+| R03 | The first line is a `session_start` event, there is only one, and no other event type exists besides `session_end` |
+| R04 | At most one `session_end`, and it is the last line |
+| R05 | `session_start` has string `ts`, `session_id`, `provider`, `model` |
+| R06 | `session_start.mode`, if present, is `active-collection`, `prep-and-request` or `closing-request` |
+| R07 | `continues` is a filename or null; a filename requires numeric `continuation_gap_hours`, which is not allowed without `continues` |
+| R08 | Every point has `turn` (integer), `ts`, `phase`, `focus`, `action`, `thinking` (strings) |
+| R09 | `turn` runs 1, 2, 3, ... with one point per turn |
+| R10 | Every `ts` is ISO-8601 UTC (ending `Z`), and point timestamps do not go backwards |
+| R11 | `phase` is one of the seven phase vocabulary values |
+| R12 | `thinking` is 3-8 sentences |
+| R13 | `activity`, `decisions`, `insights` are arrays of strings; `evolution` is a string |
+| R14 | `activity`, when present, is not empty (use `["conversational response only"]`) |
+| R15 | `fossils`, `open`, `files_in`, `files_out` are arrays of objects with their required keys (`concept`/`replaced_by`/`reason`; `item`/`status`; `name`) |
+| R16 | `open[].status` is `unknown`, `deferred`, `intentional` or `blocked` |
+| R17 | `context_health`, when present, is an object with numeric `usage_estimate` and string `warning` |
+| R18 | A linked continuation (`continues` set) has `continuation_gap_hours` over 24 |
+| R19 | `session_end` has integer `total_turns` equal to the point count, string `summary`, integer `unresolved_count` (not above the open items recorded) |
+
+---
+
 ## Design Principles
 
 **One point per turn.** Every turn is recorded regardless of apparent significance.
