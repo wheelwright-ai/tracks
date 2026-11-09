@@ -3,9 +3,10 @@
 
 Reads the hook's JSON on stdin (session_id, transcript_path, cwd). Finds the files this session wrote this turn
 (Edit/Write/MultiEdit/NotebookEdit tool uses since the owner's last message), and commits exactly those files,
-nothing else, on the project's current branch. In a project that publishes live from main (.wheel/config.json
-{"publishes_live": true}) a session on main first moves to a wheel/<date>-<session> branch, so the live site is
-never touched by a turn save.
+nothing else, on the current branch of the session's worktree. It never switches a branch. In a project's main
+checkout (git-dir equals git-common-dir) the main checkout stays on main and is not worked in: only .wheel/ files are
+saved there; any other file is left alone and the log says "work in the main checkout: start a session with wcl to
+get a worktree".
 
 Skips, with one JSON line in .wheel/turnsave.log saying why: no files, merge/rebase/cherry-pick in progress,
 detached HEAD, a secrets scan hit, a refused pre-commit hook, or only ignored/generated files (those are dropped and
@@ -212,8 +213,18 @@ def env_id():
         return ""
 
 
-def default_branch_names():
-    return ("main", "master")
+MAIN_MSG = "work in the main checkout: start a session with wcl to get a worktree"
+
+
+def is_main_checkout(root):
+    """True when root is a project's main checkout (not a linked worktree): git-dir equals git-common-dir."""
+    gd = git(root, "rev-parse", "--git-dir").stdout.strip()
+    cd = git(root, "rev-parse", "--git-common-dir").stdout.strip()
+    if not gd or not cd:
+        return False
+    gd = os.path.realpath(gd if os.path.isabs(gd) else os.path.join(root, gd))
+    cd = os.path.realpath(cd if os.path.isabs(cd) else os.path.join(root, cd))
+    return gd == cd
 
 
 # ---- the save ----
@@ -292,6 +303,13 @@ def run(hook):
 
     changed, untracked, ignored, gen = plan(root, rels)
     dropped = {"ignored": ignored, "generated": gen}
+    if is_main_checkout(root):
+        outside = [f for f in changed if not f.startswith(".wheel/")]
+        if outside:
+            changed = [f for f in changed if f.startswith(".wheel/")]
+            log(root, sid, "skipped", MAIN_MSG, files=outside)
+            if not changed:
+                return
     if not changed:
         if gen and not ignored and not any(f for f in rels if f not in gen):
             return log(root, sid, "skipped", "looks generated", files=gen)
@@ -303,25 +321,10 @@ def run(hook):
     if hits:
         return log(root, sid, "skipped", "secrets scan hit", files=hits)  # names only, never values
 
-    live = False
-    try:
-        live = json.load(open(os.path.join(root, ".wheel", "config.json"))).get("publishes_live") is True
-    except Exception:
-        pass
-    made_branch = None
-    if live and branch in default_branch_names():
-        made_branch = "wheel/%s-%s" % (datetime.date.today().isoformat(), re.sub(r"[^A-Za-z0-9]", "", sid)[:8] or "session")
-        sw = git(root, "switch", "-c", made_branch)
-        if sw.returncode != 0:
-            return log(root, sid, "skipped", "could not create live-project branch", files=changed)
-
     def undo(note):
         new = [f for f in changed if f in untracked]
         if new:
             git(root, "reset", "-q", "--", *new)
-        if made_branch:
-            git(root, "switch", "-q", branch)
-            git(root, "branch", "-q", "-D", made_branch)
         log(root, sid, "skipped", note, files=changed, dropped=dropped)
 
     new = [f for f in changed if f in untracked]
@@ -339,7 +342,7 @@ def run(hook):
     if c.returncode != 0:
         return undo("commit refused (pre-commit hook or git error)")
     sha = git(root, "rev-parse", "--short", "HEAD").stdout.strip()
-    log(root, sid, "saved", "", files=changed, branch=made_branch or branch, commit=sha, dropped=dropped)
+    log(root, sid, "saved", "", files=changed, branch=branch, commit=sha, dropped=dropped)
 
 
 def main():
