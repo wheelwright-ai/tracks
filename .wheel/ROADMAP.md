@@ -50,7 +50,7 @@ The wheel's own sessions and wake-ups run on Tracks.
 
 ### I-003 The wheel's own sessions pick up from their last track
 
-*1 of 2 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*2 of 2 lugs done · done · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** A new session in a wheel project opens with the last session's open items and decisions from its track, and ideas stranded in old tracks are listed as lug candidates.
 - **Why now:** Using Tracks ourselves is the proof it is worth using; the wheel's wake-ups still read other records, and old tracks hold ideas no one picked up.
@@ -58,10 +58,8 @@ The wheel's own sessions and wake-ups run on Tracks.
 - **Not in scope:** Writing lugs automatically, changing the hub's wake-up beyond reading the last track, or other people's projects.
 - **Done when:** In a test project a session start prints the last track's open items and decisions, covered by a fixture test; a script over sample tracks lists open ideas with their track and line and writes nothing.
 
-| rank | lug | kind | status |
-|---:|---|---|---|
-| 1 | B-006 Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | ready |
 - Done: B-005 A new session in a project opens from the last session's track, 2026-11-09 (wake-f95d17/checker)
+- Done: B-006 Find stranded ideas in old tracks and offer them as backlog candidates, 2026-11-09 (wake-8f6ad2/checker)
 
 ## Goal 3: Make it the best
 
@@ -77,6 +75,7 @@ No initiative yet.
 
 ## Completed history
 
+- 2026-11-09 · B-006 Find stranded ideas in old tracks and offer them as backlog candidates · done by wake-8f6ad2/checker
 - 2026-11-09 · B-005 A new session in a project opens from the last session's track · done by wake-f95d17/checker
 - 2026-11-09 · B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes · done by wake-f95d17/checker
 - 2026-11-09 · B-007 Add a small validator test run that checks every sample against the spec · done by wake-f95d17/checker

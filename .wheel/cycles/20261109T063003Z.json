@@ -1,0 +1,47 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-09T06:30:03Z",
+ "ended": "2026-11-09T06:31:01Z",
+ "tokens_used": 61774,
+ "lugs_done": [
+  "B-006"
+ ],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261109T063003Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-09-8f6ad2",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-09-8f6ad2",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-006",
+   "title": "Find stranded ideas in old tracks and offer them as backlog candidates",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Added tools/stranded_ideas.py (read-only: lists open, non-intentional ideas from each track's last open list with file:line) plus tests/stranded_ideas.sh proving output and no writes",
+     "build_tokens": 47509,
+     "check": "pass",
+     "evidence": "I read tools/stranded_ideas.py. It only opens files in read mode, uses json and sys, and prints to stdout. It sets sys.dont_write_bytecode and has no write, open-for-write, or subprocess calls. Running `python3 -B tools/stranded_ideas.py` on the three sample tracks printed 5 open ideas, each as `sam",
+     "check_tokens": 14265
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "merged",
+  "text": "merged wheel/2026-11-09-8f6ad2 into main (tests none)"
+ },
+ "notes": [
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-09-8f6ad2 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "worktree_removed": true
+}
