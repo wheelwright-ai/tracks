@@ -8,6 +8,27 @@
 
 ---
 
+## Start here
+
+You can have a Track in a few minutes. No install, no account.
+
+1. **Get the prompt.** Open [`prompts/closing-request.md`](prompts/closing-request.md) and copy everything below its line. This is the recommended prompt: it works on any chat you have already had, in any model. (Prompt versions are provisional until the prompt lab names a winner.)
+2. **Paste it into your conversation.** The agent reads the whole history and writes out a `.jsonl` Track.
+3. **Save the file** as `WAI_Track-YYYYMMDD-HHMM-Provider-Model.jsonl` (see [spec/track-format.md](spec/track-format.md)).
+4. **Check your file:**
+   ```bash
+   python3 tools/validate_track.py path/to/your-track.jsonl
+   ```
+   It prints `OK` and exits 0 when the file follows the spec, or lists each problem with its line number. Python 3 only, no packages.
+5. **Look at it.** Run `python3 serve.py`, open the viewer it prints, and drop your file on the page. Or open `viewer/index.html` directly and drop the file there.
+
+**See a finished one first:** [`samples/coding-session.jsonl`](samples/coding-session.jsonl) is a complete Track (12 lines: start event, 10 turns, end event). Check it with
+`python3 tools/validate_track.py samples/*.jsonl`, or open the viewer and press *Load sample Track*.
+
+Want it recorded as you go instead? See [Three Ways to Generate a Track](#three-ways-to-generate-a-track).
+
+---
+
 ## What is a Track?
 
 A **Track** is a structured record of an AI conversation — every decision made,

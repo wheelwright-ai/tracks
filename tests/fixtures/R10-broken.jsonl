@@ -1,0 +1,3 @@
+{"event":"session_start","ts":"2026-03-17T13:04:00Z","session_id":"x","provider":"Claude","model":"m"}
+{"turn": 1, "ts": "yesterday", "phase": "planning", "focus": "f", "action": "a", "thinking": "One. Two. Three."}
+{"event":"session_end","ts":"2026-03-17T13:06:00Z","total_turns":1,"summary":"s","unresolved_count":0}
