@@ -90,13 +90,22 @@ def main():
     if relayed:
         focus = ("relayed: " + (prompt.strip().splitlines() or [""])[0])[:100]
     now = datetime.datetime.now(datetime.timezone.utc)
+    env = os.environ.get("WHEEL_ENV_ID") or None
+    if not env:  # optional: the id the hub's environment refresh left for this machine (W-123)
+        try:
+            env = open(os.path.join(os.path.expanduser("~"), ".config", "wheel", "environment-id")).read().strip() or None
+        except Exception:
+            env = None
     rec = idx.get(sid)
     if not rec:
         name = "WAI_Track-%s-Claude-%s.jsonl" % (now.strftime("%Y%m%d-%H%M"), model.replace("/", "-"))
         rec = idx[sid] = {"file": name, "turns": 0}
+        start = {"event": "session_start", "ts": now.isoformat(timespec="seconds"), "session_id": sid,
+                 "provider": "Claude", "model": model, "mode": "active-collection", "continues": None}
+        if env:
+            start["env"] = env
         with open(os.path.join(tdir, name), "a") as f:
-            f.write(json.dumps({"event": "session_start", "ts": now.isoformat(timespec="seconds"), "session_id": sid,
-                                "provider": "Claude", "model": model, "mode": "active-collection", "continues": None}) + "\n")
+            f.write(json.dumps(start) + "\n")
     rec["turns"] += 1
     point = {"turn": rec["turns"], "ts": now.isoformat(timespec="seconds"),
              "phase": "execution" if files else ("review" if tools else "orientation"),
