@@ -4,17 +4,17 @@
 Lugs are the work items; initiatives group the lugs that deliver one agreed goal. Every write names who made it (--by).
   lug add TITLE --value 1-5 --effort 1-5 --kind owner|autopilot --source WHO --by WHO [--goal G] [--initiative I-###]
           [--check HOW] [--reason WHY] [--above ID | --below ID] [--status proposed|ready]
-          [--urgency next_session|whenever]
+          [--urgency next_session|whenever] [--class build|maintain]
   lug status ID proposed|ready|doing|checking|done|dropped|blocked --reason WHY --by WHO
   lug rank ID N --reason WHY [--pin|--unpin] --by WHO      lug move ID --above|--below OTHER --reason WHY [--pin] --by WHO
-  lug edit ID [--title T] [--goal G] [--value V] [--effort E] [--kind K] [--check C] [--urgency U] --reason WHY --by WHO
+  lug edit ID [--title T] [--goal G] [--value V] [--effort E] [--kind K] [--check C] [--urgency U] [--class C] --reason WHY --by WHO
   lug link ID I-### --by WHO [--reason WHY]                 (each lug belongs to exactly one initiative)
   lug claim ID --by WORKER --lease MINUTES                  lug release ID --by WORKER [--reason WHY]
   lug initiative add TITLE --goal N --outcome .. --why-now .. --scope-in .. --scope-out .. --done-when .. --by WHO
   lug initiative edit I-### [--title|--goal|--outcome|--why-now|--scope-in|--scope-out|--done-when ..] --reason WHY --by WHO
   lug initiative signoff I-### --who "the owner (source)" --by WHO      lug initiative close I-### --reason WHY --by WHO
   lug initiative show [I-###] [--json]
-  lug show [--all] [--json]   lug top [--kind K] [--pickable] [-n N] [--json]   lug history ID
+  lug show [--all] [--json]   lug top [--kind K] [--class build|maintain] [--pickable] [-n N] [--split] [--json]   lug history ID
   lug roadmap [--json]        lug render     lug lint [--json]     lug verify     lug test
 ("lug" is lug.py or backlog.py; the same program.)
 
@@ -30,6 +30,10 @@ urgency (optional) = when the work should be done: "next_session" = meaningful a
 the owner's next session; "whenever" (the default) = no deadline. Rule for whoever proposes a lug: an improvement the owner
 will see in something he uses, or anything he asked for by a time, is next_session; internal plumbing is whenever.
 Done next_session lugs are what the brief calls Highlights; the rest are Change notes.
+class (optional) = build or maintain. Maintain is work that keeps the project healthy and current: a lug declared --class maintain,
+or any lug in the project's "Keep ... healthy" initiative (its title starts with "Keep" and names healthy or current). Everything
+else is build. The class is derived when not declared; `top --json` and `show --json` carry it, and `top --split` lists the
+prioritised backlog as a build part and a maintain part, which is what a session reads at startup.
 lint requires an explicit urgency on every open lug and keeps value within the goal's ceiling (goal n holds at most 6-n,
 a "(later)" goal at most 2); the full scoring rubric is plans/backlog-rubric.md in the hub."""
 import argparse, calendar, json, os, re, sys, time
@@ -54,6 +58,24 @@ FLOW = {
 KINDS = ("owner", "autopilot")
 URGENCIES = ("next_session", "whenever")
 DEFAULT_URGENCY = "whenever"
+CLASSES = ("build", "maintain")
+KEEP_RE = re.compile(r"^\s*keep\b.*\b(healthy|current)\b", re.I)   # the project's standing "Keep X healthy and current" initiative
+
+
+def keep_healthy(st):
+    """The open initiative that holds the project's maintenance (title like "Keep X healthy and current"), signed-off
+    ones first; None when there is none."""
+    rows = [i for i in st["inits"].values() if not i["closed"] and KEEP_RE.search(i.get("title") or "")]
+    rows.sort(key=lambda i: (i["owner_signoff"].get("status") != "yes", i["id"]))
+    return rows[0] if rows else None
+
+
+def class_of(st, it):
+    """build or maintain: the declared class when there is one, else maintain for a lug in the keep-healthy initiative."""
+    if it.get("class") in CLASSES:
+        return it["class"]
+    ini = (st or {}).get("inits", {}).get(it.get("initiative"))
+    return "maintain" if ini and KEEP_RE.search(ini.get("title") or "") else "build"
 
 
 def urgency_of(it):
@@ -158,6 +180,7 @@ def apply(st, ev):
             return
         items[iid] = {k: ev.get(k) for k in ("id", "title", "goal", "value", "effort", "kind", "source", "check", "reason")}
         items[iid]["urgency"] = ev.get("urgency") or DEFAULT_URGENCY
+        items[iid]["class"] = ev.get("class") if ev.get("class") in CLASSES else None
         items[iid]["urgency_set"] = bool(ev.get("urgency"))  # lint wants an explicit tag on every open lug
         items[iid].update(status=ev.get("status", "proposed"), added=ev.get("at"), updated=ev.get("at"), closed=None,
                           initiative=ev.get("initiative"), claim=None, history=[ev])
@@ -349,6 +372,7 @@ def do_add(root, a):
     intrange(a.effort, "effort")
     need(a.kind in KINDS, "kind must be owner or autopilot")
     need(getattr(a, "urgency", None) is None or getattr(a, "urgency", None) in URGENCIES, "urgency must be next_session or whenever")
+    need(getattr(a, "klass", None) is None or getattr(a, "klass", None) in CLASSES, "class must be build or maintain")
     need(a.source and a.source.strip(), "source is required (who or what created this lug)")
     need(a.kind != "autopilot" or (a.check and a.check.strip()), "an autopilot lug needs --check: how done will be proven")
     need(not (a.above and a.below), "use --above or --below, not both")
@@ -385,6 +409,8 @@ def do_add(root, a):
             ev["initiative"] = a.initiative
         if getattr(a, "urgency", None):
             ev["urgency"] = getattr(a, "urgency", None)
+        if getattr(a, "klass", None):
+            ev["class"] = a.klass
         if anchor:
             ev["anchor"] = anchor
             ev["position"] = "above" if a.above else "below"
@@ -471,6 +497,9 @@ def do_edit(root, a):
         if getattr(a, "urgency", None) is not None and (getattr(a, "urgency", None) != urgency_of(it) or not it.get("urgency_set")):
             need(getattr(a, "urgency", None) in URGENCIES, "urgency must be next_session or whenever")
             ch["urgency"] = getattr(a, "urgency", None)
+        if getattr(a, "klass", None) is not None and a.klass != it.get("class"):
+            need(a.klass in CLASSES, "class must be build or maintain")
+            ch["class"] = a.klass
         need(ch, "nothing to change")
         kind, chk = ch.get("kind", it["kind"]), ch.get("check", it.get("check"))
         need(kind != "autopilot" or (chk and chk.strip()), "an autopilot lug needs a check")
@@ -756,6 +785,8 @@ def verify(root):
                 problems.append((n, "%s is added at rank %r, outside 1..%d" % (iid, r, len(st["order"]) + 1)))
             if ev.get("kind") not in KINDS:
                 problems.append((n, "%s has kind %r" % (iid, ev.get("kind"))))
+            if ev.get("class") not in (None,) + CLASSES:
+                problems.append((n, "%s has class %r" % (iid, ev.get("class"))))
             if ev.get("urgency") not in (None,) + URGENCIES:
                 problems.append((n, "%s has urgency %r" % (iid, ev.get("urgency"))))
             if ev.get("anchor") and ev["anchor"] not in st["order"]:
@@ -980,8 +1011,8 @@ def roadmap_data(root, st):
         inits = sorted([i for i in st["inits"].values() if str(i["goal"]) == g], key=lambda i: i["id"])
         data["goals"].append({"goal": g, "label": goals.get(g, {}).get("label"), "text": goals.get(g, {}).get("text"),
                               "later": goals.get(g, {}).get("later", False),
-                              "initiatives": [dict(init_brief(i), lugs=[brief(l) for l in sorted(lugs_of(st, i["id"]), key=lambda l: (l["rank"] is None, l["rank"] or 0, l["id"]))]) for i in inits]})
-    data["unlinked"] = [brief(l) for l in open_items(st) if l.get("initiative") not in st["inits"]]
+                              "initiatives": [dict(init_brief(i), lugs=[brief(l, st) for l in sorted(lugs_of(st, i["id"]), key=lambda l: (l["rank"] is None, l["rank"] or 0, l["id"]))]) for i in inits]})
+    data["unlinked"] = [brief(l, st) for l in open_items(st) if l.get("initiative") not in st["inits"]]
     for l in sorted([l for l in st["items"].values() if l["status"] in CLOSED], key=lambda l: l["closed"] or "", reverse=True):
         data["history"].append({"date": (l["closed"] or "")[:10], "id": l["id"], "title": l["title"], "status": l["status"],
                                 "who": l.get("status_by"), "reason": l.get("status_reason"), "initiative": l.get("initiative"),
@@ -1044,9 +1075,10 @@ def do_roadmap(root, a):
     return roadmap_md(root, st)
 
 
-def brief(it):
+def brief(it, st=None):
     d = {k: it.get(k) for k in ("rank", "id", "title", "kind", "status", "value", "effort", "goal", "initiative", "check", "source", "reason")}
     d["urgency"] = urgency_of(it)
+    d["class"] = class_of(st, it)
     c = live_claim(it)
     d["claimed_by"] = c["by"] if c else None
     if it["status"] in CLOSED:
@@ -1060,7 +1092,7 @@ def do_show(root, a):
     if a.all:
         rows = rows + sorted([i for i in st["items"].values() if i["rank"] is None], key=lambda i: i["id"])
     if a.json:
-        return json.dumps([brief(i) for i in rows], ensure_ascii=False, indent=1)
+        return json.dumps([brief(i, st) for i in rows], ensure_ascii=False, indent=1)
     if not rows:
         return "Nothing open."
     return "\n".join("%s %-6s %-9s %-10s v%d/e%d %-6s %s%s" % (("#%d" % i["rank"]) if i["rank"] else "-", i["id"], i["kind"], i["status"], i["value"], i["effort"], i.get("initiative") or "-", i["title"], "  [next session]" if urgency_of(i) == "next_session" else "") for i in rows)
@@ -1074,10 +1106,22 @@ def pickable(st, it):
 
 def do_top(root, a):
     st = load(root)
-    rows = [i for i in open_items(st) if i["status"] != "blocked" and (not a.kind or i["kind"] == a.kind) and (not a.pickable or pickable(st, i))][: a.n]
+    klass = getattr(a, "klass", None)
+    rows = [i for i in open_items(st) if i["status"] != "blocked" and (not a.kind or i["kind"] == a.kind) and (not a.pickable or pickable(st, i))
+            and (not klass or class_of(st, i) == klass)]
+    if getattr(a, "split", False):   # the prioritised backlog as two parts, each in rank order (-n applies to each part)
+        parts = {c: [i for i in rows if class_of(st, i) == c][: a.n] for c in CLASSES}
+        if a.json:
+            return json.dumps({c: [brief(i, st) for i in parts[c]] for c in CLASSES}, ensure_ascii=False, indent=1)
+        out = []
+        for c in CLASSES:
+            out.append("%s work (%d):" % (c.capitalize(), len(parts[c])))
+            out += ["  #%d %s [%s, %s] %s" % (i["rank"], i["id"], i["kind"], i["status"], i["title"]) for i in parts[c]] or ["  Nothing open."]
+        return "\n".join(out)
+    rows = rows[: a.n]
     if a.json:
-        return json.dumps([brief(i) for i in rows], ensure_ascii=False, indent=1)
-    return "\n".join("#%d %s [%s, %s] %s" % (i["rank"], i["id"], i["kind"], i["status"], i["title"]) for i in rows) or "Nothing open."
+        return json.dumps([brief(i, st) for i in rows], ensure_ascii=False, indent=1)
+    return "\n".join("#%d %s [%s, %s, %s] %s" % (i["rank"], i["id"], i["kind"], class_of(st, i), i["status"], i["title"]) for i in rows) or "Nothing open."
 
 
 def do_history(root, iid):
@@ -1122,6 +1166,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--below")
     s.add_argument("--status")
     s.add_argument("--urgency", help="next_session | whenever (default)")
+    s.add_argument("--class", dest="klass", help="build | maintain (derived from the initiative when not given)")
     s = by(sub.add_parser("status", help="move a lug through the flow"))
     s.add_argument("id")
     s.add_argument("status")
@@ -1145,6 +1190,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--value", type=int)
     s.add_argument("--effort", type=int)
     s.add_argument("--urgency", help="next_session | whenever")
+    s.add_argument("--class", dest="klass", help="build | maintain")
     s.add_argument("--reason", required=True)
     s = by(sub.add_parser("link", help="put a lug in an initiative"))
     s.add_argument("id")
@@ -1184,6 +1230,8 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--json", action="store_true")
     s = sub.add_parser("top")
     s.add_argument("--kind", choices=KINDS)
+    s.add_argument("--class", dest="klass", choices=CLASSES, help="only build or only maintain work")
+    s.add_argument("--split", action="store_true", help="two parts: build work and maintain work, each in rank order")
     s.add_argument("--pickable", action="store_true", help="only ready autopilot lugs with budget (initiative signed off) and no live claim")
     s.add_argument("-n", type=int, default=3)
     s.add_argument("--json", action="store_true")
