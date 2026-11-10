@@ -4,9 +4,10 @@
 Lugs are the work items; initiatives group the lugs that deliver one agreed goal. Every write names who made it (--by).
   lug add TITLE --value 1-5 --effort 1-5 --kind owner|autopilot --source WHO --by WHO [--goal G] [--initiative I-###]
           [--check HOW] [--reason WHY] [--above ID | --below ID] [--status proposed|ready]
+          [--urgency next_session|whenever]
   lug status ID proposed|ready|doing|checking|done|dropped|blocked --reason WHY --by WHO
   lug rank ID N --reason WHY [--pin|--unpin] --by WHO      lug move ID --above|--below OTHER --reason WHY [--pin] --by WHO
-  lug edit ID [--title T] [--goal G] [--value V] [--effort E] [--kind K] [--check C] --reason WHY --by WHO
+  lug edit ID [--title T] [--goal G] [--value V] [--effort E] [--kind K] [--check C] [--urgency U] --reason WHY --by WHO
   lug link ID I-### --by WHO [--reason WHY]                 (each lug belongs to exactly one initiative)
   lug claim ID --by WORKER --lease MINUTES                  lug release ID --by WORKER [--reason WHY]
   lug initiative add TITLE --goal N --outcome .. --why-now .. --scope-in .. --scope-out .. --done-when .. --by WHO
@@ -24,7 +25,13 @@ ids I-###. Rendered views (never edit by hand): .wheel/BACKLOG.md (the ranked lu
 (goal -> initiative -> lugs -> completed history).
 kind owner = needs the owner (a decision, a walkthrough, a login, anything outward-facing or hard to undo);
 kind autopilot = a builder can do it and an independent checker can prove it (a check is required). An autopilot lug
-gets no autopilot budget (claim, top --pickable) until its initiative has the owner's sign-off."""
+gets no autopilot budget (claim, top --pickable) until its initiative has the owner's sign-off.
+urgency (optional) = when the work should be done: "next_session" = meaningful and owner-visible, so it should be done before
+the owner's next session; "whenever" (the default) = no deadline. Rule for whoever proposes a lug: an improvement the owner
+will see in something he uses, or anything he asked for by a time, is next_session; internal plumbing is whenever.
+Done next_session lugs are what the brief calls Highlights; the rest are Change notes.
+lint requires an explicit urgency on every open lug and keeps value within the goal's ceiling (goal n holds at most 6-n,
+a "(later)" goal at most 2); the full scoring rubric is plans/backlog-rubric.md in the hub."""
 import argparse, calendar, json, os, re, sys, time
 
 sys.dont_write_bytecode = True
@@ -45,6 +52,13 @@ FLOW = {
     "dropped": [],
 }
 KINDS = ("owner", "autopilot")
+URGENCIES = ("next_session", "whenever")
+DEFAULT_URGENCY = "whenever"
+
+
+def urgency_of(it):
+    """A lug's urgency; whenever when unset (older lugs carry none)."""
+    return it.get("urgency") or DEFAULT_URGENCY
 WRITES = ("add", "status", "rank", "move", "edit", "link", "claim", "release", "initiative")
 INIT_FIELDS = ("title", "goal", "outcome", "why_now", "scope_in", "scope_out", "done_when")
 INIT_LABELS = {"title": "title", "goal": "goal", "outcome": "outcome", "why_now": "why now", "scope_in": "scope (in)",
@@ -143,6 +157,8 @@ def apply(st, ev):
         if iid in items:  # a duplicate id (say, from a bad merge): the first add stands; verify reports it
             return
         items[iid] = {k: ev.get(k) for k in ("id", "title", "goal", "value", "effort", "kind", "source", "check", "reason")}
+        items[iid]["urgency"] = ev.get("urgency") or DEFAULT_URGENCY
+        items[iid]["urgency_set"] = bool(ev.get("urgency"))  # lint wants an explicit tag on every open lug
         items[iid].update(status=ev.get("status", "proposed"), added=ev.get("at"), updated=ev.get("at"), closed=None,
                           initiative=ev.get("initiative"), claim=None, history=[ev])
         order.insert(min(max(int(ev.get("rank") or len(order) + 1), 1) - 1, len(order)), iid)
@@ -174,6 +190,8 @@ def apply(st, ev):
     elif kind == "edit":
         for k, v in (ev.get("changes") or {}).items():
             it[k] = v
+            if k == "urgency":
+                it["urgency_set"] = True
     elif kind == "link":
         it["initiative"] = ev.get("initiative")
     elif kind == "claim":
@@ -330,6 +348,7 @@ def do_add(root, a):
     intrange(a.value, "value")
     intrange(a.effort, "effort")
     need(a.kind in KINDS, "kind must be owner or autopilot")
+    need(getattr(a, "urgency", None) is None or getattr(a, "urgency", None) in URGENCIES, "urgency must be next_session or whenever")
     need(a.source and a.source.strip(), "source is required (who or what created this lug)")
     need(a.kind != "autopilot" or (a.check and a.check.strip()), "an autopilot lug needs --check: how done will be proven")
     need(not (a.above and a.below), "use --above or --below, not both")
@@ -364,6 +383,8 @@ def do_add(root, a):
               "status": a.status or "proposed", "rank": rank, "placed": placed, "by": a.by, "reason": (a.reason or "").strip()}
         if a.initiative:
             ev["initiative"] = a.initiative
+        if getattr(a, "urgency", None):
+            ev["urgency"] = getattr(a, "urgency", None)
         if anchor:
             ev["anchor"] = anchor
             ev["position"] = "above" if a.above else "below"
@@ -447,6 +468,9 @@ def do_edit(root, a):
         if a.kind is not None and a.kind != it["kind"]:
             need(a.kind in KINDS, "kind must be owner or autopilot")
             ch["kind"] = a.kind
+        if getattr(a, "urgency", None) is not None and (getattr(a, "urgency", None) != urgency_of(it) or not it.get("urgency_set")):
+            need(getattr(a, "urgency", None) in URGENCIES, "urgency must be next_session or whenever")
+            ch["urgency"] = getattr(a, "urgency", None)
         need(ch, "nothing to change")
         kind, chk = ch.get("kind", it["kind"]), ch.get("check", it.get("check"))
         need(kind != "autopilot" or (chk and chk.strip()), "an autopilot lug needs a check")
@@ -617,6 +641,16 @@ def owner_work_reason(*texts):
     return None
 
 
+def value_cap(goals, goal):
+    """Highest value a lug on this goal may hold: goal 1 up to 5, goal 2 up to 4, ... down to 1; a "(later)" goal up to 2.
+    None when the goal is not a known number (lint reports that on its own)."""
+    g = str(goal or "").strip()
+    if not goals or not g.isdigit() or g not in goals:
+        return None
+    cap = max(1, 6 - int(g))
+    return min(cap, 2) if goals[g].get("later") else cap
+
+
 def lint(root, st):
     goals = agreed_goals(root)
     errors, pending = [], []
@@ -652,6 +686,13 @@ def lint(root, st):
             why = owner_work_reason(it.get("title"), c)
             if why:
                 errors.append((lid, "autopilot lug looks like owner work: %s" % why))
+        if it.get("urgency") not in (None,) + URGENCIES:
+            errors.append((lid, "urgency %r is not one of %s" % (it.get("urgency"), ", ".join(URGENCIES))))
+        elif not it.get("urgency_set"):
+            errors.append((lid, "lug has no urgency: set next_session or whenever (plans/backlog-rubric.md)"))
+        cap = value_cap(goals, it.get("goal"))
+        if cap and it["value"] > cap:
+            errors.append((lid, "value %d is above %d, the most a goal-%s lug can hold (a later goal never outranks an earlier one; plans/backlog-rubric.md)" % (it["value"], cap, it.get("goal"))))
         t = (it.get("title") or "").strip()
         if not t or re.sub(r"[\s.!]+$", "", t.lower()) in PLACEHOLDERS or PLACEHOLDER_RE.search(t) or TODO_RE.search(t):
             errors.append((lid, "lug title is empty or placeholder"))
@@ -715,6 +756,8 @@ def verify(root):
                 problems.append((n, "%s is added at rank %r, outside 1..%d" % (iid, r, len(st["order"]) + 1)))
             if ev.get("kind") not in KINDS:
                 problems.append((n, "%s has kind %r" % (iid, ev.get("kind"))))
+            if ev.get("urgency") not in (None,) + URGENCIES:
+                problems.append((n, "%s has urgency %r" % (iid, ev.get("urgency"))))
             if ev.get("anchor") and ev["anchor"] not in st["order"]:
                 problems.append((n, "%s is placed next to %s, which is not an open lug" % (iid, ev["anchor"])))
             if ev.get("initiative") and ev["initiative"] not in st["inits"]:
@@ -941,7 +984,8 @@ def roadmap_data(root, st):
     data["unlinked"] = [brief(l) for l in open_items(st) if l.get("initiative") not in st["inits"]]
     for l in sorted([l for l in st["items"].values() if l["status"] in CLOSED], key=lambda l: l["closed"] or "", reverse=True):
         data["history"].append({"date": (l["closed"] or "")[:10], "id": l["id"], "title": l["title"], "status": l["status"],
-                                "who": l.get("status_by"), "reason": l.get("status_reason"), "initiative": l.get("initiative")})
+                                "who": l.get("status_by"), "reason": l.get("status_reason"), "initiative": l.get("initiative"),
+                                "urgency": urgency_of(l)})
     for i in sorted([i for i in st["inits"].values() if i["closed"]], key=lambda i: i["closed"], reverse=True):
         data["history"].append({"date": i["closed"][:10], "id": i["id"], "title": i["title"], "status": "closed",
                                 "who": i["history"][-1].get("by") if i["history"] else None, "reason": i.get("close_reason")})
@@ -1002,6 +1046,7 @@ def do_roadmap(root, a):
 
 def brief(it):
     d = {k: it.get(k) for k in ("rank", "id", "title", "kind", "status", "value", "effort", "goal", "initiative", "check", "source", "reason")}
+    d["urgency"] = urgency_of(it)
     c = live_claim(it)
     d["claimed_by"] = c["by"] if c else None
     if it["status"] in CLOSED:
@@ -1018,7 +1063,7 @@ def do_show(root, a):
         return json.dumps([brief(i) for i in rows], ensure_ascii=False, indent=1)
     if not rows:
         return "Nothing open."
-    return "\n".join("%s %-6s %-9s %-10s v%d/e%d %-6s %s" % (("#%d" % i["rank"]) if i["rank"] else "-", i["id"], i["kind"], i["status"], i["value"], i["effort"], i.get("initiative") or "-", i["title"]) for i in rows)
+    return "\n".join("%s %-6s %-9s %-10s v%d/e%d %-6s %s%s" % (("#%d" % i["rank"]) if i["rank"] else "-", i["id"], i["kind"], i["status"], i["value"], i["effort"], i.get("initiative") or "-", i["title"], "  [next session]" if urgency_of(i) == "next_session" else "") for i in rows)
 
 
 def pickable(st, it):
@@ -1076,6 +1121,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--above")
     s.add_argument("--below")
     s.add_argument("--status")
+    s.add_argument("--urgency", help="next_session | whenever (default)")
     s = by(sub.add_parser("status", help="move a lug through the flow"))
     s.add_argument("id")
     s.add_argument("status")
@@ -1098,6 +1144,7 @@ def build_parser(prog="backlog.py"):
         s.add_argument("--" + k)
     s.add_argument("--value", type=int)
     s.add_argument("--effort", type=int)
+    s.add_argument("--urgency", help="next_session | whenever")
     s.add_argument("--reason", required=True)
     s = by(sub.add_parser("link", help="put a lug in an initiative"))
     s.add_argument("id")
