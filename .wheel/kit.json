@@ -1,16 +1,16 @@
 {
- "version": 7,
+ "version": 9,
  "parts": {
-  "P-013": "b64bf2a80c51fa1e",
+  "P-013": "ed5e0134ae63ccc9",
   "P-014": "b9e1ce842bf916a7",
   "P-015": "3be74cebcddc7850",
   "P-016": "5df1d6adc7575ed7",
   "P-017": "ff57ca53ec56ab96",
   "P-018": "71314127ee4d06e1",
-  "P-019": "5c9a318146c9330a",
+  "P-019": "7b849328cbb2a389",
   "P-020": "952aae1d44c2f8bc",
   "P-021": "1392fc0ac3874e1c"
  },
- "installed_at": "2026-11-10T15:30:39Z",
- "by": "conductor"
+ "installed_at": "2026-11-11T23:49:37Z",
+ "by": "wake (canary for track-prompt-lab)"
 }

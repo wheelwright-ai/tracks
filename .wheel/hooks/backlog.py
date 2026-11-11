@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Lugs and initiatives for one project: a force-ranked plan and roadmap (kit part P-019). Stdlib only; never touches git.
+"""Lugs and initiatives for one project: a force-ranked plan and roadmap (kit part P-019). Stdlib only; never writes git.
 
 Lugs are the work items; initiatives group the lugs that deliver one agreed goal. Every write names who made it (--by).
   lug add TITLE --value 1-5 --effort 1-5 --kind owner|autopilot --source WHO --by WHO [--goal G] [--initiative I-###]
           [--check HOW] [--reason WHY] [--above ID | --below ID] [--status proposed|ready]
           [--urgency next_session|whenever] [--class build|maintain]
-  lug status ID proposed|ready|doing|checking|done|dropped|blocked --reason WHY --by WHO
+  lug status ID proposed|ready|doing|checking|done|dropped|blocked --reason WHY --by WHO [--proof TOKEN]
   lug rank ID N --reason WHY [--pin|--unpin] --by WHO      lug move ID --above|--below OTHER --reason WHY [--pin] --by WHO
   lug edit ID [--title T] [--goal G] [--value V] [--effort E] [--kind K] [--check C] [--urgency U] [--class C] --reason WHY --by WHO
   lug link ID I-### --by WHO [--reason WHY]                 (each lug belongs to exactly one initiative)
@@ -24,7 +24,10 @@ lug (not done/dropped) holds a unique rank 1..N; ranks stay contiguous after any
 ids I-###. Rendered views (never edit by hand): .wheel/BACKLOG.md (the ranked lugs) and .wheel/ROADMAP.md
 (goal -> initiative -> lugs -> completed history).
 kind owner = needs the owner (a decision, a walkthrough, a login, anything outward-facing or hard to undo);
-kind autopilot = a builder can do it and an independent checker can prove it (a check is required). An autopilot lug
+kind autopilot = a builder can do it and an independent checker can prove it (a check is required). Closing an autopilot
+lug done needs --proof: the token tools/verify.py prints on a pass it backed with a command that ran (W-175), made with
+the machine's proof key (~/.config/wheel/proof.key, or $WHEEL_PROOF_KEY) for this lug and a commit of this repository.
+Its check and kind cannot change while it is doing or checking. An autopilot lug
 gets no autopilot budget (claim, top --pickable) until its initiative has the owner's sign-off.
 urgency (optional) = when the work should be done: "next_session" = meaningful and owner-visible, so it should be done before
 the owner's next session; "whenever" (the default) = no deadline. Rule for whoever proposes a lug: an improvement the owner
@@ -36,7 +39,7 @@ else is build. The class is derived when not declared; `top --json` and `show --
 prioritised backlog as a build part and a maintain part, which is what a session reads at startup.
 lint requires an explicit urgency on every open lug and keeps value within the goal's ceiling (goal n holds at most 6-n,
 a "(later)" goal at most 2); the full scoring rubric is plans/backlog-rubric.md in the hub."""
-import argparse, calendar, json, os, re, sys, time
+import argparse, binascii, calendar, hashlib, hmac, json, os, re, subprocess, sys, time
 
 sys.dont_write_bytecode = True
 try:
@@ -423,6 +426,59 @@ def do_add(root, a):
         return "%s rank %d of %d: %s" % (iid, ev["rank"], len(st2["order"]), ev["reason"])
 
 
+# ---------- proof tokens (W-175): only tools/verify.py makes one, on a pass backed by a command that ran ----------
+def proof_key_path():
+    return os.environ.get("WHEEL_PROOF_KEY") or os.path.expanduser("~/.config/wheel/proof.key")
+
+
+def proof_key(create=False):
+    path = proof_key_path()
+    try:
+        with open(path, "rb") as f:
+            k = f.read().strip()
+        if k:
+            return k
+    except OSError:
+        pass
+    if not create:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    k = binascii.hexlify(os.urandom(32))
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "wb") as f:
+        f.write(k + b"\n")
+    return k
+
+
+def _mac(key, subject, sha):
+    return hmac.new(key, ("pass|%s|%s" % (subject, sha)).encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def sign_proof(subject, sha, key=None):
+    return "proof1.%s.%s.%s" % (subject, sha, _mac(key or proof_key(create=True), subject, sha))
+
+
+def proof_problem(token, subject, root):
+    """None when token is a pass proof for subject made with this machine's key on a commit of root's repository."""
+    if not token:
+        return "no proof token: run the check through tools/verify.py and pass the token it prints on a pass with --proof"
+    parts = str(token).strip().split(".")
+    if len(parts) != 4 or parts[0] != "proof1" or not re.match(r"^[0-9a-f]{40}$", parts[2]):
+        return "the proof token is malformed"
+    _, subj, sha, mac = parts
+    if subj != subject:
+        return "the proof token is for %s, not %s" % (subj, subject)
+    key = proof_key()
+    if not key:
+        return "no proof key on this machine (%s)" % proof_key_path()
+    if not hmac.compare_digest(_mac(key, subject, sha), mac):
+        return "the proof token does not match: it was not made by tools/verify.py on this machine"
+    r = subprocess.run(["git", "-C", root, "cat-file", "-e", sha + "^{commit}"], capture_output=True)
+    if r.returncode:
+        return "the proof names commit %s, which is not in this project" % sha[:12]
+    return None
+
+
 def allowed_moves(it):
     ok = FLOW[it["status"]]
     if it["kind"] == "owner" and it["status"] == "doing":
@@ -441,10 +497,14 @@ def do_status(root, a):
         need(a.status in ok, "cannot move %s from %s to %s (allowed: %s)" % (a.id, cur, a.status, ", ".join(ok) or "nothing, it is closed"))
         c = live_claim(it)
         need(not (c and a.status == "doing" and c["by"] != a.by), "%s is claimed by %s until %s" % (a.id, c and c["by"], c and c["until"]))
+        ev = {"event": "status", "id": a.id, "status": a.status, "from": cur, "by": a.by, "reason": a.reason.strip()}
         if a.status == "done" and it["kind"] == "autopilot":
             last = [e for e in it["history"] if e.get("event") == "status" and e["status"] in ("doing", "checking")]
             need(all(e.get("by") != a.by for e in last), "%s cannot be marked done by %s: a different checker must close an autopilot lug" % (a.id, a.by))
-        lk.append({"event": "status", "id": a.id, "status": a.status, "from": cur, "by": a.by, "reason": a.reason.strip()})
+            bad = proof_problem(getattr(a, "proof", None), a.id, root)
+            need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
+            ev["proof"] = a.proof.strip()
+        lk.append(ev)
         return "%s %s -> %s" % (a.id, cur, a.status)
 
 
@@ -501,6 +561,9 @@ def do_edit(root, a):
             need(a.klass in CLASSES, "class must be build or maintain")
             ch["class"] = a.klass
         need(ch, "nothing to change")
+        for k in ("check", "kind"):
+            need(not (k in ch and it["status"] in ("doing", "checking")),
+                 "%s is %s: its %s cannot change while it is built or checked (move it to ready or blocked first)" % (a.id, it["status"], k))
         kind, chk = ch.get("kind", it["kind"]), ch.get("check", it.get("check"))
         need(kind != "autopilot" or (chk and chk.strip()), "an autopilot lug needs a check")
         if "goal" in ch and it.get("initiative") in st["inits"]:
@@ -1171,6 +1234,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("id")
     s.add_argument("status")
     s.add_argument("--reason", required=True)
+    s.add_argument("--proof", help="closing an autopilot lug done: the token tools/verify.py printed on its pass")
     s = by(sub.add_parser("rank"))
     s.add_argument("id")
     s.add_argument("n", type=int)

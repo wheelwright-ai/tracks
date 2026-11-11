@@ -3,10 +3,53 @@
 
 Reads the hook's JSON on stdin (session_id, transcript_path), reads this turn from the transcript, and appends one
 point to .wheel/tracks/WAI_Track-<date>-<time>-Claude-<model>.jsonl (a session_start line first). Tokens are
-summed from the transcript's usage, or left out when unreadable: never a guessed number. Never blocks the turn."""
+summed from the transcript's usage, or left out when unreadable: never a guessed number. Never blocks the turn.
+
+It also answers with the turn status line the owner reads at the end of every turn (a Stop hook systemMessage):
+"Track turn 7 · Opus 5.5 H · 12:41 PM PST" (no token figure: the transcript sums re-read context per
+tool call, which would overstate the turn). The effort letter comes from the Stop payload when Claude
+Code sends one, else CLAUDE_EFFORT, else effortLevel in the project's then the global settings; left out when unknown."""
 import json, os, sys, datetime
 
 sys.dont_write_bytecode = True
+
+
+def model_name(m):
+    """claude-opus-5-5 -> Opus 5.5; claude-fable-5-2 -> Fable 5.2; anything unexpected is shown as it is."""
+    if not m or m.startswith("<"):
+        return None
+    parts = [p for p in m.replace("claude-", "", 1).split("-") if not (p.isdigit() and len(p) == 8)]
+    name = [p for p in parts if not p.isdigit()]
+    ver = [p for p in parts if p.isdigit()]
+    return (" ".join(w.capitalize() for w in name) + (" " + ".".join(ver) if ver else "")).strip() or m
+
+
+def effort_letter(hook, root):
+    e = hook.get("effort")
+    if isinstance(e, dict):
+        e = e.get("level") or e.get("name")
+    e = e or os.environ.get("CLAUDE_EFFORT")
+    if not e:
+        for f in (os.path.join(root, ".claude", "settings.local.json"), os.path.join(root, ".claude", "settings.json"),
+                  os.path.join(os.path.expanduser("~"), ".claude", "settings.json")):
+            try:
+                e = json.load(open(f)).get("effortLevel")
+            except Exception:
+                e = None
+            if e:
+                break
+    return str(e)[:1].upper() if e else ""
+
+
+def status_line(turn, model, hook, root):
+    """The one line shown to the owner at the end of the turn."""
+    bits = ["Track turn %d" % turn]
+    m = model_name(model)
+    if m:
+        letter = effort_letter(hook, root)
+        bits.append(m + (" " + letter if letter else ""))
+    bits.append(datetime.datetime.now().astimezone().strftime("%-I:%M %p %Z"))
+    return " \u00b7 ".join(bits)
 
 
 def main():
@@ -122,6 +165,8 @@ def main():
     with open(os.path.join(tdir, rec["file"]), "a") as f:
         f.write(json.dumps(point) + "\n")
     json.dump(idx, open(idx_p, "w"))
+    if not hook.get("stop_hook_active"):
+        print(json.dumps({"systemMessage": status_line(rec["turns"], model, hook, root)}))
 
 
 if __name__ == "__main__":
