@@ -45,15 +45,105 @@ def effort_letter(hook, root):
     return str(e)[:1].upper() if e else ""
 
 
-def status_line(turn, model, hook, root):
-    """The one line shown to the owner at the end of the turn."""
-    bits = ["Track turn %d" % turn]
+def first_ts(path):
+    try:
+        with open(path) as f:
+            for _ in range(20):
+                line = f.readline()
+                if not line:
+                    break
+                t = json.loads(line).get("timestamp")
+                if t:
+                    return t
+    except Exception:
+        pass
+    return None
+
+
+def session_number(root, transcript):
+    """This session's number among all Claude sessions of the project, its worktrees included (the old footer's s119):
+    the count of the project's transcripts that began no later than this one. None when unknown."""
+    if not transcript or not os.path.exists(transcript):
+        return None
+    import glob, subprocess
+    try:
+        r = subprocess.run(["git", "-C", root, "rev-parse", "--path-format=absolute", "--git-common-dir"], capture_output=True, text=True, timeout=5)
+        main = os.path.dirname(r.stdout.strip()) if r.returncode == 0 and r.stdout.strip() else root
+    except Exception:
+        main = root
+    key = main.replace("/", "-").replace(".", "-")
+    base = os.path.dirname(os.path.dirname(transcript))
+    mine = first_ts(transcript)
+    if not mine:
+        return None
+    n = 0
+    for d in glob.glob(os.path.join(base, key + "*")):
+        for f in glob.glob(os.path.join(d, "*.jsonl")):
+            t = first_ts(f) if f != transcript else mine
+            if t and t <= mine:
+                n += 1
+    return n or None
+
+
+def head_sha(root):
+    import subprocess
+    try:
+        r = subprocess.run(["git", "-C", root, "rev-parse", "--short=8", "HEAD"], capture_output=True, text=True, timeout=5)
+        return r.stdout.strip() or None
+    except Exception:
+        return None
+
+
+def kit_version(root):
+    """The project's installed kit version; in the hub, the kit it releases."""
+    for f in (os.path.join(root, "tools", "kit", "MANIFEST.json"), os.path.join(root, ".wheel", "kit.json")):
+        try:
+            return json.load(open(f)).get("version")
+        except Exception:
+            continue
+    return None
+
+
+def gold_since(root, since_iso):
+    """Proven work since a moment: hub verdict rows that passed, plus lugs closed done with a proof (W-184)."""
+    n = 0
+    for name, ok in (("ledger.jsonl", lambda e: e.get("kind") == "verdict" and e.get("result") == "pass"),
+                     (os.path.join(".wheel", "backlog.jsonl"), lambda e: e.get("event") == "status" and e.get("status") == "done" and e.get("proof"))):
+        try:
+            for line in open(os.path.join(root, name)):
+                try:
+                    e = json.loads(line)
+                except Exception:
+                    continue
+                at = e.get("at") or ""
+                if ok(e) and at and parse_any(at) and parse_any(at) >= since_iso:
+                    n += 1
+        except Exception:
+            pass
+    return n
+
+
+def parse_any(s):
+    try:
+        return datetime.datetime.fromisoformat(str(s).replace("Z", "+00:00")).astimezone(datetime.timezone.utc)
+    except Exception:
+        return None
+
+
+def status_line(turn, model, hook, root, gold=None):
+    """The turn footer the owner reads every turn, in the track prompt's harness shape (track-prompt-lab v4.0.0,
+    turn_footer.cc.harness_format), ASCII pipes only:
+    s{session} | Turn {n} | {day}, {month} {d}, {year} | {time} {tz} | {model effort} | {commit} | kit v{N} | Gold: +{count}
+    A value the harness does not have is the word unknown, never a guess. gold=None leaves {gold} for the model."""
+    now = datetime.datetime.now().astimezone()
+    sn = session_number(root, hook.get("transcript_path"))
     m = model_name(model)
-    if m:
-        letter = effort_letter(hook, root)
-        bits.append(m + (" " + letter if letter else ""))
-    bits.append(datetime.datetime.now().astimezone().strftime("%-I:%M %p %Z"))
-    return " \u00b7 ".join(bits)
+    letter = effort_letter(hook, root) if m else ""
+    kv = kit_version(root)
+    bits = ["s%s" % (sn if sn else "unknown"), "Turn %d" % turn, now.strftime("%a, %b %-d, %Y"), now.strftime("%-I:%M %p %Z"),
+            (m + (" " + letter if letter else "")) if m else "unknown", head_sha(root) or "unknown",
+            "kit v%s" % kv if kv else "kit unknown", "Gold: +%s" % ("{gold}" if gold is None else gold)]
+    return " | ".join(bits)
 
 
 def last_model(path):
@@ -85,11 +175,21 @@ def prompt_hook():
         idx = json.load(open(os.path.join(root, ".wheel", "tracks", ".index.json")))
     except Exception:
         idx = {}
-    turn = int((idx.get(hook.get("session_id") or "unknown") or {}).get("turns") or 0) + 1
+    sid = hook.get("session_id") or "unknown"
+    turn = int((idx.get(sid) or {}).get("turns") or 0) + 1
     model = hook.get("model") if isinstance(hook.get("model"), str) else None
     line = status_line(turn, model or last_model(hook.get("transcript_path")), hook, root)
+    try:   # when this turn began, so the Stop hook can count the proven work done in it
+        tdir = os.path.join(root, ".wheel", "tracks")
+        os.makedirs(tdir, exist_ok=True)
+        with open(os.path.join(tdir, ".turn-start-%s" % sid[:36]), "w") as f:
+            f.write(datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"))
+    except Exception:
+        pass
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext":
-        "Track line for this turn (the owner reads it every turn): end your final message with this line, alone, in backticks: `%s`" % line}}))
+        "Track footer for this turn (the owner reads it every turn; the track prompt's turn_footer): end your final message "
+        "with this line, alone, in backticks, replacing {gold} with the number of verdicts that passed and lugs closed done "
+        "with a proof during this turn (0 if none), every other value exactly as given: `%s`" % line}}))
 
 
 def main():
@@ -206,7 +306,14 @@ def main():
         f.write(json.dumps(point) + "\n")
     json.dump(idx, open(idx_p, "w"))
     if not hook.get("stop_hook_active"):
-        print(json.dumps({"systemMessage": status_line(rec["turns"], model, hook, root)}))
+        gold = None
+        try:
+            with open(os.path.join(tdir, ".turn-start-%s" % sid[:36])) as f:
+                since = parse_any(f.read().strip())
+            gold = gold_since(root, since) if since else None
+        except Exception:
+            gold = None
+        print(json.dumps({"systemMessage": status_line(rec["turns"], model, hook, root, gold if gold is not None else "unknown")}))
 
 
 if __name__ == "__main__":

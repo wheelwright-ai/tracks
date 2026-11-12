@@ -174,11 +174,44 @@ def unwrap(tok):
     return tok, nested
 
 
+def split_unquoted(cmd):
+    """Split on ; && || | and newlines outside quotes (cut 65 review: a commit message holding a separator and a
+    destructive phrase was read as a second command)."""
+    out, cur, q, i = [], [], None, 0
+    while i < len(cmd):
+        ch = cmd[i]
+        if q:
+            cur.append(ch)
+            if ch == "\\" and q == '"' and i + 1 < len(cmd):
+                cur.append(cmd[i + 1])
+                i += 1
+            elif ch == q:
+                q = None
+        elif ch in ("'", '"'):
+            q = ch
+            cur.append(ch)
+        elif ch == "\\" and i + 1 < len(cmd):
+            cur += [ch, cmd[i + 1]]
+            i += 1
+        elif cmd.startswith(("&&", "||"), i):
+            out.append("".join(cur))
+            cur = []
+            i += 1
+        elif ch in ";|\n":
+            out.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+        i += 1
+    out.append("".join(cur))
+    return out
+
+
 def segments(cmd):
     """The simple commands in a command line, including those inside $( ), backticks and ( ) subshells."""
     inner = re.findall(r"\$\(([^()]*)\)", cmd) + re.findall(r"`([^`]*)`", cmd)
     out = []
-    for seg in SPLIT.split(cmd) + [x for i in inner for x in SPLIT.split(i)]:
+    for seg in split_unquoted(cmd) + [x for i in inner for x in split_unquoted(i)]:
         seg = seg.strip().lstrip("({").rstrip(")}").strip()
         if seg:
             out.append(seg)

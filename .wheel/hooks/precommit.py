@@ -320,6 +320,18 @@ def block(script_rel, args="", name="pre-commit"):
     begin, end, _ = MARKS[name]
     if name == "pre-push":
         args = args + ' prepush "$@"'
+    if name == "pre-push":
+        # git hands the pushed refs on stdin once: keep them in a temp file, give them to the gate, then hand the same
+        # refs to whatever runs after this block (a chained hook such as git-lfs), so nothing downstream reads nothing
+        return "\n".join([
+            begin,
+            '_wheel_top="$(git rev-parse --show-toplevel 2>/dev/null)"',
+            '_wheel_in="$(mktemp 2>/dev/null || echo /tmp/wheel-prepush-$$)"; cat > "$_wheel_in"',
+            'if [ -n "$_wheel_top" ] && [ -f "$_wheel_top/%s" ] && command -v python3 >/dev/null 2>&1; then' % script_rel,
+            '  python3 -B "$_wheel_top/%s"%s < "$_wheel_in" || { rm -f "$_wheel_in"; exit 1; }' % (script_rel, args),
+            "fi",
+            'exec < "$_wheel_in"; rm -f "$_wheel_in"',
+            end]) + "\n"
     return "\n".join([
         begin,
         '_wheel_top="$(git rev-parse --show-toplevel 2>/dev/null)"',
