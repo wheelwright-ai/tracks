@@ -34,7 +34,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*1 of 6 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*5 of 6 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -44,12 +44,12 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 1 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | autopilot | ready |
-| 2 | B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored) | autopilot | ready |
-| 3 | B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
-| 4 | B-012 Add one runner that executes every tests/ check and exits non-zero on any failure | autopilot | ready |
-| 5 | B-011 Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an | autopilot | ready |
+| 1 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
+- Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
+- Done: B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-12 (wake-3e8b53/checker)
+- Done: B-012 Add one runner that executes every tests/ check and exits non-zero on any failure, 2026-11-12 (wake-3e8b53/checker)
+- Done: B-011 Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an, 2026-11-12 (wake-3e8b53/checker)
 
 ## Goal 2: Use it ourselves
 
@@ -82,6 +82,10 @@ No initiative yet.
 
 ## Completed history
 
+- 2026-11-12 · B-011 Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an · done by wake-3e8b53/checker
+- 2026-11-12 · B-012 Add one runner that executes every tests/ check and exits non-zero on any failure · done by wake-3e8b53/checker
+- 2026-11-12 · B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files · done by wake-3e8b53/checker
+- 2026-11-12 · B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored) · done by wake-3e8b53/checker
 - 2026-11-09 · B-006 Find stranded ideas in old tracks and offer them as backlog candidates · done by wake-8f6ad2/checker
 - 2026-11-09 · B-005 A new session in a project opens from the last session's track · done by wake-f95d17/checker
 - 2026-11-09 · B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes · done by wake-f95d17/checker
