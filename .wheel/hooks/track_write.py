@@ -8,7 +8,11 @@ summed from the transcript's usage, or left out when unreadable: never a guessed
 It also answers with the turn status line the owner reads at the end of every turn (a Stop hook systemMessage):
 "Track turn 7 · Opus 5.5 H · 12:41 PM PST" (no token figure: the transcript sums re-read context per
 tool call, which would overstate the turn). The effort letter comes from the Stop payload when Claude
-Code sends one, else CLAUDE_EFFORT, else effortLevel in the project's then the global settings; left out when unknown."""
+Code sends one, else CLAUDE_EFFORT, else effortLevel in the project's then the global settings; left out when unknown.
+
+`track_write.py prompt` (a UserPromptSubmit hook) hands the same line to the model as context, to end its reply with:
+a Stop hook's systemMessage is not shown in every view (focus mode shows only the final message), and the owner
+reads this line every turn. The turn number is the one this turn's Stop point will carry."""
 import json, os, sys, datetime
 
 sys.dont_write_bytecode = True
@@ -50,6 +54,42 @@ def status_line(turn, model, hook, root):
         bits.append(m + (" " + letter if letter else ""))
     bits.append(datetime.datetime.now().astimezone().strftime("%-I:%M %p %Z"))
     return " \u00b7 ".join(bits)
+
+
+def last_model(path):
+    """The model of the last assistant message in the transcript, or None."""
+    model = None
+    try:
+        for line in open(path or ""):
+            if '"assistant"' in line:
+                try:
+                    m = (json.loads(line).get("message") or {}).get("model")
+                    model = m or model
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    return model
+
+
+def prompt_hook():
+    """UserPromptSubmit: give the model the turn line to end its final message with."""
+    if os.environ.get("WHEEL_NO_TRACK") == "1":
+        return
+    try:
+        hook = json.load(sys.stdin)
+    except Exception:
+        return
+    root = hook.get("cwd") or os.getcwd()
+    try:
+        idx = json.load(open(os.path.join(root, ".wheel", "tracks", ".index.json")))
+    except Exception:
+        idx = {}
+    turn = int((idx.get(hook.get("session_id") or "unknown") or {}).get("turns") or 0) + 1
+    model = hook.get("model") if isinstance(hook.get("model"), str) else None
+    line = status_line(turn, model or last_model(hook.get("transcript_path")), hook, root)
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext":
+        "Track line for this turn (the owner reads it every turn): end your final message with this line, alone, in backticks: `%s`" % line}}))
 
 
 def main():
@@ -171,6 +211,6 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        prompt_hook() if sys.argv[1:2] == ["prompt"] else main()
     except Exception:
         pass

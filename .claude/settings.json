@@ -56,6 +56,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/track_write.py\" prompt"
+          }
+        ]
+      }
     ]
   },
   "permissions": {
