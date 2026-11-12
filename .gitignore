@@ -79,3 +79,5 @@ __pycache__/
 .venv/
 
 .wheel/backlog.jsonl.lock
+
+.wheel/inbox/

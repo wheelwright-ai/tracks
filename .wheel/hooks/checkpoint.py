@@ -49,14 +49,30 @@ def precompact(hook, root):
     json.dump(cp, open(os.path.join(d, cp["at"].replace(":", "") + ".json"), "w"), indent=1)
 
 
+def inbox_lines(root):
+    """Message lugs waiting in this project's inbox (kit part P-022), [] when none or msg.py is not installed."""
+    try:
+        import importlib.util
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "msg.py")
+        if not os.path.exists(p):
+            return []
+        spec = importlib.util.spec_from_file_location("wheel_msg_ss", p)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        return m.unread_lines(root)
+    except Exception:  # noqa: BLE001  (a session start never fails on the inbox)
+        return []
+
+
 def sessionstart(hook, root):
-    if hook.get("source") not in ("compact", "resume"):
-        return
-    files = sorted(glob.glob(os.path.join(root, ".wheel", "checkpoints", "*.json")))
+    inbox = inbox_lines(root)
+    files = sorted(glob.glob(os.path.join(root, ".wheel", "checkpoints", "*.json"))) if hook.get("source") in ("compact", "resume") else []
     if not files:
+        if inbox:
+            print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": "\n".join(inbox)}}))
         return
     cp = json.load(open(files[-1]))
-    lines = ["Checkpoint from before the last compaction (%s):" % cp.get("at")]
+    lines = inbox + ["Checkpoint from before the last compaction (%s):" % cp.get("at")]
     if cp.get("wheel"):
         c = (cp["wheel"].get("last_cut_row") or {})
         lines.append("Cut %s, phase %s; last tick: %s." % (c.get("cut"), c.get("phase"), cp["wheel"].get("last_tick")))
