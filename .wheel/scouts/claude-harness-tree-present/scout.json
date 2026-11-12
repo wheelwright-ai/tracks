@@ -1,0 +1,27 @@
+{
+ "name": "claude-harness-tree-present",
+ "purpose": "Protects the .claude harness config and command manifest that the advisors and wake read",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "Harness settings file exists",
+   "file": ".claude/settings.json",
+   "expect": {
+    "exists": true
+   }
+  },
+  {
+   "id": "c2",
+   "what": "Command manifest exists and is non-empty",
+   "file": ".claude/commands/manifest.json",
+   "expect": {
+    "exists": true,
+    "min_bytes": 1
+   }
+  }
+ ],
+ "advisor": "surveyor",
+ "created": "2026-11-12T12:02:48Z",
+ "updated": "2026-11-12T12:02:48Z"
+}

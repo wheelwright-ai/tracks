@@ -1,0 +1,29 @@
+{
+ "name": "dev-launcher-present",
+ "purpose": "The dev launcher and its server must stay in place so the viewer can be started",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "dev launcher exists",
+   "file": "dev",
+   "expect": {
+    "exists": true,
+    "min_bytes": 100,
+    "contains": "serve.py"
+   }
+  },
+  {
+   "id": "c2",
+   "what": "serve.py exists",
+   "file": "serve.py",
+   "expect": {
+    "exists": true,
+    "min_bytes": 200
+   }
+  }
+ ],
+ "advisor": "health",
+ "created": "2026-11-12T12:00:42Z",
+ "updated": "2026-11-12T12:00:42Z"
+}

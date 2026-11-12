@@ -1,0 +1,28 @@
+{
+ "name": "validator-tools-present",
+ "purpose": "Track validator and its sample/rule tests must stay present, since they are the only checks the repo has",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "track validator exists",
+   "file": "tools/validate_track.py",
+   "expect": {
+    "exists": true,
+    "min_bytes": 100
+   }
+  },
+  {
+   "id": "c2",
+   "what": "sample validation test exists",
+   "file": "tests/validate_samples.sh",
+   "expect": {
+    "exists": true,
+    "min_bytes": 20
+   }
+  }
+ ],
+ "advisor": "health",
+ "created": "2026-11-12T12:00:42Z",
+ "updated": "2026-11-12T12:00:42Z"
+}

@@ -1,0 +1,11 @@
+{
+ "last_run": "2026-11-12T12:03:16Z",
+ "last_ok": false,
+ "runs": 1,
+ "fails": 1,
+ "catches": 1,
+ "last_why": [
+  "4 line(s), more than 0"
+ ],
+ "lug": "B-008"
+}

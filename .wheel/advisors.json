@@ -5,36 +5,45 @@
    "version": 1,
    "cadence_hours": 24,
    "nothing_count": 0,
-   "last_run": "2026-11-08T22:17:30Z",
-   "last_summary": "Four lugs are ready and unclaimed: B-001 and B-002 fit haiku, B-003 and B-004 fit sonnet, none needs opus or the owner. Capacity is ample (five_hour 11%, seven_day 67%), but overwatch reports tests none and CI shows no runs, so the B-003 and B-004 checks have no runner yet.",
+   "last_run": "2026-11-12T12:03:16Z",
+   "last_summary": "Posture is clean but not done: the worktree has no uncommitted changes (git status empty at 2e1231f) and no CI runs exist. Tests/critical_paths.sh is still the intentionally red stub (prints NOT YET IMPLEMENTED, exit 1), so /wai-closeout stays blocked. The tests/ folder has five checks (validate_rules.sh, validate_samples.sh, stranded_ideas.sh, wake_from_track.sh, viewer_drop.py) with no single runner. .claude/.deploy-quarantine/hooks holds 9 hook files and has no .gitignore entry. I could not v",
    "last_result": "finding"
   },
   {
    "name": "health",
    "version": 2,
    "cadence_hours": 24,
-   "nothing_count": 1,
-   "last_run": "2026-11-08T22:17:37Z",
-   "last_summary": "No CI runs exist: `gh run list --limit 1` returned nothing, and there is no `.github/workflows` directory. The worktree is clean (0 uncommitted files). The repo is docs and prompts only, with no tests, dependencies or deploys to check, so the overwatch line's \"tests none\" is expected.",
-   "last_result": "nothing"
+   "nothing_count": 0,
+   "last_run": "2026-11-12T12:00:42Z",
+   "last_summary": "Tests: none real. tests/critical_paths.sh is an intentionally red scaffold stub (prints NOT YET IMPLEMENTED, exit 1), and /wai-closeout hard-blocks on it. CI: no runs found. Worktree is clean at 2e1231f. Main-checkout uncommitted file (34h as of 2026-11-11) is not re-verified: Bash was denied this run, so I could not run git status there. The stub's header says not to replace red with exit 0.",
+   "last_result": "finding"
   },
   {
    "name": "historian",
    "version": 1,
    "cadence_hours": 168,
    "nothing_count": 0,
-   "last_run": "2026-11-08T22:17:51Z",
-   "last_summary": "Seven \"Session work: N files, no lug transitions recorded\" commits landed between 2026-10-26 and 2026-11-02, all with no lug behind them. \"Regenerate stale generated docs\" also recurs 6 times in the same window (10-25 to 11-02), so the same staleness keeps coming back. Backlog holds 6 lugs; none covers either pattern.",
+   "last_run": "2026-11-12T12:01:47Z",
+   "last_summary": "Initiative I-004 (Keep tracks healthy) is marked done, but its done_when is unmet: no CI workflow exists (no .github/workflows, no gh runs), overwatch still says tests none although tests/ holds five shell and Python checks with no single runner, and one file has been uncommitted for 34h. Its scope named CI, security fixes, stale files and the bun directive, but only B-007 (validate_samples) was turned into a lug. Earlier in the history, B-001, B-002 and B-003 each went blocked after two attempt",
    "last_result": "finding"
   },
   {
    "name": "security",
    "version": 1,
    "cadence_hours": 72,
-   "nothing_count": 1,
-   "last_run": "2026-11-08T22:18:06Z",
-   "last_summary": "I scanned the tracked files for key-shaped strings (AWS, GitHub, OpenAI-style, Slack, private-key headers, and key/secret/token/password assignments). The only hit is docs/CHANGELOG.md:7443, a commit-log line whose text contains the word \"secret\" inside a lug name, so it is a false positive. The repo has no .env files, key or pem files, or dependency manifests (package.json, requirements, lockfiles), so there are no packages to check for advisories. No CI runs exist. Bash was denied in this run,",
+   "nothing_count": 2,
+   "last_run": "2026-11-12T12:02:08Z",
+   "last_summary": "Nothing to report. I ran pattern scans for key-shaped strings (AWS, GitHub, OpenAI-style, Slack, private-key headers) and for assignments of long values to api_key, secret, token or password. None matched anywhere in the repo. There are no .env, .pem or .key files and no package.json or requirements file, so there are no dependencies to check for advisories. Bash was denied in this run, so I couldn't list tracked files or check git state. The scan covered the working tree, not git history. CI ha",
    "last_result": "nothing"
+  },
+  {
+   "name": "surveyor",
+   "version": 3,
+   "cadence_hours": 168,
+   "nothing_count": 0,
+   "last_run": "2026-11-12T12:02:48Z",
+   "last_summary": "Tracks is a docs and prompt library: 495 files in the worktree, with a 157-file .claude harness tree (including a 9-file .claude/.deploy-quarantine/hooks folder). The 2026-11-11 overwatch reports one uncommitted file open for 34h, and no CI runs exist. Size and git measurements (du, git count-objects, git status) were denied in this run, so sizes and the uncommitted file's name are unmeasured. The Leya rows point at tools/kit/guard.py, tools/wake.py and tools/route.py, which are not in this repo",
+   "last_result": "finding"
   }
  ]
 }

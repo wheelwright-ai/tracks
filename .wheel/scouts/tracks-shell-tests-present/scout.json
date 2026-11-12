@@ -1,0 +1,45 @@
+{
+ "name": "tracks-shell-tests-present",
+ "purpose": "Protects the shell test scripts behind the goal-1 format checks (B-003, B-007) and the wake and stranded-ideas checks (B-005, B-006).",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "validate_samples.sh exists, has an exit 1 path, and is not a stub",
+   "file": "tests/validate_samples.sh",
+   "expect": {
+    "exists": true,
+    "min_bytes": 50,
+    "contains": "exit 1"
+   }
+  },
+  {
+   "id": "c2",
+   "what": "validate_rules.sh exists and is not a stub",
+   "file": "tests/validate_rules.sh",
+   "expect": {
+    "exists": true,
+    "min_bytes": 50
+   }
+  },
+  {
+   "id": "c3",
+   "what": "wake_from_track.sh exists",
+   "file": "tests/wake_from_track.sh",
+   "expect": {
+    "exists": true
+   }
+  },
+  {
+   "id": "c4",
+   "what": "stranded_ideas.sh exists",
+   "file": "tests/stranded_ideas.sh",
+   "expect": {
+    "exists": true
+   }
+  }
+ ],
+ "advisor": "historian",
+ "created": "2026-11-12T12:01:47Z",
+ "updated": "2026-11-12T12:01:47Z"
+}

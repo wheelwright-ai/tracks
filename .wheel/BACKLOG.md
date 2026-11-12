@@ -4,13 +4,18 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 
 | rank | id | title | kind | status | value/effort | initiative |
 |---:|---|---|---|---|---|---|
-| 1 | B-001 | Start here: one page with the recommended prompt, a sample track and how to check your own file | autopilot | ready | 5/2 | I-001 |
-| 2 | B-002 | Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner | autopilot | ready | 4/2 | I-001 |
-| 3 | B-007 | Add a small validator test run that checks every sample against the spec | autopilot | ready | 4/2 | I-004 |
-| 4 | B-003 | Format spec and validator agree: every rule in the spec is checked, every sample passes | autopilot | ready | 3/2 | I-002 |
-| 5 | B-005 | A new session in a project opens from the last session's track | autopilot | ready | 3/3 | I-003 |
-| 6 | B-006 | Find stranded ideas in old tracks and offer them as backlog candidates | autopilot | ready | 2/3 | I-003 |
+| 1 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | autopilot | ready | 3/1 | I-004 |
+| 2 | B-010 | Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored) | autopilot | ready | 3/1 | I-004 |
+| 3 | B-008 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready | 3/2 | I-004 |
+| 4 | B-012 | Add one runner that executes every tests/ check and exits non-zero on any failure | autopilot | ready | 2/2 | I-004 |
+| 5 | B-011 | Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an | autopilot | ready | 2/4 | I-004 |
 
 ## Recently done
 
+- B-006 Find stranded ideas in old tracks and offer them as backlog candidates (2026-11-09)
+- B-005 A new session in a project opens from the last session's track (2026-11-09)
+- B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes (2026-11-09)
+- B-007 Add a small validator test run that checks every sample against the spec (2026-11-09)
+- B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner (2026-11-09)
+- B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file (2026-11-09)
 - B-004 The viewer opens any track file dropped on it, as a static page (2026-11-08)

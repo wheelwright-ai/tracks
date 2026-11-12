@@ -1,0 +1,20 @@
+{
+ "name": "critical-paths-gate-present",
+ "purpose": "The closeout gate file must not be deleted or emptied, since a missing gate would let closeout skip the critical-path check",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "critical_paths.sh exists and still carries its gate header",
+   "file": "tests/critical_paths.sh",
+   "expect": {
+    "exists": true,
+    "min_bytes": 200,
+    "contains": "CRITICAL-PATHS"
+   }
+  }
+ ],
+ "advisor": "health",
+ "created": "2026-11-12T12:00:42Z",
+ "updated": "2026-11-12T12:00:42Z"
+}

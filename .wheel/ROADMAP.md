@@ -34,7 +34,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*1 of 1 lug done · done · owner sign-off: signed off by owner on 2026-11-08*
+*1 of 6 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -42,6 +42,13 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - **Not in scope:** New features, redesigns, and anything that changes production data or deploys without the owner.
 - **Done when:** Every lug in this initiative is done: CI or the project's tests pass on a clean checkout, the named security fixes have tests, and no file named in the findings stays uncommitted for more than a day.
 
+| rank | lug | kind | status |
+|---:|---|---|---|
+| 1 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | autopilot | ready |
+| 2 | B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored) | autopilot | ready |
+| 3 | B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
+| 4 | B-012 Add one runner that executes every tests/ check and exits non-zero on any failure | autopilot | ready |
+| 5 | B-011 Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an | autopilot | ready |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 
 ## Goal 2: Use it ourselves

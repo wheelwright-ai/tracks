@@ -1,0 +1,356 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-12T12:00:05Z",
+ "ended": "2026-11-12T12:03:16Z",
+ "tokens_used": 143570,
+ "lugs_done": [],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [
+  "health",
+  "historian",
+  "security",
+  "surveyor",
+  "expediter"
+ ],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261112T120005Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-12-baee46",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-12-baee46",
+ "advisor_findings": [
+  {
+   "advisor": "health",
+   "result": "finding",
+   "summary": "Tests: none real. tests/critical_paths.sh is an intentionally red scaffold stub (prints NOT YET IMPLEMENTED, exit 1), and /wai-closeout hard-blocks on it. CI: no runs found. Worktree is clean at 2e1231f. Main-checkout uncommitted file (34h as of 2026-11-11) is not re-verified: Bash was denied this run, so I could not run git status there. The stub's header says not to replace red with exit 0.",
+   "proposals": [
+    "Replace the red critical_paths.sh stub with real deterministic tests for the viewer, track validator and dev launcher",
+    "Triage the one uncommitted file in the main checkout (carried from 2026-11-11, not re-verified)"
+   ],
+   "tokens": 25840,
+   "cadence_doubled": false,
+   "maintenance": [
+    {
+     "title": "Replace the red critical_paths.sh stub with real deterministic tests over the viewer, track validator and dev launcher",
+     "why": "tests/critical_paths.sh prints 'NOT YET IMPLEMENTED' and exits 1; overwatch reports tests none; the closeout gate hard-blocks on red",
+     "check": "`bash tests/critical_paths.sh; echo $?` prints 0 and the NOT YET IMPLEMENTED line is gone; the file runs real checks, not exit 0",
+     "value": 2,
+     "effort": 3
+    },
+    {
+     "title": "Triage the one uncommitted file in the main checkout",
+     "why": "overwatch on 2026-11-11 reported 1 file uncommitted for 34h; not re-verified this run because Bash was denied",
+     "check": "`git -C /home/mario/projects/wheelwright/tracks status --short` prints nothing, or the file is committed or removed by its owner",
+     "value": 3,
+     "effort": 1
+    }
+   ],
+   "build_ideas": [],
+   "proposal_titles": [
+    "Replace the red critical_paths.sh stub with real deterministic tests for the viewer, track validator and dev launcher",
+    "Triage the one uncommitted file in the main checkout (carried from 2026-11-11, not re-verified)"
+   ],
+   "scouts": {
+    "written": [
+     "critical-paths-gate-present",
+     "dev-launcher-present",
+     "keepalive-cron-wiring",
+     "validator-tools-present"
+    ],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 4,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [
+    "B-011"
+   ],
+   "proposals_queued": [
+    "AP-0038",
+    "AP-0039"
+   ]
+  },
+  {
+   "advisor": "historian",
+   "result": "finding",
+   "summary": "Initiative I-004 (Keep tracks healthy) is marked done, but its done_when is unmet: no CI workflow exists (no .github/workflows, no gh runs), overwatch still says tests none although tests/ holds five shell and Python checks with no single runner, and one file has been uncommitted for 34h. Its scope named CI, security fixes, stale files and the bun directive, but only B-007 (validate_samples) was turned into a lug. Earlier in the history, B-001, B-002 and B-003 each went blocked after two attempts because the wake's Bash was denied, and this advisor's own shell calls were denied in the same way.",
+   "proposals": [
+    "One command runs every tests/*.sh check and exits non-zero on any failure",
+    "Land or retire the uncommitted file overwatch flagged for 34h",
+    "(hub operator) Let builder and advisor wakes run the project's check commands (tests/*.sh, tools/validate_track.py, gh run list): B-001 to B-003 blocked on denied Bash in wake 051aec, and this run's shell calls were denied too"
+   ],
+   "tokens": 56292,
+   "cadence_doubled": false,
+   "maintenance": [
+    {
+     "title": "One command runs every tests/*.sh check and exits non-zero on any failure",
+     "why": "I-004 done_when requires project tests passing on a clean checkout. tests/ holds validate_samples.sh, validate_rules.sh, wake_from_track.sh and stranded_ideas.sh with no single runner, and overwatch on 2026-11-11 still reports tests none.",
+     "check": "On a clean checkout, `bash tests/run_all.sh` exits 0, and it exits non-zero when one tests/*.sh script is made to fail (viewer_drop.py excluded, it needs Chromium).",
+     "value": 3,
+     "effort": 2
+    },
+    {
+     "title": "Land or retire the uncommitted file overwatch flagged for 34h",
+     "why": "overwatch 2026-11-11T15:35Z: 1 file uncommitted, oldest 34h. I-004 done_when allows no file to stay uncommitted for more than a day.",
+     "check": "`git status --porcelain` prints nothing in the main checkout. If the file is not wanted, the owner decides whether to retire it; the builder does not delete it.",
+     "value": 3,
+     "effort": 1
+    }
+   ],
+   "build_ideas": [
+    {
+     "title": "Add a CI workflow that runs the tests/ checks on every push",
+     "why": "I-004 done_when names CI as one way to pass. No .github/workflows directory exists and `gh run list` returns no runs, so no check runs off the owner's machine. Adding a workflow needs the owner's yes.",
+     "goal": "1"
+    }
+   ],
+   "proposal_titles": [
+    "One command runs every tests/*.sh check and exits non-zero on any failure",
+    "Land or retire the uncommitted file overwatch flagged for 34h",
+    "(hub operator) Let builder and advisor wakes run the project's check commands (tests/*.sh, tools/validate_track.py, gh run list): B-001 to B-003 blocked on denied Bash in wake 051aec, and this run's shell calls were denied too"
+   ],
+   "scouts": {
+    "written": [
+     "tracks-shell-tests-present",
+     "stranded-ideas-read-only"
+    ],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 2,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [
+    "B-012"
+   ],
+   "proposals_queued": [
+    "AP-0037",
+    "AP-0040"
+   ]
+  },
+  {
+   "advisor": "security",
+   "result": "nothing",
+   "summary": "Nothing to report. I ran pattern scans for key-shaped strings (AWS, GitHub, OpenAI-style, Slack, private-key headers) and for assignments of long values to api_key, secret, token or password. None matched anywhere in the repo. There are no .env, .pem or .key files and no package.json or requirements file, so there are no dependencies to check for advisories. Bash was denied in this run, so I couldn't list tracked files or check git state. The scan covered the working tree, not git history. CI has no runs.",
+   "proposals": [],
+   "tokens": 12827,
+   "cadence_doubled": false,
+   "maintenance": [],
+   "build_ideas": [],
+   "proposal_titles": [],
+   "scouts": {
+    "written": [],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 0,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [],
+   "proposals_queued": []
+  },
+  {
+   "advisor": "surveyor",
+   "result": "finding",
+   "summary": "Tracks is a docs and prompt library: 495 files in the worktree, with a 157-file .claude harness tree (including a 9-file .claude/.deploy-quarantine/hooks folder). The 2026-11-11 overwatch reports one uncommitted file open for 34h, and no CI runs exist. Size and git measurements (du, git count-objects, git status) were denied in this run, so sizes and the uncommitted file's name are unmeasured. The Leya rows point at tools/kit/guard.py, tools/wake.py and tools/route.py, which are not in this repo, so no Leya or Jev route is proposed here; tools/validate_track.py already gives deterministic rule checks.",
+   "proposals": [
+    "Name and settle the one uncommitted file open 34h (overwatch 2026-11-11T15:35Z)",
+    "Decide whether .claude/.deploy-quarantine/ (9 hook files, not in .gitignore) is committed on purpose or should be moved out"
+   ],
+   "tokens": 31468,
+   "cadence_doubled": false,
+   "maintenance": [
+    {
+     "title": "Name and settle the one uncommitted file open 34h",
+     "why": "overwatch 2026-11-11T15:35Z: 1 file uncommitted, oldest 34h; the file is not named in the evidence I could read",
+     "check": "git status --short prints no lines (run from the repo root)",
+     "value": 2,
+     "effort": 1
+    },
+    {
+     "title": "Decide the fate of .claude/.deploy-quarantine/ (9 hook files, no .gitignore entry)",
+     "why": "The folder sits in the working tree under a quarantine name with no ignore rule; git ls-files .claude/.deploy-quarantine shows whether it is tracked",
+     "check": "git ls-files .claude/.deploy-quarantine returns the intended result and the folder is either tracked on purpose or gitignored",
+     "value": 2,
+     "effort": 2
+    }
+   ],
+   "build_ideas": [],
+   "proposal_titles": [
+    "Name and settle the one uncommitted file open 34h (overwatch 2026-11-11T15:35Z)",
+    "Decide whether .claude/.deploy-quarantine/ (9 hook files, not in .gitignore) is committed on purpose or should be moved out"
+   ],
+   "scouts": {
+    "written": [
+     "claude-harness-tree-present",
+     "gitignore-keeps-spoke-out"
+    ],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 2,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [
+    "B-009",
+    "B-010"
+   ],
+   "proposals_queued": []
+  },
+  {
+   "advisor": "expediter",
+   "result": "finding",
+   "summary": "Posture is clean but not done: the worktree has no uncommitted changes (git status empty at 2e1231f) and no CI runs exist. Tests/critical_paths.sh is still the intentionally red stub (prints NOT YET IMPLEMENTED, exit 1), so /wai-closeout stays blocked. The tests/ folder has five checks (validate_rules.sh, validate_samples.sh, stranded_ideas.sh, wake_from_track.sh, viewer_drop.py) with no single runner. .claude/.deploy-quarantine/hooks holds 9 hook files and has no .gitignore entry. I could not verify the main checkout's uncommitted file: Bash was denied for git in this run, so that item rests on the overwatch line from 2026-11-11.",
+   "proposals": [
+    "Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator and dev launcher",
+    "Add one runner that executes every tests/ check and exits non-zero on any failure",
+    "Triage the uncommitted file in the main checkout that has been open since 2026-11-11",
+    "Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored)"
+   ],
+   "tokens": 17143,
+   "cadence_doubled": false,
+   "maintenance": [
+    {
+     "title": "Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator and dev launcher",
+     "why": "tests/critical_paths.sh prints NOT YET IMPLEMENTED and exits 1; /wai-closeout hard-blocks on it, and the I-004 done_when is unmet",
+     "check": "bash tests/critical_paths.sh exits 0 and runs at least one real assertion per critical path",
+     "value": 2,
+     "effort": 4,
+     "advisor": "health"
+    },
+    {
+     "title": "Add one runner that executes every tests/ check and exits non-zero on any failure",
+     "why": "tests/ holds five shell and Python checks with no single entry point, and overwatch reports tests as none",
+     "check": "a single command runs validate_rules.sh, validate_samples.sh, stranded_ideas.sh, wake_from_track.sh and viewer_drop.py and exits 0 on the current tree",
+     "value": 2,
+     "effort": 2,
+     "advisor": "historian"
+    },
+    {
+     "title": "Triage the uncommitted file in the main checkout that has been open since 2026-11-11",
+     "why": "overwatch reported 1 file uncommitted, oldest 34h, as of 2026-11-11T15:35Z; not re-verified in this run",
+     "check": "git status --porcelain in the main checkout prints nothing, or the file is committed or deliberately removed",
+     "value": 3,
+     "effort": 1,
+     "advisor": "surveyor"
+    },
+    {
+     "title": "Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored)",
+     "why": "the folder exists and is not in .gitignore; the quarantine name suggests the hooks were set aside but they are still tracked",
+     "check": "the folder is either removed, or gitignored with a note on why, and git status stays clean",
+     "value": 3,
+     "effort": 1,
+     "advisor": "surveyor"
+    }
+   ],
+   "build_ideas": [
+    {
+     "title": "Add a CI workflow that runs the tests/ checks on every push",
+     "why": "no .github/workflows directory exists and gh run list returns no runs; I-004 says keep tracks healthy, which needs a check that runs without a person",
+     "goal": "1",
+     "advisor": "historian"
+    }
+   ],
+   "proposal_titles": [
+    "Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator and dev launcher",
+    "Add one runner that executes every tests/ check and exits non-zero on any failure",
+    "Triage the uncommitted file in the main checkout that has been open since 2026-11-11",
+    "Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored)"
+   ],
+   "scouts": {
+    "written": [
+     "worktree-no-uncommitted",
+     "critical-paths-stays-red-until-real"
+    ],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 2,
+    "failed": [
+     "worktree-no-uncommitted"
+    ],
+    "lugs": [
+     "B-008"
+    ],
+    "caught": [
+     {
+      "scout": "worktree-no-uncommitted",
+      "advisor": "expediter"
+     }
+    ],
+    "notes": [
+     "scout worktree-no-uncommitted broke: opened B-008"
+    ]
+   },
+   "lugs_created": [
+    "B-008"
+   ],
+   "proposals_queued": []
+  }
+ ],
+ "lugs": [],
+ "merge": {
+  "state": "nothing to merge"
+ },
+ "complete": true,
+ "notes": [
+  "advisor templates updated: surveyor v3",
+  "complete round: 5 advisor(s), 4 useful; 10 scout(s) written, 5 lug(s) and 4 proposal(s) made",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-12-baee46 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "round": {
+  "advisors": [
+   "health",
+   "historian",
+   "security",
+   "surveyor",
+   "expediter"
+  ],
+  "tokens": 143570,
+  "useful": 4,
+  "scouts_written": [
+   "claude-harness-tree-present",
+   "critical-paths-gate-present",
+   "critical-paths-stays-red-until-real",
+   "dev-launcher-present",
+   "gitignore-keeps-spoke-out",
+   "keepalive-cron-wiring",
+   "stranded-ideas-read-only",
+   "tracks-shell-tests-present",
+   "validator-tools-present",
+   "worktree-no-uncommitted"
+  ],
+  "scouts_rerun": 10,
+  "scouts_failed": [
+   "worktree-no-uncommitted"
+  ],
+  "lugs_created": [
+   "B-011",
+   "B-012",
+   "B-009",
+   "B-010",
+   "B-008"
+  ],
+  "proposals": [
+   "AP-0038",
+   "AP-0039",
+   "AP-0037",
+   "AP-0040"
+  ],
+  "review": [
+   "8 proposal(s) left out (at most 4 a round)",
+   "scout worktree-no-uncommitted broke: opened B-008"
+  ]
+ },
+ "worktree_removed": true
+}

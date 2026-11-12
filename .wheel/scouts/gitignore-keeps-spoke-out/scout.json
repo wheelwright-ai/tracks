@@ -1,0 +1,19 @@
+{
+ "name": "gitignore-keeps-spoke-out",
+ "purpose": "Protects the rule that keeps the local WAI-Spoke folder out of git",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": ".gitignore still lists WAI-Spoke/",
+   "file": ".gitignore",
+   "expect": {
+    "exists": true,
+    "contains": "WAI-Spoke/"
+   }
+  }
+ ],
+ "advisor": "surveyor",
+ "created": "2026-11-12T12:02:48Z",
+ "updated": "2026-11-12T12:02:48Z"
+}

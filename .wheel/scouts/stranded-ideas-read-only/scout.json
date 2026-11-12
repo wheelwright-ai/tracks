@@ -1,0 +1,23 @@
+{
+ "name": "stranded-ideas-read-only",
+ "purpose": "Protects B-006's promise that the stranded-ideas script writes nothing and runs no subprocesses.",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "tools/stranded_ideas.py contains no subprocess, remove, shutil or system calls (grep finds none, exit 1)",
+   "cmd": [
+    "grep",
+    "-cE",
+    "subprocess|os\\.remove|shutil|os\\.system",
+    "tools/stranded_ideas.py"
+   ],
+   "expect": {
+    "exit": 1
+   }
+  }
+ ],
+ "advisor": "historian",
+ "created": "2026-11-12T12:01:47Z",
+ "updated": "2026-11-12T12:01:47Z"
+}

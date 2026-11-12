@@ -1,0 +1,24 @@
+{
+ "name": "worktree-no-uncommitted",
+ "purpose": "Catches work left uncommitted in the spoke worktree, the condition overwatch flagged for 34h",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "git status shows no changed or untracked files",
+   "cmd": [
+    "git",
+    "status",
+    "--porcelain"
+   ],
+   "expect": {
+    "lines": {
+     "max": 0
+    }
+   }
+  }
+ ],
+ "advisor": "expediter",
+ "created": "2026-11-12T12:03:16Z",
+ "updated": "2026-11-12T12:03:16Z"
+}

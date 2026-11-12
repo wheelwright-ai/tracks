@@ -1,0 +1,28 @@
+{
+ "name": "keepalive-cron-wiring",
+ "purpose": "The keepalive cron must keep pointing at the api route that exists, or the database keepalive silently stops",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "vercel.json still schedules /api/keepalive",
+   "file": "tools/vercel-db-keepalive/vercel.json",
+   "expect": {
+    "exists": true,
+    "contains": "/api/keepalive"
+   }
+  },
+  {
+   "id": "c2",
+   "what": "the keepalive api handler exists",
+   "file": "tools/vercel-db-keepalive/api/keepalive.js",
+   "expect": {
+    "exists": true,
+    "min_bytes": 20
+   }
+  }
+ ],
+ "advisor": "health",
+ "created": "2026-11-12T12:00:42Z",
+ "updated": "2026-11-12T12:00:42Z"
+}
