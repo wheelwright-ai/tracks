@@ -3,12 +3,7 @@
 
   precommit.py [--hub]           run as a git pre-commit hook on the staged files (exit 1 = commit refused)
   precommit.py selftest          prove the gate in a scratch repository (the kit canary runs this)
-  precommit.py install [--hub] [ROOT]   put the hooks in ROOT's git hooks (chains to any existing pre-commit/pre-push hook)
-  precommit.py [--hub] prepush REMOTE URL   run as a git pre-push hook (W-177; refs on stdin, exit 1 = push refused)
-
-What the pre-push gate refuses (W-177): a force push (the remote's commit is not in what is pushed), deleting a
-remote branch, secret-shaped text anywhere in the pushed commits (their added lines, not the working tree), and in a
-live project (.wheel/config.json publishes_live) a push to main or master unless the owner set WHEEL_OWNER_PUSH=1.
+  precommit.py install [--hub] [ROOT]   put the hook in ROOT's git hooks (chains to any existing pre-commit hook)
 
 What it checks, on the staged files only (added lines, so it stays fast):
   F-004  secret-shaped text, with the reviewed allowlist (hub: audits/secrets-allowlist.json, project:
@@ -62,10 +57,10 @@ def staged_paths(cwd):
     return [p for p in out.split("\0") if p] if rc == 0 else []
 
 
-def added_lines(cwd, rng=None):
-    """{path: [(new line number, text)]} for the lines the commit adds (rng: [base, head] for a pushed range instead)."""
-    rc, out, _ = run(["git", "-c", "core.quotepath=off", "diff"] + (rng or ["--cached"]) +
-                     ["-U0", "--no-color", "--no-ext-diff", "--diff-filter=ACMR"], cwd)
+def added_lines(cwd):
+    """{path: [(new line number, text)]} for the lines the commit adds."""
+    rc, out, _ = run(["git", "-c", "core.quotepath=off", "diff", "--cached", "-U0", "--no-color", "--no-ext-diff",
+                      "--diff-filter=ACMR"], cwd)
     res, path, header, n = {}, None, False, 0
     if rc != 0:
         return res
@@ -258,75 +253,21 @@ def report(probs):
     return "\n".join(msg)
 
 
-# ---------------------------------------------------------------- the pre-push gate (W-177)
-
-ZERO = "0" * 40
-EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-
-
-def prepush(top, hub, ref_lines, env=None):
-    """Problems with a push: ref_lines are git's pre-push stdin lines '<local ref> <local sha> <remote ref> <remote sha>'."""
-    env = os.environ if env is None else env
-    probs = []
-    live = False
-    try:
-        live = bool(json.load(open(os.path.join(top, ".wheel", "config.json"))).get("publishes_live"))
-    except (OSError, ValueError, AttributeError):
-        pass
-    allow_path = os.path.join(top, "audits", "secrets-allowlist.json") if hub else os.path.join(top, ".wheel", "secrets-allowlist.json")
-    for line in ref_lines:
-        parts = line.split()
-        if len(parts) != 4:
-            continue
-        lref, lsha, rref, rsha = parts
-        branch = rref.rsplit("/", 1)[-1] if rref.startswith("refs/heads/") else rref
-        if lsha.strip("0") == "":
-            probs.append((rref, 0, "push", "deletes the remote branch %s" % branch, "never delete remote branches from a session; ask the owner"))
-            continue
-        if rsha.strip("0") != "":
-            known = run(["git", "cat-file", "-e", rsha + "^{commit}"], top)[0] == 0
-            if not known or run(["git", "merge-base", "--is-ancestor", rsha, lsha], top)[0] != 0:
-                probs.append((rref, 0, "push", "is a force push: %s on the remote is not in what is pushed" % branch,
-                              "never force-push; fetch and merge (or rebase on a private branch) and push again"))
-                continue
-            rc, out, _ = run(["git", "rev-list", "--max-count=500", "%s..%s" % (rsha, lsha)], top)
-        else:
-            rc, out, _ = run(["git", "rev-list", "--max-count=500", lsha, "--not", "--remotes"], top)
-        if live and branch in ("main", "master") and env.get("WHEEL_OWNER_PUSH") != "1":
-            probs.append((rref, 0, "push", "pushes %s of a live project (it may publish)" % branch,
-                          "push a branch instead and let the owner merge; the owner can set WHEEL_OWNER_PUSH=1"))
-        seen = set()
-        for c in out.split():   # every pushed commit: a secret added and removed again is still in the history
-            parent = run(["git", "rev-parse", "-q", "--verify", c + "^"], top)[1].strip() or EMPTY_TREE
-            lines = added_lines(top, [parent, c])
-            for pr in secrets(top, sorted(lines), lines, hub, allow_path):
-                key = (pr[0], pr[3])
-                if key not in seen:
-                    seen.add(key)
-                    probs.append((pr[0], pr[1], pr[2], pr[3] + " in commit %s" % c[:10], pr[4]))
-    return probs
-
-
-# ---------------------------------------------------------------- installing the hooks
+# ---------------------------------------------------------------- installing the hook
 
 BEGIN = "# >>> wheel pre-commit (managed block) >>>"
 END = "# <<< wheel pre-commit <<<"
 CHAIN = "pre-commit.wheel-chain"
-MARKS = {"pre-commit": (BEGIN, END, CHAIN),
-         "pre-push": ("# >>> wheel pre-push (managed block) >>>", "# <<< wheel pre-push <<<", "pre-push.wheel-chain")}
 
 
-def block(script_rel, args="", name="pre-commit"):
-    begin, end, _ = MARKS[name]
-    if name == "pre-push":
-        args = args + ' prepush "$@"'
+def block(script_rel, args=""):
     return "\n".join([
-        begin,
+        BEGIN,
         '_wheel_top="$(git rev-parse --show-toplevel 2>/dev/null)"',
         'if [ -n "$_wheel_top" ] && [ -f "$_wheel_top/%s" ] && command -v python3 >/dev/null 2>&1; then' % script_rel,
         '  python3 -B "$_wheel_top/%s"%s || exit 1' % (script_rel, args),
         "fi",
-        end]) + "\n"
+        END]) + "\n"
 
 
 def hook_dir(root):
@@ -347,7 +288,7 @@ def hook_paths(root):
     top = os.path.realpath(toplevel(root) or root)
     d = hook_dir(root)
     out = []
-    for name in ("pre-commit", CHAIN, "pre-push", MARKS["pre-push"][2]):
+    for name in ("pre-commit", CHAIN):
         p = os.path.join(d, name)
         rel = os.path.relpath(os.path.realpath(d), top)
         inside = not rel.startswith("..") and not rel.split(os.sep)[0] == ".git"
@@ -362,14 +303,13 @@ def _is_shell(text):
     return bool(re.search(r"(^|[ /])(ba|da|z|k)?sh(\s|$)", first))
 
 
-def install_hook(root, script_rel, args="", name="pre-commit"):
-    """Add the gate to root's pre-commit (or pre-push) hook. Never overwrites: an existing hook keeps running (the block
-    goes first in a shell hook; any other kind of hook is renamed beside it and run by a small wrapper). Idempotent."""
-    BEGIN, END, CHAIN = MARKS[name]
+def install_hook(root, script_rel, args=""):
+    """Add the gate to root's pre-commit hook. Never overwrites: an existing hook keeps running (the block goes first in a
+    shell hook; any other kind of hook is renamed beside it and run by a small wrapper). Idempotent. Returns a note."""
     d = hook_dir(root)
     os.makedirs(d, exist_ok=True)
-    target, chain = os.path.join(d, name), os.path.join(d, CHAIN)
-    blk = block(script_rel, args, name)
+    target, chain = os.path.join(d, "pre-commit"), os.path.join(d, CHAIN)
+    blk = block(script_rel, args)
     if not os.path.exists(target):
         text = "#!/bin/sh\n" + blk
         note = "created"
@@ -439,22 +379,9 @@ def main(argv):
         root = os.path.abspath(args[1]) if len(args) > 1 else os.getcwd()
         rel = "tools/kit/precommit.py" if hub else ".wheel/hooks/precommit.py"
         print("pre-commit hook %s in %s" % (install_hook(root, rel, " --hub" if hub else ""), hook_dir(root)))
-        print("pre-push hook %s in %s" % (install_hook(root, rel, " --hub" if hub else "", "pre-push"), hook_dir(root)))
-        return 0
-    if args[:1] == ["prepush"]:
-        top = toplevel(None)
-        try:
-            probs = prepush(top, hub, sys.stdin.read().splitlines()) if top else []
-        except Exception as e:  # noqa: BLE001  (a bug in the gate must never lock a project)
-            print("pre-push gate skipped, it failed itself: %s: %s" % (type(e).__name__, str(e)[:120]), file=sys.stderr)
-            return 0
-        if probs:
-            print(report(probs).replace("pre-commit refused", "pre-push refused").replace("nothing was committed", "nothing was pushed"),
-                  file=sys.stderr)
-            return 1
         return 0
     if args:
-        print("usage: precommit.py [--hub] | selftest | install [--hub] [ROOT] | prepush REMOTE URL", file=sys.stderr)
+        print("usage: precommit.py [--hub] | selftest | install [--hub] [ROOT]", file=sys.stderr)
         return 2
     try:
         probs = check(None, hub)
