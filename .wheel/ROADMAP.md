@@ -34,7 +34,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*5 of 6 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*5 of 8 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -44,7 +44,9 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 1 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
+| 1 | B-013 Scout critical-paths-stays-red-until-real broke: the stub still exits 1 and says it is not implemented | autopilot | ready |
+| 2 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
+| 3 | B-014 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 - Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
 - Done: B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-12 (wake-3e8b53/checker)

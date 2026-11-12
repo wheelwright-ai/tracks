@@ -4,7 +4,9 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 
 | rank | id | title | kind | status | value/effort | initiative |
 |---:|---|---|---|---|---|---|
-| 1 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | owner | blocked | 3/1 | I-004 |
+| 1 | B-013 | Scout critical-paths-stays-red-until-real broke: the stub still exits 1 and says it is not implemented | autopilot | ready | 4/2 | I-004 |
+| 2 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | owner | blocked | 3/1 | I-004 |
+| 3 | B-014 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready | 3/2 | I-004 |
 
 ## Recently done
 

@@ -1,0 +1,63 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-12T23:30:05Z",
+ "ended": "2026-11-12T23:30:24Z",
+ "tokens_used": 42506,
+ "lugs_done": [],
+ "lugs_blocked": [
+  "B-009"
+ ],
+ "owner_needs": [
+  "B-009: Choose how .wheel/ runtime state is handled: (a) gitignore and untrack the scout status.json files, (b) commit .wheel/ state in main on a schedule, or (c) exclude .wheel/ from the worktree-no-uncommitted scout. The lug store files (BACKLOG.md, ROADMAP.md, backlog.jsonl) also need committing by the wake or the owner."
+ ],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261112T233005Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-12-0cdb79",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-12-0cdb79",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-009",
+   "title": "Triage the uncommitted file in the main checkout that has been open since 2026-11-11",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "needs_owner",
+     "summary": "Main checkout has 13 modified .wheel/ files (lug store plus 10 scout status.json runtime files); fixing it means picking a policy for .wheel/ runtime state, so I changed nothing.",
+     "build_tokens": 42506
+    }
+   ],
+   "result": "owner",
+   "reason": "Choose how .wheel/ runtime state is handled: (a) gitignore and untrack the scout status.json files, (b) commit .wheel/ state in main on a schedule, or (c) exclude .wheel/ from the worktree-no-uncommitted scout. The lug store files (BACKLOG.md, ROADMAP.md, backlog.jsonl) also need committing by the wake or the owner.",
+   "kept_branch": null
+  }
+ ],
+ "merge": {
+  "state": "nothing to merge"
+ },
+ "complete": null,
+ "notes": [
+  "scouts that broke: critical-paths-stays-red-until-real, worktree-no-uncommitted (lugs opened: B-013, B-014)",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-12-0cdb79 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 10,
+  "failed": [
+   "critical-paths-stays-red-until-real",
+   "worktree-no-uncommitted"
+  ],
+  "lugs": [
+   "B-013",
+   "B-014"
+  ],
+  "notes": [
+   "scout critical-paths-stays-red-until-real broke: opened B-013",
+   "scout worktree-no-uncommitted broke: opened B-014"
+  ]
+ },
+ "worktree_removed": true
+}
