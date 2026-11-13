@@ -1,18 +1,39 @@
 {
  "name": "critical-paths-stays-red-until-real",
- "purpose": "Stops the critical-paths gate being flipped to a fake pass before real tests exist",
+ "purpose": "Stops the critical-paths gate regressing to a fake or unimplemented stub now that it runs real checks",
  "severity": "blocker",
  "checks": [
   {
    "id": "c1",
-   "what": "the stub still exits 1 and says it is not implemented",
+   "what": "the gate runs the real validator check",
    "file": "tests/critical_paths.sh",
    "expect": {
-    "contains": "exit 1"
+    "contains": "run validator validate_samples.sh"
+   }
+  },
+  {
+   "id": "c2",
+   "what": "the gate propagates failures (exits with the fail flag, not a constant 0)",
+   "file": "tests/critical_paths.sh",
+   "expect": {
+    "contains": "exit $fail"
+   }
+  },
+  {
+   "id": "c3",
+   "what": "the gate is no longer the NOT YET IMPLEMENTED stub",
+   "cmd": [
+    "grep",
+    "-c",
+    "NOT YET IMPLEMENTED",
+    "tests/critical_paths.sh"
+   ],
+   "expect": {
+    "exit": 1
    }
   }
  ],
  "advisor": "expediter",
  "created": "2026-11-12T12:03:16Z",
- "updated": "2026-11-12T12:03:16Z"
+ "updated": "2026-11-13T00:00:00Z"
 }
