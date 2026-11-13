@@ -1,0 +1,35 @@
+{
+ "about": "The wheel-state policy: every path the harness writes in a project is either ignore (runtime state, never committed) or commit (a record, committed by the step that writes it, via wheelstate.py land). Paths ending in / are folders. Set once here; install.py applies the ignore list to each project's .gitignore.",
+ "ignore": {
+  ".wheel/tracks/": "session tracks (track_write.py)",
+  ".wheel/checkpoints/": "compaction checkpoints (checkpoint.py)",
+  ".wheel/turnsave.log": "turn save log (turnsave.py)",
+  ".wheel/backlog.jsonl.lock": "lug store lock (backlog.py)",
+  ".wheel/inbox/": "message lugs received (msg.py)",
+  ".wheel/outbox/": "message lugs sent (msg.py)",
+  ".wheel/last-smoke.txt": "latest smoke result (release.py reads it)",
+  ".wheel/kit-backup/": "pre-install copies in a project that is not a repository (install.py)",
+  "runtime/": "scheduler, planner and session state of a running wheel"
+ },
+ "commit": {
+  ".wheel/backlog.jsonl": "the lug store (backlog.py, lug.py)",
+  ".wheel/BACKLOG.md": "rendered lugs (backlog.py)",
+  ".wheel/ROADMAP.md": "rendered roadmap (backlog.py)",
+  ".wheel/spoke.md": "the spoke's brief (backlog.py)",
+  ".wheel/advisors.json": "advisor registry (wake)",
+  ".wheel/advisors/": "advisor reports (wake)",
+  ".wheel/cycles/": "one summary per wake cycle (wake.py)",
+  ".wheel/scouts/": "scout checks (scouts.py)",
+  ".wheel/last-release.json": "release record (release.py)",
+  ".wheel/kit.json": "kit stamp (kitver.py)",
+  ".wheel/config.json": "project config (install.py)",
+  ".wheel/RULES.md": "wheel rules (install.py)",
+  ".wheel/hooks/": "installed kit hooks (install.py)",
+  ".wheel/secrets-allowlist.json": "the owner's secret-scan allowlist (the scanner reads it)",
+  ".claude/settings.json": "hook wiring (install.py)",
+  "records/": "session records (capture.py)",
+  "lugs/": "lug records",
+  "plans/": "plans and notes",
+  "ledger.jsonl": "the decision ledger"
+ }
+}

@@ -791,14 +791,30 @@ def lint(root, st):
     return errors, pending
 
 
+STORE_CHECK_RE = re.compile(r"backlog\.jsonl|\blug\.py\b|\bbacklog\.py\s+(?:status|edit|rank|link|claim|release|add)\b|\blug (?:status|edit|rank|link) ", re.I)
+
+
+def warnings_of(st):
+    """Advice that does not fail lint: an autopilot lug whose check reads or edits the lug store
+    (.wheel/backlog.jsonl) draws a warning, because a builder may not touch the store (failure kind F-012)."""
+    out = []
+    for it in open_items(st):
+        if it["kind"] == "autopilot" and STORE_CHECK_RE.search(it.get("check") or ""):
+            out.append((it["id"], "warning: autopilot check names the lug store (.wheel/backlog.jsonl) or lug.py, which a builder cannot edit; "
+                                  "reword the check to something the builder's own files can show"))
+    return out
+
+
 def do_lint(root, a):
     st = load(root)
     errors, pending = lint(root, st)
+    warns = warnings_of(st)
     if a.json:
         return json.dumps({"errors": [{"id": i, "problem": p} for i, p in errors],
+                           "warnings": [{"id": i, "problem": p} for i, p in warns],
                            "pending": [{"id": i, "problem": p} for i, p in pending]}, ensure_ascii=False, indent=1), (1 if errors else 0)
-    lines = ["%s: %s" % e for e in errors] + ["%s: %s" % p for p in pending]
-    lines.append("lint: %d problem(s), %d sign-off(s) pending (%d initiatives, %d open lugs)" % (len(errors), len(pending), len(st["inits"]), len(st["order"])))
+    lines = ["%s: %s" % e for e in errors] + ["%s: %s" % p for p in pending] + ["%s: %s" % w for w in warns]
+    lines.append("lint: %d problem(s), %d sign-off(s) pending, %d warning(s) (%d initiatives, %d open lugs)" % (len(errors), len(pending), len(warns), len(st["inits"]), len(st["order"])))
     return "\n".join(lines), (1 if errors else 0)
 
 
@@ -931,6 +947,20 @@ def init_args(a):
     return {f: getattr(a, f, None) for f in INIT_FIELDS}
 
 
+def retier(root):
+    """The hub (it carries tools/kit/MANIFEST.json and tools/priorities.py) tiers its initiatives as they are written;
+    any other project skips silently, even one with a tools/priorities.py of its own."""
+    import subprocess
+    p = os.path.join(root, "tools", "priorities.py")
+    if not os.path.isfile(os.path.join(root, "tools", "kit", "MANIFEST.json")) or not os.path.isfile(p):
+        return ""
+    try:
+        r = subprocess.run([sys.executable, "-B", p, "--write"], cwd=root, capture_output=True, text=True, timeout=60)
+    except Exception:
+        return "; priorities not recomputed"
+    return "; priorities recomputed" if r.returncode == 0 else "; priorities not recomputed"
+
+
 def do_init_add(root, a):
     fields = {k: (v.strip() if isinstance(v, str) else v) for k, v in init_args(a).items()}
     probs = init_problems(fields, agreed_goals(root))
@@ -941,7 +971,7 @@ def do_init_add(root, a):
         ev = dict({"event": "init_add", "id": iid}, **fields)
         ev.update(by=a.by, reason=(a.reason or "").strip() or "new initiative for goal %s" % fields["goal"])
         lk.append(ev)
-        return "%s %s (goal %s; owner sign-off pending)" % (iid, fields["title"], fields["goal"])
+    return "%s %s (goal %s; owner sign-off pending)%s" % (iid, fields["title"], fields["goal"], retier(root))
 
 
 def do_init_edit(root, a):

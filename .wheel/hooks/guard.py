@@ -3,7 +3,8 @@
   1. discarding uncommitted work (git checkout -- / ., git restore without --staged, git clean -f),
   2. DROP DATABASE / DROP TABLE anywhere in the command (a quoted mention is blocked too, on purpose),
   3. plain rm of anything under the projects folder (WHEEL_GUARD_ROOT, default ~/projects); move it to the
-     trash folder (WHEEL_TRASH, default ~/trash_bin) instead. Paths under /tmp are fine.
+     trash folder (WHEEL_TRASH, default ~/trash_bin) instead. Paths under /tmp are fine, and so is a path that
+     matches a glob in the project's own .wheel/config.json "scratch" list (project-relative; never .git or .wheel).
   4. switching branches (git checkout <branch>, git switch) in a project's main checkout.
   5. second spellings of the same losses (W-177): git reset --hard, checkout -f, switch --discard-changes, stash
      drop/clear, branch -D, find -delete / -exec rm, and history rewrites on the remote: push --force/-f/
@@ -15,7 +16,8 @@ Wrappers are unwrapped before the rules run (W-177): bash/sh -c STRING, eval, en
 command, exec, xargs, subshells ( ) and $( ) or backticks; before, only the first word of a segment was looked at.
 For Edit/Write/MultiEdit/NotebookEdit it denies any file inside a project's main checkout outside .wheel/: the main
 checkout stays on main, and sessions work in their own worktree (start one with wcl). A linked worktree is allowed.
-The owner can set WHEEL_MAIN_OK=1 to lift rules 4 and the edit rule.
+The owner can set WHEEL_MAIN_OK=1 to lift rules 4 and the edit rule. A project that cannot have worktrees (its state
+lives in the checkout) sets "works_in_main": true in its .wheel/config.json: the same rules are lifted for that project.
 Everything else, and any malformed input, is allowed silently (exit 0, no output).
   guard.py test      run the fixtures (fixtures/guard_cases.jsonl and the main-checkout cases)"""
 import json, os, re, shlex, subprocess, sys
@@ -81,6 +83,48 @@ def git_check(tok):
     return None
 
 
+def scratch_globs(path):
+    """(project root, globs) from the nearest .wheel/config.json above path: its "scratch" list, project-relative globs
+    of throwaway files the project allows removing (* stays in one folder, ** crosses folders). ("", []) if none."""
+    d = path if os.path.isdir(path) else os.path.dirname(path)
+    while d and d != os.path.dirname(d):
+        cfg = os.path.join(d, ".wheel", "config.json")
+        if os.path.isfile(cfg):
+            try:
+                g = json.load(open(cfg)).get("scratch")
+            except Exception:
+                return d, []
+            return d, [x for x in g if isinstance(x, str)] if isinstance(g, list) else []
+        d = os.path.dirname(d)
+    return "", []
+
+
+def glob_re(g):
+    out, i = "", 0
+    while i < len(g):
+        if g.startswith("**", i):
+            out, i = out + ".*", i + 2
+        elif g[i] == "*":
+            out, i = out + "[^/]*", i + 1
+        elif g[i] == "?":
+            out, i = out + "[^/]", i + 1
+        else:
+            out, i = out + re.escape(g[i]), i + 1
+    return re.compile(out + r"\Z")
+
+
+def is_scratch(p):
+    """True when the resolved path p matches a scratch glob of its project. Never .git or .wheel, never a glob that
+    is absolute or climbs out with .."""
+    root, globs = scratch_globs(p)
+    if not root:
+        return False
+    rel = os.path.relpath(p, os.path.realpath(root))
+    if rel.startswith("..") or rel.split(os.sep)[0] in (".git", ".wheel"):
+        return False
+    return any(not g.startswith("/") and ".." not in g.split("/") and glob_re(g).match(rel) for g in globs)
+
+
 def rm_check(tok, cwd):
     """tok: tokens starting at 'rm'. Return a reason or None."""
     root = os.path.realpath(os.path.expanduser(os.environ.get("WHEEL_GUARD_ROOT") or "~/projects"))
@@ -94,7 +138,7 @@ def rm_check(tok, cwd):
             continue
         p = os.path.expandvars(os.path.expanduser(a))
         p = os.path.realpath(p if os.path.isabs(p) else os.path.join(cwd, p))
-        if p == "/tmp" or p.startswith("/tmp/"):
+        if p == "/tmp" or p.startswith("/tmp/") or is_scratch(p):
             continue
         if p == root or p.startswith(root + os.sep):
             dest = os.path.join(trash, os.path.relpath(p, root))
@@ -176,11 +220,27 @@ def unwrap(tok):
 
 def split_unquoted(cmd):
     """Split on ; && || | and newlines outside quotes (cut 65 review: a commit message holding a separator and a
-    destructive phrase was read as a second command)."""
-    out, cur, q, i = [], [], None, 0
+    destructive phrase was read as a second command). A # that starts a word begins a comment to the end of the line,
+    so a quote inside a comment opens nothing; and when a quote never closes, the line is split again ignoring quotes,
+    so an unbalanced quote can never hide a later command (cut 66 review: "# don't worry" then git reset --hard). That second
+    pass ignores quotes and treats no # as a comment at all, since a dropped tail can hide a command."""
+    parts, unclosed = _split(cmd, honour_quotes=True)
+    if unclosed or "<<" in cmd:   # a heredoc body is not shell quoting: its apostrophes can pair up and hide a command
+        parts = parts + _split(cmd, honour_quotes=False)[0]
+    return parts
+
+
+def _split(cmd, honour_quotes=True):
+    out, cur, q, i, esc_end = [], [], None, 0, -1
     while i < len(cmd):
         ch = cmd[i]
-        if q:
+        if honour_quotes and not q and ch == "#" and (not cur or (cur[-1] in " \t" and esc_end != i - 1)):
+            j = cmd.find("\n", i)
+            i = len(cmd) if j < 0 else j
+            continue
+        if not honour_quotes and ch in ("'", '"'):
+            cur.append(ch)
+        elif q:
             cur.append(ch)
             if ch == "\\" and q == '"' and i + 1 < len(cmd):
                 cur.append(cmd[i + 1])
@@ -193,6 +253,7 @@ def split_unquoted(cmd):
         elif ch == "\\" and i + 1 < len(cmd):
             cur += [ch, cmd[i + 1]]
             i += 1
+            esc_end = i
         elif cmd.startswith(("&&", "||"), i):
             out.append("".join(cur))
             cur = []
@@ -204,7 +265,7 @@ def split_unquoted(cmd):
             cur.append(ch)
         i += 1
     out.append("".join(cur))
-    return out
+    return out, bool(q)
 
 
 def segments(cmd):
@@ -227,6 +288,15 @@ def _git(cwd, *args):
         return ""
 
 
+def works_in_main(top):
+    """True when the project's .wheel/config.json says "works_in_main": true (a project with no worktrees)."""
+    try:
+        with open(os.path.join(top, ".wheel", "config.json")) as f:
+            return json.load(f).get("works_in_main") is True
+    except Exception:
+        return False
+
+
 def main_checkout(cwd):
     """The toplevel of cwd's repo when cwd is in a project's main checkout (git-dir equals git-common-dir), else None.
     A linked worktree, a non-repo and any git trouble give None."""
@@ -234,6 +304,8 @@ def main_checkout(cwd):
         return None
     top, gd, cd = _git(cwd, "rev-parse", "--show-toplevel"), _git(cwd, "rev-parse", "--git-dir"), _git(cwd, "rev-parse", "--git-common-dir")
     if not (top and gd and cd):
+        return None
+    if works_in_main(top):
         return None
     gd = os.path.realpath(gd if os.path.isabs(gd) else os.path.join(cwd, gd))
     cd = os.path.realpath(cd if os.path.isabs(cd) else os.path.join(cwd, cd))

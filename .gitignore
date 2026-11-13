@@ -84,3 +84,9 @@ __pycache__/
 
 # B-010: .claude/.deploy-quarantine holds hooks the harness deploy set aside; nothing references them (settings.json does not), so they are not tracked. Old copies stay in git history.
 .claude/.deploy-quarantine/
+
+.wheel/outbox/
+
+.wheel/last-smoke.txt
+
+.wheel/kit-backup/

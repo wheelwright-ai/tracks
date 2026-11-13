@@ -9,15 +9,18 @@ reviews its inbox at its next wake or session start; a reply is a message lug ba
   msg.py who                                  every project, where it lives, whether a session is active there now,
                                               its unread count (the directory: the hub's spokes/active.json and
                                               spokes/remote.json, found through ~/.config/wheel/hub-path)
-  msg.py send TO --subject S --body B [--ask A ...] [--item-file F.json] [--reply-to ID] [--from NAME]
+  msg.py send TO --subject S --body B [--ask A ...] [--item-file F.json] [--reply-to ID] [--responsible] [--from NAME]
                                               drop a message lug in TO's inbox (a local path, or ssh for a project on
                                               another machine); prints its id
   msg.py inbox [--all] [--json]               this project's messages, unread first
   msg.py read ID                              print one and mark it read
   msg.py done ID --note WHY                   mark it handled (what was done: a lug added, a reply sent, nothing needed)
 
+No local hub checkout (e.g. a project on another machine)? Set "remote_hub": {"ssh": HOST, "path": "~/projects/hub"} in
+.wheel/config.json: who and send then read the hub's spoke lists and deliver over ssh.
+
 A message lug: {kind: "message", schema: 1, id, at, from, to, subject, body, asks: [str], items: [work items with
-checks], reply_to, refs: [str]}. State (unread, read, done) lives beside it in .wheel/inbox/.state.json, never in the
+checks], reply_to, refs: [str], responsibility: responsible|informed}. State (unread, read, done) lives beside it in .wheel/inbox/.state.json, never in the
 message, so a message is never rewritten. TO and FROM are project names; "hub" is the hub. Stdlib only."""
 import argparse, datetime, json, os, re, shlex, subprocess, sys, uuid
 
@@ -48,12 +51,48 @@ def hub_path():
     return h or None
 
 
-def directory(hub=None):
+def remote_hub(root=None):
+    """(ssh host, path) of a hub on another machine, from remote_hub in this project's .wheel/config.json, or None.
+    Accepts {"ssh": H, "path": P} or "H:P". Used only when there is no local hub checkout."""
+    try:
+        with open(os.path.join(git_top(root or os.getcwd()), ".wheel", "config.json")) as f:
+            r = json.load(f).get("remote_hub")
+    except (OSError, ValueError, AttributeError):
+        return None
+    if isinstance(r, str) and ":" in r:
+        r = dict(zip(("ssh", "path"), r.split(":", 1)))
+    if isinstance(r, dict) and r.get("ssh") and r.get("path"):
+        return r["ssh"], r["path"]
+    return None
+
+
+def remote_directory(host, path, runner=subprocess.run):
+    """The hub's directory read over ssh: its spoke lists, every path marked as on that machine."""
+    rel = path[2:] if path.startswith("~/") else path
+    base = ("$HOME/" + rel if path.startswith("~/") else rel).rstrip("/")
+    out = {"hub": {"path": path, "machine": host, "ssh": host}}
+    for fn in ("active", "remote"):
+        try:
+            r = runner(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", host, 'cat "%s/spokes/%s.json" 2>/dev/null; true' % (base, fn)],
+                       capture_output=True, text=True, timeout=30)
+            rows = (json.loads(r.stdout) if r.returncode == 0 and r.stdout.strip() else {}).get(fn) or []
+        except (OSError, ValueError, subprocess.SubprocessError, AttributeError):
+            continue
+        for s in rows:
+            if fn == "active":
+                out[s["name"]] = {"path": s["path"], "machine": host, "ssh": host}
+            else:
+                out[s["name"]] = {"path": s["path"], "machine": s.get("machine"), "ssh": s.get("ssh_host") or s.get("machine")}
+    return out
+
+
+def directory(hub=None, root=None, runner=subprocess.run):
     """{name: {"path", "machine" (None = this one), "ssh"}} for the hub and every project it knows."""
     hub = hub or hub_path()
     out = {}
     if not hub:
-        return out
+        rh = remote_hub(root)
+        return remote_directory(rh[0], rh[1], runner) if rh else out
     out["hub"] = {"path": hub, "machine": None, "ssh": None}
     try:
         with open(os.path.join(hub, "spokes", "active.json")) as f:
@@ -83,12 +122,13 @@ def this_project(root):
     return os.path.basename(top)
 
 
-def make(sender, to, subject, body, asks=None, items=None, reply_to=None, refs=None):
+def make(sender, to, subject, body, asks=None, items=None, reply_to=None, refs=None, responsibility=None):
     need_text(subject, "subject")
     need_text(body, "body")
     return {"kind": "message", "schema": 1, "id": "m-%s-%s" % (datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ"), uuid.uuid4().hex[:6]),
             "at": now(), "from": sender, "to": to, "subject": subject.strip(), "body": body.strip(),
-            "asks": [a.strip() for a in (asks or []) if a.strip()], "items": items or [], "reply_to": reply_to, "refs": refs or []}
+            "asks": [a.strip() for a in (asks or []) if a.strip()], "items": items or [], "reply_to": reply_to, "refs": refs or [],
+            "responsibility": "responsible" if responsibility == "responsible" else "informed"}
 
 
 def need_text(v, what):
@@ -246,6 +286,7 @@ def main(argv=None):
     s.add_argument("--ask", action="append", default=[])
     s.add_argument("--item-file", help="a JSON file holding a list of work items (each with a check)")
     s.add_argument("--reply-to")
+    s.add_argument("--responsible", action="store_true", help="the recipient is responsible: its wake turns this into a ready lug and replies when done (default: informed, only marked read)")
     s.add_argument("--ref", action="append", default=[])
     s.add_argument("--from", dest="sender")
     s = sub.add_parser("inbox")
@@ -258,14 +299,14 @@ def main(argv=None):
     s.add_argument("--note", required=True)
     a = ap.parse_args(argv)
     if a.cmd == "who":
-        for name, e in sorted(directory().items()):
+        for name, e in sorted(directory(root=a.root).items()):
             act = active_session(e)
             n = len([1 for _, s in messages(os.path.expanduser(e["path"])) if s == "unread"]) if not e["machine"] else "?"
             print("%-22s %-9s %-44s session %-4s unread %s" % (name, e["machine"] or "here", e["path"][:44],
                                                               {True: "yes", False: "no", None: "?"}[act], n))
         return 0
     if a.cmd == "send":
-        d = directory()
+        d = directory(root=a.root)
         if a.to not in d:
             raise SystemExit("msg.py: no project named %s in the hub's directory (msg.py who lists them)" % a.to)
         items = []
@@ -274,7 +315,7 @@ def main(argv=None):
                 items = json.load(f)
             if not isinstance(items, list) or not all(isinstance(i, dict) and i.get("check") for i in items):
                 raise SystemExit("msg.py: --item-file must hold a list of work items, each with a check")
-        m = make(a.sender or this_project(a.root), a.to, a.subject, a.body, a.ask, items, a.reply_to, a.ref)
+        m = make(a.sender or this_project(a.root), a.to, a.subject, a.body, a.ask, items, a.reply_to, a.ref, "responsible" if a.responsible else None)
         where = deliver(m, d[a.to])
         keep_sent(a.root, m)
         print("%s delivered to %s" % (m["id"], where))

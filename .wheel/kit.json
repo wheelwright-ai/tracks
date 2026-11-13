@@ -1,17 +1,18 @@
 {
- "version": 15,
+ "version": 27,
  "parts": {
   "P-013": "9df0ce41bf52a829",
   "P-014": "b9e1ce842bf916a7",
   "P-015": "5b0391b1f2a5bdd7",
-  "P-016": "bd04908162a9be11",
-  "P-017": "ff57ca53ec56ab96",
-  "P-018": "71314127ee4d06e1",
-  "P-019": "7b849328cbb2a389",
+  "P-016": "63821798e0d20076",
+  "P-017": "3bf3738fe8b5d492",
+  "P-018": "320f5b16b73b6edc",
+  "P-019": "b1f5cd7ea08f222e",
   "P-020": "a81f8758edcb3b75",
   "P-021": "1392fc0ac3874e1c",
-  "P-022": "e8e65b5908fee243"
+  "P-022": "3866ab70aa28d7ff",
+  "P-023": "be7f3b85ac8e9634"
  },
- "installed_at": "2026-11-12T04:00:06Z",
- "by": "wake (canary for sound-sails-website)"
+ "installed_at": "2026-11-13T18:00:07Z",
+ "by": "conductor (canary for pathfinder)"
 }

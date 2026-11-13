@@ -6,7 +6,8 @@ Reads the hook's JSON on stdin (session_id, transcript_path, cwd). Finds the fil
 nothing else, on the current branch of the session's worktree. It never switches a branch. In a project's main
 checkout (git-dir equals git-common-dir) the main checkout stays on main and is not worked in: only .wheel/ files are
 saved there; any other file is left alone and the log says "work in the main checkout: start a session with wcl to
-get a worktree".
+get a worktree". A project with "works_in_main": true in .wheel/config.json has no worktrees: there every file is
+saved in the main checkout, and the subject names the files, never the owner's prompt text.
 
 Skips, with one JSON line in .wheel/turnsave.log saying why: no files, merge/rebase/cherry-pick in progress,
 detached HEAD, a secrets scan hit, a refused pre-commit hook, or only ignored/generated files (those are dropped and
@@ -227,6 +228,25 @@ def is_main_checkout(root):
     return gd == cd
 
 
+def works_in_main(root):
+    """True when .wheel/config.json says "works_in_main": true (a project that cannot have worktrees)."""
+    try:
+        with open(os.path.join(root, ".wheel", "config.json")) as f:
+            return json.load(f).get("works_in_main") is True
+    except Exception:
+        return False
+
+
+def files_subject(files):
+    """A commit subject built from file names only (72 characters at most)."""
+    head = "Turn save: "
+    names = ", ".join(os.path.basename(f) for f in files[:3])
+    if len(files) > 3:
+        names += " and %d more" % (len(files) - 3)
+    names = names or "work in progress"
+    return head + (names if len(head + names) <= 72 else names[:72 - len(head) - 3].rstrip() + "...")
+
+
 # ---- the save ----
 def repo_rels(raw, root, cwd):
     """Raw tool-use paths -> repo-relative paths inside the repo (never inside .git), in order, no repeats."""
@@ -303,7 +323,8 @@ def run(hook):
 
     changed, untracked, ignored, gen = plan(root, rels)
     dropped = {"ignored": ignored, "generated": gen}
-    if is_main_checkout(root):
+    in_main = works_in_main(root)
+    if is_main_checkout(root) and not in_main:
         outside = [f for f in changed if not f.startswith(".wheel/")]
         if outside:
             changed = [f for f in changed if f.startswith(".wheel/")]
@@ -337,7 +358,7 @@ def run(hook):
         body.append("env: " + env_id())
     if tpath:
         body.append("track: " + os.path.basename(tpath))
-    msg = subject(ask) + "\n\n" + "\n".join(body) + "\n"
+    msg = (files_subject(changed) if in_main else subject(ask)) + "\n\n" + "\n".join(body) + "\n"
     c = git(root, "commit", "-q", "-m", msg, "--", *changed, timeout=60)
     if c.returncode != 0:
         return undo("commit refused (pre-commit hook or git error)")
