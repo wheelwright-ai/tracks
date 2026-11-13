@@ -1,7 +1,7 @@
 {
- "version": 27,
+ "version": 29,
  "parts": {
-  "P-013": "9df0ce41bf52a829",
+  "P-013": "114e945ead3bb57a",
   "P-014": "b9e1ce842bf916a7",
   "P-015": "5b0391b1f2a5bdd7",
   "P-016": "63821798e0d20076",
@@ -11,8 +11,8 @@
   "P-020": "a81f8758edcb3b75",
   "P-021": "1392fc0ac3874e1c",
   "P-022": "3866ab70aa28d7ff",
-  "P-023": "be7f3b85ac8e9634"
+  "P-023": "3f08f11d838b45f0"
  },
- "installed_at": "2026-11-13T18:00:07Z",
+ "installed_at": "2026-11-13T21:30:03Z",
  "by": "conductor (canary for pathfinder)"
 }

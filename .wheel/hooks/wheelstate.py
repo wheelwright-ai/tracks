@@ -121,15 +121,38 @@ def land(root, message="wheel state", scan=None, pol=None):
     staged = set(_git(root, "diff", "--cached", "--name-only").stdout.split("\n")) - {""}
     if staged - set(paths) - set(untrack):
         return "not committed: other files are staged (%s)" % ", ".join(sorted(staged - set(paths) - set(untrack)))[:200]
+    r = _commit(root, message, paths, untrack)
+    refused = []
+    if r.returncode != 0:
+        # One flagged file used to block every state commit for good (cut 66: 61 files left dirty on main for a day).
+        # Leave out the files the commit gate names, commit the rest, and name what was left out.
+        named = set(GATE_LINE.findall((r.stderr or "") + (r.stdout or "")))
+        refused = sorted(named & set(paths))
+        rest = [p for p in paths if p not in named]
+        if refused and (rest or untrack):
+            r = _commit(root, message, rest, untrack)
+        if r.returncode != 0:
+            return "not committed: %s" % (r.stderr.strip() or r.stdout.strip())[:200]
+    left = ["looks like a secret: %s" % ", ".join(skipped)] if skipped else []
+    left += ["refused by the commit gate: %s" % ", ".join(refused)] if refused else []
+    return "committed %s%s" % (_git(root, "rev-parse", "--short", "HEAD").stdout.strip(),
+                               " (left out, %s)" % "; ".join(left) if left else "")
+
+
+GATE_LINE = __import__("re").compile(r"(?m)^\s+(\S+?)(?::\d+)? \[F-\d+\]")
+
+
+def _commit(root, message, paths, untrack):
+    """Stage exactly these paths and commit. When the commit fails, the index is put back: a refused commit used to leave
+    every file staged, so the next unrelated commit would have swept them in."""
     if untrack:   # stops tracking, keeps the file on disk
         _git(root, "rm", "--cached", "-q", "--ignore-unmatch", "--", *untrack)
     if paths:
         _git(root, "add", "-f", "--", *paths)
     r = _git(root, "commit", "-q", "-m", "%s\n\nFiles: %s" % (message, ", ".join(paths + ["(untracked) " + u for u in untrack])))
-    if r.returncode != 0:
-        return "not committed: %s" % (r.stderr.strip() or r.stdout.strip())[:200]
-    return "committed %s%s" % (_git(root, "rev-parse", "--short", "HEAD").stdout.strip(),
-                               " (left out, looks like a secret: %s)" % ", ".join(skipped) if skipped else "")
+    if r.returncode != 0 and (paths or untrack):
+        _git(root, "reset", "-q", "--", *(paths + untrack))
+    return r
 
 
 if __name__ == "__main__":

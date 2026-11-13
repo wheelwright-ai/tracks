@@ -85,6 +85,34 @@ def session_number(root, transcript):
     return n or None
 
 
+def session_number_cached(root, transcript):
+    """B-057: the session's number never changes once known (a later session starts later, so it cannot move this one), so
+    the footer keeps it in .wheel/tracks/.session-numbers.json instead of globbing every transcript each turn. A number
+    that could not be found (None) is never cached, so the next turn tries again."""
+    path = os.path.join(root, ".wheel", "tracks", ".session-numbers.json")
+    key = transcript or ""
+    try:
+        cache = json.load(open(path))
+        if not isinstance(cache, dict):
+            cache = {}
+    except Exception:
+        cache = {}
+    if key and isinstance(cache.get(key), int):
+        return cache[key]
+    n = session_number(root, transcript)
+    if n and key:
+        cache[key] = n
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            tmp = path + ".tmp%d" % os.getpid()
+            with open(tmp, "w") as f:
+                json.dump(cache, f)
+            os.replace(tmp, path)
+        except Exception:
+            pass
+    return n
+
+
 def head_sha(root):
     import subprocess
     try:
@@ -136,7 +164,7 @@ def status_line(turn, model, hook, root, gold=None):
     s{session} | Turn {n} | {day}, {month} {d}, {year} | {time} {tz} | {model effort} | {commit} | kit v{N} | Gold: +{count}
     A value the harness does not have is the word unknown, never a guess. gold=None leaves {gold} for the model."""
     now = datetime.datetime.now().astimezone()
-    sn = session_number(root, hook.get("transcript_path"))
+    sn = session_number_cached(root, hook.get("transcript_path"))
     m = model_name(model)
     letter = effort_letter(hook, root) if m else ""
     kv = kit_version(root)
