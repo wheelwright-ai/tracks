@@ -6,6 +6,8 @@ Re-run it with no model: `python3 .wheel/hooks/scouts.py run critical-paths-stay
 
 ## Checks and the outcome each expects
 
-- **c1** (file `tests/critical_paths.sh`): the stub still exits 1 and says it is not implemented. Expects {"contains": "exit 1"}.
+- **c1** (file `tests/critical_paths.sh`): the gate runs the real validator check. Expects contains "run validator validate_samples.sh".
+- **c2**: failures propagate. Expects contains "exit $fail".
+- **c3**: not the stub. `grep -c "NOT YET IMPLEMENTED" tests/critical_paths.sh` must exit 1 (no match).
 
 Severity: blocker. If a check breaks, read its line above, confirm it by hand, then fix the project or (if the expectation is out of date) have an advisor update this scout.
