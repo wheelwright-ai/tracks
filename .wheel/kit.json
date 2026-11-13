@@ -1,5 +1,5 @@
 {
- "version": 29,
+ "version": 30,
  "parts": {
   "P-013": "114e945ead3bb57a",
   "P-014": "b9e1ce842bf916a7",
@@ -11,8 +11,8 @@
   "P-020": "a81f8758edcb3b75",
   "P-021": "1392fc0ac3874e1c",
   "P-022": "3866ab70aa28d7ff",
-  "P-023": "3f08f11d838b45f0"
+  "P-023": "7c5d09f816d21df7"
  },
- "installed_at": "2026-11-13T21:30:03Z",
- "by": "conductor (canary for pathfinder)"
+ "installed_at": "2026-11-13T21:37:00Z",
+ "by": "ozi-a8c53d (canary for pathfinder)"
 }

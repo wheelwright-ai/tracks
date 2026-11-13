@@ -30,6 +30,12 @@
   "records/": "session records (capture.py)",
   "lugs/": "lug records",
   "plans/": "plans and notes",
-  "ledger.jsonl": "the decision ledger"
+  "ledger.jsonl": "the decision ledger",
+  "environments/": "this machine's environment record (environment.py, refreshed by capture.py)",
+  "basher/conductor-orders.json": "conductor orders (conductor.py, spotter.py)",
+  "basher/conductor-orders.proposed.json": "proposed conductor orders (spotter.py)",
+  "basher/kit-rollout.json": "kit rollout state per project (kit sync.py)",
+  "basher/offerings/": "measured offerings per host (offerings.py, leya bench)",
+  "basher/resources.json": "measured resources and model slots (route.py, leya.py, offerings.py)"
  }
 }
