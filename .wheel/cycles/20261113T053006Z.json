@@ -1,0 +1,97 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-13T05:30:06Z",
+ "ended": "2026-11-13T05:31:29Z",
+ "tokens_used": 108306,
+ "lugs_done": [
+  "B-013",
+  "B-014"
+ ],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261113T053006Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-13-2e6a57",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-13-2e6a57",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-013",
+   "title": "Scout critical-paths-stays-red-until-real broke: the stub still exits 1 and says it is not implemented",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Scout critical-paths-stays-red-until-real was stale after B-011 made the gate real; replaced its 'exit 1' check with checks that the gate runs the real validator, propagates failure, and is not the stub. The scout now passes all 3 checks, exit 0.",
+     "build_tokens": 48161,
+     "check": "pass",
+     "evidence": "I ran `python3 -B .wheel/hooks/scouts.py run critical-paths-stays-red-until-real`. It printed PASS for the scout and PASS for each of its three checks: c1 (the gate runs the real validator check), c2 (the gate propagates failures instead of exiting with a constant 0) and c3 (the gate is no longer the NOT YET IMPLEMENTED stub). No FAIL lines appeared. I did not read the exit code myself, because I can't chain `echo $?` under the command rules. I'm relying on the harness's recorded exit code and on the scout printing PASS. I did not inspect the scout's code or the gate script, and I did not chec",
+     "ran": [
+      {
+       "cmd": "python3 -B .wheel/hooks/scouts.py run critical-paths-stays-red-until-real",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 11058,
+     "tests": "none"
+    }
+   ],
+   "result": "done",
+   "reason": null
+  },
+  {
+   "id": "B-014",
+   "title": "Scout worktree-no-uncommitted broke: git status shows no changed or untracked files",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "No change needed: scout worktree-no-uncommitted prints PASS for c1 and exits 0 on the clean worktree, and running it leaves the tree clean. The earlier 12 lines were transient state outside this branch.",
+     "build_tokens": 39721,
+     "check": "pass",
+     "evidence": "I ran `python3 -B .wheel/hooks/scouts.py run worktree-no-uncommitted`. It printed `PASS worktree-no-uncommitted` and `PASS c1: git status shows no changed or untracked files`. The scout has only one check, c1, and it passed. I got the exit code by re-running the same command through a python3 subprocess wrapper, and it returned 0. I did not read the scout's code, so I did not check whether c1 is a real check or a stub that always passes. I saw no sign of the listed traps in the output: no cache residue, no secrets and no personal details. I did not check for them separately.",
+     "ran": [
+      {
+       "cmd": "python3 -B .wheel/hooks/scouts.py run worktree-no-uncommitted",
+       "exit": 0
+      },
+      {
+       "cmd": "python3 -B -c \"import subprocess,sys; r=subprocess.run(['python3','-B','.wheel/hooks/scouts.py','run','worktree-no-uncommitted'],capture_output=True,text=True);",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 9366,
+     "tests": "none"
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "merged",
+  "text": "merged wheel/2026-11-13-2e6a57 into main (tests none)"
+ },
+ "complete": null,
+ "notes": [
+  "scouts that broke: critical-paths-stays-red-until-real, worktree-no-uncommitted",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-13-2e6a57 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 10,
+  "failed": [
+   "critical-paths-stays-red-until-real",
+   "worktree-no-uncommitted"
+  ],
+  "lugs": [],
+  "notes": [
+   "lug B-013 already open for scout critical-paths-stays-red-until-real",
+   "lug B-014 already open for scout worktree-no-uncommitted"
+  ]
+ },
+ "worktree_removed": true
+}
