@@ -589,7 +589,7 @@ def do_edit(root, a):
         need(kind != "autopilot" or (chk and chk.strip()), "an autopilot lug needs a check")
         if "goal" in ch and it.get("initiative") in st["inits"]:
             g = st["inits"][it["initiative"]]["goal"]
-            need(str(ch["goal"]) == str(g), "%s belongs to %s, which serves goal %s; link it elsewhere first" % (a.id, it["initiative"], g))
+            need(str(ch["goal"]) == str(g), "%s belongs to %s, which serves goal %s; link it to an initiative of that goal (lug link ID I-### --reason ...) or edit the initiative's goal" % (a.id, it["initiative"], g))
         lk.append({"event": "edit", "id": a.id, "changes": ch, "by": a.by, "reason": a.reason.strip()})
         return "%s edited: %s" % (a.id, ", ".join(sorted(ch)))
 
@@ -602,13 +602,14 @@ def do_link(root, a):
         need(not ini["closed"], "%s is closed; no lug can join it" % a.initiative)
         need(it.get("initiative") != a.initiative, "%s already belongs to %s" % (a.id, a.initiative))
         need(not it.get("initiative") or (a.reason and a.reason.strip()), "%s belongs to %s; moving it needs --reason" % (a.id, it.get("initiative")))
-        need(not it.get("goal") or str(it["goal"]) == str(ini["goal"]),
-             "%s serves goal %s but %s serves goal %s; edit the lug's goal first" % (a.id, it["goal"], a.initiative, ini["goal"]))
+        need(not it.get("goal") or str(it["goal"]) == str(ini["goal"]) or (a.reason and a.reason.strip()),
+             "%s serves goal %s but %s serves goal %s; give --reason to move it (its goal then becomes %s)" % (a.id, it["goal"], a.initiative, ini["goal"], ini["goal"]))
         ev = {"event": "link", "id": a.id, "initiative": a.initiative, "from": it.get("initiative"), "by": a.by,
               "reason": (a.reason or "").strip() or "grouped under %s" % a.initiative}
         lk.append(ev)
-        if not it.get("goal"):
-            lk.append({"event": "edit", "id": a.id, "changes": {"goal": ini["goal"]}, "by": a.by, "reason": "goal taken from %s" % a.initiative})
+        if str(it.get("goal") or "") != str(ini["goal"]):
+            lk.append({"event": "edit", "id": a.id, "changes": {"goal": ini["goal"]}, "by": a.by,
+                       "reason": "goal taken from %s" % a.initiative})
         return "%s -> %s %s" % (a.id, a.initiative, ini["title"])
 
 
@@ -1005,12 +1006,18 @@ def do_init_edit(root, a):
         need(ch, "nothing to change")
         probs = init_problems(dict(ini, **ch), agreed_goals(root))
         need(not probs, "the initiative would not be written well enough:\n  - " + "\n  - ".join(probs))
-        if "goal" in ch:
-            bad = [l["id"] for l in lugs_of(st, a.id) if l["status"] not in CLOSED and str(l.get("goal")) != str(ch["goal"])]
-            need(not bad, "lugs %s serve goal %s; edit or move them first" % (", ".join(bad), ini["goal"]))
         lk.append({"event": "init_edit", "id": a.id, "changes": ch, "by": a.by, "reason": a.reason.strip()})
+        moved = []
+        if "goal" in ch:
+            # an initiative serves one goal and so do its open lugs: they follow it, in the same locked write
+            moved = [l["id"] for l in lugs_of(st, a.id) if l["status"] not in CLOSED and str(l.get("goal")) != str(ch["goal"])]
+            for lid in moved:
+                lk.append({"event": "edit", "id": lid, "changes": {"goal": ch["goal"]}, "by": a.by,
+                           "reason": "goal follows %s (%s)" % (a.id, a.reason.strip())})
         reset = any(k in SIGNED_FIELDS for k in ch) and ini["owner_signoff"].get("status") == "yes"
-        return "%s edited: %s%s" % (a.id, ", ".join(sorted(ch)), "; owner sign-off back to pending" if reset else "")
+        return "%s edited: %s%s%s" % (a.id, ", ".join(sorted(ch)),
+                                      "; goal moved on %d open lug(s): %s" % (len(moved), ", ".join(moved)) if moved else "",
+                                      "; owner sign-off back to pending" if reset else "")
 
 
 def do_init_signoff(root, a):
