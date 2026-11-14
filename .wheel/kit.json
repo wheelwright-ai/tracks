@@ -1,18 +1,18 @@
 {
- "version": 30,
+ "version": 31,
  "parts": {
   "P-013": "114e945ead3bb57a",
   "P-014": "b9e1ce842bf916a7",
   "P-015": "5b0391b1f2a5bdd7",
   "P-016": "63821798e0d20076",
   "P-017": "3bf3738fe8b5d492",
-  "P-018": "320f5b16b73b6edc",
+  "P-018": "899dd3ba209697a0",
   "P-019": "b1f5cd7ea08f222e",
   "P-020": "a81f8758edcb3b75",
   "P-021": "1392fc0ac3874e1c",
   "P-022": "3866ab70aa28d7ff",
   "P-023": "7c5d09f816d21df7"
  },
- "installed_at": "2026-11-13T21:37:00Z",
- "by": "ozi-a8c53d (canary for pathfinder)"
+ "installed_at": "2026-11-14T07:31:45Z",
+ "by": "ozi-a8c53d"
 }

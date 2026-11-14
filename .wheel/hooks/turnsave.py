@@ -9,6 +9,10 @@ saved there; any other file is left alone and the log says "work in the main che
 get a worktree". A project with "works_in_main": true in .wheel/config.json has no worktrees: there every file is
 saved in the main checkout, and the subject names the files, never the owner's prompt text.
 
+In a linked worktree the save also takes every other dirty file (modified, added, deleted, untracked), so work
+done through the shell is saved too; the commit body lists those under "Changed through the shell". The same
+filters apply (ignored, generated, size, secrets scan). Main checkouts and works_in_main projects get no such sweep.
+
 Skips, with one JSON line in .wheel/turnsave.log saying why: no files, merge/rebase/cherry-pick in progress,
 detached HEAD, a secrets scan hit, a refused pre-commit hook, or only ignored/generated files (those are dropped and
 logged when other files can be saved).
@@ -261,6 +265,22 @@ def repo_rels(raw, root, cwd):
     return rels
 
 
+def dirty_paths(root):
+    """Every dirty path (modified, added, deleted, untracked; ignored ones are not listed), repo-relative."""
+    st = git(root, "status", "--porcelain", "-z", "--untracked-files=all").stdout
+    ents, out, i = st.split("\0"), [], 0
+    while i < len(ents):
+        e = ents[i]
+        i += 1
+        if len(e) < 4:
+            continue
+        if e[0] in "RC" or e[1] in "RC":
+            i += 1  # the rename's origin path follows as its own field
+        if e[3:] not in out and not e[3:].startswith(".git/"):
+            out.append(e[3:])
+    return out
+
+
 def plan(root, rels):
     """Read-only. (changed, untracked set, ignored paths dropped, generated paths dropped).
     Ignored files are intentionally untracked, so they are dropped, not a reason to skip the turn."""
@@ -311,6 +331,10 @@ def run(hook):
 
     ask, raw = read_turn(tpath)
     rels = repo_rels(raw, root, cwd)
+    shell = []
+    if not is_main_checkout(root) and not works_in_main(root):
+        shell = [f for f in dirty_paths(root) if f not in rels]  # linked worktree: shell edits count too
+        rels = rels + shell
     if not rels:
         return log(root, sid, "skipped", "no files written this turn")
 
@@ -353,7 +377,11 @@ def run(hook):
         a = git(root, "add", "--", *new)
         if a.returncode != 0:
             return undo("git add failed")
-    body = ["Files:"] + ["- " + f for f in changed] + ["", "session: " + sid]
+    body = ["Files:"] + ["- " + f for f in changed if f not in shell]
+    sh_saved = [f for f in changed if f in shell]
+    if sh_saved:
+        body += ["Changed through the shell (not an edit tool):"] + ["- " + f for f in sh_saved]
+    body += ["", "session: " + sid]
     if env_id():
         body.append("env: " + env_id())
     if tpath:
