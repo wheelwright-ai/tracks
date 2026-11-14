@@ -64,8 +64,16 @@ def inbox_lines(root):
         return []
 
 
+def rules_line(root):
+    """B-069: the first-line rule, emitted by the hook so a check can prove it without a model. Empty when the project has no pointer file."""
+    for name in ("CLAUDE.md", "AGENTS.md"):
+        if os.path.isfile(os.path.join(root, name)):
+            return "Rules loaded from %s." % name
+    return ""
+
+
 def sessionstart(hook, root):
-    inbox = inbox_lines(root)
+    inbox = ([rules_line(root)] if rules_line(root) else []) + inbox_lines(root)
     files = sorted(glob.glob(os.path.join(root, ".wheel", "checkpoints", "*.json"))) if hook.get("source") in ("compact", "resume") else []
     if not files:
         if inbox:

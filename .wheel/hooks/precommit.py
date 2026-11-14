@@ -15,6 +15,9 @@ What it checks, on the staged files only (added lines, so it stays fast):
          .wheel/secrets-allowlist.json; entries are path + type + sha256 of the line text, same as the hub's push gate)
   F-002  residue: __pycache__, .pytest_cache, bytecode and other cache folders
   F-009  folders or files whose name is a command-line flag (a tool treated --help as a folder name)
+  F-016  a commit in a linked worktree (a session's branch) that changes the work-item log or its rendered views
+         (.wheel/backlog.jsonl, BACKLOG.md, ROADMAP.md): a session writes lugs into the live checkout (lug.py does this on
+         its own), where the turn save commits them, so shipping the branch never collides with the log (B-078)
   F-003  (--hub only) personal detail (identity term, email, absolute home path) in staged files under seed/ or tools/kit/
 The refusal names the file, the failure kind and the fix. It never prints a matched value. Stdlib only; no hub path is
 needed in a project (the hub's fuller scanner is used when WHEEL_HUB or ~/.config/wheel/hub-path points at one).
@@ -231,6 +234,24 @@ def personal(top, paths, lines):
     return out
 
 
+LUG_LOG_FILES = (".wheel/backlog.jsonl", ".wheel/BACKLOG.md", ".wheel/ROADMAP.md")
+
+
+def in_linked_worktree(top):
+    """True when top is a linked worktree (its .git is a file), not the project's main checkout."""
+    return os.path.isfile(os.path.join(top, ".git"))
+
+
+def lug_log(top, paths):
+    """B-078: staged changes to the work-item log or its views in a linked worktree (a session's branch)."""
+    if not in_linked_worktree(top):
+        return []
+    return [(p, 0, "F-016", "the work-item log changed on a session branch",
+             "a branch carries no .wheel/ log diff: lug.py writes into the live checkout by itself from a worktree "
+             "(or pass --root <live checkout>); unstage this file with: git restore --staged --worktree -- " + p)
+            for p in paths if p in LUG_LOG_FILES]
+
+
 def check(cwd=None, hub=False):
     top = toplevel(cwd)
     if not top:
@@ -241,6 +262,7 @@ def check(cwd=None, hub=False):
     lines = added_lines(top)
     allow_path = os.path.join(top, "audits", "secrets-allowlist.json") if hub else os.path.join(top, ".wheel", "secrets-allowlist.json")
     probs = residue(paths)
+    probs += lug_log(top, paths)
     probs += secrets(top, paths, lines, hub, allow_path)
     if hub:
         probs += personal(top, paths, lines)

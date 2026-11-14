@@ -241,6 +241,9 @@ def works_in_main(root):
         return False
 
 
+LUG_LOG_FILES = (".wheel/backlog.jsonl", ".wheel/BACKLOG.md", ".wheel/ROADMAP.md")
+
+
 def files_subject(files):
     """A commit subject built from file names only (72 characters at most)."""
     head = "Turn save: "
@@ -355,6 +358,11 @@ def run(hook):
             log(root, sid, "skipped", MAIN_MSG, files=outside)
             if not changed:
                 return
+    if not is_main_checkout(root) and not in_main:
+        held = [f for f in changed if f in LUG_LOG_FILES]  # B-078: a session branch carries no log diff; the live checkout's turn save commits it
+        if held:
+            changed = [f for f in changed if f not in held]
+            log(root, sid, "skipped", "the work-item log is committed in the live checkout, not on a session branch", files=held)
     if not changed:
         if gen and not ignored and not any(f for f in rels if f not in gen):
             return log(root, sid, "skipped", "looks generated", files=gen)

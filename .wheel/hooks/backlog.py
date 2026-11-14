@@ -18,7 +18,8 @@ Lugs are the work items; initiatives group the lugs that deliver one agreed goal
   lug roadmap [--json]        lug render     lug lint [--json]     lug verify     lug test
 ("lug" is lug.py or backlog.py; the same program.)
 
-The log is .wheel/backlog.jsonl in the project root (found by walking up from the current folder, or --root PATH):
+The log is .wheel/backlog.jsonl in the project root (found by walking up from the current folder, or --root PATH; from a
+linked worktree, a session's checkout, it is the live checkout's log, so a session branch never carries a log diff, B-078):
 append-only, one JSON event per line {at, event, id, by, ...}. The current state is the fold of the events. Every open
 lug (not done/dropped) holds a unique rank 1..N; ranks stay contiguous after any change. Lug ids are B-###, initiative
 ids I-###. Rendered views (never edit by hand): .wheel/BACKLOG.md (the ranked lugs) and .wheel/ROADMAP.md
@@ -114,6 +115,26 @@ def find_root(start=None, explicit=None):
 
 def log_path(root):
     return os.path.join(root, ".wheel", "backlog.jsonl")
+
+
+def live_root(root):
+    """B-078: the project's main checkout when root is a linked worktree of it (its .git is a file pointing into
+    <main>/.git/worktrees/), else root. The work-item log lives in one place, the live checkout, where the turn save
+    commits it; a session branch never carries a diff of it, so shipping the branch cannot collide with the log."""
+    try:
+        with open(os.path.join(root, ".git"), encoding="utf-8") as f:
+            line = f.readline().strip()
+    except OSError:  # a directory (the main checkout itself) or no git at all
+        return root
+    if not line.startswith("gitdir:"):
+        return root
+    gd = line[len("gitdir:"):].strip()
+    gd = os.path.normpath(gd if os.path.isabs(gd) else os.path.join(root, gd))
+    marker = os.sep + ".git" + os.sep + "worktrees" + os.sep
+    if marker not in gd + os.sep:
+        return root
+    main = gd.split(marker)[0]
+    return main if os.path.isfile(log_path(main)) else root
 
 
 def now():
@@ -1355,6 +1376,8 @@ def main(argv=None, prog=None):
             print(msg)
         return code
     root = find_root(explicit=a.root)
+    if not a.root:  # --root PATH is taken literally; otherwise a worktree reads and writes the live checkout's log
+        root = live_root(root)
     code = 0
     try:
         if a.cmd == "add":
