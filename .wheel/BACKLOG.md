@@ -8,8 +8,8 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 | 2 | B-018 | Owner decision: the shape of the claude.ai connector (hosted remote MCP or local only), and whether the keepalive and db-schema leftovers stay | owner | proposed | 4/1 | - |
 | 3 | B-016 | MCP server serves the format itself: get_spec, get_prompt and track_open_items tools | autopilot | proposed | 4/2 | - |
 | 4 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | owner | blocked | 3/1 | I-004 |
-| 5 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | ready | 3/2 | I-001 |
-| 6 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready | 3/2 | I-004 |
+| 5 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked | 3/2 | I-001 |
+| 6 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | owner | blocked | 3/2 | I-004 |
 
 ## Recently done
 

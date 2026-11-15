@@ -1,0 +1,136 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-15T06:30:55Z",
+ "ended": "2026-11-15T06:47:14Z",
+ "tokens_used": 93888,
+ "lugs_done": [],
+ "lugs_blocked": [
+  "B-019",
+  "B-020"
+ ],
+ "owner_needs": [
+  "B-020: Decide how .wheel/ runtime state is handled (B-009): (a) gitignore and untrack scout status.json files, (b) commit .wheel/ state in main on a schedule, or (c) exclude .wheel/ from the worktree-no-uncommitted scout check.",
+  "stranded branch wheel/2026-11-15-45c344 in tracks names B-008, B-014, B-017 but its head is not the commit a done lug was proven on; look at it and merge or drop it"
+ ],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261115T063055Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-15-9fa3b2",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-15-9fa3b2",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-019",
+   "title": "Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Removed the last gitnexus mention ('e.g., gitnexus-*' in the agent types list) from AGENTS.md; the block was already gone from CLAUDE.md and AGENTS.md; grep -ci gitnexus now gives 0 for both files (commit 1ddc5a5).",
+     "build_tokens": 39589,
+     "check": "fail",
+     "evidence": "No proof: the checker ran no command beyond reading (2 command(s), none proving), so its pass is not accepted. Ran `grep -ci gitnexus CLAUDE.md AGENTS.md` in the worktree. It printed CLAUDE.md:0 and AGENTS.md:0. `ls` confirmed both files exist, so each file that exists reports 0. I didn't check other files, and I didn't check whether the trap rules (F-001 to F-015) were broken elsewhere.",
+     "ran": [
+      {
+       "cmd": "grep -ci gitnexus CLAUDE.md AGENTS.md",
+       "exit": 0
+      },
+      {
+       "cmd": "ls CLAUDE.md AGENTS.md",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 8866
+    },
+    {
+     "attempt": 2,
+     "outcome": "built",
+     "summary": "GitNexus block and its last stray mention are gone from CLAUDE.md and AGENTS.md (commit 1ddc5a5); grep -ci gitnexus prints 0 for both files, tree clean",
+     "build_tokens": 1954,
+     "check": "fail",
+     "evidence": "No proof: the checker ran no command beyond reading (2 command(s), none proving), so its pass is not accepted. I ran `grep -ci gitnexus CLAUDE.md AGENTS.md`. It printed `CLAUDE.md:0` and `AGENTS.md:0`. `ls CLAUDE.md AGENTS.md` shows both files exist in the worktree, so each one was counted. I did not modify anything. I did not check other files for the term, and I did not check the ledger rows or the commit contents.",
+     "ran": [
+      {
+       "cmd": "grep -ci gitnexus CLAUDE.md AGENTS.md",
+       "exit": 0
+      },
+      {
+       "cmd": "ls CLAUDE.md AGENTS.md",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 4854
+    }
+   ],
+   "result": "failed",
+   "kept_branch": "wheel/2026-11-15-9fa3b2-B-019"
+  },
+  {
+   "id": "B-020",
+   "title": "Scout worktree-no-uncommitted broke: git status shows no changed or untracked files",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "needs_owner",
+     "summary": "No change made: the scout already passes in this clean worktree. It fails only because the main checkout has 11 tracked .wheel/ runtime files modified, which is the B-009 policy question.",
+     "build_tokens": 38625
+    }
+   ],
+   "result": "owner",
+   "reason": "Decide how .wheel/ runtime state is handled (B-009): (a) gitignore and untrack scout status.json files, (b) commit .wheel/ state in main on a schedule, or (c) exclude .wheel/ from the worktree-no-uncommitted scout check.",
+   "kept_branch": null
+  }
+ ],
+ "merge": {
+  "state": "nothing to merge"
+ },
+ "complete": null,
+ "diakon": {
+  "built": [],
+  "triaged": [],
+  "flint_missed": []
+ },
+ "notes": [
+  "scouts that broke: worktree-no-uncommitted",
+  "stranded branches: wheel/2026-11-15-45c344 not merged; wheel/2026-11-15-45c344-B-019 not merged",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-15-9fa3b2 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 10,
+  "failed": [
+   "worktree-no-uncommitted"
+  ],
+  "lugs": [],
+  "notes": [
+   "lug B-020 already open for scout worktree-no-uncommitted"
+  ]
+ },
+ "stranded": [
+  {
+   "branch": "wheel/2026-11-15-45c344",
+   "lugs": [
+    "B-008",
+    "B-014",
+    "B-017"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  },
+  {
+   "branch": "wheel/2026-11-15-45c344-B-019",
+   "lugs": [
+    "B-008",
+    "B-014",
+    "B-017"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  }
+ ],
+ "worktree_removed": true
+}
