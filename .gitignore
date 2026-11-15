@@ -90,3 +90,6 @@ __pycache__/
 .wheel/last-smoke.txt
 
 .wheel/kit-backup/
+
+# B-017: scout run results are regenerated on every run; tracking them dirtied the tree and broke worktree-no-uncommitted
+.wheel/scouts/*/status.json
