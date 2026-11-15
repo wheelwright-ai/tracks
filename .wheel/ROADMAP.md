@@ -8,7 +8,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-001 Start here: the current prompt, a sample track and a way to check your own
 
-*2 of 2 lugs done · done · owner sign-off: signed off by owner on 2026-11-08*
+*2 of 3 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** Someone new opens the Tracks README, copies the current recommended prompt, sees a sample track, and checks their own track file in a few steps.
 - **Why now:** Anyone can use it is the product goal, but the lab's v4.0.0 prompt written on 10-28 is still not in the library and there is no single place to start.
@@ -16,6 +16,9 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - **Not in scope:** The claude.ai connector, a hosted service, or new prompt research.
 - **Done when:** The README opens with the start section; the prompt file matches the lab's v4.0.0 text and the variants table lists it as latest (provisional until the lab's bench names a winner); validate_track.py passes on every sample track, including the new one.
 
+| rank | lug | kind | status |
+|---:|---|---|---|
+| 6 | B-019 Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | ready |
 - Done: B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file, 2026-11-09 (wake-f95d17/checker)
 - Done: B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner, 2026-11-09 (wake-f95d17/checker)
 
@@ -34,7 +37,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*7 of 8 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*7 of 10 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -44,7 +47,9 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 1 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
+| 4 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
+| 5 | B-017 Stop scout runs from dirtying the tree: untrack and gitignore .wheel/scouts/*/status.json | autopilot | ready |
+| 7 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 - Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
 - Done: B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-12 (wake-3e8b53/checker)
@@ -81,6 +86,14 @@ No initiative yet.
 Define and prove the claude.ai connector.
 
 No initiative yet.
+
+## Lugs not yet in an initiative
+
+| rank | lug | kind | status | goal |
+|---:|---|---|---|---|
+| 1 | B-015 Tracks MCP server (stdio, Python stdlib only) with a validate_track tool | autopilot | proposed | - |
+| 2 | B-018 Owner decision: the shape of the claude.ai connector (hosted remote MCP or local only), and whether the keepalive and db-schema leftovers stay | owner | proposed | - |
+| 3 | B-016 MCP server serves the format itself: get_spec, get_prompt and track_open_items tools | autopilot | proposed | - |
 
 ## Completed history
 
