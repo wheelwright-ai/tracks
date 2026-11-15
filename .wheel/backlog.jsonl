@@ -166,3 +166,15 @@
 {"event": "status", "id": "B-017", "status": "doing", "from": "ready", "by": "flint@diakon (trial, r-003496)", "reason": "Flint on diakon is building it (flint_build)", "at": "2026-11-15T05:30:26Z"}
 {"event": "status", "id": "B-017", "status": "ready", "from": "doing", "by": "flint@diakon (trial, r-003496)", "reason": "Flint trial did not land it: Flint's answer did not pass: flint call failed: URLError: <urlopen error [Errno 110] Connection timed out>", "at": "2026-11-15T06:03:30Z"}
 {"event": "release", "id": "B-017", "by": "flint@diakon (trial, r-003496)", "reason": "not landed", "at": "2026-11-15T06:03:30Z"}
+{"event": "claim", "id": "B-017", "by": "wake-45c344/builder", "lease": 120.0, "until": "2026-11-15T08:03:30Z", "renew": false, "at": "2026-11-15T06:03:30Z"}
+{"event": "status", "id": "B-017", "status": "doing", "from": "ready", "by": "wake-45c344/builder", "reason": "spoke wake 45c344 is building it", "at": "2026-11-15T06:03:30Z"}
+{"event": "claim", "id": "B-017", "by": "wake-45c344/builder", "lease": 120.0, "until": "2026-11-15T08:03:30Z", "renew": true, "at": "2026-11-15T06:03:30Z"}
+{"event": "status", "id": "B-017", "status": "checking", "from": "doing", "by": "wake-45c344/builder", "reason": "built on wheel/2026-11-15-45c344; the checker runs next", "at": "2026-11-15T06:03:51Z"}
+{"event": "status", "id": "B-017", "status": "done", "from": "checking", "by": "wake-45c344/checker", "reason": "check passed: I ran each part of the check as a separate command, because chaining isn't allowed. All of them exited 0. (1) `grep -q 'scouts/\\*/status.json' .gitignore` matched, so the ignore rule is present. (2) `", "proof": "proof1.B-017.ac69187096f05beeeecfcbb46a6fdd34d941233b.053e9b8ea52924d32c4bd5b6c5852b83", "at": "2026-11-15T06:04:01Z"}
+{"event": "claim", "id": "B-019", "by": "wake-45c344/builder", "lease": 120.0, "until": "2026-11-15T08:04:01Z", "renew": false, "at": "2026-11-15T06:04:01Z"}
+{"event": "status", "id": "B-019", "status": "doing", "from": "ready", "by": "wake-45c344/builder", "reason": "spoke wake 45c344 is building it", "at": "2026-11-15T06:04:01Z"}
+{"event": "claim", "id": "B-019", "by": "wake-45c344/builder", "lease": 120.0, "until": "2026-11-15T08:04:01Z", "renew": true, "at": "2026-11-15T06:04:01Z"}
+{"event": "status", "id": "B-019", "status": "checking", "from": "doing", "by": "wake-45c344/builder", "reason": "built on wheel/2026-11-15-45c344; the checker runs next", "at": "2026-11-15T06:04:23Z"}
+{"event": "status", "id": "B-019", "status": "doing", "from": "checking", "by": "wake-45c344/builder", "reason": "check failed (attempt 1): No proof: the checker ran no command beyond reading (2 command(s), none proving), so its pass is not accepted. I ran `grep -ci gitnexus CLAUDE.md AGENTS.md` in the worktree. It exited 0 and printed `C", "at": "2026-11-15T06:04:29Z"}
+{"event": "status", "id": "B-019", "status": "ready", "from": "doing", "by": "wake-45c344/builder", "reason": "the wake's budget ran out before it finished", "at": "2026-11-15T06:04:29Z"}
+{"event": "release", "id": "B-019", "by": "wake-45c344/builder", "reason": "budget spent", "at": "2026-11-15T06:04:29Z"}

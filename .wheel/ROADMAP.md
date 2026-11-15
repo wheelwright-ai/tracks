@@ -18,7 +18,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 6 | B-019 Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | ready |
+| 5 | B-019 Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | ready |
 - Done: B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file, 2026-11-09 (wake-f95d17/checker)
 - Done: B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner, 2026-11-09 (wake-f95d17/checker)
 
@@ -37,7 +37,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*7 of 10 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*8 of 10 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -48,8 +48,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 | rank | lug | kind | status |
 |---:|---|---|---|
 | 4 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
-| 5 | B-017 Stop scout runs from dirtying the tree: untrack and gitignore .wheel/scouts/*/status.json | autopilot | ready |
-| 7 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
+| 6 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 - Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
 - Done: B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-12 (wake-3e8b53/checker)
@@ -57,6 +56,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - Done: B-011 Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an, 2026-11-12 (wake-3e8b53/checker)
 - Done: B-013 Scout critical-paths-stays-red-until-real broke: the stub still exits 1 and says it is not implemented, 2026-11-13 (wake-2e6a57/checker)
 - Done: B-014 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-13 (wake-2e6a57/checker)
+- Done: B-017 Stop scout runs from dirtying the tree: untrack and gitignore .wheel/scouts/*/status.json, 2026-11-15 (wake-45c344/checker)
 
 ## Goal 2: Use it ourselves
 
@@ -97,6 +97,7 @@ No initiative yet.
 
 ## Completed history
 
+- 2026-11-15 · B-017 Stop scout runs from dirtying the tree: untrack and gitignore .wheel/scouts/*/status.json · done by wake-45c344/checker
 - 2026-11-13 · B-014 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files · done by wake-2e6a57/checker
 - 2026-11-13 · B-013 Scout critical-paths-stays-red-until-real broke: the stub still exits 1 and says it is not implemented · done by wake-2e6a57/checker
 - 2026-11-12 · B-011 Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an · done by wake-3e8b53/checker
