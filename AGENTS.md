@@ -40,7 +40,7 @@ WAI coordinates AI work through several agent patterns. Each pattern routes work
 
 **Definition:** AI assistants used interactively within a user session for exploration, code review, planning, and research.
 
-- **Types:** claude (default), Explore, Plan, code-reviewer, and domain-specific agents (e.g., gitnexus-*)
+- **Types:** claude (default), Explore, Plan, code-reviewer, and domain-specific agents
 - **Context:** Full conversation history; can reference prior work
 - **Scope:** User-directed; may continue across multiple turns
 
