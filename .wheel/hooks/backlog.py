@@ -39,7 +39,8 @@ or any lug in the project's "Keep ... healthy" initiative (its title starts with
 else is build. The class is derived when not declared; `top --json` and `show --json` carry it, and `top --split` lists the
 prioritised backlog as a build part and a maintain part, which is what a session reads at startup.
 lint requires an explicit urgency on every open lug and keeps value within the goal's ceiling (goal n holds at most 6-n,
-a "(later)" goal at most 2); the full scoring rubric is plans/backlog-rubric.md in the hub."""
+a "(later)" goal at most 2), and warns when a lug's title or check says it needs (or comes after) a lug ranked below it;
+initiative add and edit print three fresh-reader questions to ask before sign-off. The full scoring rubric is plans/backlog-rubric.md in the hub."""
 import argparse, binascii, calendar, hashlib, hmac, json, os, re, subprocess, sys, time
 
 sys.dont_write_bytecode = True
@@ -816,15 +817,38 @@ def lint(root, st):
 STORE_CHECK_RE = re.compile(r"backlog\.jsonl|\blug\.py\b|\bbacklog\.py\s+(?:status|edit|rank|link|claim|release|add)\b|\blug (?:status|edit|rank|link) ", re.I)
 
 
+NEEDS_RE = re.compile(r"\b(?:needs?|requires?|depends?\s+on|blocked\s+by|waits?\s+(?:for|on)|builds?\s+on|after)\s+"
+                      r"((?:B-\d+(?:\s*(?:,|&|and)\s*)?)+)", re.I)
+
+
+def order_warnings(st):
+    """A lug whose title or check says it needs another open lug that ranks below it will be picked first and cannot
+    finish (W-147). Advice, not an error: the owner may have ranked it so on purpose."""
+    out, rank = [], {iid: n for n, iid in enumerate(st["order"], 1)}
+    for it in open_items(st):
+        seen = []
+        for text in (it.get("title"), it.get("check")):
+            for m in NEEDS_RE.finditer(text or ""):
+                for dep in re.findall(r"B-\d+", m.group(1), re.I):
+                    dep = dep.upper()
+                    if dep != it["id"] and dep in rank and dep not in seen and rank[dep] > rank[it["id"]]:
+                        seen.append(dep)
+        for dep in seen:
+            out.append((it["id"], "warning: says it needs %s, but ranks above it (rank %d, %s is rank %d); move it below with "
+                                  "lug move %s --below %s" % (dep, rank[it["id"]], dep, rank[dep], it["id"], dep)))
+    return out
+
+
 def warnings_of(st):
     """Advice that does not fail lint: an autopilot lug whose check reads or edits the lug store
-    (.wheel/backlog.jsonl) draws a warning, because a builder may not touch the store (failure kind F-012)."""
+    (.wheel/backlog.jsonl) draws a warning, because a builder may not touch the store (failure kind F-012);
+    a lug that says it needs a lug ranked below it draws a warning too."""
     out = []
     for it in open_items(st):
         if it["kind"] == "autopilot" and STORE_CHECK_RE.search(it.get("check") or ""):
             out.append((it["id"], "warning: autopilot check names the lug store (.wheel/backlog.jsonl) or lug.py, which a builder cannot edit; "
                                   "reword the check to something the builder's own files can show"))
-    return out
+    return out + order_warnings(st)
 
 
 def do_lint(root, a):
@@ -983,6 +1007,12 @@ def retier(root):
     return "; priorities recomputed" if r.returncode == 0 else "; priorities not recomputed"
 
 
+INIT_PROMPTS = ("Before sign-off, read it as a fresh reader (W-147 took seven review passes):\n"
+                "  1. Is each claim in the outcome proven by the done-when?\n"
+                "  2. Is everything in scope-in covered by a lug?\n"
+                "  3. Does any lug sit above a lug it needs? (lug lint warns on \"needs B-###\" ranked below)")
+
+
 def do_init_add(root, a):
     fields = {k: (v.strip() if isinstance(v, str) else v) for k, v in init_args(a).items()}
     probs = init_problems(fields, agreed_goals(root))
@@ -993,7 +1023,7 @@ def do_init_add(root, a):
         ev = dict({"event": "init_add", "id": iid}, **fields)
         ev.update(by=a.by, reason=(a.reason or "").strip() or "new initiative for goal %s" % fields["goal"])
         lk.append(ev)
-    return "%s %s (goal %s; owner sign-off pending)%s" % (iid, fields["title"], fields["goal"], retier(root))
+    return "%s %s (goal %s; owner sign-off pending)%s\n%s" % (iid, fields["title"], fields["goal"], retier(root), INIT_PROMPTS)
 
 
 def do_init_edit(root, a):
@@ -1017,7 +1047,7 @@ def do_init_edit(root, a):
         reset = any(k in SIGNED_FIELDS for k in ch) and ini["owner_signoff"].get("status") == "yes"
         return "%s edited: %s%s%s" % (a.id, ", ".join(sorted(ch)),
                                       "; goal moved on %d open lug(s): %s" % (len(moved), ", ".join(moved)) if moved else "",
-                                      "; owner sign-off back to pending" if reset else "")
+                                      "; owner sign-off back to pending" if reset else "") + "\n" + INIT_PROMPTS
 
 
 def do_init_signoff(root, a):
