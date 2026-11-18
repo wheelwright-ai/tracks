@@ -131,6 +131,12 @@ def make(sender, to, subject, body, asks=None, items=None, reply_to=None, refs=N
             "responsibility": "responsible" if responsibility == "responsible" else "informed"}
 
 
+def has_command(check):
+    """True when the check holds a backticked command (B-131): a span whose first word looks like a program or path."""
+    return any(re.match(r"[A-Za-z0-9_./~$-][^\s]*(\s|$)", m.strip()) and re.search(r"[A-Za-z]", m)
+               for m in re.findall(r"`([^`\n]+)`", check or ""))
+
+
 def need_text(v, what):
     if not (isinstance(v, str) and v.strip()):
         raise SystemExit("msg.py: a message needs a %s" % what)
@@ -315,6 +321,9 @@ def main(argv=None):
                 items = json.load(f)
             if not isinstance(items, list) or not all(isinstance(i, dict) and i.get("check") for i in items):
                 raise SystemExit("msg.py: --item-file must hold a list of work items, each with a check")
+            loose = [i.get("title") or "?" for i in items if i.get("authority") != "owner" and not has_command(i["check"])]
+            if loose:   # B-131: the lug made from this item needs a check a checker can run and fail
+                raise SystemExit("msg.py: each work item's check needs a backticked command (not: %s)" % ", ".join(str(t)[:40] for t in loose))
         m = make(a.sender or this_project(a.root), a.to, a.subject, a.body, a.ask, items, a.reply_to, a.ref, "responsible" if a.responsible else None)
         where = deliver(m, d[a.to])
         keep_sent(a.root, m)

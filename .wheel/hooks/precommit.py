@@ -242,9 +242,18 @@ def in_linked_worktree(top):
     return os.path.isfile(os.path.join(top, ".git"))
 
 
+def merging(top):
+    """True while a merge is being committed (git's MERGE_HEAD exists for this worktree)."""
+    r = subprocess.run(["git", "-C", top, "rev-parse", "--git-path", "MERGE_HEAD"], capture_output=True, text=True)
+    path = r.stdout.strip()
+    return r.returncode == 0 and bool(path) and os.path.exists(path if os.path.isabs(path) else os.path.join(top, path))
+
+
 def lug_log(top, paths):
-    """B-078: staged changes to the work-item log or its views in a linked worktree (a session's branch)."""
-    if not in_linked_worktree(top):
+    """B-078: staged changes to the work-item log or its views in a linked worktree (a session's branch). A merge
+    commit is not a session's edit: it carries both parents' logs (main brought into a branch to resolve a conflict,
+    or the tidy merging a branch into main), so it passes (B-167; it blocked every conflict fix)."""
+    if not in_linked_worktree(top) or merging(top):
         return []
     return [(p, 0, "F-016", "the work-item log changed on a session branch",
              "a branch carries no .wheel/ log diff: lug.py writes into the live checkout by itself from a worktree "

@@ -8,21 +8,24 @@ Lugs are the work items; initiatives group the lugs that deliver one agreed goal
   lug status ID proposed|ready|doing|checking|done|dropped|blocked --reason WHY --by WHO [--proof TOKEN]
   lug rank ID N --reason WHY [--pin|--unpin] --by WHO      lug move ID --above|--below OTHER --reason WHY [--pin] --by WHO
   lug edit ID [--title T] [--goal G] [--value V] [--effort E] [--kind K] [--check C] [--urgency U] [--class C] --reason WHY --by WHO
+  lug edit ID --after B-117[,B-118] --reason WHY --by WHO   (a blocked lug waits on those lugs)
+  lug release-deps --by WHO                                 (blocked lugs whose --after lugs are all done go back to ready)
   lug link ID I-### --by WHO [--reason WHY]                 (each lug belongs to exactly one initiative)
   lug claim ID --by WORKER --lease MINUTES                  lug release ID --by WORKER [--reason WHY]
   lug initiative add TITLE --goal N --outcome .. --why-now .. --scope-in .. --scope-out .. --done-when .. --by WHO
   lug initiative edit I-### [--title|--goal|--outcome|--why-now|--scope-in|--scope-out|--done-when ..] --reason WHY --by WHO
   lug initiative signoff I-### --who "the owner (source)" --by WHO      lug initiative close I-### --reason WHY --by WHO
   lug initiative show [I-###] [--json]
-  lug show [--all] [--json]   lug top [--kind K] [--class build|maintain] [--pickable] [-n N] [--split] [--json]   lug history ID
+  lug show [--all] [--json]   lug top [--kind K] [--class build|maintain] [--pickable|--needs-check] [-n N] [--split] [--json]   lug history ID
   lug roadmap [--json]        lug render     lug lint [--json]     lug verify     lug test
+  lug statement ID TEXT --by WHO   lug changelog [--json] [--since YYYY-MM-DD]   (status ... done --statement TEXT)
 ("lug" is lug.py or backlog.py; the same program.)
 
 The log is .wheel/backlog.jsonl in the project root (found by walking up from the current folder, or --root PATH; from a
 linked worktree, a session's checkout, it is the live checkout's log, so a session branch never carries a log diff, B-078):
 append-only, one JSON event per line {at, event, id, by, ...}. The current state is the fold of the events. Every open
 lug (not done/dropped) holds a unique rank 1..N; ranks stay contiguous after any change. Lug ids are B-###, initiative
-ids I-###. Rendered views (never edit by hand): .wheel/BACKLOG.md (the ranked lugs) and .wheel/ROADMAP.md
+ids I-###. Rendered views (never edit by hand): .wheel/CHANGELOG.md (what reached main, B-171), .wheel/BACKLOG.md (the ranked lugs) and .wheel/ROADMAP.md
 (goal -> initiative -> lugs -> completed history).
 kind owner = needs the owner (a decision, a walkthrough, a login, anything outward-facing or hard to undo);
 kind autopilot = a builder can do it and an independent checker can prove it (a check is required). Closing an autopilot
@@ -86,7 +89,7 @@ def class_of(st, it):
 def urgency_of(it):
     """A lug's urgency; whenever when unset (older lugs carry none)."""
     return it.get("urgency") or DEFAULT_URGENCY
-WRITES = ("add", "status", "rank", "move", "edit", "link", "claim", "release", "initiative")
+WRITES = ("add", "status", "rank", "move", "edit", "link", "claim", "release", "initiative", "release-deps", "statement")
 INIT_FIELDS = ("title", "goal", "outcome", "why_now", "scope_in", "scope_out", "done_when")
 INIT_LABELS = {"title": "title", "goal": "goal", "outcome": "outcome", "why_now": "why now", "scope_in": "scope (in)",
                "scope_out": "scope (out)", "done_when": "done when"}
@@ -501,6 +504,38 @@ def proof_problem(token, subject, root):
     return None
 
 
+LUG_NAMED = re.compile(r"\bB-\d{3,}\b")
+
+
+def landing_problem(root, iid, sha=None):
+    """None when a commit reachable from sha (the proven commit; else HEAD) names the lug and changes something besides
+    harness bookkeeping (tidy.landed_ids reads main the same way); else why not (B-124: done that never reached a commit
+    is spend with no result). A closing with --no-code REASON skips this and is counted apart."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import wheelstate
+        pol = wheelstate.policy()
+    except Exception as e:  # noqa: BLE001
+        return "cannot read the harness state policy (%s)" % str(e)[:80]
+    ref = sha or "HEAD"
+    git = lambda *x: subprocess.run(["git", "-C", root, "log", ref] + list(x), capture_output=True, text=True)
+    r = git("--format=%x01%H%x00%s%n%b")
+    if r.returncode:
+        return "cannot read the commit history from %s: %s" % (ref[:12], r.stderr.strip()[:100])
+    naming = set()
+    for chunk in r.stdout.split("\x01")[1:]:
+        h, _, msg = chunk.partition("\x00")
+        if iid in LUG_NAMED.findall(msg):
+            naming.add(h.strip())
+    if naming:
+        for chunk in git("--format=%x01%H", "--name-only").stdout.split("\x01")[1:]:
+            lines = [l.strip() for l in chunk.splitlines() if l.strip()]
+            if lines and lines[0] in naming and any(wheelstate.owned(f, root, pol) is None for f in lines[1:]):
+                return None
+    return ("no commit on %s names %s and changes project files; commit the work with %s in the message, or close it with "
+            "--no-code REASON when it is a state, config or decision change with no code" % (ref[:12], iid, iid))
+
+
 def allowed_moves(it):
     ok = FLOW[it["status"]]
     if it["kind"] == "owner" and it["status"] == "doing":
@@ -526,7 +561,18 @@ def do_status(root, a):
             bad = proof_problem(getattr(a, "proof", None), a.id, root)
             need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
             ev["proof"] = a.proof.strip()
+        if a.status == "done":
+            nc = (getattr(a, "no_code", None) or "").strip()
+            if nc:
+                ev["no_code"] = nc
+            else:
+                sha = str(getattr(a, "proof", None) or "").split(".")
+                bad = landing_problem(root, a.id, sha[2] if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]) else None)
+                need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
         lk.append(ev)
+        stm = " ".join((getattr(a, "statement", None) or "").split())
+        if a.status == "done" and stm:
+            lk.append({"event": "edit", "id": a.id, "changes": {"statement": stm[:200]}, "by": a.by, "reason": "changelog statement"})
         return "%s %s -> %s" % (a.id, cur, a.status)
 
 
@@ -582,6 +628,14 @@ def do_edit(root, a):
         if getattr(a, "klass", None) is not None and a.klass != it.get("class"):
             need(a.klass in CLASSES, "class must be build or maintain")
             ch["class"] = a.klass
+        after = getattr(a, "after", None)
+        if after is not None:   # B-132: the lugs this one waits on, kept as a list; an empty value clears it
+            ids = [x for x in re.split(r"[\s,]+", after.strip()) if x]
+            need(all(re.match(r"^B-\d+$", x) for x in ids), "--after takes lug ids like B-117, comma-separated")
+            need(a.id not in ids, "%s cannot wait on itself" % a.id)
+            need(all(x in st["items"] for x in ids), "--after names a lug that does not exist: %s" % ", ".join(x for x in ids if x not in st["items"]))
+            if ids != list(it.get("after") or []):
+                ch["after"] = ids
         need(ch, "nothing to change")
         for k in ("check", "kind"):
             need(not (k in ch and it["status"] in ("doing", "checking")),
@@ -593,6 +647,25 @@ def do_edit(root, a):
             need(str(ch["goal"]) == str(g), "%s belongs to %s, which serves goal %s; link it to an initiative of that goal (lug link ID I-### --reason ...) or edit the initiative's goal" % (a.id, it["initiative"], g))
         lk.append({"event": "edit", "id": a.id, "changes": ch, "by": a.by, "reason": a.reason.strip()})
         return "%s edited: %s" % (a.id, ", ".join(sorted(ch)))
+
+
+def do_release_deps(root, a):
+    """B-132: a blocked lug that waits on other lugs (its `after` list) returns to ready once every one of them is done.
+    A dependency that is dropped never lifts the block: the lug stays blocked for someone to decide."""
+    with Locked(root) as lk:
+        st = load(root)
+        freed = []
+        for iid in list(st["items"]):
+            it = st["items"][iid]
+            deps = list(it.get("after") or [])
+            if it["status"] != "blocked" or not deps:
+                continue
+            if all((st["items"].get(d) or {}).get("status") == "done" for d in deps):
+                why = "%s done: the block lifts" % ", ".join(deps)
+                lk.append({"event": "status", "id": iid, "status": "ready", "from": "blocked", "by": a.by, "reason": why})
+                lk.append({"event": "edit", "id": iid, "changes": {"after": []}, "by": a.by, "reason": "its dependencies are done"})
+                freed.append(iid)
+        return ("released: " + ", ".join(freed)) if freed else "released: none"
 
 
 def do_link(root, a):
@@ -756,6 +829,19 @@ def owner_work_reason(*texts):
     return None
 
 
+COMMAND_RE = re.compile(r"`([^`\n]+)`")
+
+
+def check_command(check):
+    """The first backticked command in a check (a span whose first word looks like a program or path), or None.
+    A check with none cannot be failed by a checker, so no wake may pick the lug (B-131)."""
+    for m in COMMAND_RE.finditer(check or ""):
+        span = m.group(1).strip()
+        if re.match(r"[A-Za-z0-9_./~$-][^\s]*(\s|$)", span) and re.search(r"[A-Za-z]", span):
+            return span
+    return None
+
+
 def value_cap(goals, goal):
     """Highest value a lug on this goal may hold: goal 1 up to 5, goal 2 up to 4, ... down to 1; a "(later)" goal up to 2.
     None when the goal is not a known number (lint reports that on its own)."""
@@ -798,6 +884,8 @@ def lint(root, st):
                 errors.append((lid, "autopilot lug has no check"))
             elif text_problem("check", c) or words(c) < 3:
                 errors.append((lid, "autopilot lug's check is not a real check (%r)" % c[:40]))
+            elif not check_command(c):
+                errors.append((lid, "autopilot lug's check holds no backticked command a checker can run and fail (B-131): write one, e.g. `python3 tools/x_test.py`"))
             why = owner_work_reason(it.get("title"), c)
             if why:
                 errors.append((lid, "autopilot lug looks like owner work: %s" % why))
@@ -1205,10 +1293,299 @@ def roadmap_md(root, st):
     return "\n".join(out).rstrip() + "\n"
 
 
+# ---------- the changelog (B-171) ----------
+
+FIX_RE = re.compile(r"\b(fix(es|ed)?|bug|broke|broken|crash(es|ed)?|regression|fail(s|ed|ing)?|wrong|error|secur(e|ity)|vulnerab\w*|unauthenticated|unauthori[sz]ed|signed-in caller|authenticated|leak(s|ed)?|exposed?|injection|xss|csrf|rls)\b", re.I)
+LANDING_RE = re.compile(r"^\s*land\b", re.I)   # moving finished work onto main: upkeep, not a fix
+FIX_COMMIT_RE = re.compile(r"^(fix|hotfix|bugfix)\b|^fix(\(|:)|\bfix(es|ed)? (a |the )?(bug|crash|regression)\b", re.I)
+GLANCE_DAYS = 7
+
+
+def default_ref(root):
+    """The branch finished work lands on: main, else master, else HEAD."""
+    for ref in ("main", "master"):
+        if subprocess.run(["git", "-C", root, "rev-parse", "--verify", "-q", ref], capture_output=True).returncode == 0:
+            return ref
+    return "HEAD"
+
+
+def _harness_file(rel, root, pol):
+    """True for the harness's own bookkeeping (work-item logs, rendered views, saves), which says nothing about the
+    project itself."""
+    if rel.startswith(".wheel/") or rel == ".claude/settings.json":
+        return True
+    if pol is not None:
+        try:
+            import wheelstate
+            return wheelstate.owned(rel, root, pol) is not None
+        except Exception:  # noqa: BLE001
+            pass
+    return False
+
+
+def main_commits(root, ref=None):
+    """Non-merge commits on the project's main branch, oldest last: [{sha, at, subject, body, files}] with files limited
+    to the project's own (harness bookkeeping left out). [] when there is no git history."""
+    ref = ref or default_ref(root)
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import wheelstate
+        pol = wheelstate.policy()
+    except Exception:  # noqa: BLE001
+        pol = None
+    r = subprocess.run(["git", "-C", root, "log", ref, "--no-merges", "--format=%x01%h%x00%cI%x00%s%x00%b%x02",
+                        "--name-only"], capture_output=True, text=True, errors="replace")
+    if r.returncode:
+        return []
+    rows = []
+    for chunk in r.stdout.split("\x01")[1:]:
+        head, _, names = chunk.partition("\x02")
+        sha, at, subject, body = (head.split("\x00") + ["", "", "", ""])[:4]
+        files = [f.strip() for f in names.splitlines() if f.strip()]
+        rows.append({"sha": sha, "at": at, "subject": subject.strip(), "body": body.strip(),
+                     "files": [f for f in files if not _harness_file(f, root, pol)]})
+    return rows
+
+
+def any_secs(iso_text):
+    """Epoch seconds of an ISO timestamp with Z or an offset (git's %cI); 0 when unreadable."""
+    import datetime
+    try:
+        return datetime.datetime.fromisoformat((iso_text or "").replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return 0
+
+
+def local_day(iso_text):
+    """The owner's local calendar date of a timestamp (ISO with Z or an offset)."""
+    t = any_secs(iso_text)
+    return time.strftime("%Y-%m-%d", time.localtime(t)) if t else (iso_text or "")[:10]
+
+
+def change_kind(it, st):
+    """Fix, Upkeep or New: what kind of change a finished lug is, from its words and class."""
+    if LANDING_RE.search(it.get("title") or ""):
+        return "Upkeep"
+    if FIX_RE.search(" ".join([it.get("title") or "", it.get("reason") or ""])):
+        return "Fix"
+    return "Upkeep" if class_of(st, it) == "maintain" else "New"
+
+
+def headline(title, limit=150):
+    """A short headline and the rest as detail: the part before the first ': ' when it reads as a name of its own."""
+    title = redact(" ".join((title or "").split()))
+    head, sep, rest = title.partition(": ")
+    if sep and 20 <= len(head) <= limit and rest:
+        return head, rest
+    if len(title) <= limit:
+        return title, ""
+    cut = title.rfind(" ", 0, limit)
+    return title[:cut if cut > 40 else limit].rstrip(",;") + "...", title
+
+
+def redact(text):
+    """Secret-shaped text out of a changelog line (a lug's words may quote a leaked key): the pre-commit gate's own
+    patterns, each match replaced; a line it still flags is withheld whole. The changelog is tracked, so it must never
+    carry what the gate refuses."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import precommit
+    except Exception:  # noqa: BLE001
+        return text
+    for _, rx in precommit.BUILTIN:
+        text = rx.sub("[secret removed]", text)
+    text = precommit.ASSIGN.sub(lambda m: m.group(0) if precommit.PLACEHOLDER.search(m.group(3))
+                                else m.group(0).replace(m.group(3), "[secret removed]"), text)
+    flagged = precommit.builtin_scan(text)
+    if not flagged:
+        global _SCANNER
+        if _SCANNER is None:   # the hub's fuller scanner, the one the gate runs when it can find it
+            try:
+                _SCANNER = precommit.load_scanner(precommit.toplevel(os.getcwd()) or os.getcwd(), False) or False
+            except Exception:  # noqa: BLE001
+                _SCANNER = False
+        if _SCANNER:
+            try:
+                flagged = _SCANNER.scan_text(text, True)
+            except Exception:  # noqa: BLE001
+                flagged = []
+    if flagged:
+        return "[withheld: this text quotes something shaped like a secret; see the lug's history]"
+    return text
+
+
+_SCANNER = None
+
+
+def clip(text, n):
+    text = redact(" ".join((text or "").split()))
+    return text if len(text) <= n else text[:n - 3].rstrip() + "..."
+
+
+def file_list(files, n=6):
+    seen = []
+    for f in files:
+        if f not in seen:
+            seen.append(f)
+    shown = ", ".join("`%s`" % f for f in seen[:n])
+    return shown + (" and %d more" % (len(seen) - n) if len(seen) > n else "")
+
+
+def landing_time(root, sha, ref):
+    """When a commit reached ref: the time of the first-parent commit that brought it in (its merge), or its own commit
+    time when it was made on ref itself. None when it is not on ref."""
+    r = subprocess.run(["git", "-C", root, "rev-list", "--first-parent", "--ancestry-path", "%s..%s" % (sha, ref)],
+                       capture_output=True, text=True)
+    if r.returncode:
+        return None
+    lines = r.stdout.split()
+    target = lines[-1] if lines else sha
+    t = subprocess.run(["git", "-C", root, "show", "-s", "--format=%cI", target], capture_output=True, text=True)
+    return t.stdout.strip() or None
+
+
+def lug_commits(commits):
+    """{lug id: [commits on main that name it and touch the project's own files]}."""
+    by_lug = {}
+    for c in commits:
+        if c["files"]:
+            for iid in set(LUG_NAMED.findall(c["subject"] + "\n" + c["body"])):
+                by_lug.setdefault(iid, []).append(c)
+    return by_lug
+
+
+def mark_landed(root, by="changelog", commits=None):
+    """Record on each finished lug when its work reached main (an edit event: landed = {at, sha}), once, from the
+    history: the lug holds its own cradle-to-grave record (B-171). Returns the ids marked."""
+    ref = default_ref(root)
+    commits = main_commits(root, ref) if commits is None else commits
+    by_lug = lug_commits(commits)
+    marked = []
+    with Locked(root) as lk:
+        st = load(root)
+        for it in st["items"].values():
+            if it["status"] != "done" or it.get("landed") or it["id"] not in by_lug:
+                continue
+            times = [(landing_time(root, c["sha"], ref), c["sha"]) for c in by_lug[it["id"]]]
+            times = [t for t in times if t[0]]
+            if not times:
+                continue
+            at, sha = min(times, key=lambda t: any_secs(t[0]))
+            lk.append({"event": "edit", "id": it["id"], "changes": {"landed": {"at": at, "sha": sha}}, "by": by,
+                       "reason": "its work reached %s" % ref})
+            marked.append(it["id"])
+    return marked
+
+
+def statement_of(it):
+    """The lug's changelog line: the statement its closer wrote, else a headline made from its title."""
+    return clip(it.get("statement") or headline(it.get("title"))[0], 200)
+
+
+def changelog_entries(root, st, commits=None):
+    """Every finished lug and every fix commit that names no lug, newest first. Each lug entry is dated by when its work
+    reached main (the lug's landed record), else by when it closed."""
+    commits = main_commits(root) if commits is None else commits
+    by_lug = lug_commits(commits)
+    out = []
+    for it in st["items"].values():
+        if it["status"] != "done":
+            continue
+        ini = st["inits"].get(it.get("initiative")) or {}
+        landed = it.get("landed") or {}
+        at = landed.get("at") or it["closed"] or ""
+        out.append({"day": local_day(at), "at": at, "kind": change_kind(it, st), "statement": statement_of(it),
+                    "lug": it["id"], "initiative": ini.get("id") or it.get("initiative"),
+                    "initiative_title": ini.get("title"), "landed": bool(landed) or it["id"] in by_lug or bool(LANDING_RE.search(it.get("title") or "")),
+                    "sha": landed.get("sha") or (by_lug.get(it["id"]) or [{}])[0].get("sha")})
+    named = {c["sha"] for cs in by_lug.values() for c in cs}
+    for c in commits:
+        if c["sha"] in named or not c["files"] or not FIX_COMMIT_RE.search(c["subject"]):
+            continue
+        out.append({"day": local_day(c["at"]), "at": c["at"], "kind": "Fix", "statement": clip(c["subject"], 200),
+                    "lug": None, "initiative": None, "initiative_title": None, "landed": True, "sha": c["sha"]})
+    out.sort(key=lambda e: (e["day"], any_secs(e["at"])), reverse=True)
+    return out
+
+
+def entry_line(e):
+    where = ("lug %s" % e["lug"]) if e["lug"] else ("commit %s" % e["sha"])
+    ini = ("%s %s" % (e["initiative"], e["initiative_title"] or "")).strip() if e["initiative"] else "no initiative"
+    return "- **%s** · %s · %s · %s%s" % (e["statement"].rstrip("."), e["kind"], ini, where,
+                                          "" if e["landed"] else " (not on main yet)")
+
+
+def changelog_md(root, st, commits=None, now_t=None):  # noqa: ARG001 (now_t: only when there are no entries)
+    """.wheel/CHANGELOG.md: one line per change, newest on top. The details live on the lug (`lug history ID`); the
+    same entries come as JSON from `lug changelog --json` (B-171)."""
+    entries = changelog_entries(root, st, commits)
+    name = os.path.basename(os.path.abspath(root))
+    lines = ["# Changelog: %s" % name, "",
+             "What reached this project, newest on top: one line per change (kind · initiative · lug). The details, "
+             "proof and commits live on the lug: `lug history B-NNN`. JSON for other tools: `lug changelog --json`. "
+             "Generated from the lugs; do not edit by hand.", ""]
+    last = any_secs(entries[0]["day"] + "T12:00:00+00:00") if entries else (now_t or time.time())
+    since = time.strftime("%Y-%m-%d", time.gmtime(last - GLANCE_DAYS * 86400))
+    recent = [e for e in entries if e["day"] > since]
+    lines += ["## The latest week at a glance (%d days to %s)" % (GLANCE_DAYS, entries[0]["day"] if entries else "today"), ""]
+    if recent:
+        kinds = {}
+        for e in recent:
+            kinds[e["kind"]] = kinds.get(e["kind"], 0) + 1
+        lines.append("- %d change%s: %s" % (len(recent), "" if len(recent) == 1 else "s",
+                                             ", ".join("%d %s" % (kinds[k], {"New": "new", "Fix": "fix", "Upkeep": "upkeep"}[k] + ("es" if k == "Fix" and kinds[k] > 1 else ""))
+                                                       for k in ("New", "Fix", "Upkeep") if kinds.get(k))))
+        per = {}
+        for e in recent:
+            key = ("%s %s" % (e["initiative"], e["initiative_title"] or "")).strip() if e["initiative"] else "no initiative"
+            per[key] = per.get(key, 0) + 1
+        for key, n in sorted(per.items(), key=lambda kv: (-kv[1], kv[0])):
+            lines.append("- %s: %d" % (key, n))
+    else:
+        lines.append("- Nothing has reached main yet.")
+    day = None
+    for e in entries:
+        if e["day"] != day:
+            day = e["day"]
+            lines += ["", "## %s" % day, ""]
+        lines.append(entry_line(e))
+    if not entries:
+        lines += ["", "Nothing finished yet."]
+    return "\n".join(lines) + "\n"
+
+
+def do_statement(root, a):
+    """Set a lug's changelog statement: one plain sentence saying what is now true for the person who uses the project.
+    Open or closed lugs alike (the closer writes it at done, or later)."""
+    text = " ".join((a.text or "").split())
+    need(text, "a statement needs text")
+    need(len(text) <= 200, "keep a statement to one sentence (200 characters at most)")
+    with Locked(root) as lk:
+        st = load(root)
+        it = st["items"].get(a.id)
+        need(it is not None, "no lug %s" % a.id)
+        if it.get("statement") == text:
+            return "%s already says that" % a.id
+        lk.append({"event": "edit", "id": a.id, "changes": {"statement": text}, "by": a.by,
+                   "reason": a.reason or "changelog statement"})
+    return "%s statement set" % a.id
+
+
+def do_changelog(root, a):
+    st = load(root)
+    entries = changelog_entries(root, st)
+    if getattr(a, "since", None):
+        entries = [e for e in entries if e["day"] >= a.since]
+    if a.json:
+        return json.dumps(entries, ensure_ascii=False, indent=1)
+    return changelog_md(root, st)
+
+
 def write_views(root):
     st = load(root)
     os.makedirs(os.path.join(root, ".wheel"), exist_ok=True)
-    for name, text in (("BACKLOG.md", render_md(st)), ("ROADMAP.md", roadmap_md(root, st))):
+    for name, text in (("BACKLOG.md", render_md(st)), ("ROADMAP.md", roadmap_md(root, st)),
+                       ("CHANGELOG.md", changelog_md(root, st))):
         with open(os.path.join(root, ".wheel", name), "w", encoding="utf-8") as f:
             f.write(text)
     return st
@@ -1216,7 +1593,7 @@ def write_views(root):
 
 def do_render(root):
     st = write_views(root)
-    return "wrote .wheel/BACKLOG.md and .wheel/ROADMAP.md in %s (%d open lugs, %d initiatives)" % (root, len(st["order"]), len(st["inits"]))
+    return "wrote .wheel/BACKLOG.md, .wheel/ROADMAP.md and .wheel/CHANGELOG.md in %s (%d open lugs, %d initiatives)" % (root, len(st["order"]), len(st["inits"]))
 
 
 def do_roadmap(root, a):
@@ -1229,6 +1606,7 @@ def do_roadmap(root, a):
 def brief(it, st=None):
     d = {k: it.get(k) for k in ("rank", "id", "title", "kind", "status", "value", "effort", "goal", "initiative", "check", "source", "reason")}
     d["urgency"] = urgency_of(it)
+    d["after"] = list(it.get("after") or [])
     d["class"] = class_of(st, it)
     c = live_claim(it)
     d["claimed_by"] = c["by"] if c else None
@@ -1249,16 +1627,19 @@ def do_show(root, a):
     return "\n".join("%s %-6s %-9s %-10s v%d/e%d %-6s %s%s" % (("#%d" % i["rank"]) if i["rank"] else "-", i["id"], i["kind"], i["status"], i["value"], i["effort"], i.get("initiative") or "-", i["title"], "  [next session]" if urgency_of(i) == "next_session" else "") for i in rows)
 
 
-def pickable(st, it):
+def pickable(st, it, need_check=True):
+    """Ready, unclaimed autopilot work under a signed-off initiative whose check holds a backticked command (B-131;
+    need_check=False leaves that last test out, to list what only a missing command holds back)."""
     ini = st["inits"].get(it.get("initiative"))
     return (it["kind"] == "autopilot" and it["status"] == "ready" and not live_claim(it)
-            and ini is not None and ini["owner_signoff"].get("status") == "yes" and not ini["closed"])
+            and ini is not None and ini["owner_signoff"].get("status") == "yes" and not ini["closed"]
+            and (not need_check or bool(check_command(it.get("check")))))
 
 
 def do_top(root, a):
     st = load(root)
     klass = getattr(a, "klass", None)
-    rows = [i for i in open_items(st) if i["status"] != "blocked" and (not a.kind or i["kind"] == a.kind) and (not a.pickable or pickable(st, i))
+    rows = [i for i in open_items(st) if i["status"] != "blocked" and (not a.kind or i["kind"] == a.kind) and (not a.pickable or pickable(st, i)) and (not getattr(a, "needs_check", False) or (pickable(st, i, False) and not check_command(i.get("check"))))
             and (not klass or class_of(st, i) == klass)]
     if getattr(a, "split", False):   # the prioritised backlog as two parts, each in rank order (-n applies to each part)
         parts = {c: [i for i in rows if class_of(st, i) == c][: a.n] for c in CLASSES}
@@ -1323,6 +1704,15 @@ def build_parser(prog="backlog.py"):
     s.add_argument("status")
     s.add_argument("--reason", required=True)
     s.add_argument("--proof", help="closing an autopilot lug done: the token tools/verify.py printed on its pass")
+    s.add_argument("--no-code", dest="no_code", help="closing done with no code commit: the reason (a state, config or decision change); without it done needs a commit naming the lug")
+    s.add_argument("--statement", help="closing done: the changelog line, one plain sentence of what is now true")
+    s = by(sub.add_parser("statement", help="set a lug's changelog line (open or closed lug)"))
+    s.add_argument("id")
+    s.add_argument("text")
+    s.add_argument("--reason")
+    s = sub.add_parser("changelog", help="the changelog: .wheel/CHANGELOG.md text, or --json entries")
+    s.add_argument("--json", action="store_true")
+    s.add_argument("--since", help="YYYY-MM-DD: only entries from that day on")
     s = by(sub.add_parser("rank"))
     s.add_argument("id")
     s.add_argument("n", type=int)
@@ -1343,6 +1733,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--effort", type=int)
     s.add_argument("--urgency", help="next_session | whenever")
     s.add_argument("--class", dest="klass", help="build | maintain")
+    s.add_argument("--after", help="B-132: lug ids this lug waits on, comma-separated (an empty value clears it); release-deps lifts the block")
     s.add_argument("--reason", required=True)
     s = by(sub.add_parser("link", help="put a lug in an initiative"))
     s.add_argument("id")
@@ -1384,9 +1775,11 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--kind", choices=KINDS)
     s.add_argument("--class", dest="klass", choices=CLASSES, help="only build or only maintain work")
     s.add_argument("--split", action="store_true", help="two parts: build work and maintain work, each in rank order")
-    s.add_argument("--pickable", action="store_true", help="only ready autopilot lugs with budget (initiative signed off) and no live claim")
+    s.add_argument("--pickable", action="store_true", help="only ready autopilot lugs with budget (initiative signed off), no live claim and a backticked command in the check")
+    s.add_argument("--needs-check", dest="needs_check", action="store_true", help="only the ready autopilot lugs that --pickable skips because their check holds no backticked command")
     s.add_argument("-n", type=int, default=3)
     s.add_argument("--json", action="store_true")
+    by(sub.add_parser("release-deps", help="blocked lugs whose --after lugs are all done go back to ready"))
     sub.add_parser("render")
     s = sub.add_parser("roadmap")
     s.add_argument("--json", action="store_true")
@@ -1419,6 +1812,10 @@ def main(argv=None, prog=None):
     try:
         if a.cmd == "add":
             out = do_add(root, a)
+        elif a.cmd == "statement":
+            out = do_statement(root, a)
+        elif a.cmd == "changelog":
+            out = do_changelog(root, a)
         elif a.cmd == "status":
             out = do_status(root, a)
         elif a.cmd == "rank":
@@ -1431,6 +1828,8 @@ def main(argv=None, prog=None):
             out = do_edit(root, a)
         elif a.cmd == "link":
             out = do_link(root, a)
+        elif a.cmd == "release-deps":
+            out = do_release_deps(root, a)
         elif a.cmd == "claim":
             out = do_claim(root, a)
         elif a.cmd == "release":

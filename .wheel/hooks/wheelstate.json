@@ -15,6 +15,7 @@
   ".wheel/backlog.jsonl": "the lug store (backlog.py, lug.py)",
   ".wheel/BACKLOG.md": "rendered lugs (backlog.py)",
   ".wheel/ROADMAP.md": "rendered roadmap (backlog.py)",
+  ".wheel/CHANGELOG.md": "rendered changelog (backlog.py, B-171)",
   ".wheel/spoke.md": "the spoke's brief (backlog.py)",
   ".wheel/advisors.json": "advisor registry (wake)",
   ".wheel/advisors/": "advisor reports (wake)",
