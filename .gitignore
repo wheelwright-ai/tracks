@@ -90,3 +90,6 @@ __pycache__/
 .wheel/last-smoke.txt
 
 .wheel/kit-backup/
+
+# B-023: scout run records are per-machine runtime state (hub decision 2026-11-12: gitignore and untrack)
+.wheel/scouts/*/status.json
