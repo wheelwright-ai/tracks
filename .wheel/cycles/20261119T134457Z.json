@@ -1,0 +1,171 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-19T13:44:57Z",
+ "ended": "2026-11-19T13:50:16Z",
+ "tokens_used": 121149,
+ "lugs_done": [
+  "B-022"
+ ],
+ "lugs_blocked": [
+  "B-021"
+ ],
+ "owner_needs": [
+  "stranded branch wheel/2026-11-19-d21e80-B-021 in tracks names B-017 but its head is not the commit a done lug was proven on; look at it and merge or drop it",
+  "stranded branch wheel/flint-2026-11-19-8cf8fc in tracks names B-022 but its head is not the commit a done lug was proven on; look at it and merge or drop it"
+ ],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261119T134457Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-19-d21e80",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-19-d21e80",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-021",
+   "title": "Land ac69187 on main: untrack and gitignore scout status.json files",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Cherry-picked ac69187's change (gitignore rule plus untracking all 13 scout status.json files) onto this branch, tests pass; ac69187 is still not an ancestor of HEAD because git merge is denied, so a real merge is still needed.",
+     "build_tokens": 48776,
+     "check": "unprovable",
+     "evidence": "verify.py: refused (F-001): the check names commands the checker may not run: `git merge-base --is-ancestor ac69187 HEAD`; `git ls-files .wheel/scouts | grep -c status.json`\n  add each with --allow (a path form such as git -C PATH needs its own entry), or pass --no-coverage-check if they are only mentioned.",
+     "ran": [],
+     "check_tokens": 0
+    }
+   ],
+   "result": "failed",
+   "reason": "the check cannot be proven as written (it names commands the checker may not run); rewrite the check: verify.py: refused (F-001): the check names commands the checker may not run: `git merge-base --is-ancestor ac69187 HEAD`; `git ls-files .wheel/scouts | grep -c status.json`\n  add each with --allow ",
+   "kept_branch": "wheel/2026-11-19-d21e80-B-021"
+  },
+  {
+   "id": "B-022",
+   "title": "Have the overwatch run tests/run_all.sh so the test line stops reading 'none'",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Added tests/test_run_all.py so pytest discovery (the overwatch's fallback) collects 7 tests wrapping run_all.sh and its 5 checks; run_all.sh exits 0 and pytest passes, tree stays clean",
+     "build_tokens": 59033,
+     "check": "pass",
+     "evidence": "`bash tests/run_all.sh` ran twice and printed all five checks as PASS, then 'ALL PASS'. The harness raised no non-zero exit error. `test_run_all_exits_zero` also asserts exit 0 and passes. Plain `pytest -q -p no:cacheprovider tests/test_run_all.py` collected and passed 7 tests (7 passed), so overwatch's `python -m pytest -q` discovery gets a count instead of 'tests none'. After the runs, `ls -a tests` showed no __pycache__ or .pytest_cache. Not checked: the hub overwatch line itself, because `tools/wheel.py` is absent from this worktree. The count of 7 comes from pytest's own output. No known ",
+     "ran": [
+      {
+       "cmd": "bash tests/run_all.sh",
+       "exit": 0
+      },
+      {
+       "cmd": "ls tests",
+       "exit": 0
+      },
+      {
+       "cmd": "pytest -q -p no:cacheprovider tests/test_run_all.py",
+       "exit": 0
+      },
+      {
+       "cmd": "python3 tools/wheel.py check",
+       "exit": 2
+      },
+      {
+       "cmd": "git ls-tree -r --name-only HEAD tests",
+       "exit": 0
+      },
+      {
+       "cmd": "ls -a tests",
+       "exit": 0
+      },
+      {
+       "cmd": "bash tests/run_all.sh --version",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 13340,
+     "tests": "pass"
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "merged",
+  "text": "merged wheel/2026-11-19-d21e80 into main (tests pass)"
+ },
+ "complete": null,
+ "tier": "as-now",
+ "diakon": {
+  "built": [],
+  "triaged": [],
+  "flint_missed": [
+   {
+    "id": "B-022",
+    "outcome": "check-failed",
+    "error": "check failed: `bash tests/run_all.sh` exits 0 (I ran it and checked the exit code) and prints ALL PASS, so the first half of the check holds. The second half fa"
+   }
+  ]
+ },
+ "notes": [
+  "scouts that broke: worktree-no-uncommitted",
+  "B-022: Flint did not land it (check-failed); the normal builder takes it",
+  "smoke check: dev host http://tracks.local/ answers 200",
+  "stranded branches: wheel/2026-11-15-45c344 not merged; wheel/2026-11-19-d21e80-B-021 not merged; wheel/flint-2026-11-19-8cf8fc not merged",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-19-d21e80 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 13,
+  "failed": [
+   "worktree-no-uncommitted"
+  ],
+  "lugs": [],
+  "notes": [
+   "lug B-020 already open for scout worktree-no-uncommitted"
+  ]
+ },
+ "smoke": [
+  {
+   "state": "ok",
+   "url": "http://tracks.local/",
+   "status": 200,
+   "reason": "answers 200",
+   "spoke": "tracks",
+   "before": "ok",
+   "text": "dev host http://tracks.local/ answers 200"
+  }
+ ],
+ "stranded": [
+  {
+   "branch": "wheel/2026-11-15-45c344",
+   "lugs": [
+    "B-008",
+    "B-014",
+    "B-017"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  },
+  {
+   "branch": "wheel/2026-11-19-d21e80-B-021",
+   "lugs": [
+    "B-017"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  },
+  {
+   "branch": "wheel/flint-2026-11-19-8cf8fc",
+   "lugs": [
+    "B-022"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  }
+ ],
+ "worktree_removed": true
+}

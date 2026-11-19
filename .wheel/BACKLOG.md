@@ -11,10 +11,10 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 | 5 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked | 3/2 | I-001 |
 | 6 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | owner | blocked | 3/2 | I-004 |
 | 7 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked | 2/2 | I-004 |
-| 8 | B-022 | Have the overwatch run tests/run_all.sh so the test line stops reading 'none' | autopilot | ready | 2/2 | I-004 |
 
 ## Recently done
 
+- B-022 Have the overwatch run tests/run_all.sh so the test line stops reading 'none' (2026-11-19)
 - B-017 Stop scout runs from dirtying the tree: untrack and gitignore .wheel/scouts/*/status.json (2026-11-15)
 - B-014 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files (2026-11-13)
 - B-013 Scout critical-paths-stays-red-until-real broke: the stub still exits 1 and says it is not implemented (2026-11-13)
@@ -24,4 +24,3 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 - B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored) (2026-11-12)
 - B-006 Find stranded ideas in old tracks and offer them as backlog candidates (2026-11-09)
 - B-005 A new session in a project opens from the last session's track (2026-11-09)
-- B-003 Format spec and validator agree: every rule in the spec is checked, every sample passes (2026-11-09)

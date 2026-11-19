@@ -2,13 +2,14 @@
 
 What reached this project, newest on top: one line per change (kind · initiative · lug). The details, proof and commits live on the lug: `lug history B-NNN`. JSON for other tools: `lug changelog --json`. Generated from the lugs; do not edit by hand.
 
-## The latest week at a glance (7 days to 2026-11-14)
+## The latest week at a glance (7 days to 2026-11-19)
 
-- 14 changes: 6 new, 3 fixes, 5 upkeep
-- I-004 Keep tracks healthy and current: 8
-- I-001 Start here: the current prompt, a sample track and a way to check your own: 2
-- I-002 The format holds: spec, validator and viewer agree: 2
-- I-003 The wheel's own sessions pick up from their last track: 2
+- 2 changes: 2 upkeep
+- I-004 Keep tracks healthy and current: 2
+
+## 2026-11-19
+
+- **Running the project's tests now reports a real test count, and the full test suite still passes** · Upkeep · I-004 Keep tracks healthy and current · lug B-022 (not on main yet)
 
 ## 2026-11-14
 
