@@ -1,0 +1,5 @@
+{
+  "name": "tracks",
+  "description": "Track-driven development spoke: turn sessions into tracks, tracks into work.",
+  "test_command": ["bash", "tests/run_all.sh"]
+}
