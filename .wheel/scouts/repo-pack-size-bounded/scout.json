@@ -1,0 +1,25 @@
+{
+ "name": "repo-pack-size-bounded",
+ "purpose": "Catches the object store growing toward 100 MiB, a negative indicator of repository growth (today 8.45 MiB packed)",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "packed object size stays under 100 MiB",
+   "cmd": [
+    "git",
+    "count-objects",
+    "-vH"
+   ],
+   "expect": {
+    "number": {
+     "regex": "size-pack: ([0-9.]+) MiB",
+     "max": 100
+    }
+   }
+  }
+ ],
+ "advisor": "surveyor",
+ "created": "2026-11-19T13:02:15Z",
+ "updated": "2026-11-19T13:02:15Z"
+}

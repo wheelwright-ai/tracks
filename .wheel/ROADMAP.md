@@ -37,7 +37,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*8 of 10 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*8 of 12 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -49,6 +49,8 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 |---:|---|---|---|
 | 4 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
 | 6 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | you | blocked |
+| 7 | B-021 Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | ready |
+| 8 | B-022 Have the overwatch run tests/run_all.sh so the test line stops reading 'none' | autopilot | ready |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 - Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
 - Done: B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-12 (wake-3e8b53/checker)

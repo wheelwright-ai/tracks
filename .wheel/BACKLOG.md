@@ -10,6 +10,8 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 | 4 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | owner | blocked | 3/1 | I-004 |
 | 5 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked | 3/2 | I-001 |
 | 6 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | owner | blocked | 3/2 | I-004 |
+| 7 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | ready | 2/2 | I-004 |
+| 8 | B-022 | Have the overwatch run tests/run_all.sh so the test line stops reading 'none' | autopilot | ready | 2/2 | I-004 |
 
 ## Recently done
 

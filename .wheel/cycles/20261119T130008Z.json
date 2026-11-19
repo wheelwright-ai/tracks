@@ -1,0 +1,302 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-19T13:00:08Z",
+ "ended": "2026-11-19T13:02:32Z",
+ "tokens_used": 114914,
+ "lugs_done": [],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [
+  "health",
+  "historian",
+  "security",
+  "surveyor",
+  "expediter"
+ ],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261119T130008Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-19-f23d19",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-19-f23d19",
+ "advisor_findings": [
+  {
+   "advisor": "health",
+   "result": "finding",
+   "summary": "No package manifests, no .github workflows, and no dependencies to audit, so the dependency and CI checks are empty. The one gap is that tests/run_all.sh exists (5 checks, B-012) but nothing runs it: the overwatch reports 'tests none' and there is no CI. The stranded branch wheel/2026-11-15-45c344 (2 commits ahead of main) and the uncommitted main checkout are already covered by B-017, B-019 and B-009. The Vercel keepalive and src/lib/db schema leftovers are covered by B-018. I could not run tests/run_all.sh here because bash is outside my allowed commands, so its pass state is unverified.",
+   "proposals": [
+    "Register `bash tests/run_all.sh` as this spoke's test command so the overwatch stops reporting 'tests none'"
+   ],
+   "tokens": 26775,
+   "cadence_doubled": false,
+   "covered_by": [
+    "B-009",
+    "B-018",
+    "B-019"
+   ],
+   "maintenance": [
+    {
+     "title": "Have the overwatch run tests/run_all.sh so the test line stops reading 'none'",
+     "why": "tests/run_all.sh runs validate_rules, validate_samples, stranded_ideas, wake_from_track and viewer_drop (B-012), but the overwatch line reads 'tests none' and the repo has no .github workflow, so nothing runs it on push",
+     "check": "`bash tests/run_all.sh` prints ALL PASS and the next overwatch line reports a test count instead of 'none'",
+     "value": 2,
+     "effort": 1
+    }
+   ],
+   "build_ideas": [],
+   "proposal_titles": [
+    "Register `bash tests/run_all.sh` as this spoke's test command so the overwatch stops reporting 'tests none'"
+   ],
+   "scouts": {
+    "written": [
+     "run-all-entry-present"
+    ],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 1,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [
+    "B-022"
+   ],
+   "proposals_queued": [
+    "AP-0085"
+   ]
+  },
+  {
+   "advisor": "historian",
+   "result": "finding",
+   "summary": "B-017 is recorded as done, but its fix commit ac69187 (untrack and gitignore .wheel/scouts/*/status.json) is not on main. It sits only on the stranded branch wheel/2026-11-15-45c344, one commit ahead of HEAD. On main, all 11 status.json files are still tracked (`git ls-files .wheel/scouts`), and scout runs keep rewriting them. That churn is the likely cause of the repeat worktree-no-uncommitted breakage: B-014 passed on 11-13, then B-020 broke again on 11-14 with the same title. The pattern has held since 11-12 and is covered by B-009 and B-020, but the B-017 landing gap is new.",
+   "proposals": [
+    "Land B-017's status.json untrack and gitignore (ac69187) on main"
+   ],
+   "tokens": 28056,
+   "cadence_doubled": false,
+   "covered_by": [
+    "B-009",
+    "B-020"
+   ],
+   "maintenance": [
+    {
+     "title": "Land ac69187 (B-017: untrack scout status.json, gitignore it) on main",
+     "why": "B-017 is marked done in the 11-14 cycle summary (99eeb8e), but ac69187 is only on wheel/2026-11-15-45c344 (`git rev-list --count HEAD..ac69187` = 1). On main, all 11 .wheel/scouts/*/status.json are still tracked, and every scout run dirties the tree. That matches the B-009 and B-020 symptoms.",
+     "check": "`git ls-files .wheel/scouts` shows no status.json entries after the merge, checked with `git ls-files .wheel/scouts | grep -c status.json` printing 0",
+     "value": 3,
+     "effort": 1
+    }
+   ],
+   "build_ideas": [],
+   "proposal_titles": [
+    "Land B-017's status.json untrack and gitignore (ac69187) on main"
+   ],
+   "scouts": {
+    "written": [],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 0,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [
+    "B-021"
+   ],
+   "proposals_queued": [
+    "AP-0086"
+   ]
+  },
+  {
+   "advisor": "security",
+   "result": "nothing",
+   "summary": "Nothing new for security. A scan of the tracked files for key-shaped strings (AWS, GitHub, Slack and `sk-` style keys, private-key headers) found no matches. No `.env`, key or credential files are tracked, and the repo has no package manifests, so there are no dependency advisories to check. There are no CI runs. The uncommitted `.wheel/` state is already covered by B-009 and B-020. A follow-up check of the manifest and credential file names was denied, so that part rests on the first listing.",
+   "proposals": [],
+   "tokens": 15537,
+   "cadence_doubled": true,
+   "covered_by": [
+    "B-009",
+    "B-020"
+   ],
+   "maintenance": [],
+   "build_ideas": [],
+   "proposal_titles": [],
+   "scouts": {
+    "written": [],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 0,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [],
+   "proposals_queued": []
+  },
+  {
+   "advisor": "surveyor",
+   "result": "finding",
+   "summary": "Repo is small and steady: .git pack 8.45 MiB plus 2.92 MiB loose, .wheel 668K, 3 worktrees. The 2026-11-15 worktree (wheel/2026-11-15-45c344) is 5 days old with 2 commits not on main, but its dirty state could not be read (git -C is denied here), so it stays under B-009/B-020. Leya protocol_check is proven for this project's rule checks, but the hub's tools/kit and tools/route.py paths do not exist in this repo; the guard is .wheel/hooks/guard.py.",
+   "proposals": [
+    "Shadow-route a protocol_check to Leya beside .wheel/hooks/guard.py: log both answers for 40 live actions and count disagreements before any switch (bench: 97.9% on 48 items vs 54.2% always-majority floor, +4.1 points vs rules, level with Claude haiku on 20 items, 557 ms median, saves about 1,888 Claude tokens per judgement; route on only if the tier is enabled and it stays within 2 points of the best on 40+ items)",
+    "Measure, before any advisor digest, the split of prompt tokens vs tool-read tokens for 10 runs of this project's advisors (Leya opportunity #7); bench a digest only if tool reads exceed 30% of a run"
+   ],
+   "tokens": 29684,
+   "cadence_doubled": false,
+   "covered_by": [
+    "B-009",
+    "B-020"
+   ],
+   "maintenance": [],
+   "build_ideas": [],
+   "proposal_titles": [
+    "Shadow-route a protocol_check to Leya beside .wheel/hooks/guard.py: log both answers for 40 live actions and count disagreements before any switch (bench: 97.9% on 48 items vs 54.2% always-majority floor, +4.1 points vs rules, level with Claude haiku on 20 items, 557 ms median, saves about 1,888 Claude tokens per judgement; route on only if the tier is enabled and it stays within 2 points of the best on 40+ items)",
+    "Measure, before any advisor digest, the split of prompt tokens vs tool-read tokens for 10 runs of this project's advisors (Leya opportunity #7); bench a digest only if tool reads exceed 30% of a run"
+   ],
+   "scouts": {
+    "written": [
+     "repo-pack-size-bounded",
+     "worktree-count-bounded"
+    ],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 2,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [],
+   "proposals_queued": [
+    "AP-0087",
+    "AP-0088"
+   ]
+  },
+  {
+   "advisor": "expediter",
+   "result": "finding",
+   "summary": "B-017's fix commit ac69187 is not an ancestor of HEAD, and main still tracks 10 scout status.json files (`git ls-files .wheel/scouts | grep -c status.json` = 10). tests/run_all.sh exists (29 tracked test files) but nothing runs it, so the overwatch test line reads 'none'. The stranded branch's dirty-state merge block stays under B-009/B-020.",
+   "proposals": [
+    "Land ac69187 on main: untrack and gitignore the scout status.json files (B-017 fix)",
+    "Run tests/run_all.sh from the overwatch so the tests line stops reading 'none'"
+   ],
+   "tokens": 14862,
+   "cadence_doubled": false,
+   "covered_by": [
+    "B-009",
+    "B-020"
+   ],
+   "maintenance": [
+    {
+     "title": "Land ac69187 on main: untrack and gitignore scout status.json files",
+     "why": "ac69187 (B-017 fix) is not an ancestor of HEAD; 10 .wheel/scouts status.json files are still tracked (advisor: historian)",
+     "check": "`git merge-base --is-ancestor ac69187 HEAD` exits 0 and `git ls-files .wheel/scouts | grep -c status.json` prints 0",
+     "value": 2,
+     "effort": 2,
+     "advisor": "historian"
+    },
+    {
+     "title": "Have the overwatch run tests/run_all.sh so the test line stops reading 'none'",
+     "why": "tests/run_all.sh exists (5 checks, B-012) but nothing runs it; overwatch reports 'tests none' (advisor: health)",
+     "check": "`bash tests/run_all.sh` exits 0 and the overwatch line reports a test count",
+     "value": 2,
+     "effort": 2,
+     "advisor": "health"
+    }
+   ],
+   "build_ideas": [],
+   "proposal_titles": [
+    "Land ac69187 on main: untrack and gitignore the scout status.json files (B-017 fix)",
+    "Run tests/run_all.sh from the overwatch so the tests line stops reading 'none'"
+   ],
+   "scouts": {
+    "written": [],
+    "unchanged": [],
+    "refused": [],
+    "rerun": 0,
+    "failed": [],
+    "lugs": [],
+    "caught": [],
+    "notes": []
+   },
+   "lugs_created": [],
+   "proposals_queued": []
+  }
+ ],
+ "lugs": [],
+ "merge": {
+  "state": "nothing to merge"
+ },
+ "complete": true,
+ "tier": "as-now",
+ "diakon": {
+  "built": [],
+  "triaged": [],
+  "flint_missed": []
+ },
+ "notes": [
+  "scouts that broke: worktree-no-uncommitted",
+  "complete round: 5 advisor(s), 4 useful; 3 scout(s) written, 2 lug(s) and 4 proposal(s) made",
+  "stranded branches: wheel/2026-11-15-45c344 not merged",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-19-f23d19 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 10,
+  "failed": [
+   "worktree-no-uncommitted"
+  ],
+  "lugs": [],
+  "notes": [
+   "lug B-020 already open for scout worktree-no-uncommitted"
+  ]
+ },
+ "round": {
+  "advisors": [
+   "health",
+   "historian",
+   "security",
+   "surveyor",
+   "expediter"
+  ],
+  "tokens": 114914,
+  "useful": 4,
+  "scouts_written": [
+   "repo-pack-size-bounded",
+   "run-all-entry-present",
+   "worktree-count-bounded"
+  ],
+  "scouts_rerun": 3,
+  "scouts_failed": [],
+  "lugs_created": [
+   "B-022",
+   "B-021"
+  ],
+  "proposals": [
+   "AP-0085",
+   "AP-0086",
+   "AP-0087",
+   "AP-0088"
+  ],
+  "review": [
+   "2 proposal(s) left out (at most 4 a round)"
+  ]
+ },
+ "stranded": [
+  {
+   "branch": "wheel/2026-11-15-45c344",
+   "lugs": [
+    "B-008",
+    "B-014",
+    "B-017"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  }
+ ],
+ "worktree_removed": true
+}

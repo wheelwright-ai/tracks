@@ -4,36 +4,36 @@
    "name": "expediter",
    "version": 1,
    "cadence_hours": 24,
-   "nothing_count": 1,
-   "last_run": "2026-11-15T05:30:25Z",
-   "last_summary": "nothing new: still open as B-017, B-020. B-020 is a regression of B-014, which the checker passed on 2026-11-13 (\"git status shows no changed or untracked files\"). The scout breaking again while this worktree is clean suggests the dirtying happens in the main checkout, probably from .wheel/scouts/*/status.json. That is what B-017 removes, so B-017 should land before B-020 is judged; I have not confirmed the cause in the main checkout.",
-   "last_result": "nothing"
+   "nothing_count": 0,
+   "last_run": "2026-11-19T13:02:32Z",
+   "last_summary": "B-017's fix commit ac69187 is not an ancestor of HEAD, and main still tracks 10 scout status.json files (`git ls-files .wheel/scouts | grep -c status.json` = 10). tests/run_all.sh exists (29 tracked test files) but nothing runs it, so the overwatch test line reads 'none'. The stranded branch's dirty-state merge block stays under B-009/B-020.",
+   "last_result": "finding"
   },
   {
    "name": "health",
    "version": 2,
    "cadence_hours": 24,
-   "nothing_count": 1,
-   "last_run": "2026-11-15T05:30:13Z",
-   "last_summary": "This worktree is clean, main and HEAD are both at d852123 with 0 commits ahead, and the repo has no package manifests or .github/workflows, so there are no dependency or CI checks to run. The uncommitted-file question is still open under B-009, and the git-status check is still open under B-020.",
-   "last_result": "nothing"
+   "nothing_count": 0,
+   "last_run": "2026-11-19T13:00:39Z",
+   "last_summary": "No package manifests, no .github workflows, and no dependencies to audit, so the dependency and CI checks are empty. The one gap is that tests/run_all.sh exists (5 checks, B-012) but nothing runs it: the overwatch reports 'tests none' and there is no CI. The stranded branch wheel/2026-11-15-45c344 (2 commits ahead of main) and the uncommitted main checkout are already covered by B-017, B-019 and B-009. The Vercel keepalive and src/lib/db schema leftovers are covered by B-018. I could not run tes",
+   "last_result": "finding"
   },
   {
    "name": "historian",
    "version": 1,
    "cadence_hours": 168,
    "nothing_count": 0,
-   "last_run": "2026-11-12T12:01:47Z",
-   "last_summary": "Initiative I-004 (Keep tracks healthy) is marked done, but its done_when is unmet: no CI workflow exists (no .github/workflows, no gh runs), overwatch still says tests none although tests/ holds five shell and Python checks with no single runner, and one file has been uncommitted for 34h. Its scope named CI, security fixes, stale files and the bun directive, but only B-007 (validate_samples) was turned into a lug. Earlier in the history, B-001, B-002 and B-003 each went blocked after two attempt",
+   "last_run": "2026-11-19T13:01:15Z",
+   "last_summary": "B-017 is recorded as done, but its fix commit ac69187 (untrack and gitignore .wheel/scouts/*/status.json) is not on main. It sits only on the stranded branch wheel/2026-11-15-45c344, one commit ahead of HEAD. On main, all 11 status.json files are still tracked (`git ls-files .wheel/scouts`), and scout runs keep rewriting them. That churn is the likely cause of the repeat worktree-no-uncommitted breakage: B-014 passed on 11-13, then B-020 broke again on 11-14 with the same title. The pattern has ",
    "last_result": "finding"
   },
   {
    "name": "security",
    "version": 1,
-   "cadence_hours": 72,
-   "nothing_count": 2,
-   "last_run": "2026-11-12T12:02:08Z",
-   "last_summary": "Nothing to report. I ran pattern scans for key-shaped strings (AWS, GitHub, OpenAI-style, Slack, private-key headers) and for assignments of long values to api_key, secret, token or password. None matched anywhere in the repo. There are no .env, .pem or .key files and no package.json or requirements file, so there are no dependencies to check for advisories. Bash was denied in this run, so I couldn't list tracked files or check git state. The scan covered the working tree, not git history. CI ha",
+   "cadence_hours": 144,
+   "nothing_count": 0,
+   "last_run": "2026-11-19T13:01:33Z",
+   "last_summary": "Nothing new for security. A scan of the tracked files for key-shaped strings (AWS, GitHub, Slack and `sk-` style keys, private-key headers) found no matches. No `.env`, key or credential files are tracked, and the repo has no package manifests, so there are no dependency advisories to check. There are no CI runs. The uncommitted `.wheel/` state is already covered by B-009 and B-020. A follow-up check of the manifest and credential file names was denied, so that part rests on the first listing.",
    "last_result": "nothing"
   },
   {
@@ -41,8 +41,8 @@
    "version": 3,
    "cadence_hours": 168,
    "nothing_count": 0,
-   "last_run": "2026-11-12T12:02:48Z",
-   "last_summary": "Tracks is a docs and prompt library: 495 files in the worktree, with a 157-file .claude harness tree (including a 9-file .claude/.deploy-quarantine/hooks folder). The 2026-11-11 overwatch reports one uncommitted file open for 34h, and no CI runs exist. Size and git measurements (du, git count-objects, git status) were denied in this run, so sizes and the uncommitted file's name are unmeasured. The Leya rows point at tools/kit/guard.py, tools/wake.py and tools/route.py, which are not in this repo",
+   "last_run": "2026-11-19T13:02:15Z",
+   "last_summary": "Repo is small and steady: .git pack 8.45 MiB plus 2.92 MiB loose, .wheel 668K, 3 worktrees. The 2026-11-15 worktree (wheel/2026-11-15-45c344) is 5 days old with 2 commits not on main, but its dirty state could not be read (git -C is denied here), so it stays under B-009/B-020. Leya protocol_check is proven for this project's rule checks, but the hub's tools/kit and tools/route.py paths do not exist in this repo; the guard is .wheel/hooks/guard.py.",
    "last_result": "finding"
   }
  ]

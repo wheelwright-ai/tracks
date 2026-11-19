@@ -1,0 +1,28 @@
+{
+ "name": "run-all-entry-present",
+ "purpose": "Keeps the one-runner test entry point (B-012) in place for the overwatch and closeout gate to find",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "tests/run_all.sh exists and is a real runner",
+   "file": "tests/run_all.sh",
+   "expect": {
+    "exists": true,
+    "min_bytes": 400,
+    "contains": "ALL PASS"
+   }
+  },
+  {
+   "id": "c2",
+   "what": "the runner still lists the viewer_drop check",
+   "file": "tests/run_all.sh",
+   "expect": {
+    "contains": "viewer_drop.py"
+   }
+  }
+ ],
+ "advisor": "health",
+ "created": "2026-11-19T13:00:39Z",
+ "updated": "2026-11-19T13:00:39Z"
+}

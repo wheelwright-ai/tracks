@@ -1,0 +1,24 @@
+{
+ "name": "worktree-count-bounded",
+ "purpose": "Catches worktrees piling up beyond the three now present (main, wheel/2026-11-15-45c344, wheel/2026-11-19-f23d19), which signals stranded wake work",
+ "severity": "normal",
+ "checks": [
+  {
+   "id": "c1",
+   "what": "worktree list has at most four lines",
+   "cmd": [
+    "git",
+    "worktree",
+    "list"
+   ],
+   "expect": {
+    "lines": {
+     "max": 4
+    }
+   }
+  }
+ ],
+ "advisor": "surveyor",
+ "created": "2026-11-19T13:02:15Z",
+ "updated": "2026-11-19T13:02:15Z"
+}
