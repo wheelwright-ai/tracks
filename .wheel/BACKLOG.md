@@ -6,11 +6,16 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 |---:|---|---|---|---|---|---|
 | 1 | B-015 | Tracks MCP server (stdio, Python stdlib only) with a validate_track tool | autopilot | proposed | 5/3 | - |
 | 2 | B-018 | Owner decision: the shape of the claude.ai connector (hosted remote MCP or local only), and whether the keepalive and db-schema leftovers stay | owner | proposed | 4/1 | - |
-| 3 | B-016 | MCP server serves the format itself: get_spec, get_prompt and track_open_items tools | autopilot | proposed | 4/2 | - |
-| 4 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | owner | blocked | 3/1 | I-004 |
-| 5 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked | 3/2 | I-001 |
-| 6 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | owner | blocked | 3/2 | I-004 |
-| 7 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked | 2/2 | I-004 |
+| 3 | B-026 | MCP save_track tool: a model hands over points and gets back a validated, correctly named Track file | autopilot | proposed | 5/3 | - |
+| 4 | B-016 | MCP server serves the format itself: get_spec, get_prompt and track_open_items tools | autopilot | proposed | 4/2 | - |
+| 5 | B-023 | Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner | autopilot | ready | 4/2 | I-004 |
+| 6 | B-027 | README: replace 'Coming Soon — MCP Integration' with real setup steps that a test follows | autopilot | proposed | 4/2 | - |
+| 7 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | owner | blocked | 3/1 | I-004 |
+| 8 | B-025 | Validator --json output: one machine-readable result per problem with rule id, line and message | autopilot | proposed | 3/1 | - |
+| 9 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked | 3/2 | I-001 |
+| 10 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | owner | blocked | 3/2 | I-004 |
+| 11 | B-024 | Clean-clone test: the full suite passes from a fresh clone with no ignored or local files | autopilot | ready | 3/2 | I-004 |
+| 12 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked | 2/2 | I-004 |
 
 ## Recently done
 
