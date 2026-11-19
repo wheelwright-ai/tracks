@@ -36,7 +36,7 @@
   "basher/conductor-orders.json": "conductor orders (conductor.py, spotter.py)",
   "basher/conductor-orders.proposed.json": "proposed conductor orders (spotter.py)",
   "basher/kit-rollout.json": "kit rollout state per project (kit sync.py)",
-  "basher/offerings/": "measured offerings per host (offerings.py, leya bench)",
-  "basher/resources.json": "measured resources and model slots (route.py, leya.py, offerings.py)"
+  "basher/offerings/": "measured offerings per host (offerings.py, the local-model bench)",
+  "basher/resources.json": "measured resources and model slots (route.py, the local-model runner, offerings.py)"
  }
 }

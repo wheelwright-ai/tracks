@@ -2,7 +2,7 @@
 
 These rules apply to every session working in this project.
 
-1. Begin your first reply in a session with the line "Wheel rules loaded." alone on its own line, then a blank line, then your answer.
+1. Begin your first reply in a session with the line "Rules loaded from <the name of your pointer file>." (CLAUDE.md or AGENTS.md; the session-start hook prints the same line) alone on its own line, then a blank line, then your answer. If the project's own CLAUDE.md names a first line, that one wins: there is only ever one first line.
 2. Never certify your own work. A separate session checks it.
 3. Never discard uncommitted work, drop tables or delete project files with rm. The guard hook enforces this. Stash first, move files to the trash folder, ask the owner about data.
 4. Commit only your own changes. Never run `git add -A` or `git add .` blindly; name the files. Never force-push and never skip hooks.

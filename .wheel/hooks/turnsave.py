@@ -411,6 +411,8 @@ def main():
         repo = sys.argv[sys.argv.index("--repo") + 1] if "--repo" in sys.argv else None
         show_files(sys.argv[2], repo)
         return
+    if os.environ.get("WHEEL_NO_SAVE") == "1":
+        return  # a smoke-check session (S-0-06's fresh session) saves nothing: one check must not turn another red
     try:
         hook = json.load(sys.stdin)
         if isinstance(hook, dict):

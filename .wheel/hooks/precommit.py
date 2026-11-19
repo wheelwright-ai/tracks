@@ -19,6 +19,8 @@ What it checks, on the staged files only (added lines, so it stays fast):
          (.wheel/backlog.jsonl, BACKLOG.md, ROADMAP.md): a session writes lugs into the live checkout (lug.py does this on
          its own), where the turn save commits them, so shipping the branch never collides with the log (B-078)
   F-003  (--hub only) personal detail (identity term, email, absolute home path) in staged files under seed/ or tools/kit/
+  F-018  (a wheel, not the hub) an absolute home path in a row added to ledger.jsonl: WORK.md says no row holds one, and
+         a committed row can never be edited, so the row is fixed in place before it is committed (stranger trial 8)
 The refusal names the file, the failure kind and the fix. It never prints a matched value. Stdlib only; no hub path is
 needed in a project (the hub's fuller scanner is used when WHEEL_HUB or ~/.config/wheel/hub-path points at one).
 A bug in the gate itself fails open (prints a warning, lets the commit through) so it can never lock a project."""
@@ -103,7 +105,20 @@ def residue(paths):
     return out
 
 
+_SCANNERS = {}
+_WARNED = set()
+
+
+def warn_once(key, text):
+    """One stderr line per process: the gate goes on, but the weaker check is never silent (B-179)."""
+    if key not in _WARNED:
+        _WARNED.add(key)
+        sys.stderr.write("wheel gate warning: %s\n" % text)
+
+
 def load_scanner(top, hub):
+    if (top, hub) in _SCANNERS:
+        return _SCANNERS[(top, hub)]
     cands = [os.path.join(top, "tools", "secrets_scan.py")] if hub else []
     h = os.environ.get("WHEEL_HUB")
     if not h and not hub:
@@ -113,17 +128,26 @@ def load_scanner(top, hub):
             h = ""
     if h:
         cands.append(os.path.join(h, "tools", "secrets_scan.py"))
+    mod, why = None, ""
     for p in cands:
-        if os.path.isfile(p):
-            try:
-                spec = importlib.util.spec_from_file_location("wheel_precommit_scan", p)
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-                if hasattr(mod, "scan_text") and hasattr(mod, "name_flags"):
-                    return mod
-            except Exception:  # noqa: BLE001
-                pass
-    return None
+        if not os.path.isfile(p):
+            why = why or "%s is missing" % p
+            continue
+        try:
+            spec = importlib.util.spec_from_file_location("wheel_precommit_scan", p)
+            m = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(m)
+            if hasattr(m, "scan_text") and hasattr(m, "name_flags"):
+                mod = m
+                break
+            why = "%s has no scan_text/name_flags" % p
+        except Exception as e:  # noqa: BLE001
+            why = "%s failed to load (%s)" % (p, type(e).__name__)
+    if mod is None:
+        warn_once("scanner", "the hub's secrets scanner could not load (%s); using the weaker built-in patterns. Set "
+                  "WHEEL_HUB or ~/.config/wheel/hub-path to the hub checkout" % (why or "no hub path is set"))
+    _SCANNERS[(top, hub)] = mod
+    return mod
 
 
 def builtin_scan(text):
@@ -213,11 +237,15 @@ def personal(top, paths, lines):
     sys.path.insert(0, os.path.join(top, "tools"))
     try:
         import wheel  # the hub's own definition of personal detail
-    except Exception:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
+        warn_once("wheel", "tools/wheel.py could not load (%s): the personal-detail check is off for this commit" % type(e).__name__)
         return []
     finally:
         sys.path.pop(0)
     terms = identity_terms(top)
+    if not terms:
+        warn_once("identity", ".local/identity.json is missing or empty: shared files are not checked for names or the "
+                  "hostname (emails and home paths still are)")
     out = []
     for p in shared:
         for ln, t in lines.get(p) or []:
@@ -232,6 +260,18 @@ def personal(top, paths, lines):
                 out.append((p, ln, "F-003", "personal detail in a shared file (%s)" % k,
                             "shared files (seed/, tools/kit/) hold no name, email, hostname or home path: use a non-email test identity, a relative path, or build it at runtime"))
     return out
+
+
+LEDGER_ABS_RE = re.compile(r"(?<![\w.~])/(?:home|Users|users|mnt)/\w|(?<![A-Za-z])[A-Za-z]:\\\\|(?<![A-Za-z])[A-Za-z]:\\(?![nrt\"])")
+
+
+def ledger_paths(paths, lines):
+    """F-018: rows added to a wheel's ledger.jsonl that hold an absolute home path (never prints the path)."""
+    if "ledger.jsonl" not in paths:
+        return []
+    return [("ledger.jsonl", ln, "F-018", "a new ledger row holds an absolute path",
+             "rows name files by relative path (WORK.md); this row is not committed yet, so correct it in place, then commit")
+            for ln, t in lines.get("ledger.jsonl") or [] if LEDGER_ABS_RE.search(t)]
 
 
 LUG_LOG_FILES = (".wheel/backlog.jsonl", ".wheel/BACKLOG.md", ".wheel/ROADMAP.md")
@@ -275,6 +315,8 @@ def check(cwd=None, hub=False):
     probs += secrets(top, paths, lines, hub, allow_path)
     if hub:
         probs += personal(top, paths, lines)
+    else:
+        probs += ledger_paths(paths, lines)
     return probs
 
 
@@ -292,6 +334,7 @@ def report(probs):
 # ---------------------------------------------------------------- the pre-push gate (W-177)
 
 ZERO = "0" * 40
+PUSH_SCAN_CAP = 20000   # commits scanned in one push; more is refused with how to proceed, never skipped
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 
@@ -320,9 +363,19 @@ def prepush(top, hub, ref_lines, env=None):
                 probs.append((rref, 0, "push", "is a force push: %s on the remote is not in what is pushed" % branch,
                               "never force-push; fetch and merge (or rebase on a private branch) and push again"))
                 continue
-            rc, out, _ = run(["git", "rev-list", "--max-count=500", "%s..%s" % (rsha, lsha)], top)
+            rc, out, _ = run(["git", "rev-list", "%s..%s" % (rsha, lsha)], top)
         else:
-            rc, out, _ = run(["git", "rev-list", "--max-count=500", lsha, "--not", "--remotes"], top)
+            rc, out, _ = run(["git", "rev-list", lsha, "--not", "--remotes"], top)
+        try:
+            cap = int(env.get("WHEEL_PUSH_SCAN_CAP") or PUSH_SCAN_CAP)
+        except ValueError:
+            cap = PUSH_SCAN_CAP
+        if len(out.split()) > cap:   # every pushed commit is scanned; past the cap the push stops, it never skips (B-179)
+            probs.append((rref, 0, "push", "pushes %d new commits to %s, more than the %d the gate scans in one push"
+                          % (len(out.split()), branch, cap),
+                          "push in steps (git push REMOTE <older commit>:refs/heads/%s, then the rest), or raise the cap "
+                          "for this push: WHEEL_PUSH_SCAN_CAP=%d git push ..." % (branch, len(out.split()))))
+            continue
         if live and branch in ("main", "master") and env.get("WHEEL_OWNER_PUSH") != "1":
             probs.append((rref, 0, "push", "pushes %s of a live project (it may publish)" % branch,
                           "push a branch instead and let the owner merge; the owner can set WHEEL_OWNER_PUSH=1"))
