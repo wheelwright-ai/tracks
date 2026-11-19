@@ -13,11 +13,11 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 | 7 | B-025 | Validator --json output: one machine-readable result per problem with rule id, line and message | autopilot | proposed | 3/1 | - |
 | 8 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked | 3/2 | I-001 |
 | 9 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | owner | blocked | 3/2 | I-004 |
-| 10 | B-024 | Clean-clone test: the full suite passes from a fresh clone with no ignored or local files | autopilot | ready | 3/2 | I-004 |
-| 11 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked | 2/2 | I-004 |
+| 10 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked | 2/2 | I-004 |
 
 ## Recently done
 
+- B-024 Clean-clone test: the full suite passes from a fresh clone with no ignored or local files (2026-11-19)
 - B-023 Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner (2026-11-19)
 - B-022 Have the overwatch run tests/run_all.sh so the test line stops reading 'none' (2026-11-19)
 - B-017 Stop scout runs from dirtying the tree: untrack and gitignore .wheel/scouts/*/status.json (2026-11-15)
@@ -27,4 +27,3 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 - B-012 Add one runner that executes every tests/ check and exits non-zero on any failure (2026-11-12)
 - B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files (2026-11-12)
 - B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored) (2026-11-12)
-- B-006 Find stranded ideas in old tracks and offer them as backlog candidates (2026-11-09)

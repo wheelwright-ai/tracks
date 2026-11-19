@@ -1,0 +1,174 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-19T15:30:10Z",
+ "ended": "2026-11-19T15:35:23Z",
+ "tokens_used": 126220,
+ "lugs_done": [
+  "B-023",
+  "B-024"
+ ],
+ "lugs_blocked": [],
+ "owner_needs": [
+  "branch wheel/2026-11-19-9047ae in tracks was not merged and holds the wake's work (B-023, B-024): merge refused: error: Your local changes to the following files would be overwritten by merge:\n\t.wheel/scouts/claude-harness-tree-present/status.json\n\t.wheel/scouts/critical-paths-gate-present/status.json\n\t.wheel/scouts/critical-paths-stays-red-until-real/status.json\n\t.wheel/scouts/dev-launcher-present/status.json",
+  "stranded branch wheel/flint-2026-11-19-2a146e in tracks names B-024 but its head is not the commit a done lug was proven on; look at it and merge or drop it"
+ ],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261119T153010Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-19-9047ae",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-19-9047ae",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-023",
+   "title": "Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Added tests/repo_hygiene.sh (gitignore covers scout status.json, none tracked, no gitnexus:start in CLAUDE.md/AGENTS.md, scout run leaves git status unchanged), wired into tests/run_all.sh, and gitignored and untracked the 13 scout status.json files; both scripts exit 0.",
+     "build_tokens": 54159,
+     "check": "pass",
+     "evidence": "I ran `bash tests/repo_hygiene.sh` and it printed its PASS line. I ran `bash tests/run_all.sh` and it listed repo_hygiene.sh among its checks and ended with ALL PASS. I didn't capture exit codes directly. The script prints PASS only when no check failed, and run_all.sh printed ALL PASS. I read the script, and it asserts all four required things. (1) `git check-ignore` is run on a probe path under .wheel/scouts/. The ignore rule is at .gitignore line 95. (2) `git ls-files` finds no tracked scout status.json. (3) CLAUDE.md and AGENTS.md are tracked and hold no gitnexus:start marker. (4) `scouts.",
+     "ran": [
+      {
+       "cmd": "bash tests/repo_hygiene.sh",
+       "exit": 0
+      },
+      {
+       "cmd": "bash tests/run_all.sh",
+       "exit": 0
+      },
+      {
+       "cmd": "ls .wheel/scouts .wheel/hooks",
+       "exit": 0
+      },
+      {
+       "cmd": "grep -rn \"status.json\" .gitignore .wheel/hooks/scouts.py",
+       "exit": 0
+      },
+      {
+       "cmd": "git ls-files CLAUDE.md AGENTS.md",
+       "exit": 0
+      },
+      {
+       "cmd": "git status --porcelain --ignored .wheel/scouts",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 14666,
+     "tests": "pass"
+    }
+   ],
+   "result": "done",
+   "reason": null
+  },
+  {
+   "id": "B-024",
+   "title": "Clean-clone test: the full suite passes from a fresh clone with no ignored or local files",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "Added tests/clean_clone.sh: clones HEAD to a temp dir, runs tests/run_all.sh there, fails on a red run or a dirty clone; passes at HEAD.",
+     "build_tokens": 46178,
+     "check": "pass",
+     "evidence": "I ran `bash tests/clean_clone.sh`. It cloned HEAD 2c4be74 into a mktemp dir and ran tests/run_all.sh there. All six sub-tests passed (validate_rules, validate_samples, stranded_ideas, wake_from_track, viewer_drop, repo_hygiene), and run_all.sh printed ALL PASS. The script then printed its own PASS line, which it prints only when fail=0, just before `exit $fail`. I did not see the exit code printed, so exit 0 is inferred from that line. I read the script and it does what the check says: it runs `git clone --no-checkout`, checks out the sha detached, and runs run_all.sh with stdin from /dev/null",
+     "ran": [
+      {
+       "cmd": "bash tests/clean_clone.sh",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 11217,
+     "tests": "pass"
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "left",
+  "text": "merge refused: error: Your local changes to the following files would be overwritten by merge:\n\t.wheel/scouts/claude-harness-tree-present/status.json\n\t.wheel/scouts/critical-paths-gate-present/status.json\n\t.wheel/scouts/critical-paths-stays-red-until-real/status.json\n\t.wheel/scouts/dev-launcher-present/status.json"
+ },
+ "complete": null,
+ "tier": "as-now",
+ "diakon": {
+  "built": [],
+  "triaged": [],
+  "flint_missed": [
+   {
+    "id": "B-023",
+    "outcome": "not-built",
+    "error": "Flint's answer did not pass:   PASS: stranded ideas listed with line numbers; no writes\n  == wake_from_track.sh\n  PASS: session start prints last track's open i"
+   },
+   {
+    "id": "B-024",
+    "outcome": "check-failed",
+    "error": "check failed: I ran `bash tests/clean_clone.sh` and it exited 1, printing only \"CLEAN\". The script has two defects. (1) Its pre-run check is inverted: `if ! git"
+   }
+  ]
+ },
+ "notes": [
+  "scouts that broke: worktree-no-uncommitted",
+  "B-023: Flint did not land it (not-built); the normal builder takes it",
+  "B-024: Flint did not land it (check-failed); the normal builder takes it",
+  "stranded branches: wheel/2026-11-15-45c344 not merged; wheel/2026-11-19-d21e80-B-021 not merged; wheel/flint-2026-11-19-2a146e not merged; wheel/flint-2026-11-19-8cf8fc not merged",
+  "worktree kept at /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-19-9047ae: branch wheel/2026-11-19-9047ae is 3 commit(s) ahead of main"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 13,
+  "failed": [
+   "worktree-no-uncommitted"
+  ],
+  "lugs": [],
+  "notes": [
+   "lug B-020 already open for scout worktree-no-uncommitted"
+  ]
+ },
+ "stranded": [
+  {
+   "branch": "wheel/2026-11-15-45c344",
+   "lugs": [
+    "B-008",
+    "B-014",
+    "B-017"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  },
+  {
+   "branch": "wheel/2026-11-19-d21e80-B-021",
+   "lugs": [
+    "B-017"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  },
+  {
+   "branch": "wheel/flint-2026-11-19-2a146e",
+   "lugs": [
+    "B-024"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  },
+  {
+   "branch": "wheel/flint-2026-11-19-8cf8fc",
+   "lugs": [
+    "B-022"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  }
+ ],
+ "worktree_removed": false
+}
