@@ -49,7 +49,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 |---:|---|---|---|
 | 4 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
 | 6 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | you | blocked |
-| 7 | B-021 Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | ready |
+| 7 | B-021 Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked |
 | 8 | B-022 Have the overwatch run tests/run_all.sh so the test line stops reading 'none' | autopilot | ready |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 - Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
