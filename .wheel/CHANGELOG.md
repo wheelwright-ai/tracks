@@ -4,26 +4,26 @@ What reached this project, newest on top: one line per change (kind · initiativ
 
 ## The latest week at a glance (7 days to 2026-11-19)
 
-- 4 changes: 1 fix, 3 upkeep
-- I-004 Keep tracks healthy and current: 4
+- 6 changes: 3 fixes, 3 upkeep
+- I-004 Keep tracks healthy and current: 6
 
 ## 2026-11-19
 
-- **A fresh clone of the repo now runs the whole test suite and passes, and the run leaves the clone untouched** · Upkeep · I-004 Keep tracks healthy and current · lug B-024 (not on main yet)
-- **Running the scouts no longer dirties the repo, and a test now guards against that and the stray agent-doc block returning** · Fix · I-004 Keep tracks healthy and current · lug B-023 (not on main yet)
+- **A fresh clone of the repo now runs the whole test suite and passes, and the run leaves the clone untouched** · Upkeep · I-004 Keep tracks healthy and current · lug B-024
+- **Running the scouts no longer dirties the repo, and a test now guards against that and the stray agent-doc block returning** · Fix · I-004 Keep tracks healthy and current · lug B-023
 - **Running the project's tests now reports a real test count, and the full test suite still passes** · Upkeep · I-004 Keep tracks healthy and current · lug B-022
 
 ## 2026-11-14
 
-- **Scout runs no longer dirty the working tree with status files** · Upkeep · I-004 Keep tracks healthy and current · lug B-017 (not on main yet)
+- **The worktree check is passing again with no stray changed files** · Fix · I-004 Keep tracks healthy and current · lug B-008
+- **The worktree check is passing again with no stray changed files** · Fix · I-004 Keep tracks healthy and current · lug B-014
+- **Scout runs no longer dirty the working tree with status files** · Upkeep · I-004 Keep tracks healthy and current · lug B-017
 
 ## 2026-11-12
 
-- **The worktree check is passing again with no stray changed files** · Fix · I-004 Keep tracks healthy and current · lug B-014 (not on main yet)
 - **The critical-paths check is back to green now that real tests replace the stub** · Fix · I-004 Keep tracks healthy and current · lug B-013 (not on main yet)
 - **The placeholder critical-paths script is replaced by real tests of the viewer and validator** · Upkeep · I-004 Keep tracks healthy and current · lug B-011
 - **One runner now executes every check in tests and fails if any fails** · Upkeep · I-004 Keep tracks healthy and current · lug B-012
-- **The worktree check is passing again with no stray changed files** · Fix · I-004 Keep tracks healthy and current · lug B-008 (not on main yet)
 - **The quarantined hook files are decided on, so the folder no longer sits untracked** · Upkeep · I-004 Keep tracks healthy and current · lug B-010
 
 ## 2026-11-08
