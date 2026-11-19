@@ -9,7 +9,7 @@ What reached this project, newest on top: one line per change (kind · initiativ
 
 ## 2026-11-19
 
-- **Running the project's tests now reports a real test count, and the full test suite still passes** · Upkeep · I-004 Keep tracks healthy and current · lug B-022 (not on main yet)
+- **Running the project's tests now reports a real test count, and the full test suite still passes** · Upkeep · I-004 Keep tracks healthy and current · lug B-022
 
 ## 2026-11-14
 
