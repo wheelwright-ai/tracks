@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 # Run every tests/ check; exit non-zero if any fails (B-012).
-# Checks: validate_rules.sh validate_samples.sh stranded_ideas.sh wake_from_track.sh viewer_drop.py
-# critical_paths.sh (B-011) wraps these same checks as the closeout gate.
-# Usage: bash tests/run_all.sh
 set -u
 cd "$(dirname "$0")/.." || exit 2
 export PYTHONDONTWRITEBYTECODE=1
