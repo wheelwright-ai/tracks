@@ -158,7 +158,207 @@ def parse_any(s):
         return None
 
 
-def status_line(turn, model, hook, root, gold=None):
+# Turn weight (the owner, 2026-11-19: "help me gauge the target price per turn and as it grows indicate the multiple of
+# that expected pace"; 2026-11-20: "we have limits [...] we need a diff way to express if this is running efficiently or
+# unnecessarily heavy (which means I should restart asap)"). The owner's sessions run on a subscription with 5-hour and
+# weekly limits, so the footer shows no dollars: it shows
+#   - the verdict, from the context size against a fresh start (every step re-reads the whole context, so a long
+#     session makes every turn heavier, and only a restart clears it);
+#   - the last turn's weight against this project's normal turn (median, 7 days), a unitless multiple;
+#   - the subscription's 5-hour limit used, and how far it moved (from the status line's usage.json; other sessions
+#     and wakes share the limit, so the move is not this session's alone).
+# Weights are worked out at Claude API list prices so a cache read counts for less than fresh input and output for
+# more; the prices only set the mix, never a shown figure. claude-api table cached 2026-11-03, read 2026-11-20; Haiku's
+# cache read from tools/coding_bench.py (2026-11-09). Cache writes: 1-hour 2x input, 5-minute 1.25x. Fast mode 2x.
+PRICES_SET = "2026-11-03"
+PRICES = {"fable": (8.0, 40.0, 0.20), "opus": (4.0, 20.0, 0.20), "sonnet": (2.0, 10.0, 0.10), "haiku": (0.10, 0.50, 0.01)}
+PROMPT_SKIP = ("<bash-stdout>", "<bash-stderr>", "<local-command-stdout>", "<local-command-caveat>", "<system-reminder>")
+NORMAL_DAYS, NORMAL_MIN_TURNS = 7, 10
+FRESH_DEFAULT = 47000          # tokens a fresh hub session starts with (median first call, 14 sessions, 2026-11-20)
+HEAVY, TOO_HEAVY = 2.5, 4.0    # context as a multiple of a fresh start: restart at the next stop / restart now
+USAGE = os.path.join(os.path.expanduser("~"), ".local", "state", "basher", "usage.json")
+USAGE_FRESH_S = 1800           # an older usage.json is left out: never a stale figure
+
+
+def message_cost(model, u):
+    """Weight of one API call at list price (dollars, used only as a relative measure), or None for a model with no price."""
+    if not u:
+        return 0.0
+    fam = next((f for f in PRICES if f in (model or "").lower()), None)
+    if not fam:
+        return None
+    i, o, cr = PRICES[fam]
+    cc = u.get("cache_creation") or {}
+    w1h, w5m = cc.get("ephemeral_1h_input_tokens"), cc.get("ephemeral_5m_input_tokens")
+    if w1h is None and w5m is None:
+        w1h, w5m = 0, u.get("cache_creation_input_tokens") or 0
+    usd = ((u.get("input_tokens") or 0) * i + (u.get("output_tokens") or 0) * o
+           + (u.get("cache_read_input_tokens") or 0) * cr + (w1h or 0) * 2 * i + (w5m or 0) * 1.25 * i) / 1e6
+    return usd * 2 if u.get("speed") == "fast" else usd
+
+
+def context_of(u):
+    """Tokens one call read: its whole context."""
+    u = u or {}
+    return (u.get("input_tokens") or 0) + (u.get("cache_read_input_tokens") or 0) + (u.get("cache_creation_input_tokens") or 0)
+
+
+def _is_prompt(e):
+    """A transcript entry that starts a turn: the owner's own words (or a relayed message), not a tool result."""
+    if e.get("type") != "user":
+        return False
+    c = (e.get("message") or {}).get("content")
+    return isinstance(c, str) and bool(c.strip()) and not c.strip().startswith(PROMPT_SKIP)
+
+
+def read_turns(path):
+    """(weight per turn oldest first, first call's context, last call's context) for one transcript. Claude Code writes
+    one line per content block with the same message id and usage, so each call counts once (by id, last line wins).
+    Subagent transcripts are not added."""
+    turns, calls = [], {}
+    try:
+        for line in open(path or ""):
+            try:
+                e = json.loads(line)
+            except Exception:
+                continue
+            if _is_prompt(e):
+                turns.append(0.0)
+            elif e.get("type") == "assistant":
+                m = e.get("message") or {}
+                key = m.get("id") or "anon-%d" % len(calls)
+                if key not in calls and m.get("usage"):
+                    calls[key] = None   # keeps first-seen order
+                if m.get("usage"):
+                    calls[key] = (max(len(turns) - 1, 0), m.get("model"), m.get("usage"))
+    except Exception:
+        return [], 0, 0
+    turns = turns or [0.0]
+    for t, model, u in calls.values():
+        c = message_cost(model, u)
+        if c:
+            turns[t] += c
+    seq = [c for c in calls.values() if c]
+    return turns, (context_of(seq[0][2]) if seq else 0), (context_of(seq[-1][2]) if seq else 0)
+
+
+def turn_costs(path):
+    return read_turns(path)[0]
+
+
+def _interactive(path):
+    """True for an owner session (entrypoint cli), False for headless wakes, builders and checkers."""
+    try:
+        with open(path) as f:
+            for _, line in zip(range(40), f):
+                if '"entrypoint"' in line:
+                    return json.loads(line).get("entrypoint") == "cli"
+    except Exception:
+        pass
+    return False
+
+
+def baseline(root, transcript):
+    """{normal: median interactive turn weight, fresh: median first-call context} over the last 7 days of this project
+    (main checkout and its worktrees), worked out once a day and cached in .wheel/tracks/.cost-target.json. normal is
+    None until there are 10 turns to go on; fresh falls back to FRESH_DEFAULT."""
+    import glob, statistics, time
+    today = datetime.date.today().isoformat()
+    cache = os.path.join(root, ".wheel", "tracks", ".cost-target.json")
+    try:
+        c = json.load(open(cache))
+        if c.get("day") == today and c.get("prices") == PRICES_SET and "fresh" in c:
+            return c
+    except Exception:
+        pass
+    weights, firsts = [], []
+    try:
+        here = os.path.dirname(os.path.abspath(transcript or ""))
+        base = os.path.basename(here).split("--worktrees-")[0]
+        cutoff = time.time() - NORMAL_DAYS * 86400
+        for d in glob.glob(os.path.join(os.path.dirname(here), glob.escape(base) + "*")):
+            name = os.path.basename(d)
+            if name != base and not name.startswith(base + "--worktrees-"):
+                continue
+            for f in glob.glob(os.path.join(d, "*.jsonl")):
+                if os.path.getmtime(f) >= cutoff and _interactive(f):
+                    t, first, _ = read_turns(f)
+                    weights += [x for x in t if x > 0]
+                    if first:
+                        firsts.append(first)
+    except Exception:
+        pass
+    c = {"day": today, "prices": PRICES_SET, "turns": len(weights), "sessions": len(firsts),
+         "normal": round(statistics.median(weights), 4) if len(weights) >= NORMAL_MIN_TURNS else None,
+         "fresh": int(statistics.median(firsts)) if len(firsts) >= 3 else FRESH_DEFAULT}
+    try:
+        os.makedirs(os.path.dirname(cache), exist_ok=True)
+        json.dump(c, open(cache, "w"))
+    except Exception:
+        pass
+    return c
+
+
+def usage_now(path=None):
+    """(5-hour percent used, reset time) from the status line's usage.json, or None when missing or stale."""
+    import time
+    try:
+        d = json.load(open(path or USAGE))
+        at = parse_any(d.get("written_at"))
+        if not at or time.time() - at.timestamp() > USAGE_FRESH_S:
+            return None
+        f = d.get("five_hour") or {}
+        return (int(f["used_pct"]), f.get("resets_at")) if f.get("used_pct") is not None else None
+    except Exception:
+        return None
+
+
+def gauge(label, weight, normal, ctx, fresh, pct=None, moved=None):
+    """The verdict-first gauge, ASCII, no pipes:
+    'Heavy, restart at the next stop: context 150K is 3.2x a fresh start; last turn 2.6x a normal turn. 5-hour limit 32% used (+3%).'"""
+    if not ctx:
+        return ""
+    r = ctx / float(fresh or FRESH_DEFAULT)
+    verdict = "Too heavy, restart now" if r >= TOO_HEAVY else "Heavy, restart at the next stop" if r >= HEAVY else "Light"
+    out = "%s: context %dK is %.1fx a fresh start" % (verdict, round(ctx / 1000.0), r)
+    if weight and normal:
+        out += "; %s %.1fx a normal turn" % (label, weight / normal)
+    out += "."
+    if pct is not None:
+        out += " 5-hour limit %d%% used%s." % (pct, " (+%d%%)" % moved if moved else "")
+    return out
+
+
+def footer_cost(root, transcript, stop, sid="unknown"):
+    """The gauge for the footer. At the prompt the turn about to run has not happened, so it weighs the last finished
+    turn and the limit's move since the last prompt; at Stop, the turn that just ended and the move during it. Never raises."""
+    try:
+        weights, _, ctx = read_turns(transcript)
+        if not stop and weights and weights[-1] == 0:
+            weights = weights[:-1]   # this prompt is already written but nothing has run for it
+        b = baseline(root, transcript)
+        u = usage_now()
+        moved = None
+        mark = os.path.join(root, ".wheel", "tracks", ".turn-limit-%s" % sid[:36])
+        if u:
+            try:
+                was = json.load(open(mark))
+                if was.get("resets_at") == u[1]:
+                    moved = u[0] - int(was.get("pct"))
+            except Exception:
+                pass
+            if not stop:
+                try:
+                    json.dump({"pct": u[0], "resets_at": u[1]}, open(mark, "w"))
+                except Exception:
+                    pass
+        return gauge("this turn" if stop else "last turn", weights[-1] if weights else 0, b.get("normal"), ctx,
+                     b.get("fresh"), u[0] if u else None, moved)
+    except Exception:
+        return ""
+
+
+def status_line(turn, model, hook, root, gold=None, cost=""):
     """The turn footer the owner reads every turn, in the track prompt's harness shape (track-prompt-lab v4.0.0,
     turn_footer.cc.harness_format), ASCII pipes only:
     s{session} | Turn {n} | {day}, {month} {d}, {year} | {time} {tz} | {model effort} | {commit} | kit v{N} | Gold: +{count}
@@ -170,7 +370,8 @@ def status_line(turn, model, hook, root, gold=None):
     kv = kit_version(root)
     bits = ["s%s" % (sn if sn else "unknown"), "Turn %d" % turn, now.strftime("%a, %b %-d, %Y"), now.strftime("%-I:%M %p %Z"),
             (m + (" " + letter if letter else "")) if m else "unknown", head_sha(root) or "unknown",
-            "kit v%s" % kv if kv else "kit unknown", "Gold: +%s" % ("{gold}" if gold is None else gold)]
+            "kit v%s" % kv if kv else "kit unknown"] + ([cost] if cost else []) + \
+           ["Gold: +%s" % ("{gold}" if gold is None else gold)]
     return " | ".join(bits)
 
 
@@ -206,7 +407,8 @@ def prompt_hook():
     sid = hook.get("session_id") or "unknown"
     turn = int((idx.get(sid) or {}).get("turns") or 0) + 1
     model = hook.get("model") if isinstance(hook.get("model"), str) else None
-    line = status_line(turn, model or last_model(hook.get("transcript_path")), hook, root)
+    line = status_line(turn, model or last_model(hook.get("transcript_path")), hook, root,
+                       cost=footer_cost(root, hook.get("transcript_path"), stop=False, sid=sid))
     try:   # when this turn began, so the Stop hook can count the proven work done in it
         tdir = os.path.join(root, ".wheel", "tracks")
         os.makedirs(tdir, exist_ok=True)
@@ -341,7 +543,8 @@ def main():
             gold = gold_since(root, since) if since else None
         except Exception:
             gold = None
-        print(json.dumps({"systemMessage": status_line(rec["turns"], model, hook, root, gold if gold is not None else "unknown")}))
+        print(json.dumps({"systemMessage": status_line(rec["turns"], model, hook, root, gold if gold is not None else "unknown",
+                                                       cost=footer_cost(root, hook.get("transcript_path"), stop=True, sid=sid))}))
 
 
 if __name__ == "__main__":
