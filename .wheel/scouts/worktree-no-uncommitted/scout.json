@@ -5,11 +5,16 @@
  "checks": [
   {
    "id": "c1",
-   "what": "git status shows no changed or untracked files",
+   "what": "git status shows no changed or untracked files (the wheel's own lug store files are ignored)",
    "cmd": [
     "git",
     "status",
-    "--porcelain"
+    "--porcelain",
+    "--",
+    ".",
+    ":(exclude).wheel/backlog.jsonl",
+    ":(exclude).wheel/BACKLOG.md",
+    ":(exclude).wheel/ROADMAP.md"
    ],
    "expect": {
     "lines": {

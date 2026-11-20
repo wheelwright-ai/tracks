@@ -6,6 +6,6 @@ Re-run it with no model: `python3 .wheel/hooks/scouts.py run worktree-no-uncommi
 
 ## Checks and the outcome each expects
 
-- **c1** (`git status --porcelain`): git status shows no changed or untracked files. Expects {"lines": {"max": 0}}.
+- **c1** (`git status --porcelain`, excluding .wheel/backlog.jsonl, .wheel/BACKLOG.md, .wheel/ROADMAP.md): git status shows no changed or untracked files. Expects {"lines": {"max": 0}}.
 
 Severity: normal. If a check breaks, read its line above, confirm it by hand, then fix the project or (if the expectation is out of date) have an advisor update this scout.
