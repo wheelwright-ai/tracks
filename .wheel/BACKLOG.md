@@ -13,11 +13,11 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 | 7 | B-009 | Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | owner | blocked | 3/1 | I-004 |
 | 8 | B-020 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | owner | blocked | 3/2 | I-004 |
 | 9 | B-019 | Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked | 3/2 | I-001 |
-| 10 | B-029 | Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready | 3/2 | I-004 |
-| 11 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked | 2/2 | I-004 |
+| 10 | B-021 | Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked | 2/2 | I-004 |
 
 ## Recently done
 
+- B-029 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files (2026-11-20)
 - B-028 Make the worktree-no-uncommitted scout ignore the wheel's own lug store files (.wheel/backlog.jsonl, .wheel/BACKLOG.md, .wheel/ROADMAP.md) and add tests/scout_lugstore.sh proving it: in a throwaway clone of HEAD (as tests/clean_clone.sh does), the scout passes when only .wheel/backlog.jsonl is modified and fails when any other file is modified or untracked; wire the test into tests/run_all.sh (2026-11-20)
 - B-024 Clean-clone test: the full suite passes from a fresh clone with no ignored or local files (2026-11-19)
 - B-023 Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner (2026-11-19)
@@ -27,4 +27,3 @@ Force-ranked, one unique rank per open lug. Generated from .wheel/backlog.jsonl 
 - B-013 Scout critical-paths-stays-red-until-real broke: the stub still exits 1 and says it is not implemented (2026-11-13)
 - B-011 Replace the red tests/critical_paths.sh stub with real deterministic tests over the viewer, track validator an (2026-11-12)
 - B-012 Add one runner that executes every tests/ check and exits non-zero on any failure (2026-11-12)
-- B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files (2026-11-12)

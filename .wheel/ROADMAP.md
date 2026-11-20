@@ -37,7 +37,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*12 of 16 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*13 of 16 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -49,8 +49,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 |---:|---|---|---|
 | 7 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
 | 8 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | you | blocked |
-| 10 | B-029 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
-| 11 | B-021 Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked |
+| 10 | B-021 Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 - Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
 - Done: B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-12 (wake-3e8b53/checker)
@@ -63,6 +62,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - Done: B-023 Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner, 2026-11-19 (wake-9047ae/checker)
 - Done: B-024 Clean-clone test: the full suite passes from a fresh clone with no ignored or local files, 2026-11-19 (wake-9047ae/checker)
 - Done: B-028 Make the worktree-no-uncommitted scout ignore the wheel's own lug store files (.wheel/backlog.jsonl, .wheel/BACKLOG.md, .wheel/ROADMAP.md) and add tests/scout_lugstore.sh proving it: in a throwaway clone of HEAD (as tests/clean_clone.sh does), the scout passes when only .wheel/backlog.jsonl is modified and fails when any other file is modified or untracked; wire the test into tests/run_all.sh, 2026-11-20 (wake-5627d9/checker)
+- Done: B-029 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-20 (wake-56a0e9/checker)
 
 ## Goal 2: Use it ourselves
 
@@ -106,6 +106,7 @@ No initiative yet.
 
 ## Completed history
 
+- 2026-11-20 · B-029 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files · done by wake-56a0e9/checker
 - 2026-11-20 · B-028 Make the worktree-no-uncommitted scout ignore the wheel's own lug store files (.wheel/backlog.jsonl, .wheel/BACKLOG.md, .wheel/ROADMAP.md) and add tests/scout_lugstore.sh proving it: in a throwaway clone of HEAD (as tests/clean_clone.sh does), the scout passes when only .wheel/backlog.jsonl is modified and fails when any other file is modified or untracked; wire the test into tests/run_all.sh · done by wake-5627d9/checker
 - 2026-11-19 · B-024 Clean-clone test: the full suite passes from a fresh clone with no ignored or local files · done by wake-9047ae/checker
 - 2026-11-19 · B-023 Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner · done by wake-9047ae/checker

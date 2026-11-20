@@ -1,0 +1,103 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-20T06:00:48Z",
+ "ended": "2026-11-20T06:01:36Z",
+ "tokens_used": 48856,
+ "lugs_done": [
+  "B-029"
+ ],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261120T060048Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-20-56a0e9",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-20-56a0e9",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-029",
+   "title": "Scout worktree-no-uncommitted broke: git status shows no changed or untracked files",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "No change needed: worktree-no-uncommitted already prints PASS and exits 0 here, since B-028 made the scout ignore the lug store files.",
+     "build_tokens": 38267,
+     "builder_model": "claude-sonnet-5-5",
+     "no_code": "The scout's fix landed earlier in B-028 (410b2c5). The check passes on this branch with no file change.",
+     "check": "pass",
+     "evidence": "Ran `python3 -B .wheel/hooks/scouts.py run worktree-no-uncommitted`. It printed 'PASS worktree-no-uncommitted' and 'PASS c1: git status shows no changed or untracked files (the wheel's own lug store files are ignored)'. That is the scout's only check. A second run through `bash -c` with output discarded gave exit=0. `git status --short` was empty afterwards, so the run left no residue and I saw no sign of cache residue. I did not read the scout's source or the B-028 tests/scout_lugstore.sh test, so I did not check that the lug-store ignore is correct. I did not check any of the listed traps be",
+     "ran": [
+      {
+       "cmd": "python3 -B .wheel/hooks/scouts.py run worktree-no-uncommitted",
+       "exit": 0
+      },
+      {
+       "cmd": "bash -c 'python3 -B .wheel/hooks/scouts.py run worktree-no-uncommitted >/dev/null; echo exit=$?'",
+       "exit": 0
+      },
+      {
+       "cmd": "python3 -B .wheel/hooks/scouts.py list",
+       "exit": 0
+      },
+      {
+       "cmd": "git status --short",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 10589,
+     "checker_model": "sonnet",
+     "tests": "pass"
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "nothing to merge"
+ },
+ "complete": null,
+ "tier": "as-now",
+ "record_version": 2,
+ "models": {
+  "builder": [
+   "claude-sonnet-5-5"
+  ],
+  "checker": [
+   "sonnet"
+  ]
+ },
+ "diakon": {
+  "built": [],
+  "triaged": [],
+  "flint_missed": []
+ },
+ "notes": [
+  "kit v49 held for tracks: version 49 passed its canary in daycade and is waiting for its kit review",
+  "stranded branches: wheel/flint-2026-11-19-2a146e not merged",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-20-56a0e9 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 13,
+  "failed": [],
+  "lugs": [],
+  "notes": []
+ },
+ "stranded": [
+  {
+   "branch": "wheel/flint-2026-11-19-2a146e",
+   "lugs": [
+    "B-024"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  }
+ ],
+ "worktree_removed": true
+}
