@@ -18,7 +18,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 8 | B-019 Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked |
+| 9 | B-019 Remove the GitNexus block (<!-- gitnexus:start --> to <!-- gitnexus:end -->) from CLAUDE.md and AGENTS.md | autopilot | blocked |
 - Done: B-001 Start here: one page with the recommended prompt, a sample track and how to check your own file, 2026-11-09 (wake-f95d17/checker)
 - Done: B-002 Publish v4.0.0 to the library as the latest prompt, marked provisional until track-prompt-lab's bench names a winner, 2026-11-09 (wake-f95d17/checker)
 
@@ -37,7 +37,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 ### I-004 Keep tracks healthy and current
 
-*11 of 14 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
+*12 of 16 lugs done · active · owner sign-off: signed off by owner on 2026-11-08*
 
 - **Outcome:** The project's own checks are trustworthy: tests and CI pass on a clean clone, known security gaps are closed, old uncommitted work is landed or retired, and its tooling follows the wheel's standing directives.
 - **Why now:** The advisors' first sweep found broken CI, failing tests, security gaps and stale work that make every other result harder to trust.
@@ -47,9 +47,10 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 
 | rank | lug | kind | status |
 |---:|---|---|---|
-| 6 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
-| 9 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | you | blocked |
-| 10 | B-021 Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked |
+| 7 | B-009 Triage the uncommitted file in the main checkout that has been open since 2026-11-11 | you | blocked |
+| 8 | B-020 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | you | blocked |
+| 10 | B-029 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files | autopilot | ready |
+| 11 | B-021 Land ac69187 on main: untrack and gitignore scout status.json files | autopilot | blocked |
 - Done: B-007 Add a small validator test run that checks every sample against the spec, 2026-11-09 (wake-f95d17/checker)
 - Done: B-010 Decide the fate of .claude/.deploy-quarantine/hooks (9 hook files, not gitignored), 2026-11-12 (wake-3e8b53/checker)
 - Done: B-008 Scout worktree-no-uncommitted broke: git status shows no changed or untracked files, 2026-11-12 (wake-3e8b53/checker)
@@ -61,6 +62,7 @@ A portable, model-neutral record of an AI conversation that anyone can use.
 - Done: B-022 Have the overwatch run tests/run_all.sh so the test line stops reading 'none', 2026-11-19 (wake-d21e80/checker)
 - Done: B-023 Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner, 2026-11-19 (wake-9047ae/checker)
 - Done: B-024 Clean-clone test: the full suite passes from a fresh clone with no ignored or local files, 2026-11-19 (wake-9047ae/checker)
+- Done: B-028 Make the worktree-no-uncommitted scout ignore the wheel's own lug store files (.wheel/backlog.jsonl, .wheel/BACKLOG.md, .wheel/ROADMAP.md) and add tests/scout_lugstore.sh proving it: in a throwaway clone of HEAD (as tests/clean_clone.sh does), the scout passes when only .wheel/backlog.jsonl is modified and fails when any other file is modified or untracked; wire the test into tests/run_all.sh, 2026-11-20 (wake-5627d9/checker)
 
 ## Goal 2: Use it ourselves
 
@@ -98,12 +100,13 @@ No initiative yet.
 | 1 | B-015 Tracks MCP server (stdio, Python stdlib only) with a validate_track tool | autopilot | proposed | - |
 | 2 | B-018 Owner decision: the shape of the claude.ai connector (hosted remote MCP or local only), and whether the keepalive and db-schema leftovers stay | owner | proposed | - |
 | 3 | B-026 MCP save_track tool: a model hands over points and gets back a validated, correctly named Track file | autopilot | proposed | - |
-| 4 | B-016 MCP server serves the format itself: get_spec, get_prompt and track_open_items tools | autopilot | proposed | - |
-| 5 | B-027 README: replace 'Coming Soon — MCP Integration' with real setup steps that a test follows | autopilot | proposed | - |
-| 7 | B-025 Validator --json output: one machine-readable result per problem with rule id, line and message | autopilot | proposed | - |
+| 4 | B-025 Validator --json output: one machine-readable result per problem with rule id, line and message | autopilot | proposed | - |
+| 5 | B-016 MCP server serves the format itself: get_spec, get_prompt and track_open_items tools | autopilot | proposed | - |
+| 6 | B-027 README: replace 'Coming Soon — MCP Integration' with real setup steps that a test follows | autopilot | proposed | - |
 
 ## Completed history
 
+- 2026-11-20 · B-028 Make the worktree-no-uncommitted scout ignore the wheel's own lug store files (.wheel/backlog.jsonl, .wheel/BACKLOG.md, .wheel/ROADMAP.md) and add tests/scout_lugstore.sh proving it: in a throwaway clone of HEAD (as tests/clean_clone.sh does), the scout passes when only .wheel/backlog.jsonl is modified and fails when any other file is modified or untracked; wire the test into tests/run_all.sh · done by wake-5627d9/checker
 - 2026-11-19 · B-024 Clean-clone test: the full suite passes from a fresh clone with no ignored or local files · done by wake-9047ae/checker
 - 2026-11-19 · B-023 Repo hygiene test: scout status files ignored and untracked, no GitNexus block, wired into the runner · done by wake-9047ae/checker
 - 2026-11-19 · B-022 Have the overwatch run tests/run_all.sh so the test line stops reading 'none' · done by wake-d21e80/checker

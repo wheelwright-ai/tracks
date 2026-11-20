@@ -1,0 +1,126 @@
+{
+ "spoke": "tracks",
+ "started": "2026-11-20T05:00:31Z",
+ "ended": "2026-11-20T05:02:37Z",
+ "tokens_used": 66059,
+ "lugs_done": [
+  "B-028"
+ ],
+ "lugs_blocked": [],
+ "owner_needs": [],
+ "budget_request": null,
+ "advisors_run": [],
+ "summary_path": "/home/mario/projects/wheelwright/tracks/.wheel/cycles/20261120T050031Z.json",
+ "live": false,
+ "branch": "wheel/2026-11-20-5627d9",
+ "worktree": "/home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-20-5627d9",
+ "advisor_findings": [],
+ "lugs": [
+  {
+   "id": "B-028",
+   "title": "Make the worktree-no-uncommitted scout ignore the wheel's own lug store files (.wheel/backlog.jsonl, .wheel/BACKLOG.md, .wheel/ROADMAP.md) and add tests/scout_lugstore.sh proving it: in a throwaway clone of HEAD (as tests/clean_clone.sh does), the scout passes when only .wheel/backlog.jsonl is modified and fails when any other file is modified or untracked; wire the test into tests/run_all.sh",
+   "attempts": [
+    {
+     "attempt": 1,
+     "outcome": "built",
+     "summary": "worktree-no-uncommitted scout now excludes the three lug store files; added tests/scout_lugstore.sh (clone-based, passes) and wired it into tests/run_all.sh; pytest 7 passed",
+     "build_tokens": 53714,
+     "builder_model": "claude-sonnet-5-5",
+     "check": "pass",
+     "evidence": "I ran `bash tests/scout_lugstore.sh`. All six 'ok' steps printed, then 'PASS: scout ignores the lug store files and still catches other changes'. The tool output did not display exit codes, but the run completed with PASS. I ran `/usr/bin/python3 -m pytest -q`, which printed '7 passed in 3.17s'. One note on F-002: a .pytest_cache folder is now in the worktree. It is untracked and not git-ignored. It most likely came from my own pytest run, because the allowed command cannot take `-p no:cacheprovider`. It is not in the commit, and it should be deleted before anything is committed. I did not che",
+     "ran": [
+      {
+       "cmd": "bash tests/scout_lugstore.sh",
+       "exit": 0
+      },
+      {
+       "cmd": "/usr/bin/python3 -m pytest -q",
+       "exit": 0
+      },
+      {
+       "cmd": "ls -a",
+       "exit": 0
+      },
+      {
+       "cmd": "git check-ignore .pytest_cache",
+       "exit": 1
+      },
+      {
+       "cmd": "git ls-files .pytest_cache",
+       "exit": 0
+      }
+     ],
+     "check_tokens": 12345,
+     "checker_model": "sonnet",
+     "tests": "pass"
+    }
+   ],
+   "result": "done",
+   "reason": null
+  }
+ ],
+ "merge": {
+  "state": "merged",
+  "text": "merged wheel/2026-11-20-5627d9 into main (tests pass)"
+ },
+ "complete": null,
+ "tier": "as-now",
+ "record_version": 2,
+ "models": {
+  "builder": [
+   "claude-sonnet-5-5"
+  ],
+  "checker": [
+   "sonnet"
+  ]
+ },
+ "diakon": {
+  "built": [],
+  "triaged": [],
+  "flint_missed": []
+ },
+ "notes": [
+  "kit v49 held for tracks: version 49 passed its canary in daycade and is waiting for its kit review",
+  "scouts that broke: worktree-no-uncommitted (lugs opened: B-029)",
+  "smoke check: dev host http://tracks.local/ answers 200",
+  "stranded branches: wheel/flint-2026-11-19-2a146e not merged",
+  "worktree /home/mario/projects/wheelwright/tracks/.worktrees/wheel-2026-11-20-5627d9 removed (nothing new)"
+ ],
+ "error": null,
+ "dependencies": [],
+ "scouts": {
+  "rerun": 13,
+  "failed": [
+   "worktree-no-uncommitted"
+  ],
+  "lugs": [
+   "B-029"
+  ],
+  "notes": [
+   "scout worktree-no-uncommitted broke: opened B-029"
+  ]
+ },
+ "smoke": [
+  {
+   "state": "ok",
+   "url": "http://tracks.local/",
+   "status": 200,
+   "reason": "answers 200",
+   "spoke": "tracks",
+   "before": "ok",
+   "text": "dev host http://tracks.local/ answers 200"
+  }
+ ],
+ "stranded": [
+  {
+   "branch": "wheel/flint-2026-11-19-2a146e",
+   "lugs": [
+    "B-024"
+   ],
+   "state": "not merged",
+   "text": "its head is not the commit a done lug was proven on",
+   "kept": []
+  }
+ ],
+ "worktree_removed": true
+}

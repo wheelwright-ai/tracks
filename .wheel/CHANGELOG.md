@@ -4,11 +4,12 @@ What reached this project, newest on top: one line per change (kind · initiativ
 
 ## The latest week at a glance (7 days to 2026-11-19)
 
-- 6 changes: 3 fixes, 3 upkeep
-- I-004 Keep tracks healthy and current: 6
+- 7 changes: 4 fixes, 3 upkeep
+- I-004 Keep tracks healthy and current: 7
 
 ## 2026-11-19
 
+- **Changes to the lug store files no longer trip the uncommitted-worktree check, while real edits are still caught** · Fix · I-004 Keep tracks healthy and current · lug B-028 (not on main yet)
 - **A fresh clone of the repo now runs the whole test suite and passes, and the run leaves the clone untouched** · Upkeep · I-004 Keep tracks healthy and current · lug B-024
 - **Running the scouts no longer dirties the repo, and a test now guards against that and the stray agent-doc block returning** · Fix · I-004 Keep tracks healthy and current · lug B-023
 - **Running the project's tests now reports a real test count, and the full test suite still passes** · Upkeep · I-004 Keep tracks healthy and current · lug B-022
