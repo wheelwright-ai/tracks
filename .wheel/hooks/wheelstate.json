@@ -26,6 +26,8 @@
   ".wheel/config.json": "project config (install.py)",
   ".wheel/RULES.md": "wheel rules (install.py)",
   ".wheel/hooks/": "installed kit hooks (install.py)",
+  ".wheel/SECRETS.md": "the secrets guide (install.py, B-186)",
+  ".env.template": "the secrets mapping, key and reference only (install.py starter, B-186)",
   ".wheel/secrets-allowlist.json": "the owner's secret-scan allowlist (the scanner reads it)",
   ".claude/settings.json": "hook wiring (install.py)",
   "records/": "session records (capture.py)",

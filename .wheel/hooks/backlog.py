@@ -44,7 +44,7 @@ prioritised backlog as a build part and a maintain part, which is what a session
 lint requires an explicit urgency on every open lug and keeps value within the goal's ceiling (goal n holds at most 6-n,
 a "(later)" goal at most 2), and warns when a lug's title or check says it needs (or comes after) a lug ranked below it;
 initiative add and edit print three fresh-reader questions to ask before sign-off. The full scoring rubric is plans/backlog-rubric.md in the hub."""
-import argparse, binascii, calendar, hashlib, hmac, json, os, re, subprocess, sys, time
+import argparse, datetime, binascii, calendar, hashlib, hmac, json, os, re, subprocess, sys, time
 
 sys.dont_write_bytecode = True
 try:
@@ -223,6 +223,10 @@ def apply(st, ev):
     if kind == "status":
         it["status"] = ev["status"]
         it["status_by"], it["status_reason"] = ev.get("by"), ev.get("reason")
+        if ev.get("branch"):
+            it["branch"] = ev["branch"]
+        elif ev.get("superseded") or ev["status"] in CLOSED:
+            it["branch"] = None
         if ev["status"] in CLOSED:
             it["closed"] = ev.get("at")
             it["claim"] = None
@@ -536,6 +540,46 @@ def landing_problem(root, iid, sha=None):
             "--no-code REASON when it is a state, config or decision change with no code" % (ref[:12], iid, iid))
 
 
+def unlanded_problem(root, sha):
+    """B-227: None when sha is reachable from the project's main/master branch (or there is none to check); else why not.
+    A commit that lives only on a side branch is not done work."""
+    if not sha or not any(subprocess.run(["git", "-C", root, "rev-parse", "--verify", "-q", b], capture_output=True).returncode == 0
+                          for b in ("main", "master")):
+        return None
+    ref = default_ref(root)
+    if subprocess.run(["git", "-C", root, "merge-base", "--is-ancestor", sha, ref], capture_output=True).returncode == 0:
+        return None
+    return "the proven commit %s is not on %s yet; merge it first (done means on %s)" % (sha[:12], ref, ref)
+
+
+def do_unlanded(root, a):
+    """B-227 (report only): done lugs whose proven commit is still not on main after --days (default 1), with the wheel
+    branch that holds it. Closed lugs are final in the store, so this names them for a person or a wake to act on."""
+    st = load(root)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    rows = []
+    for iid, it in st["items"].items():
+        if it.get("status") != "done":
+            continue
+        done = [e for e in it["history"] if e.get("event") == "status" and e.get("status") == "done" and e.get("proof")]
+        parts = str(done[-1]["proof"]).split(".") if done else []
+        if len(parts) != 4 or not re.match(r"^[0-9a-f]{40}$", parts[2]) or unlanded_problem(root, parts[2]) is None:
+            continue
+        try:
+            age = (now - datetime.datetime.fromisoformat(str(it.get("closed")).replace("Z", "+00:00"))).total_seconds() / 86400
+        except (ValueError, TypeError):
+            age = 0
+        if age < float(getattr(a, "days", 1)):
+            continue
+        br = subprocess.run(["git", "-C", root, "branch", "--contains", parts[2], "--format=%(refname:short)", "--list", "wheel/*"],
+                            capture_output=True, text=True).stdout.split()
+        rows.append({"id": iid, "sha": parts[2][:12], "closed": it.get("closed"), "branch": br[0] if br else None})
+    if getattr(a, "json", False):
+        return json.dumps(rows)
+    return "\n".join("%s done but %s is not on main (branch %s): reopen to checking" % (r["id"], r["sha"], r["branch"] or "unknown")
+                     for r in rows) or "every done lug's proven commit is on main"
+
+
 def allowed_moves(it):
     ok = FLOW[it["status"]]
     if it["kind"] == "owner" and it["status"] == "doing":
@@ -555,6 +599,20 @@ def do_status(root, a):
         c = live_claim(it)
         need(not (c and a.status == "doing" and c["by"] != a.by), "%s is claimed by %s until %s" % (a.id, c and c["by"], c and c["until"]))
         ev = {"event": "status", "id": a.id, "status": a.status, "from": cur, "by": a.by, "reason": a.reason.strip()}
+        branch, gone = (getattr(a, "branch", None) or "").strip(), (getattr(a, "superseded", None) or "").strip()
+        if a.status == "ready" or (a.status == "doing" and cur in ("ready", "blocked")):
+            # B-223: built work is never forgotten. A lug with an unchecked wheel branch goes back to ready, or starts a
+            # build, only naming the branch to continue from, or saying why that work is superseded.
+            built = built_branches(root, a.id).get(a.id) or []
+            need(not built or branch in built or gone,
+                 "%s has built work not yet checked on %s: send a checker there (status checking), continue from it "
+                 "(--branch %s), or say why it is superseded (--superseded WHY)" % (a.id, ", ".join(built), built[0] if built else ""))
+            if built and branch in built:
+                ev["branch"] = branch
+            elif built:
+                ev["superseded"] = {"branches": built, "why": gone[:300]}
+        elif branch:
+            ev["branch"] = branch
         if a.status == "done" and it["kind"] == "autopilot":
             last = [e for e in it["history"] if e.get("event") == "status" and e["status"] in ("doing", "checking")]
             need(all(e.get("by") != a.by for e in last), "%s cannot be marked done by %s: a different checker must close an autopilot lug" % (a.id, a.by))
@@ -569,6 +627,9 @@ def do_status(root, a):
                 sha = str(getattr(a, "proof", None) or "").split(".")
                 bad = landing_problem(root, a.id, sha[2] if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]) else None)
                 need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
+                if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]):
+                    bad = unlanded_problem(root, sha[2])
+                    need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
         lk.append(ev)
         stm = " ".join((getattr(a, "statement", None) or "").split())
         if a.status == "done" and stm:
@@ -628,6 +689,10 @@ def do_edit(root, a):
         if getattr(a, "klass", None) is not None and a.klass != it.get("class"):
             need(a.klass in CLASSES, "class must be build or maintain")
             ch["class"] = a.klass
+        reach = getattr(a, "reach", None)
+        if reach is not None and reach != it.get("reach"):   # B-222: work whose effect reaches every spoke weighs more in reorder
+            need(reach in REACHES, "reach must be spokes or project")
+            ch["reach"] = reach
         after = getattr(a, "after", None)
         if after is not None:   # B-132: the lugs this one waits on, kept as a list; an empty value clears it
             ids = [x for x in re.split(r"[\s,]+", after.strip()) if x]
@@ -662,10 +727,200 @@ def do_release_deps(root, a):
                 continue
             if all((st["items"].get(d) or {}).get("status") == "done" for d in deps):
                 why = "%s done: the block lifts" % ", ".join(deps)
-                lk.append({"event": "status", "id": iid, "status": "ready", "from": "blocked", "by": a.by, "reason": why})
+                ev = {"event": "status", "id": iid, "status": "ready", "from": "blocked", "by": a.by, "reason": why}
+                built = built_branches(root, iid).get(iid) or []
+                if built:   # B-223: the parked work travels with the lug
+                    ev["branch"] = built[0]
+                lk.append(ev)
                 lk.append({"event": "edit", "id": iid, "changes": {"after": []}, "by": a.by, "reason": "its dependencies are done"})
                 freed.append(iid)
         return ("released: " + ", ".join(freed)) if freed else "released: none"
+
+
+# ---------- reorder (B-222): the backlog orders itself for return on effort ----------
+TIER_WEIGHT = {"P0": 1.0, "P1": 0.75, "P2": 0.55, "P3": 0.4}
+UNKNOWN_TIER = 0.6
+SPREAD_RE = re.compile(r"\b(?:every|all|each|other)\s+(?:spoke|project)s?\b|\bspokes\b|\bthe kit\b|\bkit (?:part|install|rollout|release)\b", re.I)
+IN_MOTION = ("doing", "checking")
+KEEP_TOP = 3
+REACHES = ("spokes", "project")
+
+
+def built_branches(root, iid=None):
+    """Unmerged built work: lug id -> its wheel branches (wheel/...-B-###) holding commits not on main, newest first.
+    The work is paid for and only needs checking, so the store never lets it be forgotten (B-223)."""
+    out = {}
+    try:
+        pat = "refs/heads/wheel/*-%s" % iid if iid else "refs/heads/wheel/"
+        p = subprocess.run(["git", "-C", root, "for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", pat],
+                           capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return out
+    if p.returncode != 0:
+        return out
+    base = None
+    for name in p.stdout.split():
+        m = re.search(r"-(B-\d+)$", name)
+        if not m or (iid and m.group(1) != iid):
+            continue
+        base = base or default_ref(root)
+        c = subprocess.run(["git", "-C", root, "rev-list", "--count", "%s..%s" % (base, name)], capture_output=True, text=True)
+        if c.returncode == 0 and c.stdout.strip() not in ("", "0"):
+            out.setdefault(m.group(1), []).append(name)
+    return out
+
+
+def built_lugs(root):
+    """Lug ids with unmerged built work on a wheel branch (see built_branches)."""
+    return set(built_branches(root))
+
+
+def goal_weights(root, path=None, project=None):
+    """Initiative id -> (weight, label) from the hub's computed priorities (plans/priorities.json): the tier's weight,
+    easing by 4% per place within the tier so the computed order counts too. No file: every initiative weighs the same."""
+    path = path or os.environ.get("WHEEL_PRIORITIES") or os.path.join(root, "plans", "priorities.json")
+    project = project or os.path.basename(os.path.normpath(root))
+    try:
+        pri = json.load(open(path, encoding="utf-8")).get("priority") or {}
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for tier, keys in pri.items():
+        for n, key in enumerate(keys or []):
+            proj, _, ini = str(key).rpartition(":")
+            if proj == project and ini:
+                out[ini] = (TIER_WEIGHT.get(tier, UNKNOWN_TIER) * max(0.6, 1 - 0.04 * n), tier)
+    return out
+
+
+def focus_of(root):
+    try:
+        return (json.load(open(os.path.join(root, ".wheel", "config.json"), encoding="utf-8")) or {}).get("focus_initiative")
+    except (OSError, ValueError):
+        return None
+
+
+def deps_of(it, open_ids):
+    deps = [d for d in (it.get("after") or []) if d in open_ids]
+    for text in (it.get("title"), it.get("check")):
+        for m in NEEDS_RE.finditer(text or ""):
+            deps += [d.upper() for d in re.findall(r"B-\d+", m.group(1), re.I) if d.upper() in open_ids]
+    return [d for d in dict.fromkeys(deps) if d != it["id"]]
+
+
+def plan_order(st, built=(), weights=None, focus=None, keep=KEEP_TOP):
+    """The order the backlog should have, and one plain reason per lug. Bands, then return on effort:
+    the promised top `keep` stay; then work already built or in motion; then the rest by
+    value / effort x goal weight x lifts (spoke reach, wanted before the next session, a fix, the focus goal);
+    unapproved and blocked work sinks. Outside the promised top (which holds as promised, its waits named in the reason),
+    a lug never ranks above an open lug it waits for; a wait on an owner-pinned lug counts as met. Owner pins hold their place."""
+    weights = weights or {}
+    order = [i for i in st["order"] if i in st["items"]]
+    pinned = st["pinned"]
+    free = [i for i in order if i not in pinned]
+    kept = [i for i in free if st["items"][i]["status"] != "blocked"][:max(keep, 0)]   # a blocked lug is no promise
+    open_ids = set(order)
+    why, key = {}, {}
+    for iid in free:
+        it = st["items"][iid]
+        w, tier = weights.get(it.get("initiative"), (UNKNOWN_TIER if weights else 1.0, None))
+        roi = (it.get("value") or 1) / float(max(it.get("effort") or 1, 1)) * w
+        notes = ["value %s for effort %s" % (it.get("value"), it.get("effort"))]
+        if tier:
+            notes.append("%s goal %s" % (tier, it.get("initiative")))
+        text = "%s %s" % (it.get("title") or "", it.get("check") or "")
+        if it.get("reach") == "spokes" or (it.get("reach") != "project" and SPREAD_RE.search(text)):
+            roi *= 1.5
+            notes.append("reaches the spokes")
+        if urgency_of(it) == "next_session":
+            roi *= 1.4
+            notes.append("wanted before the next session")
+        if FIX_RE.search((it.get("title") or "").split(":")[0]):
+            roi *= 1.2
+            notes.append("a fix")
+        if focus and it.get("initiative") == focus:
+            roi *= 1.2
+            notes.append("the focus goal")
+        band = 2
+        if iid in kept:
+            band, notes = 0, ["kept in the promised top %d" % keep] + notes
+        elif it["status"] == "blocked":
+            band = 4
+            notes.insert(0, "blocked" + (" (a built branch waits for the block to lift)" if iid in built else ""))
+        elif it["status"] in IN_MOTION or iid in built:
+            band = 1
+            notes.insert(0, "already built, needs checking and merging" if iid in built else "in motion (%s)" % it["status"])
+        elif it["status"] == "proposed":
+            band = 3 if it["kind"] == "owner" else 2
+            roi *= 0.7
+            notes.insert(0, "not approved yet")
+        key[iid] = (band, kept.index(iid) if band == 0 else -roi)
+        why[iid] = notes
+    ranked = sorted(free, key=lambda i: (key[i], free.index(i)))
+    # dependencies: place each lug only after the open lugs it waits for (a cycle falls back to rank order)
+    placed, out, pending = set(), [], list(ranked)
+    while pending:
+        free_now = [i for i in pending if all(d in placed or d not in open_ids or d in pinned for d in deps_of(st["items"][i], open_ids))]
+        pick = next((i for i in pending if i in kept), None) or (free_now or pending)[0]   # the promised top holds even over a wait
+        deps = deps_of(st["items"][pick], open_ids)
+        if deps:
+            why[pick].append("waits for " + ", ".join(deps))
+        pending.remove(pick)
+        placed.add(pick)
+        out.append(pick)
+    for iid in pinned:
+        if iid in st["items"]:
+            why[iid] = ["pinned by the owner"]
+    return repin(out + [p for p in pinned if p in open_ids], pinned), why
+
+
+def stale_lugs(st, days=14, now_t=None):
+    now_t = now_t or time.time()
+    return [it["id"] for it in open_items(st) if it.get("urgency") != "next_session" and secs(it.get("updated") or it.get("added") or "") and
+            now_t - secs(it.get("updated") or it.get("added")) > days * 86400]
+
+
+def do_reorder(root, a):
+    need(os.path.isfile(log_path(root)), "%s holds no backlog (.wheel/backlog.jsonl): nothing to reorder" % root)
+    project = a.project or os.path.basename(os.path.normpath(root))
+    weights = goal_weights(root, a.priorities, project)
+    built = built_lugs(root)
+    focus = focus_of(root)
+    with (Locked(root) if a.write else _NoLock()) as lk:
+        events = read_events(root)
+        st = fold(events)
+        target, why = plan_order(st, built, weights, focus, a.keep)
+        moves = []
+        if a.write:
+            cur = list(st["order"])
+            for pos, iid in enumerate(target, 1):
+                if iid in st["pinned"] or cur.index(iid) + 1 == pos:
+                    continue
+                ev = {"event": "rank", "id": iid, "rank": pos, "from": cur.index(iid) + 1, "pinned": False, "by": a.by,
+                      "reason": "reorder: " + "; ".join(why.get(iid) or [])[:300]}
+                events.append(dict(lk.append(ev)))
+                st = fold(events)
+                cur = list(st["order"])
+                moves.append(iid)
+        else:
+            moves = [i for n, i in enumerate(target) if st["order"][n] != i]
+    rows = ["%s order (%d lug%s %s):" % (project, len(moves), "" if len(moves) == 1 else "s", "moved" if a.write else "would move")]
+    for n, iid in enumerate(target[: a.n], 1):
+        it = st["items"][iid]
+        rows.append("  #%d %s [%s, %s] %s" % (n, iid, it["kind"], it["status"], (it.get("title") or "")[:70]))
+        rows.append("      why: %s" % "; ".join(why.get(iid) or []))
+    stale = [i for i in stale_lugs(st) if i not in target[: a.n]]
+    if stale:
+        rows.append("Untouched for two weeks, bump or drop? %s" % ", ".join(stale[:12]))
+    return "\n".join(rows)
+
+
+class _NoLock:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        pass
 
 
 def do_link(root, a):
@@ -1610,6 +1865,7 @@ def brief(it, st=None):
     d["class"] = class_of(st, it)
     c = live_claim(it)
     d["claimed_by"] = c["by"] if c else None
+    d["branch"] = it.get("branch")
     if it["status"] in CLOSED:
         d.update(closed=it.get("closed"), closed_by=it.get("status_by"))
     return d
@@ -1706,6 +1962,8 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--proof", help="closing an autopilot lug done: the token tools/verify.py printed on its pass")
     s.add_argument("--no-code", dest="no_code", help="closing done with no code commit: the reason (a state, config or decision change); without it done needs a commit naming the lug")
     s.add_argument("--statement", help="closing done: the changelog line, one plain sentence of what is now true")
+    s.add_argument("--branch", help="B-223: the wheel branch holding this lug's built work (required to go back to ready or start a build while one exists)")
+    s.add_argument("--superseded", help="B-223: why the lug's unchecked built branches are no longer wanted (lets it go back to ready without them)")
     s = by(sub.add_parser("statement", help="set a lug's changelog line (open or closed lug)"))
     s.add_argument("id")
     s.add_argument("text")
@@ -1733,6 +1991,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--effort", type=int)
     s.add_argument("--urgency", help="next_session | whenever")
     s.add_argument("--class", dest="klass", help="build | maintain")
+    s.add_argument("--reach", help="spokes | project: does the change reach every spoke (B-222: reorder lifts it)")
     s.add_argument("--after", help="B-132: lug ids this lug waits on, comma-separated (an empty value clears it); release-deps lifts the block")
     s.add_argument("--reason", required=True)
     s = by(sub.add_parser("link", help="put a lug in an initiative"))
@@ -1779,6 +2038,13 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--needs-check", dest="needs_check", action="store_true", help="only the ready autopilot lugs that --pickable skips because their check holds no backticked command")
     s.add_argument("-n", type=int, default=3)
     s.add_argument("--json", action="store_true")
+    s = sub.add_parser("reorder", help="order the backlog for return on effort (dry run unless --write)")
+    s.add_argument("--write", action="store_true", help="apply the order as rank events")
+    s.add_argument("--by", help="who is doing this (required with --write)")
+    s.add_argument("--keep", type=int, default=KEEP_TOP, help="the promised top N stay in place (default %d)" % KEEP_TOP)
+    s.add_argument("--priorities", help="the hub's plans/priorities.json (default: this project's, or $WHEEL_PRIORITIES)")
+    s.add_argument("--project", help="this project's name in the priorities file (default: its folder name)")
+    s.add_argument("-n", type=int, default=10)
     by(sub.add_parser("release-deps", help="blocked lugs whose --after lugs are all done go back to ready"))
     sub.add_parser("render")
     s = sub.add_parser("roadmap")
@@ -1786,6 +2052,9 @@ def build_parser(prog="backlog.py"):
     s = sub.add_parser("lint")
     s.add_argument("--json", action="store_true")
     sub.add_parser("verify")
+    s = sub.add_parser("unlanded", help="report done lugs whose proven commit is not on main after --days (B-227)")
+    s.add_argument("--days", type=float, default=1)
+    s.add_argument("--json", action="store_true")
     s = sub.add_parser("history")
     s.add_argument("id")
     sub.add_parser("test")
@@ -1828,6 +2097,9 @@ def main(argv=None, prog=None):
             out = do_edit(root, a)
         elif a.cmd == "link":
             out = do_link(root, a)
+        elif a.cmd == "reorder":
+            need(not a.write or (a.by and a.by.strip()), "reorder --write needs --by")
+            out = do_reorder(root, a)
         elif a.cmd == "release-deps":
             out = do_release_deps(root, a)
         elif a.cmd == "claim":
@@ -1848,12 +2120,14 @@ def main(argv=None, prog=None):
             out, code = do_lint(root, a)
         elif a.cmd == "verify":
             out, code = do_verify(root)
+        elif a.cmd == "unlanded":
+            out = do_unlanded(root, a)
         else:
             out = do_history(root, a.id)
     except Refused as e:
         sys.stderr.write("lug: refused: %s\n" % e)
         return 1
-    if a.cmd in WRITES and not (a.cmd == "initiative" and a.icmd == "show"):
+    if (a.cmd in WRITES or (a.cmd == "reorder" and a.write and os.path.isfile(log_path(root)))) and not (a.cmd == "initiative" and a.icmd == "show"):
         try:
             write_views(root)
         except OSError:

@@ -1,5 +1,5 @@
 {
- "version": 48,
+ "version": 52,
  "parts": {
   "P-013": "114e945ead3bb57a",
   "P-014": "b9e1ce842bf916a7",
@@ -7,12 +7,13 @@
   "P-016": "63821798e0d20076",
   "P-017": "0cf28725e59fd069",
   "P-018": "d8222df653ddc259",
-  "P-019": "ca1a6f6ee2415e5b",
+  "P-019": "6c290be0b503234b",
   "P-020": "f4aa0031dd7c6c02",
   "P-021": "1392fc0ac3874e1c",
   "P-022": "3c3a696768f93e96",
-  "P-023": "e3fdbba3f66186cb"
+  "P-023": "2c1778270e20856c",
+  "P-024": "07d06b7796ca039e"
  },
- "installed_at": "2026-11-19T20:01:24Z",
- "by": "conductor"
+ "installed_at": "2026-11-20T07:36:53Z",
+ "by": "wcl (canary for wheelwright-hub)"
 }
