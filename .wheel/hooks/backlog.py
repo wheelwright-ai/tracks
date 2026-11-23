@@ -5,7 +5,7 @@ Lugs are the work items; initiatives group the lugs that deliver one agreed goal
   lug add TITLE --value 1-5 --effort 1-5 --kind owner|autopilot --source WHO --by WHO [--goal G] [--initiative I-###]
           [--check HOW] [--reason WHY] [--above ID | --below ID] [--status proposed|ready]
           [--urgency next_session|whenever] [--class build|maintain]
-  lug status ID proposed|ready|doing|checking|done|dropped|blocked --reason WHY --by WHO [--proof TOKEN]
+  lug status ID proposed|ready|doing|checking|done|dropped|blocked --reason WHY --by WHO [--proof TOKEN] [--repo SPOKE]
   lug rank ID N --reason WHY [--pin|--unpin] --by WHO      lug move ID --above|--below OTHER --reason WHY [--pin] --by WHO
   lug edit ID [--title T] [--goal G] [--value V] [--effort E] [--kind K] [--check C] [--urgency U] [--class C] --reason WHY --by WHO
   lug edit ID --after B-117[,B-118] --reason WHY --by WHO   (a blocked lug waits on those lugs)
@@ -540,6 +540,32 @@ def landing_problem(root, iid, sha=None):
             "--no-code REASON when it is a state, config or decision change with no code" % (ref[:12], iid, iid))
 
 
+def spoke_repo(root, name):
+    """B-292: (path, None) for the registered spoke a hub-held lug's work lives in, else (None, why). A hub keeps lugs for
+    work done in a spoke's own repository; its proof, landing and on-main checks then run in that repository. Only a
+    spoke listed in spokes/active.json (this checkout's or the live checkout's) counts, by name or by path."""
+    want = str(name or "").strip()
+    if not want:
+        return None, "--repo needs a spoke name"
+    seen = False
+    for base in dict.fromkeys([root, live_root(root)]):
+        try:
+            with open(os.path.join(base, "spokes", "active.json"), encoding="utf-8") as f:
+                reg = json.load(f).get("active") or []
+        except (OSError, ValueError, AttributeError):
+            continue
+        seen = True
+        for s in reg:
+            path = os.path.abspath(os.path.expanduser(str(s.get("path") or ""))) if isinstance(s, dict) else ""
+            if path and (s.get("name") == want or path == os.path.abspath(os.path.expanduser(want))):
+                if subprocess.run(["git", "-C", path, "rev-parse", "--git-dir"], capture_output=True).returncode:
+                    return None, "spoke %s at %s is not a git repository" % (want, path)
+                return path, None
+    if not seen:
+        return None, "--repo needs a hub: no spokes/active.json here"
+    return None, "%s is not a registered spoke (spokes/active.json)" % want
+
+
 def unlanded_problem(root, sha):
     """B-227: None when sha is reachable from the project's main/master branch (or there is none to check); else why not.
     A commit that lives only on a side branch is not done work."""
@@ -563,7 +589,8 @@ def do_unlanded(root, a):
             continue
         done = [e for e in it["history"] if e.get("event") == "status" and e.get("status") == "done" and e.get("proof")]
         parts = str(done[-1]["proof"]).split(".") if done else []
-        if len(parts) != 4 or not re.match(r"^[0-9a-f]{40}$", parts[2]) or unlanded_problem(root, parts[2]) is None:
+        proot = (spoke_repo(root, done[-1]["repo"])[0] or root) if done and done[-1].get("repo") else root
+        if len(parts) != 4 or not re.match(r"^[0-9a-f]{40}$", parts[2]) or unlanded_problem(proot, parts[2]) is None:
             continue
         try:
             age = (now - datetime.datetime.fromisoformat(str(it.get("closed")).replace("Z", "+00:00"))).total_seconds() / 86400
@@ -571,7 +598,7 @@ def do_unlanded(root, a):
             age = 0
         if age < float(getattr(a, "days", 1)):
             continue
-        br = subprocess.run(["git", "-C", root, "branch", "--contains", parts[2], "--format=%(refname:short)", "--list", "wheel/*"],
+        br = subprocess.run(["git", "-C", proot, "branch", "--contains", parts[2], "--format=%(refname:short)", "--list", "wheel/*"],
                             capture_output=True, text=True).stdout.split()
         rows.append({"id": iid, "sha": parts[2][:12], "closed": it.get("closed"), "branch": br[0] if br else None})
     if getattr(a, "json", False):
@@ -613,10 +640,16 @@ def do_status(root, a):
                 ev["superseded"] = {"branches": built, "why": gone[:300]}
         elif branch:
             ev["branch"] = branch
+        repo, proot = (getattr(a, "repo", None) or "").strip(), root
+        if repo:
+            need(a.status == "done", "--repo only applies when closing done")
+            proot, bad = spoke_repo(root, repo)
+            need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
+            ev["repo"] = repo
         if a.status == "done" and it["kind"] == "autopilot":
             last = [e for e in it["history"] if e.get("event") == "status" and e["status"] in ("doing", "checking")]
             need(all(e.get("by") != a.by for e in last), "%s cannot be marked done by %s: a different checker must close an autopilot lug" % (a.id, a.by))
-            bad = proof_problem(getattr(a, "proof", None), a.id, root)
+            bad = proof_problem(getattr(a, "proof", None), a.id, proot)
             need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
             ev["proof"] = a.proof.strip()
         if a.status == "done":
@@ -625,10 +658,10 @@ def do_status(root, a):
                 ev["no_code"] = nc
             else:
                 sha = str(getattr(a, "proof", None) or "").split(".")
-                bad = landing_problem(root, a.id, sha[2] if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]) else None)
+                bad = landing_problem(proot, a.id, sha[2] if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]) else None)
                 need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
                 if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]):
-                    bad = unlanded_problem(root, sha[2])
+                    bad = unlanded_problem(proot, sha[2])
                     need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
         lk.append(ev)
         stm = " ".join((getattr(a, "statement", None) or "").split())
@@ -1960,6 +1993,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("status")
     s.add_argument("--reason", required=True)
     s.add_argument("--proof", help="closing an autopilot lug done: the token tools/verify.py printed on its pass")
+    s.add_argument("--repo", help="B-292, closing done in a hub: the registered spoke whose repository holds the lug's work; the proof, landing and on-main checks run there")
     s.add_argument("--no-code", dest="no_code", help="closing done with no code commit: the reason (a state, config or decision change); without it done needs a commit naming the lug")
     s.add_argument("--statement", help="closing done: the changelog line, one plain sentence of what is now true")
     s.add_argument("--branch", help="B-223: the wheel branch holding this lug's built work (required to go back to ready or start a build while one exists)")

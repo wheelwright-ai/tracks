@@ -179,8 +179,7 @@ def parse_any(s):
 #   - the verdict, from the context size against a fresh start (every step re-reads the whole context, so a long
 #     session makes every turn heavier, and only a restart clears it);
 #   - the last turn's weight against this project's normal turn (median, 7 days), a unitless multiple;
-#   - the subscription's 5-hour limit used, and how far it moved (from the status line's usage.json; other sessions
-#     and wakes share the limit, so the move is not this session's alone).
+#   - the Claude plan's pace advice (basher's pace_advice.py), never a raw limit percentage (the owner, 2026-11-22).
 # Weights are worked out at Claude API list prices so a cache read counts for less than fresh input and output for
 # more; the prices only set the mix, never a shown figure. claude-api table cached 2026-11-03, read 2026-11-20; Haiku's
 # cache read from tools/coding_bench.py (2026-11-09). Cache writes: 1-hour 2x input, 5-minute 1.25x. Fast mode 2x.
@@ -314,62 +313,148 @@ def baseline(root, transcript):
 
 
 def usage_now(path=None):
-    """(5-hour percent used, reset time) from the status line's usage.json, or None when missing or stale."""
+    """(5-hour percent used, its reset, week percent used, its reset) from the status line's usage.json, or None when
+    missing or stale."""
     import time
     try:
         d = json.load(open(path or USAGE))
         at = parse_any(d.get("written_at"))
         if not at or time.time() - at.timestamp() > USAGE_FRESH_S:
             return None
-        f = d.get("five_hour") or {}
-        return (int(f["used_pct"]), f.get("resets_at")) if f.get("used_pct") is not None else None
+        f, w = d.get("five_hour") or {}, d.get("seven_day") or {}
+        if f.get("used_pct") is None:
+            return None
+        return (int(f["used_pct"]), f.get("resets_at"), int(w.get("used_pct") or 0), w.get("resets_at"))
     except Exception:
         return None
 
 
-def gauge(label, weight, normal, ctx, fresh, pct=None, moved=None):
-    """The verdict-first gauge, ASCII, no pipes:
-    'Heavy, restart at the next stop: context 150K is 3.2x a fresh start; last turn 2.6x a normal turn. 5-hour limit 32% used (+3%).'"""
+PACE_ADVICE = os.path.join(os.path.expanduser("~"), ".claude", "pace_advice.py")   # basher installs it beside the status line
+
+
+def plan_advice(u, path=None, model=""):
+    """The Claude plan's pace advice for usage u (five_pct, five_ts, week_pct, week_ts): one short sentence from basher's
+    pace_advice.py, or "" when either is missing. Advice, not readings (the owner, 2026-11-22: "11% into our 5hr limit
+    ... isn't as useful as just knowing the advice on pacing")."""
+    if not u:
+        return ""
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("wheel_pace_advice", path or PACE_ADVICE)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        args = (int(u[0] or 0), int(u[1] or 0), int(u[2] or 0), int(u[3] or 0))
+        try:   # B-310: the model lets it name a gifted Fable reset at the cap; an older pace_advice.py takes no model
+            return m.advise(*args, model=model or "") or ""
+        except TypeError:
+            return m.advise(*args) or ""
+    except Exception:
+        return ""
+
+
+def gauge(label, weight, normal, ctx, fresh, plan=""):
+    """Context first, then the Claude plan's pacing, as separate sentences, ASCII, no pipes (the owner, 2026-11-22:
+    "Separate Context from Budget"; no raw limit percentages):
+    'Context heavy, restart at the next stop: 3.2x a fresh start; last turn 2.6x a normal turn. Claude plan: Week on track: 3d 4h until reset.'
+    The plan sentence covers the Claude subscription only (spend order tier 3), so it is labelled that way."""
     if not ctx:
         return ""
     r = ctx / float(fresh or FRESH_DEFAULT)
-    verdict = "Too heavy, restart now" if r >= TOO_HEAVY else "Heavy, restart at the next stop" if r >= HEAVY else "Light"
-    out = "%s: context %dK is %.1fx a fresh start" % (verdict, round(ctx / 1000.0), r)
+    verdict = ("Context too heavy, restart now" if r >= TOO_HEAVY else
+               "Context heavy, restart at the next stop" if r >= HEAVY else "Context light")
+    out = "%s: %.1fx a fresh start" % (verdict, r)
     if weight and normal:
         out += "; %s %.1fx a normal turn" % (label, weight / normal)
     out += "."
-    if pct is not None:
-        out += " 5-hour limit %d%% used%s." % (pct, " (+%d%%)" % moved if moved else "")
+    if plan:
+        out += " Claude plan: %s" % plan
     return out
 
 
 def footer_cost(root, transcript, stop, sid="unknown"):
     """The gauge for the footer. At the prompt the turn about to run has not happened, so it weighs the last finished
-    turn and the limit's move since the last prompt; at Stop, the turn that just ended and the move during it. Never raises."""
+    turn; at Stop, the turn that just ended. Never raises."""
     try:
         weights, _, ctx = read_turns(transcript)
         if not stop and weights and weights[-1] == 0:
             weights = weights[:-1]   # this prompt is already written but nothing has run for it
         b = baseline(root, transcript)
-        u = usage_now()
-        moved = None
-        mark = os.path.join(root, ".wheel", "tracks", ".turn-limit-%s" % sid[:36])
-        if u:
-            try:
-                was = json.load(open(mark))
-                if was.get("resets_at") == u[1]:
-                    moved = u[0] - int(was.get("pct"))
-            except Exception:
-                pass
-            if not stop:
-                try:
-                    json.dump({"pct": u[0], "resets_at": u[1]}, open(mark, "w"))
-                except Exception:
-                    pass
         return gauge("this turn" if stop else "last turn", weights[-1] if weights else 0, b.get("normal"), ctx,
-                     b.get("fresh"), u[0] if u else None, moved)
+                     b.get("fresh"), plan_advice(usage_now(), model=last_model(transcript) or ""))
     except Exception:
         return ""
+
+
+def _turns_cached(root, transcript):
+    """(weights, last call's context) for the live gauge, cached by the transcript's size and modified time in
+    .wheel/tracks/.gauge-turns.json so a status line refresh re-reads the transcript only after it grew. Never creates
+    .wheel/tracks: a project without one is read every time."""
+    if not isinstance(transcript, str):
+        return [], 0
+    try:
+        st = os.stat(transcript)
+    except Exception:
+        return [], 0
+    key = [transcript, st.st_size, int(st.st_mtime)]
+    path = os.path.join(root, ".wheel", "tracks", ".gauge-turns.json")
+    try:
+        c = json.load(open(path))
+        if c.get("key") == key:
+            return c["weights"], c["ctx"]
+    except Exception:
+        pass
+    weights, _, ctx = read_turns(transcript)
+    weights = weights[-2:]   # the gauge needs the last finished turn only
+    if os.path.isdir(os.path.dirname(path)):
+        try:
+            tmp = path + ".tmp%d" % os.getpid()
+            with open(tmp, "w") as f:
+                json.dump({"key": key, "weights": weights, "ctx": ctx}, f)
+            os.replace(tmp, path)
+        except Exception:
+            pass
+    return weights, ctx
+
+
+def live_gauge(status, root, usage_path=None):
+    """B-293: line 2 of the Claude status line, the same gauge() sentence the track footer prints, from the status
+    line's JSON (transcript_path, session_id, rate_limits). The numbers are the footer's: the last finished turn's
+    weight against this project's normal turn and the context against a fresh start, both from the transcript and the
+    footer's own baseline cache; the Claude plan pace advice from the limits Claude Code reports live (else usage.json).
+    Never raises; empty when there is nothing to gauge."""
+    try:
+        tr = status.get("transcript_path")
+        weights, ctx = _turns_cached(root, tr) if tr else ([], 0)
+        if weights and weights[-1] == 0:
+            weights = weights[:-1]   # a prompt is written but nothing has run for it yet
+        if not ctx:
+            ctx = context_of((status.get("context_window") or {}).get("current_usage"))
+        try:   # the footer refreshes this once a day; the status line only reads it unless it is missing
+            b = json.load(open(os.path.join(root, ".wheel", "tracks", ".cost-target.json")))
+            if b.get("prices") != PRICES_SET or "fresh" not in b:
+                raise ValueError
+        except Exception:
+            b = baseline(root, tr)
+        rl = status.get("rate_limits") or {}
+        f, w = rl.get("five_hour") or {}, rl.get("seven_day") or {}
+        if isinstance(f.get("used_percentage"), (int, float)):
+            u = (int(f["used_percentage"]), f.get("resets_at"), int(w.get("used_percentage") or 0), w.get("resets_at"))
+        else:
+            u = usage_now(usage_path)
+        return gauge("last turn", weights[-1] if weights else 0, b.get("normal"), ctx, b.get("fresh"),
+                     plan_advice(u, model=str((status.get("model") or {}).get("id") or "")))
+    except Exception:
+        return ""
+
+
+def gauge_cli(argv):
+    """`track_write.py gauge ROOT` with the status line's JSON on stdin: prints the live gauge sentence, or nothing."""
+    try:
+        status = json.load(sys.stdin)
+    except Exception:
+        return
+    root = (argv[0] if argv else None) or status.get("cwd") or os.getcwd()
+    print(live_gauge(status, root))
 
 
 def status_line(turn, model, hook, root, gold=None, cost=""):
@@ -563,7 +648,7 @@ def main():
         cost = footer_cost(root, hook.get("transcript_path"), stop=True, sid=sid)
         try:   # the status bar shows the same gauge without reading transcripts every refresh (the owner, 2026-11-22)
             with open(os.path.join(tdir, ".gauge-%s" % sid[:36]), "w") as f:
-                f.write(cost.split(" 5-hour limit")[0].strip() if cost else "")
+                f.write(cost.split(" Claude plan:")[0].strip() if cost else "")
         except Exception:
             pass
         print(json.dumps({"systemMessage": status_line(rec["turns"], model, hook, root, gold if gold is not None else "unknown",
@@ -572,6 +657,11 @@ def main():
 
 if __name__ == "__main__":
     try:
-        prompt_hook() if sys.argv[1:2] == ["prompt"] else main()
+        if sys.argv[1:2] == ["gauge"]:
+            gauge_cli(sys.argv[2:])
+        elif sys.argv[1:2] == ["prompt"]:
+            prompt_hook()
+        else:
+            main()
     except Exception:
         pass
