@@ -18,6 +18,20 @@ import json, os, sys, datetime
 sys.dont_write_bytecode = True
 
 
+def wheel_root(cwd):
+    """The project the session works in: the nearest folder at or above cwd that holds .wheel/config.json or
+    .wheel/hooks. A session that cds into a subfolder must not grow a stray .wheel/ there (it was then committed
+    by the turn save, with absolute paths in it). Falls back to cwd when no wheel is found."""
+    d = os.path.abspath(cwd)
+    while True:
+        if os.path.isfile(os.path.join(d, ".wheel", "config.json")) or os.path.isdir(os.path.join(d, ".wheel", "hooks")):
+            return d
+        up = os.path.dirname(d)
+        if up == d:
+            return os.path.abspath(cwd)
+        d = up
+
+
 def model_name(m):
     """claude-opus-5-5 -> Opus 5.5; claude-fable-5-2 -> Fable 5.2; anything unexpected is shown as it is."""
     if not m or m.startswith("<"):
@@ -399,7 +413,7 @@ def prompt_hook():
         hook = json.load(sys.stdin)
     except Exception:
         return
-    root = hook.get("cwd") or os.getcwd()
+    root = wheel_root(hook.get("cwd") or os.getcwd())
     try:
         idx = json.load(open(os.path.join(root, ".wheel", "tracks", ".index.json")))
     except Exception:
@@ -429,7 +443,7 @@ def main():
         hook = json.load(sys.stdin)
     except Exception:
         return
-    root = hook.get("cwd") or os.getcwd()
+    root = wheel_root(hook.get("cwd") or os.getcwd())
     tdir = os.path.join(root, ".wheel", "tracks")
     os.makedirs(tdir, exist_ok=True)
     idx_p = os.path.join(tdir, ".index.json")
@@ -493,15 +507,17 @@ def main():
                 text = c["text"].strip()
             if c.get("type") == "tool_use":
                 inp = c.get("input") or {}
-                tools.append("%s %s" % (c.get("name"), (inp.get("file_path") or inp.get("command") or inp.get("description") or "")[:80]))
+                tools.append("%s %s" % (c.get("name"), inp.get("file_path") or inp.get("command") or inp.get("description") or inp.get("prompt") or inp.get("query") or ""))
                 if c.get("name") in ("Edit", "Write", "NotebookEdit") and inp.get("file_path"):
                     files.append({"name": os.path.basename(inp["file_path"]), "type": "file", "summary": "edited this turn", "path": os.path.relpath(inp["file_path"], root)})
     reply = (hook.get("last_assistant_message") or text or "").strip()
     reply = "\n".join(l for l in reply.splitlines() if l.strip() and not l.startswith("Rules loaded from"))
-    focus = (prompt.strip().splitlines() or ["(no prompt text)"])[0][:100] or "(no prompt text)"
+    # Nothing is clipped (the owner, 2026-11-22: "Do not clip entries, we want and need the entirety"): the track is for
+    # rewarming, and a cut prompt, reply or command loses exactly what a later session needs.
+    focus = (prompt.strip().splitlines() or ["(no prompt text)"])[0] or "(no prompt text)"
     relayed = prompt.lstrip().startswith("Another Claude session sent a message") or "<task-notification>" in prompt
     if relayed:
-        focus = ("relayed: " + (prompt.strip().splitlines() or [""])[0])[:100]
+        focus = "relayed: " + (prompt.strip().splitlines() or [""])[0]
     now = datetime.datetime.now(datetime.timezone.utc)
     env = os.environ.get("WHEEL_ENV_ID") or None
     if not env:  # optional: the id the hub's environment refresh left for this machine (W-123)
@@ -523,13 +539,14 @@ def main():
     point = {"turn": rec["turns"], "ts": now.isoformat(timespec="seconds"),
              "phase": "execution" if files else ("review" if tools else "orientation"),
              "focus": focus,
-             "action": (reply.splitlines() or ["(no reply text)"])[0][:240] or "(no reply text)",
+             "prompt": prompt.strip() or "(no prompt text)",
+             "action": reply or "(no reply text)",
              "thinking": "Recorded by the Stop hook from the session transcript, not written by the agent. The agent's reasoning is not stored in the transcript, so this point records what was asked, what tools ran and what was produced. Read the transcript for the full reasoning.",
-             "activity": tools[:20] or ["conversational response"]}
+             "activity": tools or ["conversational response"]}
     if relayed:
         point["relayed"] = True
     if files:
-        point["files_out"] = files[:20]
+        point["files_out"] = files
     if tokens:
         point["tokens"] = tokens
     with open(os.path.join(tdir, rec["file"]), "a") as f:
@@ -543,8 +560,14 @@ def main():
             gold = gold_since(root, since) if since else None
         except Exception:
             gold = None
+        cost = footer_cost(root, hook.get("transcript_path"), stop=True, sid=sid)
+        try:   # the status bar shows the same gauge without reading transcripts every refresh (the owner, 2026-11-22)
+            with open(os.path.join(tdir, ".gauge-%s" % sid[:36]), "w") as f:
+                f.write(cost.split(" 5-hour limit")[0].strip() if cost else "")
+        except Exception:
+            pass
         print(json.dumps({"systemMessage": status_line(rec["turns"], model, hook, root, gold if gold is not None else "unknown",
-                                                       cost=footer_cost(root, hook.get("transcript_path"), stop=True, sid=sid))}))
+                                                       cost=cost)}))
 
 
 if __name__ == "__main__":

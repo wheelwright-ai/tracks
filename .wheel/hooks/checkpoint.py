@@ -11,6 +11,20 @@ import json, os, subprocess, sys, datetime, glob
 sys.dont_write_bytecode = True
 
 
+def wheel_root(cwd):
+    """The project the session works in: the nearest folder at or above cwd that holds .wheel/config.json or
+    .wheel/hooks. A session that cds into a subfolder must not grow a stray .wheel/ there (it was then committed
+    by the turn save, with absolute paths in it). Falls back to cwd when no wheel is found."""
+    d = os.path.abspath(cwd)
+    while True:
+        if os.path.isfile(os.path.join(d, ".wheel", "config.json")) or os.path.isdir(os.path.join(d, ".wheel", "hooks")):
+            return d
+        up = os.path.dirname(d)
+        if up == d:
+            return os.path.abspath(cwd)
+        d = up
+
+
 def git(root, *a):
     try:
         return subprocess.run(["git", "-C", root] + list(a), capture_output=True, text=True, timeout=10).stdout.strip()
@@ -93,7 +107,7 @@ def sessionstart(hook, root):
 if __name__ == "__main__":
     try:
         hook = json.load(sys.stdin)
-        root = hook.get("cwd") or os.getcwd()
+        root = wheel_root(hook.get("cwd") or os.getcwd())
         {"precompact": precompact, "sessionstart": sessionstart}[sys.argv[1]](hook, root)
     except Exception:
         pass
