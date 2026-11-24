@@ -1,5 +1,5 @@
 {
- "version": 59,
+ "version": 64,
  "parts": {
   "P-013": "2eaa8b45113e7b06",
   "P-014": "b9e1ce842bf916a7",
@@ -7,13 +7,13 @@
   "P-016": "63821798e0d20076",
   "P-017": "9d44c2c1249b7959",
   "P-018": "d8222df653ddc259",
-  "P-019": "4d63447d84f5f82e",
+  "P-019": "062f75367e166313",
   "P-020": "f4aa0031dd7c6c02",
   "P-021": "1392fc0ac3874e1c",
   "P-022": "3c3a696768f93e96",
-  "P-023": "2c1778270e20856c",
+  "P-023": "c91bcbbad0450098",
   "P-024": "07d06b7796ca039e"
  },
- "installed_at": "2026-11-23T17:30:01Z",
- "by": "conductor (canary for pathfinder)"
+ "installed_at": "2026-11-24T00:28:17Z",
+ "by": "ozi (canary for wheelwright-hub)"
 }

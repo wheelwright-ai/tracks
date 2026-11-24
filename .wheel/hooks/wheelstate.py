@@ -11,7 +11,7 @@ record, committed by the step that writes it). install.py puts the ignore list i
 
 land never pushes, never switches a branch, refuses during a merge or rebase, and skips (and names) a file a
 secret scan flags when a scanner is given. Stdlib only."""
-import json, os, subprocess, sys
+import fnmatch, json, os, subprocess, sys
 
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -103,8 +103,10 @@ def tracked_ignored(root, pol=None):
     return [p for p in r.stdout.split("\0") if p and classify(p, pol) == "ignore"]
 
 
-def land(root, message="wheel state", scan=None, pol=None):
+def land(root, message="wheel state", scan=None, pol=None, only=None):
     """Commit what the harness wrote. scan(path_abs, rel) -> truthy means 'looks like a secret': that file is left out.
+    only: fnmatch patterns (B-370); when given, just the dirty `commit` paths they match are committed and nothing is
+    untracked, so a step lands its own writes by name and leaves the rest (the lug store, a session's files) alone.
     Returns a one-line result."""
     pol = pol or policy()
     gd = _git(root, "rev-parse", "--absolute-git-dir").stdout.strip()
@@ -113,9 +115,11 @@ def land(root, message="wheel state", scan=None, pol=None):
     if any(os.path.exists(os.path.join(gd, x)) for x in ("MERGE_HEAD", "REBASE_HEAD", "rebase-merge", "rebase-apply", "CHERRY_PICK_HEAD")):
         return "not committed: a merge or rebase is in progress"
     paths = uncommitted(root, pol)
+    if only is not None:
+        paths = [p for p in paths if any(fnmatch.fnmatchcase(p, o) for o in only)]
     skipped = [p for p in paths if scan and scan(os.path.join(root, p), p)]
     paths = [p for p in paths if p not in skipped]
-    untrack = tracked_ignored(root, pol)
+    untrack = tracked_ignored(root, pol) if only is None else []
     if not paths and not untrack:
         return "not committed: nothing changed" + (" (left out, looks like a secret: %s)" % ", ".join(skipped) if skipped else "")
     staged = set(_git(root, "diff", "--cached", "--name-only").stdout.split("\n")) - {""}

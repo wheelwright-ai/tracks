@@ -21,6 +21,7 @@
   ".wheel/advisors/": "advisor reports (wake)",
   ".wheel/cycles/": "one summary per wake cycle (wake.py)",
   ".wheel/scouts/": "scout checks (scouts.py)",
+  ".wheel/probes/": "the project's probe scripts that scout probe checks run (scouts.py, B-346)",
   ".wheel/last-release.json": "release record (release.py)",
   ".wheel/kit.json": "kit stamp (kitver.py)",
   ".wheel/config.json": "project config (install.py)",
@@ -39,6 +40,8 @@
   "basher/conductor-orders.proposed.json": "proposed conductor orders (spotter.py)",
   "basher/kit-rollout.json": "kit rollout state per project (kit sync.py)",
   "basher/offerings/": "measured offerings per host (offerings.py, the local-model bench)",
-  "basher/resources.json": "measured resources and model slots (route.py, the local-model runner, offerings.py)"
+  "spokes/integrity.json": "each spoke's tension level and verdict (watchman.py tick, B-370)",
+  "basher/resources.json": "measured resources and model slots (route.py, the local-model runner, offerings.py)",
+  "basher/kit-reviews.jsonl": "the daily Fable kit review verdicts per version (kit_review.py)"
  }
 }
