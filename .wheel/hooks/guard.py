@@ -7,7 +7,8 @@
      matches a glob in the project's own .wheel/config.json "scratch" list (project-relative; never .git or .wheel).
   4. switching branches (git checkout <branch>, git switch) in a project's main checkout.
   5. second spellings of the same losses (W-177): git reset --hard, checkout -f, switch --discard-changes, stash
-     drop/clear, branch -D, find -delete / -exec rm, and history rewrites on the remote: push --force/-f/
+     drop/clear, branch -D (allowed when nothing is lost, B-392: an archive/<name> tag holds the tip, or main already
+     has every commit's patch), find -delete / -exec rm, and history rewrites on the remote: push --force/-f/
      --force-with-lease/+refspec/--mirror/--delete; and --no-verify on commit or push (never skip hooks).
   6. writes to the guard's own files (W-177): .wheel/hooks/, .claude/settings*.json, .wheel/config.json and the secrets
      allowlists, by Edit/Write or by a shell write (cp, mv, tee, sed -i, redirect ...). The kit installs them; the
@@ -43,10 +44,65 @@ def deny(reason):
     sys.exit(0)
 
 
-def git_check(tok):
-    """tok: tokens starting at 'git'. Return a reason or None."""
+def force_delete(args):
+    """True when git branch ARGS force-deletes: -D (alone or bundled, -vD), or a delete (-d/--delete) with -f/--force."""
+    short = [a[1:] for a in args if re.match(r"-[A-Za-z]+$", a)]
+    if any("D" in a for a in short):
+        return True
+    deleting = "--delete" in args or any("d" in a for a in short)
+    return deleting and ("--force" in args or any("f" in a for a in short))
+
+
+BRANCH_REASON = ("git branch -D would lose commits of %s that are not on %s. Keep them first: "
+                 "`git tag archive/NAME NAME` holds the tip, then -D is allowed (or ask the owner).")
+
+
+def branch_delete_check(args, cwd):
+    """B-392: a force-delete is allowed when nothing can be lost: for every named branch, an archive/<name> tag holds
+    its tip, or every commit on it already has an equal patch on main (git cherry shows no +), or merging it into main
+    would change nothing. Otherwise the reason, naming the branches at risk."""
+    if cwd is None:
+        return BRANCH_REASON % ("the branch", "main")
+    names = [a for a in args if not a.startswith("-")]
+    base = next((b for b in ("main", "master") if _git(cwd, "rev-parse", "--verify", "-q", "refs/heads/" + b)), "")
+    risky = [n for n in names if not branch_safe(cwd, n, base)] if names else ["the branch"]
+    if not risky:
+        return None
+    return BRANCH_REASON % (", ".join(risky), base or "main")
+
+
+def branch_safe(cwd, name, base):
+    tip = _git(cwd, "rev-parse", "--verify", "-q", "refs/heads/%s^{commit}" % name)
+    if not tip:
+        return False
+    if _git(cwd, "rev-parse", "--verify", "-q", "refs/tags/archive/%s^{commit}" % name) == tip:
+        return True
+    if not base or name == base:
+        return False
+    # 1. git cherry shows no +: every commit's patch is on main (also when it landed under another hash). It skips
+    #    merge commits, so a branch with merges of its own goes to test 2, which judges them by their result.
+    merges = _git(cwd, "rev-list", "--merges", "-n", "1", "%s..%s" % (base, name))
+    try:
+        r = subprocess.run(["git", "-C", cwd, "cherry", base, name], capture_output=True, text=True, timeout=10,
+                           env=dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_OPTIONAL_LOCKS="0"))
+        if not merges and r.returncode == 0 and not any(l.startswith("+") for l in r.stdout.splitlines()):
+            return True
+    except Exception:
+        pass
+    # 2. merging the branch into main would leave main's tree as it is: its net content is already there (a squash
+    #    landing, or a branch that merged main in after its work was cherry-picked; git cherry only compares commits
+    #    after the merge base, so it marks those +). A merge commit carrying a change of its own fails this.
+    tree = _git(cwd, "rev-parse", base + "^{tree}")
+    return bool(tree) and _git(cwd, "merge-tree", "--write-tree", base, name) == tree
+
+
+def git_check(tok, cwd=None):
+    """tok: tokens starting at 'git'. Return a reason or None. cwd is where the command runs (git -C moves it)."""
     i, n = 1, len(tok)
     while i < n and tok[i].startswith("-"):  # git -C dir / -c k=v / --no-pager
+        if tok[i] == "-C" and i + 1 < n and cwd is not None:
+            d = os.path.expanduser(tok[i + 1])
+            cwd = d if os.path.isabs(d) else os.path.join(cwd, d)
         i += 2 if tok[i] in ("-C", "-c") else 1
     if i >= n:
         return None
@@ -68,8 +124,8 @@ def git_check(tok):
         return "git switch --discard-changes / -f discards uncommitted changes. Run `git stash` first."
     if sub == "stash" and args[:1] and args[0] in ("drop", "clear"):
         return "git stash %s deletes stashed work. Ask the owner first." % args[0]
-    if sub == "branch" and any(a in ("-D",) or (re.match(r"-[A-Za-z]+$", a) and "D" in a) for a in args):
-        return "git branch -D deletes a branch even when its commits are not merged. Use `git branch -d` (it refuses unmerged work) or ask the owner."
+    if sub == "branch" and force_delete(args):
+        return branch_delete_check(args, cwd)
     if sub in ("commit", "push", "merge", "rebase", "am", "cherry-pick") and "--no-verify" in args:
         return "--no-verify skips the project's hooks (the secret and trap checks). Never skip hooks: fix what they report."
     if sub == "commit" and "-n" in args:
@@ -407,7 +463,7 @@ def check_command(cmd, cwd, depth=0):
             continue
         reason = protected_write(seg, tok)
         if not reason:
-            reason = git_check(tok) if name == "git" else rm_check(tok, cwd) if name == "rm" else \
+            reason = git_check(tok, cwd) if name == "git" else rm_check(tok, cwd) if name == "rm" else \
                 find_check(tok, cwd) if name == "find" else None
         if not reason and name == "git":
             reason = switch_check(tok, cwd)

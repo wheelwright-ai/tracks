@@ -1,10 +1,10 @@
 {
- "version": 65,
+ "version": 66,
  "parts": {
   "P-013": "2eaa8b45113e7b06",
   "P-014": "b9e1ce842bf916a7",
   "P-015": "26b98679ebe34ad3",
-  "P-016": "63821798e0d20076",
+  "P-016": "4fba8cc7b0415fff",
   "P-017": "9d44c2c1249b7959",
   "P-018": "d8222df653ddc259",
   "P-019": "3d35ac4800a604b4",
@@ -16,6 +16,6 @@
   "P-025": "e1a172e78c48e8b1",
   "P-026": "9a66a68cce95373f"
  },
- "installed_at": "2026-11-24T06:03:31Z",
- "by": "conductor"
+ "installed_at": "2026-11-24T15:46:23Z",
+ "by": "wcl (canary for kirby)"
 }
