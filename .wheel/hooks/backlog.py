@@ -92,7 +92,7 @@ def class_of(st, it):
 def urgency_of(it):
     """A lug's urgency; whenever when unset (older lugs carry none)."""
     return it.get("urgency") or DEFAULT_URGENCY
-WRITES = ("add", "status", "rank", "move", "edit", "link", "claim", "release", "initiative", "release-deps", "statement")
+WRITES = ("add", "status", "reopen", "rank", "move", "edit", "link", "claim", "release", "initiative", "release-deps", "statement")
 INIT_FIELDS = ("title", "goal", "outcome", "why_now", "scope_in", "scope_out", "done_when")
 INIT_LABELS = {"title": "title", "goal": "goal", "outcome": "outcome", "why_now": "why now", "scope_in": "scope (in)",
                "scope_out": "scope (out)", "done_when": "done when"}
@@ -236,6 +236,10 @@ def apply(st, ev):
             if iid in order:
                 order.remove(iid)
             pinned.pop(iid, None)
+        elif it.get("closed"):   # B-124: a reopened lug (lug.py reopen) is open again, at the bottom of the plan
+            it["closed"] = None
+            if iid not in order:
+                order.append(iid)
     elif kind == "rank" and iid in order:
         order.remove(iid)
         order.insert(min(max(ev["rank"], 1) - 1, len(order)), iid)
@@ -595,6 +599,8 @@ def do_unlanded(root, a):
         proot = (spoke_repo(root, done[-1]["repo"])[0] or root) if done and done[-1].get("repo") else root
         if len(parts) != 4 or not re.match(r"^[0-9a-f]{40}$", parts[2]) or unlanded_problem(proot, parts[2]) is None:
             continue
+        if landing_problem(proot, iid, default_ref(proot)) is None:   # landed under another sha (a fold or a cherry-pick)
+            continue
         try:
             age = (now - datetime.datetime.fromisoformat(str(it.get("closed")).replace("Z", "+00:00"))).total_seconds() / 86400
         except (ValueError, TypeError):
@@ -606,8 +612,31 @@ def do_unlanded(root, a):
         rows.append({"id": iid, "sha": parts[2][:12], "closed": it.get("closed"), "branch": br[0] if br else None})
     if getattr(a, "json", False):
         return json.dumps(rows)
-    return "\n".join("%s done but %s is not on main (branch %s): reopen to checking" % (r["id"], r["sha"], r["branch"] or "unknown")
+    return "\n".join("%s done but %s is not on main (branch %s): lug.py reopen %s" % (r["id"], r["sha"], r["branch"] or "unknown", r["id"])
                      for r in rows) or "every done lug's proven commit is on main"
+
+
+def do_reopen(root, a):
+    """B-124: a done lug whose work never reached main goes back to ready. Done is otherwise final; this is the one way
+    back, and only when main shows no landing: no commit on main names the lug and changes project files. A lug closed
+    with --no-code, or one that landed (even by a fold or cherry-pick with a new sha), is refused."""
+    need(a.reason and a.reason.strip(), "reopen needs --reason")
+    with Locked(root) as lk:
+        st = load(root)
+        it = open_item(st, a.id)
+        need(it["status"] == "done", "%s is %s; only a done lug can be reopened" % (a.id, it["status"]))
+        last = [e for e in it["history"] if e.get("event") == "status" and e.get("status") == "done"][-1:]
+        need(not (last and last[0].get("no_code")), "%s was closed with no code to land (%s)" % (a.id, last and last[0].get("no_code")))
+        proot = (spoke_repo(root, last[0]["repo"])[0] or root) if last and last[0].get("repo") else root
+        ref = default_ref(proot)
+        need(ref != "HEAD", "%s has no main or master branch to judge the landing by" % a.id)
+        need(landing_problem(proot, a.id, ref) is not None, "%s has landed: a commit on %s names it and changes project files" % (a.id, ref))
+        ev = {"event": "status", "id": a.id, "status": "ready", "from": "done", "by": a.by, "reason": a.reason.strip(), "reopen": True}
+        branch = (getattr(a, "branch", None) or "").strip()
+        if branch:
+            ev["branch"] = branch
+        lk.append(ev)
+        return "%s done -> ready (reopened: not on %s)" % (a.id, ref)
 
 
 def allowed_moves(it):
@@ -2067,6 +2096,10 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--statement", help="closing done: the changelog line, one plain sentence of what is now true")
     s.add_argument("--branch", help="B-223: the wheel branch holding this lug's built work (required to go back to ready or start a build while one exists)")
     s.add_argument("--superseded", help="B-223: why the lug's unchecked built branches are no longer wanted (lets it go back to ready without them)")
+    s = by(sub.add_parser("reopen", help="B-124: a done lug whose work is not on main goes back to ready"))
+    s.add_argument("id")
+    s.add_argument("--reason", required=True)
+    s.add_argument("--branch", help="the wheel branch that still holds the lug's work, if any")
     s = by(sub.add_parser("statement", help="set a lug's changelog line (open or closed lug)"))
     s.add_argument("id")
     s.add_argument("text")
@@ -2190,6 +2223,8 @@ def main(argv=None, prog=None):
             out = do_changelog(root, a)
         elif a.cmd == "status":
             out = do_status(root, a)
+        elif a.cmd == "reopen":
+            out = do_reopen(root, a)
         elif a.cmd == "rank":
             need(not (a.pin and a.unpin), "use --pin or --unpin, not both")
             out = do_rank(root, a, target=a.n)
