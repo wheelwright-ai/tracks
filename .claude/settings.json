@@ -55,6 +55,15 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/guard.py\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/overlap.py\" hook"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -64,6 +73,15 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/track_write.py\" prompt"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/harness_news.py\" prompt"
           }
         ]
       }

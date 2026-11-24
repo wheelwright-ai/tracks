@@ -12,8 +12,10 @@
   "P-021": "1392fc0ac3874e1c",
   "P-022": "3c3a696768f93e96",
   "P-023": "c91bcbbad0450098",
-  "P-024": "07d06b7796ca039e"
+  "P-024": "07d06b7796ca039e",
+  "P-025": "e1a172e78c48e8b1",
+  "P-026": "9a66a68cce95373f"
  },
- "installed_at": "2026-11-24T03:51:38Z",
- "by": "wcl (canary for wheelwright-hub)"
+ "installed_at": "2026-11-24T06:03:31Z",
+ "by": "conductor"
 }
