@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Lugs and initiatives for one project: a force-ranked plan and roadmap (kit part P-019). Stdlib only; never writes git.
+"""Lugs and initiatives for one project: a force-ranked plan and roadmap (kit part P-019). Stdlib only.
+The one git write (B-297): after a write run from a session (no --root), the log and its rendered views are committed on the
+live checkout's main branch at once, alone (a pathspec-only commit under the backlog lock), so no session sweeps another
+session's lug rows into its own commit. WHEEL_LUG_NOCOMMIT=1 turns this off; a checkout off main or mid-merge is left as is.
 
 Lugs are the work items; initiatives group the lugs that deliver one agreed goal. Every write names who made it (--by).
   lug add TITLE --value 1-5 --effort 1-5 --kind owner|autopilot --source WHO --by WHO [--goal G] [--initiative I-###]
@@ -1869,6 +1872,72 @@ def do_changelog(root, a):
     return changelog_md(root, st)
 
 
+LUG_FILES = (".wheel/backlog.jsonl", ".wheel/BACKLOG.md", ".wheel/ROADMAP.md", ".wheel/CHANGELOG.md")
+
+
+def _git(root, *args):
+    env = {k: v for k, v in os.environ.items() if k not in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE")}
+    return subprocess.run(["git", "-C", root] + list(args), capture_output=True, text=True, env=env)
+
+
+def row_line(ev):
+    what = ev.get("event", "?")
+    if what == "status":
+        what = "status %s" % ev.get("status", "?")
+    words_ = ev.get("title") or ev.get("reason") or ""
+    words_ = words_ if len(words_) <= 90 else words_[:87].rstrip() + "..."
+    return "%s %s (by %s)%s" % (ev.get("id", "?"), what, ev.get("by", "?"), ": " + words_ if words_ else "")
+
+
+def commit_lug_rows(root):
+    """B-297: commit the work-item log and its views on the live checkout's main branch, alone, so the rows never ride in
+    someone else's commit. Returns None when committed or nothing to do, else one line saying why the rows stay uncommitted
+    (the next lug write, or the turn save, carries them). Call it holding the backlog lock."""
+    if os.environ.get("WHEEL_LUG_NOCOMMIT") == "1":
+        return None
+    gd, cd = _git(root, "rev-parse", "--absolute-git-dir"), _git(root, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if gd.returncode or cd.returncode:
+        return None  # not a git repository: nothing to commit into
+    gdir = gd.stdout.strip()
+    if os.path.realpath(gdir) != os.path.realpath(cd.stdout.strip()):
+        return "the log's checkout is a linked worktree, not the main checkout"
+    if os.path.realpath(_git(root, "rev-parse", "--show-toplevel").stdout.strip() or root) != os.path.realpath(root):
+        return None  # the log is not at the top of a repository (a nested folder): leave git alone
+    branch = _git(root, "symbolic-ref", "--quiet", "--short", "HEAD").stdout.strip()
+    if branch not in ("main", "master"):
+        return "the main checkout is on %s, not main" % (branch or "a detached HEAD")
+    for busy in ("MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD", "rebase-merge", "rebase-apply"):
+        if os.path.exists(os.path.join(gdir, busy)):
+            return "a merge or rebase is in progress in the main checkout"
+    tracked = set(_git(root, "ls-files", "--", *LUG_FILES).stdout.split())
+    paths = [f for f in LUG_FILES if f in tracked or os.path.isfile(os.path.join(root, f))]
+    fresh = [f for f in paths if f not in tracked]
+    if fresh and _git(root, "add", "--", *fresh).returncode:
+        paths = [f for f in paths if f in tracked]  # ignored files stay out
+    if not paths or (_git(root, "diff", "--quiet", "HEAD", "--", *paths).returncode == 0 and not fresh):
+        return None
+    rows = []
+    for line in _git(root, "diff", "--no-color", "-U0", "HEAD", "--", LUG_FILES[0]).stdout.splitlines():
+        if line.startswith("+") and not line.startswith("+++"):
+            try:
+                rows.append(json.loads(line[1:]))
+            except ValueError:
+                pass
+    ids = list(dict.fromkeys(str(r.get("id", "?")) for r in rows))
+    subject = "Lug rows: " + (", ".join(ids[:4]) + (" and %d more" % (len(ids) - 4) if len(ids) > 4 else "") if ids else "views re-rendered")
+    body = "\n".join("- " + row_line(r) for r in rows[:40]) + ("\n- ... %d more rows" % (len(rows) - 40) if len(rows) > 40 else "")
+    msg = subject + "\n\nCommitted by lug.py on its own (B-297), touching only the work-item log and its views.\n" + (("\n" + body + "\n") if body else "")
+    for attempt in range(6):
+        c = _git(root, "commit", "-q", "-m", msg, "--", *paths)
+        if c.returncode == 0:
+            return None
+        err = (c.stderr or c.stdout).strip()
+        if "index.lock" not in err:
+            break
+        time.sleep(0.3)
+    return "git commit failed: %s" % (err.splitlines()[-1] if err else "no message")
+
+
 def write_views(root):
     st = load(root)
     os.makedirs(os.path.join(root, ".wheel"), exist_ok=True)
@@ -2163,7 +2232,11 @@ def main(argv=None, prog=None):
         return 1
     if (a.cmd in WRITES or (a.cmd == "reorder" and a.write and os.path.isfile(log_path(root)))) and not (a.cmd == "initiative" and a.icmd == "show"):
         try:
-            write_views(root)
+            with Locked(root):
+                write_views(root)
+                why = None if a.root else commit_lug_rows(root)
+            if why:
+                sys.stderr.write("lug: the rows are written but not committed on main (%s); the next lug write or the turn save carries them\n" % why)
         except OSError:
             pass
     print(out)
