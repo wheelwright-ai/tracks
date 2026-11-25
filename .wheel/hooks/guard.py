@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse guard. Reads the hook JSON on stdin. For Bash commands it denies four kinds:
+"""PreToolUse guard. Reads the hook JSON on stdin. For Bash commands it denies these kinds:
   1. discarding uncommitted work (git checkout -- / ., git restore without --staged, git clean -f),
   2. DROP DATABASE / DROP TABLE anywhere in the command (a quoted mention is blocked too, on purpose),
   3. plain rm of anything under the projects folder (WHEEL_GUARD_ROOT, default ~/projects); move it to the
@@ -13,6 +13,9 @@
   6. writes to the guard's own files (W-177): .wheel/hooks/, .claude/settings*.json, .wheel/config.json and the secrets
      allowlists, by Edit/Write or by a shell write (cp, mv, tee, sed -i, redirect ...). The kit installs them; the
      owner can set WHEEL_KIT_OK=1 to lift this.
+  7. a hand merge of a wheel branch (git merge wheel/...) in a project's main checkout (B-406): it would skip the merge
+     train (batched tests, the red-main ratchet); the refusal names `tools/lander.py land BRANCH`. The owner lifts it
+     with WHEEL_HAND_MERGE=1 (WHEEL_MAIN_OK does not lift it).
 Wrappers are unwrapped before the rules run (W-177): bash/sh -c STRING, eval, env, timeout, nice, nohup, time, sudo,
 command, exec, xargs, subshells ( ) and $( ) or backticks; before, only the first word of a segment was looked at.
 For Edit/Write/MultiEdit/NotebookEdit it denies any file inside a project's main checkout outside .wheel/: the main
@@ -36,6 +39,10 @@ PROTECT_REASON = ("this is one of the guard's own files (kit hooks, Claude setti
 WRITERS = {"cp", "mv", "tee", "truncate", "dd", "install", "ln", "chmod", "chown", "rm", "touch", "rsync", "patch"}
 WRAP_SIMPLE = {"sudo", "command", "exec", "nohup", "time", "builtin", "unbuffer", "stdbuf"}
 SHELLS = {"bash", "sh", "zsh", "dash", "ksh"}
+WHEEL_REF = re.compile(r"^(refs/heads/|refs/remotes/origin/|remotes/origin/|origin/)?(wheel/.+)$")
+HAND_MERGE_REASON = ("a hand merge of %s in the main checkout skips the merge train's tests: run `python3 %s land %s "
+                     "--path %s` instead (it waits for the project lock and lands the branch with what it depends on); "
+                     "the owner lifts this with WHEEL_HAND_MERGE=1")
 
 
 def deny(reason):
@@ -353,10 +360,10 @@ def works_in_main(top):
         return False
 
 
-def main_checkout(cwd):
+def main_checkout(cwd, escape="WHEEL_MAIN_OK"):
     """The toplevel of cwd's repo when cwd is in a project's main checkout (git-dir equals git-common-dir), else None.
-    A linked worktree, a non-repo and any git trouble give None."""
-    if os.environ.get("WHEEL_MAIN_OK") == "1" or not os.path.isdir(cwd):
+    A linked worktree, a non-repo and any git trouble give None, and so does the owner's escape variable set to 1."""
+    if os.environ.get(escape) == "1" or not os.path.isdir(cwd):
         return None
     top, gd, cd = _git(cwd, "rev-parse", "--show-toplevel"), _git(cwd, "rev-parse", "--git-dir"), _git(cwd, "rev-parse", "--git-common-dir")
     if not (top and gd and cd):
@@ -386,14 +393,52 @@ def edit_check(ti, cwd):
     return None
 
 
-def switch_check(tok, cwd):
-    """tok: tokens starting at 'git'. A branch switch in a main checkout, or None."""
+def git_sub(tok, cwd):
+    """(index of the git subcommand in tok, the directory git runs in after any -C)."""
     i, n = 1, len(tok)
     while i < n and tok[i].startswith("-"):
         if tok[i] == "-C" and i + 1 < n:
             d = os.path.expanduser(tok[i + 1])
             cwd = d if os.path.isabs(d) else os.path.join(cwd, d)
         i += 2 if tok[i] in ("-C", "-c") else 1
+    return i, cwd
+
+
+def hub_lander():
+    """The lander's path for the refusal line: WHEEL_HUB or ~/.config/wheel/hub-path, else the hub's relative path."""
+    h = os.environ.get("WHEEL_HUB")
+    if not h:
+        try:
+            with open(os.path.expanduser("~/.config/wheel/hub-path")) as f:
+                h = f.read().strip()
+        except OSError:
+            h = ""
+    return os.path.join(h, "tools", "lander.py") if h else "<the hub>/tools/lander.py"
+
+
+def hand_merge_check(tok, cwd):
+    """tok: tokens starting at 'git'. A `git merge` of a wheel branch in a main checkout (B-406), or None."""
+    i, cwd = git_sub(tok, cwd)
+    if i >= len(tok) or tok[i] != "merge":
+        return None
+    args, wheel = tok[i + 1:], None
+    for k, a in enumerate(args):
+        m = WHEEL_REF.match(a)
+        if m and not (k and args[k - 1] in ("-m", "--message", "-F", "--file", "-s", "--strategy", "-X")):
+            wheel = m.group(2)
+            break
+    if not wheel:
+        return None
+    top = main_checkout(cwd, "WHEEL_HAND_MERGE")
+    if not top:
+        return None
+    return HAND_MERGE_REASON % (wheel, hub_lander(), wheel, top)
+
+
+def switch_check(tok, cwd):
+    """tok: tokens starting at 'git'. A branch switch in a main checkout, or None."""
+    i, cwd = git_sub(tok, cwd)
+    n = len(tok)
     if i >= n or tok[i] not in ("checkout", "switch"):
         return None
     args = tok[i + 1:]
@@ -466,7 +511,7 @@ def check_command(cmd, cwd, depth=0):
             reason = git_check(tok, cwd) if name == "git" else rm_check(tok, cwd) if name == "rm" else \
                 find_check(tok, cwd) if name == "find" else None
         if not reason and name == "git":
-            reason = switch_check(tok, cwd)
+            reason = switch_check(tok, cwd) or hand_merge_check(tok, cwd)
         if reason:
             return reason
     return None

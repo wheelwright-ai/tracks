@@ -364,6 +364,17 @@ def need(cond, msg):
         raise Refused(msg)
 
 
+HUB_NAMED = re.compile(r"\s*(hub|otto)\b", re.I)
+
+
+def hub_write_elsewhere(root, by):
+    """B-428: True when --by names the hub ("hub ...", "otto ...") and this store is not the hub's (the hub's root holds
+    spokes/active.json). The hub decides, the spoke applies: the hub sends a message lug (msg.py send --responsible) and
+    the spoke's own session writes its store. The owner can lift this with WHEEL_HUB_WRITE_OK=1."""
+    return bool(by and HUB_NAMED.match(str(by)) and not os.path.isfile(os.path.join(root, "spokes", "active.json"))
+                and os.environ.get("WHEEL_HUB_WRITE_OK") != "1")
+
+
 def intrange(v, name):
     need(isinstance(v, int) and 1 <= v <= 5, "%s must be a whole number 1-5" % name)
 
@@ -2235,6 +2246,10 @@ def main(argv=None, prog=None):
         root = live_root(root)
     code = 0
     try:
+        need(not hub_write_elsewhere(root, getattr(a, "by", None)),
+             "--by %r names the hub, and this is not the hub's store: the hub decides, the spoke applies. Send the "
+             "project a message lug instead (msg.py send PROJECT --responsible with items), and its own session makes "
+             "the change (B-428)" % getattr(a, "by", None))
         if a.cmd == "add":
             out = do_add(root, a)
         elif a.cmd == "statement":

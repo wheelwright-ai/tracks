@@ -1,21 +1,21 @@
 {
- "version": 69,
+ "version": 72,
  "parts": {
-  "P-013": "2eaa8b45113e7b06",
+  "P-013": "827f32d412b38fe6",
   "P-014": "b9e1ce842bf916a7",
   "P-015": "26b98679ebe34ad3",
-  "P-016": "4fba8cc7b0415fff",
+  "P-016": "0572bf6625ebfcad",
   "P-017": "9d44c2c1249b7959",
   "P-018": "d8222df653ddc259",
-  "P-019": "301e02de04691b79",
+  "P-019": "0e18f94c3d68ae59",
   "P-020": "f4aa0031dd7c6c02",
   "P-021": "1392fc0ac3874e1c",
-  "P-022": "5c9fa4ef609a9ff8",
+  "P-022": "1a4f65b4580851be",
   "P-023": "c91bcbbad0450098",
   "P-024": "07d06b7796ca039e",
   "P-025": "e1a172e78c48e8b1",
-  "P-026": "9a66a68cce95373f"
+  "P-026": "2ba607921bd3a6c3"
  },
- "installed_at": "2026-11-25T01:07:40Z",
- "by": "owner:harness-memcap (canary for roxy)"
+ "installed_at": "2026-11-25T06:33:43Z",
+ "by": "conductor"
 }

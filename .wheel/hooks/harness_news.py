@@ -13,7 +13,7 @@ Usage:
   python3 harness_news.py test
 State (dir BASHER_NEWS_DIR, default ~/.local/state/basher): news.jsonl (id, ts, lug, text), sessions.json (session ->
 start), deliveries.jsonl (news id, session, ts, via). A session started at or after a line's time gets it from the
-wake prompt, never from the hook. Wiring: kit part P-026 (UserPromptSubmit, .wheel/hooks/harness_news.py prompt); the land step is basher/src/wcl.py merge_branch."""
+wake prompt, never from the hook. Wiring: kit part P-026 (UserPromptSubmit, .wheel/hooks/harness_news.py prompt); the land step is tools/tidy.py announce_news, called by the merge train (tools/train.py) for each landed branch."""
 import datetime, json, os, subprocess, sys, tempfile
 
 sys.dont_write_bytecode = True

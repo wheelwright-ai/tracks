@@ -13,7 +13,7 @@ Code sends one, else CLAUDE_EFFORT, else effortLevel in the project's then the g
 `track_write.py prompt` (a UserPromptSubmit hook) hands the same line to the model as context, to end its reply with:
 a Stop hook's systemMessage is not shown in every view (focus mode shows only the final message), and the owner
 reads this line every turn. The turn number is the one this turn's Stop point will carry."""
-import json, os, sys, datetime
+import json, os, re, sys, datetime
 
 sys.dont_write_bytecode = True
 
@@ -42,8 +42,36 @@ def model_name(m):
     return (" ".join(w.capitalize() for w in name) + (" " + ".".join(ver) if ver else "")).strip() or m
 
 
+def session_record(sid):
+    """The status line's live record for this session (~/.local/state/basher/sessions/<sid>.json): Claude Code's own
+    model and effort for it, which the hook payloads lack. {} when there is none."""
+    try:
+        d = json.load(open(os.path.join(os.path.expanduser("~/.local/state/basher/sessions"), os.path.basename(str(sid)) + ".json")))
+        return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def routed(sid, max_age=60):
+    """B-531: the turn router's decision for this turn (~/.config/wheel/turn-router/current-<sid>.json, written when the
+    prompt is submitted): (effort, class), or (None, None) when there is none from the last max_age seconds. The router
+    sets each turn's effort from the prompt, over the session's own setting."""
+    try:
+        p = os.path.join(os.path.expanduser("~/.config/wheel/turn-router"), "current-%s.json" % re.sub(r"[^A-Za-z0-9_-]", "_", str(sid)))
+        d = json.load(open(p))
+        t = datetime.datetime.fromisoformat(str(d.get("time")).replace("Z", "+00:00")).timestamp()
+        if datetime.datetime.now().timestamp() - t <= max_age and d.get("effort"):
+            return d["effort"], d.get("class")
+    except Exception:
+        pass
+    return None, None
+
+
 def effort_letter(hook, root):
-    e = hook.get("effort")
+    """B-531: the router's effort for this turn first, then Claude Code's live effort for this session (the status line's
+    record); the owner saw H in the footer while the status line said M, because the hook payload has no effort and the
+    settings file's default won."""
+    e = hook.get("effort") or routed(hook.get("session_id") or "")[0] or session_record(hook.get("session_id") or "").get("effort")
     if isinstance(e, dict):
         e = e.get("level") or e.get("name")
     e = e or os.environ.get("CLAUDE_EFFORT")
@@ -97,6 +125,18 @@ def session_number(root, transcript):
             if t and t <= mine:
                 n += 1
     return n or None
+
+
+def worktree_id(root):
+    """The six hex characters of a wheel worktree branch (wheel/<date>-<hex6>[-B-n]), as the status line shows them, or
+    None."""
+    try:
+        import subprocess
+        b = subprocess.run(["git", "-C", root, "branch", "--show-current"], capture_output=True, text=True, timeout=5).stdout.strip()
+    except Exception:
+        return None
+    m = re.match(r"^wheel/.*-([0-9a-f]{6})(-B-[0-9]+)?$", b)
+    return (m.group(1) + (m.group(2) or "")) if m else None
 
 
 def session_number_cached(root, transcript):
@@ -416,45 +456,80 @@ def _turns_cached(root, transcript):
     return weights, ctx
 
 
+def gauge_parts(weight, normal, ctx, fresh, plan=""):
+    """B-531: gauge()'s numbers as indicators for the status line's second line (the owner, 2026-11-24: "it can run off
+    the page can it be expressed with indicators not narratives?"): the context as a multiple of a fresh start and its
+    level (light, heavy: restart at the next stop, too_heavy: restart now), the last turn as a multiple of a normal turn
+    (None when unknown) and the Claude plan advice sentence, which the status line shortens. {} when there is no context."""
+    if not ctx:
+        return {}
+    r = ctx / float(fresh or FRESH_DEFAULT)
+    return {"ctx": float("%.1f" % r), "level": "too_heavy" if r >= TOO_HEAVY else "heavy" if r >= HEAVY else "light",
+            "turn": float("%.1f" % (weight / normal)) if weight and normal else None, "plan": plan or ""}
+
+
+def _live_inputs(status, root, usage_path=None):
+    """(weight, normal, ctx, fresh, plan) for the live gauge, from the status line's JSON (transcript_path, session_id,
+    rate_limits). The numbers are the footer's: the last finished turn's weight against this project's normal turn and
+    the context against a fresh start, both from the transcript and the footer's own baseline cache; the Claude plan pace
+    advice from the limits Claude Code reports live (else usage.json). May raise."""
+    tr = status.get("transcript_path")
+    weights, ctx = _turns_cached(root, tr) if tr else ([], 0)
+    if weights and weights[-1] == 0:
+        weights = weights[:-1]   # a prompt is written but nothing has run for it yet
+    if not ctx:
+        ctx = context_of((status.get("context_window") or {}).get("current_usage"))
+    try:   # the footer refreshes this once a day; the status line only reads it unless it is missing
+        b = json.load(open(os.path.join(root, ".wheel", "tracks", ".cost-target.json")))
+        if b.get("prices") != PRICES_SET or "fresh" not in b:
+            raise ValueError
+    except Exception:
+        b = baseline(root, tr)
+    rl = status.get("rate_limits") or {}
+    f, w = rl.get("five_hour") or {}, rl.get("seven_day") or {}
+    if isinstance(f.get("used_percentage"), (int, float)):
+        u = (int(f["used_percentage"]), f.get("resets_at"), int(w.get("used_percentage") or 0), w.get("resets_at"))
+    else:
+        u = usage_now(usage_path)
+    return (weights[-1] if weights else 0, b.get("normal"), ctx, b.get("fresh"),
+            plan_advice(u, model=str((status.get("model") or {}).get("id") or "")))
+
+
 def live_gauge(status, root, usage_path=None):
-    """B-293: line 2 of the Claude status line, the same gauge() sentence the track footer prints, from the status
-    line's JSON (transcript_path, session_id, rate_limits). The numbers are the footer's: the last finished turn's
-    weight against this project's normal turn and the context against a fresh start, both from the transcript and the
-    footer's own baseline cache; the Claude plan pace advice from the limits Claude Code reports live (else usage.json).
-    Never raises; empty when there is nothing to gauge."""
+    """B-293: the same gauge() sentence the track footer prints, from the status line's JSON. Never raises; empty when
+    there is nothing to gauge."""
     try:
-        tr = status.get("transcript_path")
-        weights, ctx = _turns_cached(root, tr) if tr else ([], 0)
-        if weights and weights[-1] == 0:
-            weights = weights[:-1]   # a prompt is written but nothing has run for it yet
-        if not ctx:
-            ctx = context_of((status.get("context_window") or {}).get("current_usage"))
-        try:   # the footer refreshes this once a day; the status line only reads it unless it is missing
-            b = json.load(open(os.path.join(root, ".wheel", "tracks", ".cost-target.json")))
-            if b.get("prices") != PRICES_SET or "fresh" not in b:
-                raise ValueError
-        except Exception:
-            b = baseline(root, tr)
-        rl = status.get("rate_limits") or {}
-        f, w = rl.get("five_hour") or {}, rl.get("seven_day") or {}
-        if isinstance(f.get("used_percentage"), (int, float)):
-            u = (int(f["used_percentage"]), f.get("resets_at"), int(w.get("used_percentage") or 0), w.get("resets_at"))
-        else:
-            u = usage_now(usage_path)
-        return gauge("last turn", weights[-1] if weights else 0, b.get("normal"), ctx, b.get("fresh"),
-                     plan_advice(u, model=str((status.get("model") or {}).get("id") or "")))
+        return gauge("last turn", *_live_inputs(status, root, usage_path))
     except Exception:
         return ""
 
 
+def live_parts(status, root, usage_path=None):
+    """B-531: the live gauge as gauge_parts() for the status line's indicators. Never raises; {} when nothing to gauge."""
+    try:
+        return gauge_parts(*_live_inputs(status, root, usage_path))
+    except Exception:
+        return {}
+
+
 def gauge_cli(argv):
-    """`track_write.py gauge ROOT` with the status line's JSON on stdin: prints the live gauge sentence, or nothing."""
+    """`track_write.py gauge ROOT [--json]` with the status line's JSON on stdin: prints the live gauge sentence, or with
+    --json the gauge_parts() indicators as one JSON object ({} when nothing to gauge); nothing on bad input."""
+    as_json = "--json" in argv
+    argv = [a for a in argv if a != "--json"]
     try:
         status = json.load(sys.stdin)
     except Exception:
         return
     root = (argv[0] if argv else None) or status.get("cwd") or os.getcwd()
-    print(live_gauge(status, root))
+    print(json.dumps(live_parts(status, root)) if as_json else live_gauge(status, root))
+
+
+def route_note(hook):
+    """' (routed: normal)' when the turn router set this turn's effort (the owner, 2026-11-24: the router's call belongs
+    in the track turn, not the Claude status line), else ''."""
+    _, cls = routed(hook.get("session_id") or "")
+    return " (routed: %s)" % cls if cls else ""
 
 
 def status_line(turn, model, hook, root, gold=None, cost=""):
@@ -463,15 +538,25 @@ def status_line(turn, model, hook, root, gold=None, cost=""):
     s{session} | Turn {n} | {day}, {month} {d}, {year} | {time} {tz} | {model effort} | {commit} | kit v{N} | Gold: +{count}
     A value the harness does not have is the word unknown, never a guess. gold=None leaves {gold} for the model."""
     now = datetime.datetime.now().astimezone()
-    sn = session_number_cached(root, hook.get("transcript_path"))
+    # B-531 (the owner, 2026-11-24: "session id is wrong"): the session is named by the same id the status line shows,
+    # the worktree's six hex characters; a session with no worktree id keeps its number among the project's sessions.
+    wid = worktree_id(root)
+    sn = None if wid else session_number_cached(root, hook.get("transcript_path"))
     m = model_name(model)
     letter = effort_letter(hook, root) if m else ""
     kv = kit_version(root)
-    bits = ["s%s" % (sn if sn else "unknown"), "Turn %d" % turn, now.strftime("%a, %b %-d, %Y"), now.strftime("%-I:%M %p %Z"),
-            (m + (" " + letter if letter else "")) if m else "unknown", head_sha(root) or "unknown",
+    bits = [wid or "s%s" % (sn if sn else "unknown"), "Turn %d" % turn, now.strftime("%a, %b %-d, %Y"), now.strftime("%-I:%M %p %Z"),
+            (m + (" " + letter if letter else "") + route_note(hook)) if m else "unknown", head_sha(root) or "unknown",
             "kit v%s" % kv if kv else "kit unknown"] + ([cost] if cost else []) + \
            ["Gold: +%s" % ("{gold}" if gold is None else gold)]
     return " | ".join(bits)
+
+
+def recorded_model(sid):
+    """B-531: the model the status line last saw for this session, so the first turn's footer names it before the
+    transcript holds an assistant message. None when there is no record."""
+    m = session_record(sid).get("model")
+    return m if isinstance(m, str) else None
 
 
 def last_model(path):
@@ -506,7 +591,7 @@ def prompt_hook():
     sid = hook.get("session_id") or "unknown"
     turn = int((idx.get(sid) or {}).get("turns") or 0) + 1
     model = hook.get("model") if isinstance(hook.get("model"), str) else None
-    line = status_line(turn, model or last_model(hook.get("transcript_path")), hook, root,
+    line = status_line(turn, model or last_model(hook.get("transcript_path")) or recorded_model(sid), hook, root,
                        cost=footer_cost(root, hook.get("transcript_path"), stop=False, sid=sid))
     try:   # when this turn began, so the Stop hook can count the proven work done in it
         tdir = os.path.join(root, ".wheel", "tracks")

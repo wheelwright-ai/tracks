@@ -16,6 +16,9 @@ reviews its inbox at its next wake or session start; a reply is a message lug ba
   msg.py read ID                              print one and mark it read
   msg.py done ID --note WHY                   mark it handled (what was done: a lug added, a reply sent, nothing needed)
   msg.py flush                                deliver the messages this project could not deliver before (B-248)
+  msg.py expect ID                            exits 0 when this project's lug store shows every disposition the message
+                                              carries (B-428: the hub decides, the spoke applies); reads only, prints
+                                              each lug still to do
 
 A send that cannot reach the recipient's machine (ssh fails: the machine is off) is not lost: the message waits in this
 project's .wheel/outbox/pending/ and goes out with the next send, `msg.py flush`, or the hub's hourly watchman tick. The
@@ -353,6 +356,46 @@ def messages(root, include_done=False):
     return out
 
 
+EXPECT = {   # B-428: what each hub disposition leaves in the spoke's store (a lug closed done or dropped meets any)
+    "drop": lambda it, d: it.get("status") == "dropped",
+    "prove": lambda it, d: it.get("kind") == "autopilot",
+    "reshape": lambda it, d: it.get("kind") == "autopilot" and str(it.get("check") or "").strip() == str(d.get("new_check") or "").strip(),
+}
+
+
+def find(root, mid):
+    """The message with id mid in this project's inbox (any state), or None."""
+    return next((m for m, _ in messages(root, include_done=True) if m.get("id") == mid), None)
+
+
+def expect(root, mid, store=None):
+    """B-428: [(lug id, disposition, what is still to do)] for a message's dispositions not yet in this project's store;
+    [] when all are. Raises SystemExit when the message is not here. store: {id: lug} (default: the kit's backlog.py
+    beside this file, read from the live checkout)."""
+    m = find(root, mid)
+    if not m:
+        raise SystemExit("msg.py: no message %s in this project's inbox" % mid)
+    if store is None:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("wheel_backlog_msg", os.path.join(os.path.dirname(os.path.abspath(__file__)), "backlog.py"))
+        b = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(b)
+        store = b.load(git_top(root))["items"]
+    left = []
+    for d in m.get("dispositions") or []:
+        rule = EXPECT.get(d.get("disposition"))
+        if not rule:
+            continue    # a walkthrough asks nothing of the store
+        it = store.get(d.get("id"))
+        if it is None:
+            left.append((d.get("id"), d["disposition"], "no such lug here"))
+        elif it.get("status") not in ("done", "dropped") and not rule(it, d):
+            left.append((d["id"], d["disposition"], {"drop": "move it to dropped with the evidence",
+                                                     "prove": "set kind autopilot and send it to checking",
+                                                     "reshape": "set the new check and kind autopilot"}[d["disposition"]]))
+    return left
+
+
 def unread_lines(root, limit=5):
     """Short lines for a wake or session start; [] when nothing is waiting."""
     waiting = [(m, s) for m, s in messages(root) if s != "done"]
@@ -419,7 +462,15 @@ def main(argv=None):
     s.add_argument("id")
     s.add_argument("--note", required=True)
     sub.add_parser("flush")
+    s = sub.add_parser("expect")
+    s.add_argument("id")
     a = ap.parse_args(argv)
+    if a.cmd == "expect":
+        left = expect(a.root, a.id)
+        for lid, d, what in left:
+            print("%s %s: %s" % (lid, d, what))
+        print("All dispositions of %s are in the store." % a.id if not left else "%d of the dispositions are still to do." % len(left))
+        return 1 if left else 0
     if a.cmd == "flush":
         sent, left = flush(a.root)
         print("Delivered %d, still waiting %d%s" % (len(sent), len(left), (": " + ", ".join(left)) if left else ""))
