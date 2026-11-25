@@ -16,7 +16,8 @@ Lugs are the work items; initiatives group the lugs that deliver one agreed goal
   lug link ID I-### --by WHO [--reason WHY]                 (each lug belongs to exactly one initiative)
   lug claim ID --by WORKER --lease MINUTES                  lug release ID --by WORKER [--reason WHY]
   lug initiative add TITLE --goal N --outcome .. --why-now .. --scope-in .. --scope-out .. --done-when .. --by WHO
-  lug initiative edit I-### [--title|--goal|--outcome|--why-now|--scope-in|--scope-out|--done-when ..] --reason WHY --by WHO
+  lug initiative edit I-### [--title|--goal|--outcome|--why-now|--scope-in|--scope-out|--done-when ..] [--keep-true T --keep-check CMD --keep-every hourly|daily|weekly] --reason WHY --by WHO
+  (a keep section says what must stay true, the command that checks it and how often; closing the initiative writes it as scout keep-i-NNN)
   lug initiative signoff I-### --who "the owner (source)" --by WHO      lug initiative close I-### --reason WHY --by WHO
   lug initiative show [I-###] [--json]
   lug show [--all] [--json]   lug top [--kind K] [--class build|maintain] [--pickable|--needs-check] [-n N] [--split] [--json]   lug history ID
@@ -47,7 +48,7 @@ prioritised backlog as a build part and a maintain part, which is what a session
 lint requires an explicit urgency on every open lug and keeps value within the goal's ceiling (goal n holds at most 6-n,
 a "(later)" goal at most 2), and warns when a lug's title or check says it needs (or comes after) a lug ranked below it;
 initiative add and edit print three fresh-reader questions to ask before sign-off. The full scoring rubric is plans/backlog-rubric.md in the hub."""
-import argparse, datetime, binascii, calendar, hashlib, hmac, json, os, re, subprocess, sys, time
+import argparse, datetime, binascii, calendar, hashlib, hmac, json, os, re, shlex, subprocess, sys, time
 
 sys.dont_write_bytecode = True
 try:
@@ -185,6 +186,7 @@ def apply(st, ev):
         if iid in inits:
             return
         inits[iid] = {k: ev.get(k) for k in INIT_FIELDS}
+        inits[iid]["keep"] = ev.get("keep")
         inits[iid].update(id=iid, added=ev.get("at"), updated=ev.get("at"), closed=None, by=ev.get("by"),
                           owner_signoff={"status": "pending"}, history=[ev])
         return
@@ -1431,6 +1433,44 @@ def init_args(a):
     return {f: getattr(a, f, None) for f in INIT_FIELDS}
 
 
+KEEP_EVERY = ("hourly", "daily", "weekly")
+
+
+def keep_args(a):
+    """The keep section from --keep-true, --keep-check, --keep-every (B-351): what must stay true, the read-only command
+    that proves it (exit 0 = still true) and how often to look. None when none were given."""
+    k = {"true": getattr(a, "keep_true", None), "check": getattr(a, "keep_check", None), "every": getattr(a, "keep_every", None)}
+    k = {n: v.strip() for n, v in k.items() if isinstance(v, str) and v.strip()}
+    return k or None
+
+
+def keep_problems(keep):
+    """Plain problems with a keep section; none when it is complete and its check can run as a scout."""
+    if not isinstance(keep, dict):
+        return ["keep section is missing: say what must stay true, the command that checks it and how often (hourly, daily, weekly)"]
+    out = []
+    if len(str(keep.get("true") or "").split()) < 4:
+        out.append("keep (true) must say in a few words what has to stay true")
+    if keep.get("every") not in KEEP_EVERY:
+        out.append("keep (every) must be one of %s" % ", ".join(KEEP_EVERY))
+    try:
+        cmd = shlex.split(keep.get("check") or "")
+    except ValueError:
+        cmd = []
+    if not cmd:
+        out.append("keep (check) must be a command that exits 0 while it stays true")
+    return out
+
+
+def keep_scout(ini):
+    """The standing scout spec that keeps a closed initiative's keep section true (severity normal, so the watchman runs it
+    at normal tension)."""
+    k = ini["keep"]
+    return {"name": "keep-" + ini["id"].lower(), "severity": "normal",
+            "purpose": ("Keeps %s (%s) true after it closed: %s. Look %s." % (ini["id"], ini.get("title"), k["true"], k["every"]))[:300],
+            "checks": [{"id": "c1", "what": k["true"][:120], "cmd": shlex.split(k["check"]), "expect": {"exit": 0}}]}
+
+
 def retier(root):
     """The hub (it carries tools/kit/MANIFEST.json and tools/priorities.py) tiers its initiatives as they are written;
     any other project skips silently, even one with a tools/priorities.py of its own."""
@@ -1455,10 +1495,14 @@ def do_init_add(root, a):
     fields = {k: (v.strip() if isinstance(v, str) else v) for k, v in init_args(a).items()}
     probs = init_problems(fields, agreed_goals(root))
     need(not probs, "the initiative is not written well enough yet:\n  - " + "\n  - ".join(probs))
+    keep = keep_args(a)
+    need(keep is None or not keep_problems(keep), "the keep section is not complete:\n  - " + "\n  - ".join(keep_problems(keep)))
     with Locked(root) as lk:
         events = read_events(root)
         iid = next_id(events, "I-", ("init_add",))
         ev = dict({"event": "init_add", "id": iid}, **fields)
+        if keep:
+            ev["keep"] = keep
         ev.update(by=a.by, reason=(a.reason or "").strip() or "new initiative for goal %s" % fields["goal"])
         lk.append(ev)
     return "%s %s (goal %s; owner sign-off pending)%s\n%s" % (iid, fields["title"], fields["goal"], retier(root), INIT_PROMPTS)
@@ -1471,6 +1515,12 @@ def do_init_edit(root, a):
         ini = get_init(st, a.id)
         need(not ini["closed"], "%s is closed" % a.id)
         ch = {k: v.strip() for k, v in init_args(a).items() if v is not None and v.strip() != (ini.get(k) or "")}
+        keep = keep_args(a)
+        if keep:
+            keep = dict(ini.get("keep") or {}, **keep)
+            need(not keep_problems(keep), "the keep section is not complete:\n  - " + "\n  - ".join(keep_problems(keep)))
+            if keep != ini.get("keep"):
+                ch["keep"] = keep
         need(ch, "nothing to change")
         probs = init_problems(dict(ini, **ch), agreed_goals(root))
         need(not probs, "the initiative would not be written well enough:\n  - " + "\n  - ".join(probs))
@@ -1508,12 +1558,32 @@ def do_init_close(root, a):
         need(not ini["closed"], "%s is already closed" % a.id)
         open_ids = [l["id"] for l in lugs_of(st, a.id) if l["status"] not in CLOSED]
         need(not open_ids, "%s cannot close while lugs are open: %s" % (a.id, ", ".join(open_ids)))
+        spec = None
+        if ini.get("keep"):
+            need(not keep_problems(ini["keep"]), "%s keep section is not complete: %s" % (a.id, "; ".join(keep_problems(ini["keep"]))))
+            spec = keep_scout(ini)
+            clean, sp = _scouts_mod().validate(spec)
+            need(clean is not None, "%s keep check cannot run as a scout: %s" % (a.id, "; ".join(sp)))
         lk.append({"event": "init_close", "id": a.id, "by": a.by, "reason": a.reason.strip(), "done": ini["done"], "counted": ini["counted"]})
-        return "%s closed: %d of %d lugs done" % (a.id, ini["done"], ini["counted"])
+        msg = "%s closed: %d of %d lugs done" % (a.id, ini["done"], ini["counted"])
+        if spec:
+            name, how, sp = _scouts_mod().write_scout(root, spec, "initiative-close")
+            msg += "; keep section %s as scout %s (%s)" % (how, name, "normal, runs " + ini["keep"]["every"]) if name else "; keep scout refused: %s" % "; ".join(sp)
+        else:
+            msg += "; no keep section, so no standing scout (add one before closing the next)"
+        return msg
+
+
+def _scouts_mod():
+    import importlib.util
+    sp = importlib.util.spec_from_file_location("scouts_kit", os.path.join(os.path.dirname(os.path.abspath(__file__)), "scouts.py"))
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+    return m
 
 
 def init_brief(ini):
-    d = {k: ini.get(k) for k in ("id",) + INIT_FIELDS + ("owner_signoff", "closed", "status", "done", "counted", "dropped", "open")}
+    d = {k: ini.get(k) for k in ("id",) + INIT_FIELDS + ("keep",) + ("owner_signoff", "closed", "status", "done", "counted", "dropped", "open")}
     return d
 
 
@@ -2184,6 +2254,9 @@ def build_parser(prog="backlog.py"):
         for f in ("outcome", "why-now", "scope-in", "scope-out", "done-when"):
             s.add_argument("--" + f, dest=f.replace("-", "_"), required=name == "add")
         s.add_argument("--reason", required=name == "edit")
+        s.add_argument("--keep-true", dest="keep_true", help="what must stay true once it is done")
+        s.add_argument("--keep-check", dest="keep_check", help="read-only command that exits 0 while it stays true")
+        s.add_argument("--keep-every", dest="keep_every", choices=KEEP_EVERY, help="how often to look")
     s = by(isub.add_parser("signoff"))
     s.add_argument("id")
     s.add_argument("--who", required=True, help="the owner, and where they said yes")
