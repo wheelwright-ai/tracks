@@ -15,6 +15,11 @@ reviews its inbox at its next wake or session start; a reply is a message lug ba
   msg.py inbox [--all] [--json]               this project's messages, unread first
   msg.py read ID                              print one and mark it read
   msg.py done ID --note WHY                   mark it handled (what was done: a lug added, a reply sent, nothing needed)
+  msg.py flush                                deliver the messages this project could not deliver before (B-248)
+
+A send that cannot reach the recipient's machine (ssh fails: the machine is off) is not lost: the message waits in this
+project's .wheel/outbox/pending/ and goes out with the next send, `msg.py flush`, or the hub's hourly watchman tick. The
+session-start line says how many wait.
 
 No local hub checkout (e.g. a project on another machine)? Set "remote_hub": {"ssh": HOST, "path": "~/projects/hub"} in
 .wheel/config.json: who and send then read the hub's spoke lists and deliver over ssh.
@@ -142,6 +147,11 @@ def need_text(v, what):
         raise SystemExit("msg.py: a message needs a %s" % what)
 
 
+class Undelivered(SystemExit):
+    """The recipient's machine could not be reached. A SystemExit, so callers that only deliver still stop as before;
+    post() and flush() catch it and keep the message pending instead (B-248)."""
+
+
 def deliver(m, entry, runner=subprocess.run):
     """Write the message lug into the recipient's inbox: a local file, or over ssh for another machine."""
     data = json.dumps(m, indent=1, ensure_ascii=False) + "\n"
@@ -154,10 +164,13 @@ def deliver(m, entry, runner=subprocess.run):
         script = ('mkdir -p "%s" && cat > "%s/%s.tmp" && mv "%s/%s.tmp" "%s/%s"; '
                   'x="%s/.git/info/exclude"; [ -d "%s/.git/info" ] && { grep -qx ".wheel/inbox/" "$x" 2>/dev/null || echo ".wheel/inbox/" >> "$x"; }; true'
                   % (target, target, name, target, name, target, name, proj, proj))
-        r = runner(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", entry["ssh"], script], input=data, capture_output=True,
-                   text=True, timeout=60)
+        try:
+            r = runner(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", entry["ssh"], script], input=data, capture_output=True,
+                       text=True, timeout=60)
+        except (OSError, subprocess.SubprocessError) as e:
+            raise Undelivered("msg.py: could not deliver to %s over ssh: %s" % (entry["ssh"], str(e)[:200]))
         if r.returncode:
-            raise SystemExit("msg.py: could not deliver to %s over ssh: %s" % (entry["ssh"], (r.stderr or "").strip()[:200]))
+            raise Undelivered("msg.py: could not deliver to %s over ssh: %s" % (entry["ssh"], (r.stderr or "").strip()[:200]))
         return "%s:%s/%s" % (entry["ssh"], target, name)
     d = inbox_dir(os.path.expanduser(entry["path"]))
     os.makedirs(d, exist_ok=True)
@@ -175,7 +188,10 @@ def ensure_ignored(top):
     if not os.path.isdir(os.path.dirname(ex)):
         return
     try:
-        have = open(ex).read() if os.path.exists(ex) else ""
+        have = ""
+        if os.path.exists(ex):
+            with open(ex) as f:
+                have = f.read()
         if ".wheel/inbox/" not in have:
             with open(ex, "a") as f:
                 f.write(("" if have.endswith("\n") or not have else "\n") + ".wheel/inbox/\n")
@@ -183,22 +199,118 @@ def ensure_ignored(top):
         pass
 
 
+def outbox_dir(root):
+    """This project's .wheel/outbox/ in its main checkout, made and kept git-ignored (like the inbox)."""
+    top = git_top(root)
+    d = os.path.join(top, ".wheel", "outbox")
+    os.makedirs(d, exist_ok=True)
+    ex = os.path.join(top, ".git", "info", "exclude")
+    if os.path.isdir(os.path.dirname(ex)):
+        have = ""
+        if os.path.exists(ex):
+            with open(ex) as f:
+                have = f.read()
+        if ".wheel/outbox/" not in have:
+            with open(ex, "a") as f:
+                f.write(("" if have.endswith("\n") or not have else "\n") + ".wheel/outbox/\n")
+    return d
+
+
 def keep_sent(root, m):
     """The sender keeps a copy in its own .wheel/outbox/ (git-ignored like the inbox), so what was asked is on record."""
     try:
-        top = git_top(root)
-        d = os.path.join(top, ".wheel", "outbox")
-        os.makedirs(d, exist_ok=True)
-        with open(os.path.join(d, m["id"] + ".json"), "w") as f:
+        with open(os.path.join(outbox_dir(root), m["id"] + ".json"), "w") as f:
             json.dump(m, f, indent=1, ensure_ascii=False)
-        ex = os.path.join(top, ".git", "info", "exclude")
-        if os.path.isdir(os.path.dirname(ex)):
-            have = open(ex).read() if os.path.exists(ex) else ""
-            if ".wheel/outbox/" not in have:
-                with open(ex, "a") as f:
-                    f.write(("" if have.endswith("\n") or not have else "\n") + ".wheel/outbox/\n")
     except OSError:
         pass
+
+
+def pending_dir(root):
+    return os.path.join(git_top(root), ".wheel", "outbox", "pending")
+
+
+def pending(root):
+    """[(path, message)] waiting to be delivered, oldest first. Files that are not message lugs are left alone."""
+    d = pending_dir(root)
+    out = []
+    try:
+        names = sorted(n for n in os.listdir(d) if n.endswith(".json"))
+    except OSError:
+        return []
+    for n in names:
+        try:
+            with open(os.path.join(d, n)) as f:
+                m = json.load(f)
+        except (OSError, ValueError):
+            continue
+        if isinstance(m, dict) and m.get("kind") == "message" and m.get("id") and m.get("to"):
+            out.append((os.path.join(d, n), m))
+
+    def queued(x):   # written in the same second: the order they were parked in
+        try:
+            return x[1].get("at", ""), os.stat(x[0]).st_mtime_ns
+        except OSError:
+            return x[1].get("at", ""), 0
+    out.sort(key=queued)
+    return out
+
+
+def keep_pending(root, m, why):
+    """Park a message that could not be delivered (B-248); keep_sent() records it only once it lands."""
+    d = os.path.join(outbox_dir(root), "pending")
+    os.makedirs(d, exist_ok=True)
+    path = os.path.join(d, m["id"] + ".json")
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(dict(m, _pending={"why": str(why)[:300], "at": now()}), f, indent=1, ensure_ascii=False)
+    os.replace(tmp, path)
+    return path
+
+
+def flush(root, d=None, runner=subprocess.run, down=None):
+    """Try every pending message once, oldest first; after one failure to a machine, the rest for it wait (no stack of
+    ssh timeouts). Returns (delivered ids, still pending ids). `down` collects the ssh hosts that failed."""
+    down = set() if down is None else down
+    sent, left = [], []
+    waiting = pending(root)
+    if not waiting:
+        return sent, left
+    d = d if d is not None else directory(root=root)
+    for path, m in waiting:
+        entry = d.get(m["to"])
+        if not entry or (entry.get("ssh") and entry["ssh"] in down):
+            left.append(m["id"])
+            continue
+        clean = {k: v for k, v in m.items() if k != "_pending"}
+        try:
+            deliver(clean, entry, runner=runner)
+        except Undelivered:
+            if entry.get("ssh"):
+                down.add(entry["ssh"])
+            left.append(m["id"])
+            continue
+        keep_sent(root, clean)
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+        sent.append(m["id"])
+    return sent, left
+
+
+def post(root, m, entry, d=None, runner=subprocess.run):
+    """Send one message: older pending ones first (order kept), then this one; parked when its machine is unreachable.
+    Returns (True, where) when delivered, (False, pending path) when parked."""
+    down = set()
+    flush(root, d, runner, down)
+    if entry.get("ssh") and entry["ssh"] in down:
+        return False, keep_pending(root, m, "%s did not answer over ssh" % entry["ssh"])
+    try:
+        where = deliver(m, entry, runner=runner)
+    except Undelivered as e:
+        return False, keep_pending(root, m, e)
+    keep_sent(root, m)
+    return True, where
 
 
 def state(d):
@@ -244,9 +356,12 @@ def messages(root, include_done=False):
 def unread_lines(root, limit=5):
     """Short lines for a wake or session start; [] when nothing is waiting."""
     waiting = [(m, s) for m, s in messages(root) if s != "done"]
+    stuck = pending(root)
+    out = ["Outbox: %d message(s) not yet delivered, first to %s; they go with the next send (python3 .wheel/hooks/msg.py flush)"
+           % (len(stuck), stuck[0][1]["to"])] if stuck else []
     if not waiting:
-        return []
-    lines = ["Inbox: %d message lug(s) waiting for review (python3 .wheel/hooks/msg.py inbox):" % len(waiting)]
+        return out
+    lines = out + ["Inbox: %d message lug(s) waiting for review (python3 .wheel/hooks/msg.py inbox):" % len(waiting)]
     for m, s in waiting[:limit]:
         lines.append("- %s from %s: %s%s [%s]" % (m.get("id"), m.get("from"), m.get("subject"),
                                                  " (%d asks, %d items)" % (len(m.get("asks") or []), len(m.get("items") or [])) if m.get("asks") or m.get("items") else "", s))
@@ -303,7 +418,12 @@ def main(argv=None):
     s = sub.add_parser("done")
     s.add_argument("id")
     s.add_argument("--note", required=True)
+    sub.add_parser("flush")
     a = ap.parse_args(argv)
+    if a.cmd == "flush":
+        sent, left = flush(a.root)
+        print("Delivered %d, still waiting %d%s" % (len(sent), len(left), (": " + ", ".join(left)) if left else ""))
+        return 0
     if a.cmd == "who":
         for name, e in sorted(directory(root=a.root).items()):
             act = active_session(e)
@@ -325,9 +445,11 @@ def main(argv=None):
             if loose:   # B-131: the lug made from this item needs a check a checker can run and fail
                 raise SystemExit("msg.py: each work item's check needs a backticked command (not: %s)" % ", ".join(str(t)[:40] for t in loose))
         m = make(a.sender or this_project(a.root), a.to, a.subject, a.body, a.ask, items, a.reply_to, a.ref, "responsible" if a.responsible else None)
-        where = deliver(m, d[a.to])
-        keep_sent(a.root, m)
-        print("%s delivered to %s" % (m["id"], where))
+        ok, where = post(a.root, m, d[a.to], d)
+        if ok:
+            print("%s delivered to %s" % (m["id"], where))
+        else:
+            print("%s could not reach %s now; it waits in %s and goes with the next send or msg.py flush" % (m["id"], a.to, where))
         return 0
     if a.cmd == "inbox":
         ms = messages(a.root, include_done=a.all)

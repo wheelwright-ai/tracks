@@ -518,10 +518,18 @@ def proof_problem(token, subject, root):
 LUG_NAMED = re.compile(r"\bB-\d{3,}\b")
 
 
-def landing_problem(root, iid, sha=None):
+def resolve_commit(root, ref):
+    """The full sha of a commit named by ref, or None."""
+    r = subprocess.run(["git", "-C", root, "rev-parse", "--verify", "-q", "%s^{commit}" % ref], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def landing_problem(root, iid, sha=None, built_in=None):
     """None when a commit reachable from sha (the proven commit; else HEAD) names the lug and changes something besides
     harness bookkeeping (tidy.landed_ids reads main the same way); else why not (B-124: done that never reached a commit
-    is spend with no result). A closing with --no-code REASON skips this and is counted apart."""
+    is spend with no result). A closing with --no-code REASON skips this and is counted apart. built_in (B-141) is the
+    commit that built the lug when its message names another id by mistake: it counts as naming the lug, and must still
+    be reachable from sha and change project files."""
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import wheelstate
@@ -534,6 +542,11 @@ def landing_problem(root, iid, sha=None):
     if r.returncode:
         return "cannot read the commit history from %s: %s" % (ref[:12], r.stderr.strip()[:100])
     naming = set()
+    if built_in:
+        full = resolve_commit(root, built_in)
+        if not full:
+            return "--built-in %s is not a commit in %s" % (str(built_in)[:40], root)
+        naming.add(full)
     for chunk in r.stdout.split("\x01")[1:]:
         h, _, msg = chunk.partition("\x00")
         if iid in LUG_NAMED.findall(msg):
@@ -543,8 +556,11 @@ def landing_problem(root, iid, sha=None):
             lines = [l.strip() for l in chunk.splitlines() if l.strip()]
             if lines and lines[0] in naming and any(wheelstate.owned(f, root, pol) is None for f in lines[1:]):
                 return None
-    return ("no commit on %s names %s and changes project files; commit the work with %s in the message, or close it with "
-            "--no-code REASON when it is a state, config or decision change with no code" % (ref[:12], iid, iid))
+    if built_in:
+        return "the --built-in commit %s is not on %s or changes only harness files" % (str(built_in)[:12], ref[:12])
+    return ("no commit on %s names %s and changes project files; commit the work with %s in the message, name the commit "
+            "that built it with --built-in SHA when its message names another id, or close it with --no-code REASON when "
+            "it is a state, config or decision change with no code" % (ref[:12], iid, iid))
 
 
 def spoke_repo(root, name):
@@ -599,7 +615,7 @@ def do_unlanded(root, a):
         proot = (spoke_repo(root, done[-1]["repo"])[0] or root) if done and done[-1].get("repo") else root
         if len(parts) != 4 or not re.match(r"^[0-9a-f]{40}$", parts[2]) or unlanded_problem(proot, parts[2]) is None:
             continue
-        if landing_problem(proot, iid, default_ref(proot)) is None:   # landed under another sha (a fold or a cherry-pick)
+        if landing_problem(proot, iid, default_ref(proot), done[-1].get("built_in")) is None:   # landed under another sha (a fold or a cherry-pick)
             continue
         try:
             age = (now - datetime.datetime.fromisoformat(str(it.get("closed")).replace("Z", "+00:00"))).total_seconds() / 86400
@@ -630,7 +646,7 @@ def do_reopen(root, a):
         proot = (spoke_repo(root, last[0]["repo"])[0] or root) if last and last[0].get("repo") else root
         ref = default_ref(proot)
         need(ref != "HEAD", "%s has no main or master branch to judge the landing by" % a.id)
-        need(landing_problem(proot, a.id, ref) is not None, "%s has landed: a commit on %s names it and changes project files" % (a.id, ref))
+        need(landing_problem(proot, a.id, ref, last and last[0].get("built_in")) is not None, "%s has landed: a commit on %s names it and changes project files" % (a.id, ref))
         ev = {"event": "status", "id": a.id, "status": "ready", "from": "done", "by": a.by, "reason": a.reason.strip(), "reopen": True}
         branch = (getattr(a, "branch", None) or "").strip()
         if branch:
@@ -690,8 +706,11 @@ def do_status(root, a):
                 ev["no_code"] = nc
             else:
                 sha = str(getattr(a, "proof", None) or "").split(".")
-                bad = landing_problem(proot, a.id, sha[2] if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]) else None)
+                bi = (getattr(a, "built_in", None) or "").strip()
+                bad = landing_problem(proot, a.id, sha[2] if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]) else None, bi or None)
                 need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
+                if bi:
+                    ev["built_in"] = resolve_commit(proot, bi)
                 if len(sha) == 4 and re.match(r"^[0-9a-f]{40}$", sha[2]):
                     bad = unlanded_problem(proot, sha[2])
                     need(not bad, "%s cannot be marked done: %s" % (a.id, bad))
@@ -2093,6 +2112,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--proof", help="closing an autopilot lug done: the token tools/verify.py printed on its pass")
     s.add_argument("--repo", help="B-292, closing done in a hub: the registered spoke whose repository holds the lug's work; the proof, landing and on-main checks run there")
     s.add_argument("--no-code", dest="no_code", help="closing done with no code commit: the reason (a state, config or decision change); without it done needs a commit naming the lug")
+    s.add_argument("--built-in", dest="built_in", help="B-141, closing done: the commit that built the lug when its message names another id by mistake (it must be on the proven commit's history and change project files)")
     s.add_argument("--statement", help="closing done: the changelog line, one plain sentence of what is now true")
     s.add_argument("--branch", help="B-223: the wheel branch holding this lug's built work (required to go back to ready or start a build while one exists)")
     s.add_argument("--superseded", help="B-223: why the lug's unchecked built branches are no longer wanted (lets it go back to ready without them)")
