@@ -84,6 +84,15 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/harness_news.py\" prompt"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.wheel/hooks/msg.py\" prompt"
+          }
+        ]
       }
     ]
   },

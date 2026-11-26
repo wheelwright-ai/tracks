@@ -78,6 +78,21 @@ def inbox_lines(root):
         return []
 
 
+def group_lines(root):
+    """B-604: the policy of every workspace group this project belongs to (groups.py), [] when none or not installed."""
+    try:
+        import importlib.util
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "groups.py")
+        if not os.path.exists(p):
+            return []
+        spec = importlib.util.spec_from_file_location("wheel_groups_ss", p)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        return m.session_lines(root)
+    except Exception:  # noqa: BLE001  (a session start never fails on a group manifest)
+        return []
+
+
 def rules_line(root):
     """B-069: the first-line rule, emitted by the hook so a check can prove it without a model. Empty when the project has no pointer file."""
     for name in ("CLAUDE.md", "AGENTS.md"):
@@ -87,7 +102,7 @@ def rules_line(root):
 
 
 def sessionstart(hook, root):
-    inbox = ([rules_line(root)] if rules_line(root) else []) + inbox_lines(root)
+    inbox = ([rules_line(root)] if rules_line(root) else []) + group_lines(root) + inbox_lines(root)
     files = sorted(glob.glob(os.path.join(root, ".wheel", "checkpoints", "*.json"))) if hook.get("source") in ("compact", "resume") else []
     if not files:
         if inbox:
