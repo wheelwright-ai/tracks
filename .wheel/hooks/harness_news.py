@@ -91,9 +91,34 @@ def session_start(sid, transcript=None, at=None):
     return seen[sid]
 
 
+LIVE_HOURS = 6   # B-649: a session with no prompt this long is treated as ended for the undelivered count
+
+
+def mark_seen(sid, at=None):
+    """B-649: remember the session's last prompt (sessions-last.json: session -> ISO), pruned to the last 2 days, so
+    undelivered() counts live sessions only and the file stays small."""
+    p = os.path.join(sdir(), "sessions-last.json")
+    try:
+        last = json.load(open(p))
+    except (OSError, ValueError):
+        last = {}
+    t = at or now()
+    cut = iso(t - datetime.timedelta(days=2))
+    last = {k: v for k, v in last.items() if v >= cut}
+    last[sid] = iso(t)
+    tmp = "%s.%d.tmp" % (p, os.getpid())
+    with open(tmp, "w") as f:
+        json.dump(last, f)
+    os.replace(tmp, p)
+
+
 def deliver(sid, transcript=None, at=None):
     """The news lines this session has not had and started before. Logs each delivery."""
     start = session_start(sid, transcript, at)
+    try:
+        mark_seen(sid, at)
+    except OSError:
+        pass
     had = {r["news"] for r in rows("deliveries.jsonl") if r.get("session") == sid}
     out = []
     for n in rows("news.jsonl"):
@@ -110,15 +135,21 @@ def wake(days=7, at=None):
 
 
 def undelivered(at=None):
-    """Lines (last 2 days) that a recently seen session, started before the line, has not had."""
+    """Lines (last 2 days) that a live session (a prompt within LIVE_HOURS; B-649), started before the line, has not had.
+    Ended sessions stay in sessions.json for good, so counting them read thousands where nothing failed."""
     try:
         seen = json.load(open(os.path.join(sdir(), "sessions.json")))
     except (OSError, ValueError):
         return 0
-    cut = iso((at or now()) - datetime.timedelta(days=2))
+    try:
+        last = json.load(open(os.path.join(sdir(), "sessions-last.json")))
+    except (OSError, ValueError):
+        last = {}
+    t0 = at or now()
+    cut, live = iso(t0 - datetime.timedelta(days=2)), iso(t0 - datetime.timedelta(hours=LIVE_HOURS))
     had = {(r["news"], r["session"]) for r in rows("deliveries.jsonl")}
     return sum(1 for n in rows("news.jsonl") for s, t in seen.items()
-               if t < n["ts"] and n["ts"] >= cut and (n["id"], s) not in had)
+               if max(t, last.get(s, "")) >= live and t < n["ts"] and n["ts"] >= cut and (n["id"], s) not in had)
 
 
 def prompt_hook():

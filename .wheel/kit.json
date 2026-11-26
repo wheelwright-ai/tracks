@@ -1,5 +1,5 @@
 {
- "version": 75,
+ "version": 76,
  "parts": {
   "P-013": "827f32d412b38fe6",
   "P-014": "b9e1ce842bf916a7",
@@ -14,9 +14,9 @@
   "P-023": "c91bcbbad0450098",
   "P-024": "07d06b7796ca039e",
   "P-025": "e1a172e78c48e8b1",
-  "P-026": "2ba607921bd3a6c3",
+  "P-026": "f8ee911eb7b4e483",
   "P-027": "bfb895b3229ed351"
  },
- "installed_at": "2026-11-26T07:02:08Z",
- "by": "conductor"
+ "installed_at": "2026-11-26T17:04:31Z",
+ "by": "wcl (canary for wheelwright-hub)"
 }
