@@ -45,6 +45,8 @@ class (optional) = build or maintain. Maintain is work that keeps the project he
 or any lug in the project's "Keep ... healthy" initiative (its title starts with "Keep" and names healthy or current). Everything
 else is build. The class is derived when not declared; `top --json` and `show --json` carry it, and `top --split` lists the
 prioritised backlog as a build part and a maintain part, which is what a session reads at startup.
+gain (B-681) = the product gain a lug predicts, "PRODUCT: the reading it moves". On the hub (tools/kit/MANIFEST.json present)
+a build lug without --gain is refused: the harness earns its points from a product. Maintain lugs and spoke stores are exempt.
 lint requires an explicit urgency on every open lug and keeps value within the goal's ceiling (goal n holds at most 6-n,
 a "(later)" goal at most 2), and warns when a lug's title or check says it needs (or comes after) a lug ranked below it;
 initiative add and edit print three fresh-reader questions to ask before sign-off. The full scoring rubric is plans/backlog-rubric.md in the hub."""
@@ -211,7 +213,7 @@ def apply(st, ev):
     if kind == "add":
         if iid in items:  # a duplicate id (say, from a bad merge): the first add stands; verify reports it
             return
-        items[iid] = {k: ev.get(k) for k in ("id", "title", "goal", "value", "effort", "kind", "source", "check", "reason")}
+        items[iid] = {k: ev.get(k) for k in ("id", "title", "goal", "value", "effort", "kind", "source", "check", "reason", "gain")}
         items[iid]["urgency"] = ev.get("urgency") or DEFAULT_URGENCY
         items[iid]["class"] = ev.get("class") if ev.get("class") in CLASSES else None
         items[iid]["urgency_set"] = bool(ev.get("urgency"))  # lint wants an explicit tag on every open lug
@@ -418,6 +420,26 @@ def describe(st, iid):
     return "score %d (value %d x2 - effort %d)%s" % (score(it), it["value"], it["effort"], ", " + " and ".join(bits) if bits else ", the only open lug")
 
 
+GAIN_RE = re.compile(r"^\s*[^:\s][^:]*:\s*\S")   # "PRODUCT: the reading it moves"
+
+
+def is_hub(root):
+    """The hub carries tools/kit/MANIFEST.json (the same test retier uses); spokes do not."""
+    return os.path.isfile(os.path.join(root, "tools", "kit", "MANIFEST.json"))
+
+
+def gain_problem(gain):
+    """B-681: None when gain names a product and the reading it moves ("easyorgs: signups per week up")."""
+    if gain is None or not str(gain).strip():
+        return "missing"
+    return None if GAIN_RE.match(str(gain)) else "--gain reads PRODUCT: THE READING IT MOVES, e.g. --gain \"easyorgs: signups per week up\""
+
+
+GAIN_HINT = ("on the hub a build lug names the product gain it predicts: --gain \"PRODUCT: the reading it moves\" "
+             "(e.g. --gain \"easyorgs: signups per week up\"). Harness work no product gains from is not built (B-681); "
+             "work that keeps things running is --class maintain")
+
+
 def do_add(root, a):
     need(a.title and a.title.strip(), "a title is required")
     intrange(a.value, "value")
@@ -439,6 +461,11 @@ def do_add(root, a):
             need(not ini["closed"], "%s is closed; a new lug cannot join it" % a.initiative)
             need(goal is None or str(goal) == str(ini["goal"]), "%s serves goal %s, not goal %s" % (a.initiative, ini["goal"], goal))
             goal = ini["goal"]
+        gain = (getattr(a, "gain", None) or "").strip() or None
+        if gain is not None:
+            need(not gain_problem(gain), gain_problem(gain) or "")
+        elif is_hub(root):   # B-681: the harness earns its points from a product
+            need(class_of(st, {"class": getattr(a, "klass", None), "initiative": a.initiative}) != "build", GAIN_HINT)
         iid = next_id(events)
         anchor = a.above or a.below
         if anchor:
@@ -463,6 +490,8 @@ def do_add(root, a):
             ev["urgency"] = getattr(a, "urgency", None)
         if getattr(a, "klass", None):
             ev["class"] = a.klass
+        if gain:
+            ev["gain"] = gain
         if anchor:
             ev["anchor"] = anchor
             ev["position"] = "above" if a.above else "below"
@@ -786,6 +815,10 @@ def do_edit(root, a):
         if getattr(a, "klass", None) is not None and a.klass != it.get("class"):
             need(a.klass in CLASSES, "class must be build or maintain")
             ch["class"] = a.klass
+        gain = getattr(a, "gain", None)
+        if gain is not None and gain.strip() != it.get("gain"):
+            need(not gain_problem(gain), gain_problem(gain) or "")
+            ch["gain"] = gain.strip()
         reach = getattr(a, "reach", None)
         if reach is not None and reach != it.get("reach"):   # B-222: work whose effect reaches every spoke weighs more in reorder
             need(reach in REACHES, "reach must be spokes or project")
@@ -2090,7 +2123,7 @@ def do_roadmap(root, a):
 
 
 def brief(it, st=None):
-    d = {k: it.get(k) for k in ("rank", "id", "title", "kind", "status", "value", "effort", "goal", "initiative", "check", "source", "reason")}
+    d = {k: it.get(k) for k in ("rank", "id", "title", "kind", "status", "value", "effort", "goal", "initiative", "check", "source", "reason", "gain")}
     d["urgency"] = urgency_of(it)
     d["after"] = list(it.get("after") or [])
     d["class"] = class_of(st, it)
@@ -2186,6 +2219,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--status")
     s.add_argument("--urgency", help="next_session | whenever (default)")
     s.add_argument("--class", dest="klass", help="build | maintain (derived from the initiative when not given)")
+    s.add_argument("--gain", help="B-681: the product gain it predicts, PRODUCT: THE READING IT MOVES (required for a build lug on the hub)")
     s = by(sub.add_parser("status", help="move a lug through the flow"))
     s.add_argument("id")
     s.add_argument("status")
@@ -2228,6 +2262,7 @@ def build_parser(prog="backlog.py"):
     s.add_argument("--effort", type=int)
     s.add_argument("--urgency", help="next_session | whenever")
     s.add_argument("--class", dest="klass", help="build | maintain")
+    s.add_argument("--gain", help="B-681: the product gain it predicts, PRODUCT: THE READING IT MOVES")
     s.add_argument("--reach", help="spokes | project: does the change reach every spoke (B-222: reorder lifts it)")
     s.add_argument("--after", help="B-132: lug ids this lug waits on, comma-separated (an empty value clears it); release-deps lifts the block")
     s.add_argument("--reason", required=True)

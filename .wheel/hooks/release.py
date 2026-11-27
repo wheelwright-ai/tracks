@@ -203,7 +203,9 @@ def advise(root):
         out["holds"].append("%s still in checking" % ", ".join(checking))
     rec = jread(os.path.join(root, RECORD))
     applied = {os.path.basename(x) for x in rec.get("migrations_applied") or []}
-    pending = sorted({f for f in files if MIGRATION.search(f) and os.path.basename(f) not in applied})
+    # a migration added and later taken back out (revert) ships nothing: only one still present at the tip counts
+    pending = sorted({f for f in files if MIGRATION.search(f) and os.path.basename(f) not in applied
+                      and git(root, "cat-file", "-e", "%s:%s" % (branch, f))[0] == 0})
     if pending:
         out["holds"].append("migration not recorded as applied: %s" % ", ".join(os.path.basename(p) for p in pending[:3]))
     red = smoke_red(root)
@@ -324,6 +326,11 @@ def selftest():
         check("a pending migration: hold", a["action"] == "hold" and "migration" in a["line"], a["line"])
         applied(p, ["001_x.sql"])
         check("recorded migration lifts the hold", advise(p)["action"] == "ask", advise(p)["line"])
+        p = _project(t, "c2", "personal", [("B-013", 5, "next_session", "done", "Nice")], [("B-013 nice", ["db/migrations/002_y.sql"])])
+        _sh(p, "git", "rm", "-q", "db/migrations/002_y.sql")
+        _sh(p, "git", "commit", "-qm", "B-013 revert the migration")
+        a = advise(p)
+        check("a migration added then reverted holds nothing", "migration" not in a["line"], a["line"])
         p = _project(t, "d", "personal", [("B-004", 5, "next_session", "checking", "Half done")], [("B-004 half done", [])])
         a = advise(p)
         check("a lug in checking: hold, never ship it", a["action"] == "hold" and "checking" in a["line"], a["line"])
